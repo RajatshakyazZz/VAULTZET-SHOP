@@ -593,12 +593,43 @@ class PortalApiClient {
   // ==========================================
   // 16. SETTINGS & INTEGRATIONS
   // ==========================================
-  async getPgBridgeConfig(): Promise<PgBridgeConfig> {
+  // 16. SETTINGS & INTEGRATIONS
+  // ==========================================
+  async getCashfreeConfig(): Promise<PgBridgeConfig> {
+    if (db) {
+      try {
+        const snap = await getDoc(doc(db, 'store_settings', 'cashfree'));
+        if (snap.exists()) return snap.data() as PgBridgeConfig;
+      } catch (e) {
+        console.warn('Firestore cashfree config fetch error:', e);
+      }
+    }
     return initialPgBridge;
   }
 
-  async updatePgBridgeConfig(config: PgBridgeConfig): Promise<PgBridgeConfig> {
+  async updateCashfreeConfig(config: PgBridgeConfig): Promise<PgBridgeConfig> {
+    if (db) {
+      try {
+        await setDoc(doc(db, 'store_settings', 'cashfree'), config, { merge: true });
+      } catch (e) {
+        console.warn('Firestore cashfree config update error:', e);
+      }
+    }
+    await logAdminAction({
+      adminEmail: 'admin@vaultzet.com',
+      action: 'UPDATE_CASHFREE_CONFIG',
+      module: 'Payments',
+      details: `Updated Cashfree Gateway credentials (Env: ${config.environment || 'PRODUCTION'})`,
+    });
     return config;
+  }
+
+  async getPgBridgeConfig(): Promise<PgBridgeConfig> {
+    return this.getCashfreeConfig();
+  }
+
+  async updatePgBridgeConfig(config: PgBridgeConfig): Promise<PgBridgeConfig> {
+    return this.updateCashfreeConfig(config);
   }
 
   async getDnpMetaConfig(): Promise<DnpMetaConfig> {

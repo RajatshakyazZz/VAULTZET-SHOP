@@ -301,16 +301,17 @@ export const initialConnectorStatus: ConnectorStatus = {
   changelog: 'Switched from legacy WordPress REST polling to real-time Firebase Cloud Firestore architecture. Zero WordPress hosting cost required.',
 };
 
-export const initialPgBridge: PgBridgeConfig = {
+export const initialCashfreeConfig: PgBridgeConfig = {
   enabled: true,
-  gateway: 'payezy_upi',
-  api_key: 'payezy_live_key_9028',
-  api_secret: 'sec_89237498273498273',
-  merchant_id: 'MERCHANT_VAULTZET',
-  callback_url: 'https://vaultzet-shop.vercel.app/api/payment/callback',
-  webhook_secret: 'whsec_payezy_839281',
-  test_mode: false,
+  app_id: '',
+  secret_key: '',
+  environment: 'PRODUCTION',
+  api_version: '2023-08-01',
+  return_url: 'https://store.vaultzet.shop/api/payment/cashfree/return',
+  webhook_secret: '',
 };
+
+export const initialPgBridge = initialCashfreeConfig;
 
 export const initialDnpMeta: DnpMetaConfig = {
   enabled: true,

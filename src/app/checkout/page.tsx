@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
+import Script from 'next/script';
 import { useRouter } from 'next/navigation';
 import {
   ShieldCheck,
@@ -10,14 +11,20 @@ import {
   Clock,
   Trash2,
   CheckCircle2,
-  QrCode,
   Smartphone,
   CreditCard,
-  ArrowRight,
+  Building,
+  AlertCircle,
+  Loader2,
 } from 'lucide-react';
 import { useCart } from '@/context/CartContext';
 import { ORDER_BUMP } from '@/data/bundles';
-import { createOrderInFirestore } from '@/lib/firebase';
+
+declare global {
+  interface Window {
+    Cashfree?: any;
+  }
+}
 
 export default function CheckoutPage() {
   const router = useRouter();
@@ -35,8 +42,9 @@ export default function CheckoutPage() {
   const [fullName, setFullName] = useState('');
   const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
-  const [paymentMethod, setPaymentMethod] = useState<'upi_qr' | 'phonepe' | 'gpay' | 'paytm'>('upi_qr');
   const [isProcessing, setIsProcessing] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [sdkLoaded, setSdkLoaded] = useState(false);
 
   // 10-Minute Countdown Timer for Order Bump matching reelsbundles.in
   const [secondsRemaining, setSecondsRemaining] = useState(585); // 9 mins 45 secs
@@ -60,16 +68,28 @@ export default function CheckoutPage() {
 
   const handlePlaceOrder = async (e: React.FormEvent) => {
     e.preventDefault();
+    setErrorMessage(null);
+
     if (items.length === 0 && !orderBumpAdded) {
       alert('Your cart is empty. Please select a bundle first.');
       return;
     }
 
+    if (!fullName.trim() || !email.trim() || !phone.trim()) {
+      setErrorMessage('Please fill in your Name, Email, and Phone number.');
+      return;
+    }
+
     setIsProcessing(true);
 
+    const orderNumber = `VZ-${Math.floor(100000 + Math.random() * 900000)}`;
     const orderPayload = {
-      orderNumber: `VZ-${Math.floor(100000 + Math.random() * 900000)}`,
-      customer: { fullName, email: email.trim().toLowerCase(), phone },
+      orderNumber,
+      customer: {
+        fullName: fullName.trim(),
+        email: email.trim().toLowerCase(),
+        phone: phone.trim(),
+      },
       items: items.map((i) => ({
         id: i.product.id,
         title: i.product.title,
@@ -85,20 +105,53 @@ export default function CheckoutPage() {
           }
         : null,
       totalAmount: total,
-      paymentMethod: paymentMethod === 'upi_qr' ? 'Instant UPI QR' : 'UPI Direct App',
-      status: 'completed' as const,
     };
 
     try {
-      const firestoreId = await createOrderInFirestore(orderPayload);
-      const fullOrder = { ...orderPayload, orderId: orderPayload.orderNumber, firestoreId };
-      localStorage.setItem('vaultzet_latest_order', JSON.stringify(fullOrder));
-      clearCart();
-      router.push(`/order-success?orderId=${orderPayload.orderNumber}`);
-    } catch (err) {
-      console.error('Order error:', err);
-      clearCart();
-      router.push(`/order-success?orderId=${orderPayload.orderNumber}`);
+      // 1. Create Cashfree Order on server
+      const res = await fetch('/api/payment/cashfree/create-order', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(orderPayload),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok || !data.success || !data.payment_session_id) {
+        throw new Error(
+          data.error ||
+            'Could not initialize Cashfree payment. Please verify Cashfree API keys in the Admin Portal.'
+        );
+      }
+
+      // Store temporary pending order details for confirmation
+      localStorage.setItem('vaultzet_latest_order', JSON.stringify({
+        ...orderPayload,
+        orderId: orderNumber,
+        paymentSessionId: data.payment_session_id,
+        status: 'pending',
+      }));
+
+      // 2. Open Cashfree v3 Checkout
+      if (typeof window !== 'undefined' && window.Cashfree) {
+        const cashfree = window.Cashfree({
+          mode: data.environment === 'SANDBOX' ? 'sandbox' : 'production',
+        });
+
+        await cashfree.checkout({
+          paymentSessionId: data.payment_session_id,
+          redirectTarget: '_self',
+        });
+      } else {
+        // Fallback: If JS SDK is slow to load, direct redirect
+        window.location.href = `/api/payment/cashfree/return?order_id=${encodeURIComponent(data.order_id)}`;
+      }
+    } catch (err: any) {
+      console.error('Cashfree order error:', err);
+      setIsProcessing(false);
+      setErrorMessage(
+        err.message || 'Payment initiation failed. Please check your connection and try again.'
+      );
     }
   };
 
@@ -121,312 +174,361 @@ export default function CheckoutPage() {
   }
 
   return (
-    <div className="py-8 sm:py-12 bg-[#faf9ff]">
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-        
-        {/* Checkout Header */}
-        <div className="flex items-center justify-between pb-6 mb-8 border-b border-purple-100">
-          <div>
-            <h1 className="text-2xl sm:text-3xl font-black text-[#182247] tracking-tight">
-              Express Checkout
-            </h1>
-            <p className="text-xs sm:text-sm text-[#6e7696] font-medium mt-1">
-              Zero hassle: Fill 3 quick details, pay with UPI, and get your Google Drive links instantly.
-            </p>
-          </div>
-          <div className="hidden sm:flex items-center gap-2 text-xs font-bold text-emerald-700 bg-emerald-50 px-3.5 py-1.5 rounded-full border border-emerald-200">
-            <Lock className="w-3.5 h-3.5" />
-            <span>256-bit Secure Encryption</span>
-          </div>
-        </div>
+    <>
+      {/* Official Cashfree v3 Web SDK */}
+      <Script
+        src="https://sdk.cashfree.com/js/v3/cashfree.js"
+        strategy="lazyOnload"
+        onLoad={() => setSdkLoaded(true)}
+      />
 
-        <form onSubmit={handlePlaceOrder} className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+      <div className="py-8 sm:py-12 bg-[#faf9ff]">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
           
-          {/* Left Column: Customer Info, Order Bump & Payment */}
-          <div className="lg:col-span-7 space-y-6">
-            
-            {/* 1. Customer Details (Minimal 3 Fields) */}
-            <div className="rounded-3xl p-6 bg-white border border-[#eae2fa] shadow-sm space-y-4">
-              <div className="flex items-center gap-2">
-                <span className="w-6 h-6 rounded-full bg-rb-purple text-white text-xs font-black flex items-center justify-center">
-                  1
-                </span>
-                <h2 className="text-base font-extrabold text-[#182247]">
-                  Delivery Information
-                </h2>
-              </div>
-
-              <div className="space-y-3">
-                <div>
-                  <label className="block text-xs font-bold text-slate-700 mb-1">
-                    Your Full Name <span className="text-red-500">*</span>
-                  </label>
-                  <input
-                    type="text"
-                    required
-                    placeholder="Enter your name"
-                    value={fullName}
-                    onChange={(e) => setFullName(e.target.value)}
-                    className="w-full px-4 py-3 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-rb-purple"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-xs font-bold text-slate-700 mb-1">
-                    Email Address (For Google Drive Access) <span className="text-red-500">*</span>
-                  </label>
-                  <input
-                    type="email"
-                    required
-                    placeholder="you@gmail.com"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    className="w-full px-4 py-3 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-rb-purple"
-                  />
-                  <span className="text-[11px] text-slate-400 mt-1 block">
-                    We will send the private Google Drive download folder to this email.
-                  </span>
-                </div>
-
-                <div>
-                  <label className="block text-xs font-bold text-slate-700 mb-1">
-                    WhatsApp / Phone Number <span className="text-red-500">*</span>
-                  </label>
-                  <input
-                    type="tel"
-                    required
-                    placeholder="+91 98765 43210"
-                    value={phone}
-                    onChange={(e) => setPhone(e.target.value)}
-                    className="w-full px-4 py-3 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-rb-purple"
-                  />
-                </div>
-              </div>
+          {/* Checkout Header */}
+          <div className="flex items-center justify-between pb-6 mb-8 border-b border-purple-100">
+            <div>
+              <h1 className="text-2xl sm:text-3xl font-black text-[#182247] tracking-tight">
+                Express Checkout
+              </h1>
+              <p className="text-xs sm:text-sm text-[#6e7696] font-medium mt-1">
+                Zero hassle: Fill your details, pay securely via Cashfree, and get instant Google Drive access.
+              </p>
             </div>
-
-            {/* 2. Exclusive Order Bump with Live 10-Min Timer matching reelsbundles.in */}
-            {!isBumpExpired && (
-              <div className="rounded-3xl p-5 sm:p-6 bg-gradient-to-br from-amber-50/80 via-white to-amber-50/40 border-2 border-dashed border-amber-300 shadow-sm relative overflow-hidden">
-                {/* Header ribbon */}
-                <div className="flex items-center justify-between flex-wrap gap-2 mb-3">
-                  <div className="flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-black uppercase tracking-wider bg-amber-400 text-slate-950 shadow-sm">
-                    ★ SPECIAL 1-TIME OFFER
-                  </div>
-                  <div className="flex items-center gap-1.5 text-xs font-black text-red-600 bg-red-50 px-2.5 py-1 rounded-full border border-red-200 animate-pulse">
-                    <Clock className="w-3.5 h-3.5" />
-                    <span>Offer ends in {timeFormatted}</span>
-                  </div>
-                </div>
-
-                <div className="flex gap-4 items-start">
-                  <img
-                    src={ORDER_BUMP.thumbnail}
-                    alt={ORDER_BUMP.title}
-                    className="w-20 sm:w-24 aspect-[4/3] rounded-xl object-cover shrink-0 border border-amber-200 shadow-sm"
-                  />
-                  <div className="flex-1 min-w-0">
-                    <h3 className="font-extrabold text-sm text-[#182247] leading-snug">
-                      {ORDER_BUMP.title}
-                    </h3>
-                    <p className="text-xs text-slate-500 mt-1 line-clamp-2">
-                      {ORDER_BUMP.subtitle}
-                    </p>
-                    <div className="flex items-center gap-2 mt-2">
-                      <span className="font-black text-sm text-green-700">
-                        ₹{ORDER_BUMP.discountPrice}.00
-                      </span>
-                      <span className="text-xs text-slate-400 line-through">
-                        ₹{ORDER_BUMP.originalPrice}.00
-                      </span>
-                      <span className="px-1.5 py-0.5 rounded text-[10px] font-black bg-green-200 text-green-900">
-                        80% OFF
-                      </span>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Switcher Toggle */}
-                <label className="mt-4 pt-3 border-t border-amber-200/80 flex items-center gap-3 cursor-pointer select-none">
-                  <input
-                    type="checkbox"
-                    checked={orderBumpAdded}
-                    onChange={() => setOrderBumpAdded(!orderBumpAdded)}
-                    className="w-5 h-5 rounded text-rb-purple focus:ring-rb-purple border-slate-300 cursor-pointer"
-                  />
-                  <span className="text-xs font-extrabold text-[#182247]">
-                    Yes! Add this {ORDER_BUMP.reelCount}+ reels mega pack to my order for just ₹{ORDER_BUMP.discountPrice}
-                  </span>
-                </label>
-              </div>
-            )}
-
-            {/* 3. Indian UPI Payment Gateway Selection */}
-            <div className="rounded-3xl p-6 bg-white border border-[#eae2fa] shadow-sm space-y-4">
-              <div className="flex items-center gap-2">
-                <span className="w-6 h-6 rounded-full bg-rb-purple text-white text-xs font-black flex items-center justify-center">
-                  2
-                </span>
-                <h2 className="text-base font-extrabold text-[#182247]">
-                  Select UPI Payment Method
-                </h2>
-              </div>
-
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                {[
-                  { id: 'upi_qr', name: 'Instant UPI QR', icon: QrCode },
-                  { id: 'phonepe', name: 'PhonePe UPI', icon: Smartphone },
-                  { id: 'gpay', name: 'Google Pay', icon: Smartphone },
-                  { id: 'paytm', name: 'Paytm UPI', icon: Smartphone },
-                ].map((m) => {
-                  const Icon = m.icon;
-                  const isSelected = paymentMethod === m.id;
-
-                  return (
-                    <button
-                      key={m.id}
-                      type="button"
-                      onClick={() => setPaymentMethod(m.id as any)}
-                      className={`p-3 rounded-2xl border-2 flex flex-col items-center justify-center gap-1.5 transition-all ${
-                        isSelected
-                          ? 'border-rb-purple bg-purple-50/70 text-rb-purple font-extrabold shadow-sm'
-                          : 'border-slate-200 hover:border-slate-300 text-slate-600 font-semibold'
-                      }`}
-                    >
-                      <Icon className="w-5 h-5" />
-                      <span className="text-xs">{m.name}</span>
-                    </button>
-                  );
-                })}
-              </div>
-
-              <div className="p-3.5 rounded-xl bg-purple-50/60 border border-purple-100 flex items-center gap-2.5 text-xs text-purple-900 font-semibold">
-                <Zap className="w-4 h-4 text-rb-purple fill-rb-purple shrink-0" />
-                <span>Zero transaction charges. Scan any UPI QR code or pay directly from your UPI app.</span>
-              </div>
+            <div className="hidden sm:flex items-center gap-2 text-xs font-bold text-emerald-700 bg-emerald-50 px-3.5 py-1.5 rounded-full border border-emerald-200">
+              <Lock className="w-3.5 h-3.5" />
+              <span>256-bit Secure Encryption</span>
             </div>
-
           </div>
 
-          {/* Right Column: Sticky Order Summary */}
-          <div className="lg:col-span-5 sticky top-28 space-y-4">
-            <div className="rounded-3xl p-6 bg-white border border-[#eae2fa] shadow-lg space-y-5">
-              <h2 className="text-base font-extrabold text-[#182247] pb-3 border-b border-slate-100">
-                Order Summary ({items.length + (orderBumpAdded ? 1 : 0)} items)
-              </h2>
+          {/* Error Banner */}
+          {errorMessage && (
+            <div className="mb-6 p-4 rounded-2xl bg-rose-50 border border-rose-200 text-rose-800 text-xs font-semibold flex items-start gap-3">
+              <AlertCircle className="w-4 h-4 text-rose-600 shrink-0 mt-0.5" />
+              <div className="flex-1">
+                <span className="font-bold">Checkout Issue: </span>
+                {errorMessage}
+              </div>
+            </div>
+          )}
 
-              {/* Items List */}
-              <div className="space-y-3 max-h-72 overflow-y-auto pr-1">
-                {items.map((item) => (
-                  <div
-                    key={`${item.product.id}-${item.license}`}
-                    className="flex gap-3 items-center justify-between p-2.5 rounded-xl bg-slate-50 border border-slate-100"
-                  >
-                    <img
-                      src={item.product.thumbnail}
-                      alt={item.product.title}
-                      className="w-12 h-14 object-cover rounded-lg shrink-0"
+          <form onSubmit={handlePlaceOrder} className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+            
+            {/* Left Column: Customer Info, Order Bump & Payment */}
+            <div className="lg:col-span-7 space-y-6">
+              
+              {/* 1. Customer Details (Minimal 3 Fields) */}
+              <div className="rounded-3xl p-6 bg-white border border-[#eae2fa] shadow-sm space-y-4">
+                <div className="flex items-center gap-2">
+                  <span className="w-6 h-6 rounded-full bg-rb-purple text-white text-xs font-black flex items-center justify-center">
+                    1
+                  </span>
+                  <h2 className="text-base font-extrabold text-[#182247]">
+                    Delivery Information
+                  </h2>
+                </div>
+
+                <div className="space-y-3">
+                  <div>
+                    <label className="block text-xs font-bold text-slate-700 mb-1">
+                      Your Full Name <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      required
+                      placeholder="Enter your name"
+                      value={fullName}
+                      onChange={(e) => setFullName(e.target.value)}
+                      className="w-full px-4 py-3 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-rb-purple"
                     />
-                    <div className="flex-1 min-w-0 px-1">
-                      <h4 className="font-bold text-xs text-[#182247] line-clamp-1">
-                        {item.product.title}
-                      </h4>
-                      <span className="text-[10px] font-semibold text-rb-purple bg-purple-100 px-1.5 py-0.5 rounded">
-                        {item.license === 'reseller' ? 'Reseller Rights' : 'Personal Use'}
-                      </span>
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-bold text-slate-700 mb-1">
+                      Email Address (For Google Drive Access) <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                      type="email"
+                      required
+                      placeholder="you@gmail.com"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      className="w-full px-4 py-3 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-rb-purple"
+                    />
+                    <span className="text-[11px] text-slate-400 mt-1 block">
+                      We will send the private Google Drive download folder to this email.
+                    </span>
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-bold text-slate-700 mb-1">
+                      WhatsApp / Phone Number <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                      type="tel"
+                      required
+                      placeholder="+91 98765 43210"
+                      value={phone}
+                      onChange={(e) => setPhone(e.target.value)}
+                      className="w-full px-4 py-3 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-rb-purple"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* 2. Exclusive Order Bump with Live 10-Min Timer matching reelsbundles.in */}
+              {!isBumpExpired && (
+                <div className="rounded-3xl p-5 sm:p-6 bg-gradient-to-br from-amber-50/80 via-white to-amber-50/40 border-2 border-dashed border-amber-300 shadow-sm relative overflow-hidden">
+                  {/* Header ribbon */}
+                  <div className="flex items-center justify-between flex-wrap gap-2 mb-3">
+                    <div className="flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-black uppercase tracking-wider bg-amber-400 text-slate-950 shadow-sm">
+                      ★ SPECIAL 1-TIME OFFER
                     </div>
-                    <div className="text-right shrink-0">
-                      <div className="font-extrabold text-xs text-[#182247]">
-                        ₹{item.price}.00
-                      </div>
-                      <button
-                        type="button"
-                        onClick={() => removeFromCart(item.product.id, item.license)}
-                        className="text-slate-400 hover:text-red-500 text-xs p-1"
-                      >
-                        <Trash2 className="w-3.5 h-3.5" />
-                      </button>
+                    <div className="flex items-center gap-1.5 text-xs font-black text-red-600 bg-red-50 px-2.5 py-1 rounded-full border border-red-200 animate-pulse">
+                      <Clock className="w-3.5 h-3.5" />
+                      <span>Offer ends in {timeFormatted}</span>
                     </div>
                   </div>
-                ))}
 
-                {orderBumpAdded && (
-                  <div className="flex gap-3 items-center justify-between p-2.5 rounded-xl bg-amber-50/70 border border-amber-200">
+                  <div className="flex gap-4 items-start">
                     <img
                       src={ORDER_BUMP.thumbnail}
                       alt={ORDER_BUMP.title}
-                      className="w-12 h-14 object-cover rounded-lg shrink-0"
+                      className="w-20 sm:w-24 aspect-[4/3] rounded-xl object-cover shrink-0 border border-amber-200 shadow-sm"
                     />
-                    <div className="flex-1 min-w-0 px-1">
-                      <h4 className="font-bold text-xs text-amber-950 line-clamp-1">
+                    <div className="flex-1 min-w-0">
+                      <h3 className="font-extrabold text-sm text-[#182247] leading-snug">
                         {ORDER_BUMP.title}
-                      </h4>
-                      <span className="text-[10px] font-bold text-amber-800 bg-amber-200 px-1.5 py-0.5 rounded">
-                        Bonus Offer
-                      </span>
-                    </div>
-                    <div className="text-right shrink-0">
-                      <div className="font-extrabold text-xs text-amber-950">
-                        ₹{ORDER_BUMP.discountPrice}.00
+                      </h3>
+                      <p className="text-xs text-slate-500 mt-1 line-clamp-2">
+                        {ORDER_BUMP.subtitle}
+                      </p>
+                      <div className="flex items-center gap-2 mt-2">
+                        <span className="font-black text-sm text-green-700">
+                          ₹{ORDER_BUMP.discountPrice}.00
+                        </span>
+                        <span className="text-xs text-slate-400 line-through">
+                          ₹{ORDER_BUMP.originalPrice}.00
+                        </span>
+                        <span className="px-1.5 py-0.5 rounded text-[10px] font-black bg-green-200 text-green-900">
+                          80% OFF
+                        </span>
                       </div>
-                      <button
-                        type="button"
-                        onClick={() => setOrderBumpAdded(false)}
-                        className="text-slate-400 hover:text-red-500 text-xs p-1"
-                      >
-                        <Trash2 className="w-3.5 h-3.5" />
-                      </button>
                     </div>
                   </div>
-                )}
-              </div>
 
-              {/* Price Calculations */}
-              <div className="space-y-2 pt-3 border-t border-slate-100 text-xs font-semibold">
-                <div className="flex justify-between text-slate-500">
-                  <span>Subtotal</span>
-                  <span className="text-slate-800">₹{subtotal}.00</span>
+                  {/* Switcher Toggle */}
+                  <label className="mt-4 pt-3 border-t border-amber-200/80 flex items-center gap-3 cursor-pointer select-none">
+                    <input
+                      type="checkbox"
+                      checked={orderBumpAdded}
+                      onChange={() => setOrderBumpAdded(!orderBumpAdded)}
+                      className="w-5 h-5 rounded text-rb-purple focus:ring-rb-purple border-slate-300 cursor-pointer"
+                    />
+                    <span className="text-xs font-extrabold text-[#182247]">
+                      Yes! Add this {ORDER_BUMP.reelCount}+ reels mega pack to my order for just ₹{ORDER_BUMP.discountPrice}
+                    </span>
+                  </label>
                 </div>
-                {orderBumpAdded && (
-                  <div className="flex justify-between text-green-600">
-                    <span>Order Bump (80% Off)</span>
-                    <span>+₹{ORDER_BUMP.discountPrice}.00</span>
+              )}
+
+              {/* 3. Cashfree Payment Gateway Card */}
+              <div className="rounded-3xl p-6 bg-white border-2 border-purple-200 shadow-sm space-y-4">
+                <div className="flex items-center justify-between pb-3 border-b border-slate-100">
+                  <div className="flex items-center gap-2">
+                    <span className="w-6 h-6 rounded-full bg-rb-purple text-white text-xs font-black flex items-center justify-center">
+                      2
+                    </span>
+                    <h2 className="text-base font-extrabold text-[#182247]">
+                      Payment Method
+                    </h2>
                   </div>
-                )}
-                <div className="flex justify-between text-base font-black text-[#182247] pt-2 border-t border-slate-200">
-                  <span>Final Total</span>
-                  <span className="text-2xl text-rb-purple">₹{total}.00</span>
+                  <span className="px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-wider bg-emerald-100 text-emerald-800 border border-emerald-200 flex items-center gap-1">
+                    <ShieldCheck className="w-3.5 h-3.5" /> Cashfree Verified
+                  </span>
+                </div>
+
+                {/* Branded Cashfree Details Card */}
+                <div className="p-4 rounded-2xl bg-gradient-to-br from-purple-50/70 via-white to-indigo-50/40 border border-purple-100 space-y-3">
+                  <div className="flex items-center justify-between">
+                    <div className="font-bold text-xs text-purple-900 flex items-center gap-1.5">
+                      <CreditCard className="w-4 h-4 text-purple-600" />
+                      <span>Cashfree Payment Gateway</span>
+                    </div>
+                    <span className="text-[10px] font-bold text-slate-500">
+                      RBI Regulated • Zero Extra Fee
+                    </span>
+                  </div>
+
+                  <p className="text-xs text-slate-600 leading-relaxed">
+                    Pay securely with any payment option of your choice. A fast, encrypted Cashfree checkout will open to complete payment.
+                  </p>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5 pt-2">
+                    <div className="p-3 rounded-xl bg-white border border-purple-100 shadow-2xs space-y-1">
+                      <div className="flex items-center gap-1.5 text-xs font-bold text-slate-800">
+                        <Smartphone className="w-3.5 h-3.5 text-purple-600" />
+                        <span>All UPI Apps</span>
+                      </div>
+                      <div className="text-[11px] text-slate-500 font-medium">
+                        PhonePe, Google Pay, Paytm, CRED & QR
+                      </div>
+                    </div>
+
+                    <div className="p-3 rounded-xl bg-white border border-purple-100 shadow-2xs space-y-1">
+                      <div className="flex items-center gap-1.5 text-xs font-bold text-slate-800">
+                        <CreditCard className="w-3.5 h-3.5 text-indigo-600" />
+                        <span>Cards</span>
+                      </div>
+                      <div className="text-[11px] text-slate-500 font-medium">
+                        RuPay, Visa, MasterCard & Maestro
+                      </div>
+                    </div>
+
+                    <div className="p-3 rounded-xl bg-white border border-purple-100 shadow-2xs space-y-1">
+                      <div className="flex items-center gap-1.5 text-xs font-bold text-slate-800">
+                        <Building className="w-3.5 h-3.5 text-blue-600" />
+                        <span>NetBanking</span>
+                      </div>
+                      <div className="text-[11px] text-slate-500 font-medium">
+                        50+ Indian Banks (SBI, HDFC, ICICI, etc.)
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="p-3 rounded-xl bg-emerald-50/70 border border-emerald-100 flex items-center gap-2 text-xs text-emerald-800 font-semibold">
+                  <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+                  <span>Instant Google Drive Bundle delivery upon payment confirmation.</span>
                 </div>
               </div>
 
-              {/* Submit CTA */}
-              <button
-                type="submit"
-                disabled={isProcessing}
-                className="w-full py-4 px-6 rounded-2xl btn-gradient-orange text-white font-black text-sm flex items-center justify-center gap-2 shadow-xl hover:scale-[1.01] transition-all disabled:opacity-70"
-              >
-                {isProcessing ? (
-                  <span>Processing Safe Payment...</span>
-                ) : (
-                  <>
-                    <Lock className="w-4 h-4" />
-                    <span>Pay Securely ₹{total}.00 (Instant Access)</span>
-                  </>
-                )}
-              </button>
+            </div>
 
-              <div className="space-y-1.5 text-center text-[11px] text-slate-400 pt-2 font-medium">
-                <p className="flex items-center justify-center gap-1 text-slate-600 font-bold">
-                  <ShieldCheck className="w-4 h-4 text-emerald-600" />
-                  Instant Google Drive Link Delivery
-                </p>
-                <p>Protected by 256-bit SSL encryption</p>
+            {/* Right Column: Sticky Order Summary */}
+            <div className="lg:col-span-5 sticky top-28 space-y-4">
+              <div className="rounded-3xl p-6 bg-white border border-[#eae2fa] shadow-lg space-y-5">
+                <h2 className="text-base font-extrabold text-[#182247] pb-3 border-b border-slate-100">
+                  Order Summary ({items.length + (orderBumpAdded ? 1 : 0)} items)
+                </h2>
+
+                {/* Items List */}
+                <div className="space-y-3 max-h-72 overflow-y-auto pr-1">
+                  {items.map((item) => (
+                    <div
+                      key={`${item.product.id}-${item.license}`}
+                      className="flex gap-3 items-center justify-between p-2.5 rounded-xl bg-slate-50 border border-slate-100"
+                    >
+                      <img
+                        src={item.product.thumbnail}
+                        alt={item.product.title}
+                        className="w-12 h-14 object-cover rounded-lg shrink-0"
+                      />
+                      <div className="flex-1 min-w-0 px-1">
+                        <h4 className="font-bold text-xs text-[#182247] line-clamp-1">
+                          {item.product.title}
+                        </h4>
+                        <span className="text-[10px] font-semibold text-rb-purple bg-purple-100 px-1.5 py-0.5 rounded">
+                          {item.license === 'reseller' ? 'Reseller Rights' : 'Personal Use'}
+                        </span>
+                      </div>
+                      <div className="text-right shrink-0">
+                        <div className="font-extrabold text-xs text-[#182247]">
+                          ₹{item.price}.00
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => removeFromCart(item.product.id, item.license)}
+                          className="text-slate-400 hover:text-red-500 text-xs p-1"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+
+                  {orderBumpAdded && (
+                    <div className="flex gap-3 items-center justify-between p-2.5 rounded-xl bg-amber-50/70 border border-amber-200">
+                      <img
+                        src={ORDER_BUMP.thumbnail}
+                        alt={ORDER_BUMP.title}
+                        className="w-12 h-14 object-cover rounded-lg shrink-0"
+                      />
+                      <div className="flex-1 min-w-0 px-1">
+                        <h4 className="font-bold text-xs text-amber-950 line-clamp-1">
+                          {ORDER_BUMP.title}
+                        </h4>
+                        <span className="text-[10px] font-bold text-amber-800 bg-amber-200 px-1.5 py-0.5 rounded">
+                          Bonus Offer
+                        </span>
+                      </div>
+                      <div className="text-right shrink-0">
+                        <div className="font-extrabold text-xs text-amber-950">
+                          ₹{ORDER_BUMP.discountPrice}.00
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => setOrderBumpAdded(false)}
+                          className="text-slate-400 hover:text-red-500 text-xs p-1"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                {/* Price Calculations */}
+                <div className="space-y-2 pt-3 border-t border-slate-100 text-xs font-semibold">
+                  <div className="flex justify-between text-slate-500">
+                    <span>Subtotal</span>
+                    <span className="text-slate-800">₹{subtotal}.00</span>
+                  </div>
+                  {orderBumpAdded && (
+                    <div className="flex justify-between text-green-600">
+                      <span>Order Bump (80% Off)</span>
+                      <span>+₹{ORDER_BUMP.discountPrice}.00</span>
+                    </div>
+                  )}
+                  <div className="flex justify-between text-base font-black text-[#182247] pt-2 border-t border-slate-200">
+                    <span>Final Total</span>
+                    <span className="text-2xl text-rb-purple">₹{total}.00</span>
+                  </div>
+                </div>
+
+                {/* Submit CTA */}
+                <button
+                  type="submit"
+                  disabled={isProcessing}
+                  className="w-full py-4 px-6 rounded-2xl btn-gradient-orange text-white font-black text-sm flex items-center justify-center gap-2 shadow-xl hover:scale-[1.01] transition-all disabled:opacity-70 cursor-pointer"
+                >
+                  {isProcessing ? (
+                    <span className="flex items-center gap-2">
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                      Connecting Cashfree Gateway...
+                    </span>
+                  ) : (
+                    <>
+                      <Lock className="w-4 h-4" />
+                      <span>Pay ₹{total}.00 via Cashfree (Instant Access)</span>
+                    </>
+                  )}
+                </button>
+
+                <div className="space-y-1.5 text-center text-[11px] text-slate-400 pt-2 font-medium">
+                  <p className="flex items-center justify-center gap-1 text-slate-600 font-bold">
+                    <ShieldCheck className="w-4 h-4 text-emerald-600" />
+                    Instant Google Drive Link Delivery
+                  </p>
+                  <p>Protected by 256-bit SSL encryption & Cashfree Security</p>
+                </div>
               </div>
             </div>
-          </div>
 
-        </form>
+          </form>
 
+        </div>
       </div>
-    </div>
+    </>
   );
 }

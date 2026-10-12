@@ -310,17 +310,18 @@ export interface ConnectorStatus {
 // ==========================================
 // 16. SETTINGS & INTEGRATIONS PANELS
 // ==========================================
-export interface PgBridgeConfig {
+export interface CashfreeConfig {
   enabled: boolean;
-  gateway: 'pg_bridge' | 'payezy_upi' | 'cashfree' | 'razorpay';
-  api_key: string;
-  api_secret: string;
-  merchant_id: string;
-  callback_url: string;
-  webhook_secret: string;
-  test_mode: boolean;
-  last_callback_status?: string;
+  app_id: string;
+  secret_key: string;
+  environment: 'PRODUCTION' | 'SANDBOX';
+  api_version: string;
+  return_url: string;
+  webhook_secret?: string;
+  last_test_status?: string;
 }
+
+export type PgBridgeConfig = CashfreeConfig;
 
 export interface DnpMetaConfig {
   enabled: boolean;

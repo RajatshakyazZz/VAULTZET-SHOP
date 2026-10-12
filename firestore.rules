@@ -159,7 +159,14 @@ service cloud.firestore {
         isValidOptionalString(data, 'mode', 20) &&
         isValidOptionalString(data, 'maintenance_message', 1000) &&
         isValidOptionalString(data, 'pixel_id', 100) &&
-        isValidOptionalString(data, 'phone_number', 50);
+        isValidOptionalString(data, 'phone_number', 50) &&
+        isValidOptionalString(data, 'app_id', 200) &&
+        isValidOptionalString(data, 'secret_key', 500) &&
+        isValidOptionalString(data, 'environment', 30) &&
+        isValidOptionalString(data, 'api_version', 50) &&
+        isValidOptionalString(data, 'return_url', 500) &&
+        isValidOptionalString(data, 'webhook_secret', 500) &&
+        isValidOptionalString(data, 'last_test_status', 100);
     }
 
     function isValidCoupon(data) {
@@ -226,7 +233,7 @@ service cloud.firestore {
       allow read: if true;
 
       // Only recognized setting docs can be saved with bounded sizes
-      allow create, update: if settingId in ['general', 'branding', 'site_mode', 'meta_pixel', 'whatsapp'] &&
+      allow create, update: if settingId in ['general', 'branding', 'site_mode', 'meta_pixel', 'whatsapp', 'cashfree'] &&
                                isValidStoreSetting(request.resource.data);
 
       // Settings documents cannot be deleted
