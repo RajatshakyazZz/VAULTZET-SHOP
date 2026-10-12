@@ -51,7 +51,7 @@ export default function Dashboard() {
             Store Performance Overview
           </h1>
           <p className="text-xs sm:text-sm text-slate-400 font-medium mt-0.5">
-            Real-time sales, fulfillment, and revenue metrics for reelsbundles.in
+            Real-time sales, fulfillment, and revenue metrics for vaultzet.shop
           </p>
         </div>
 
@@ -68,32 +68,29 @@ export default function Dashboard() {
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-5">
         <StatCard
           title="Net Revenue Today"
-          value={formatCurrency(summary?.net_revenue || 48920)}
-          subtitle="vs yesterday"
+          value={formatCurrency(summary?.net_revenue ?? 0)}
+          subtitle="Real-time gross"
           icon={IndianRupee}
           color="emerald"
-          trend={{ value: '+14.2%', isPositive: true }}
         />
         <StatCard
           title="Total Orders"
-          value={summary?.orders || 142}
-          subtitle="98% auto-fulfilled"
+          value={summary?.orders ?? 0}
+          subtitle="Real checkout purchases"
           icon={ShoppingCart}
           color="purple"
-          trend={{ value: '+8.6%', isPositive: true }}
         />
         <StatCard
           title="Active Customers"
-          value={summary?.customers || 128}
-          subtitle="new & repeat"
+          value={summary?.customers ?? 0}
+          subtitle="Verified buyers"
           icon={Users}
           color="blue"
-          trend={{ value: '+12.1%', isPositive: true }}
         />
         <StatCard
           title="Pending Fulfillment"
-          value={summary?.pending_orders || 3}
-          subtitle="awaiting confirmation"
+          value={summary?.pending_orders ?? 0}
+          subtitle="Awaiting delivery"
           icon={Clock}
           color="amber"
         />
@@ -110,7 +107,7 @@ export default function Dashboard() {
               <p className="text-xs text-slate-400 font-medium">Daily completed transaction total in INR</p>
             </div>
             <span className="text-xs font-extrabold text-emerald-400 bg-emerald-500/10 px-2.5 py-1 rounded-lg border border-emerald-500/20">
-              Avg AOV: ₹{summary?.average_order_value || 344}
+              Avg AOV: ₹{summary?.average_order_value ?? 0}
             </span>
           </div>
 
@@ -167,22 +164,28 @@ export default function Dashboard() {
             </div>
 
             <div className="space-y-2.5">
-              {(summary?.top_selling_bundles || []).map((b, i) => (
-                <div
-                  key={b.id}
-                  className="p-3 rounded-xl bg-slate-950/60 border border-slate-800/80 flex items-center justify-between gap-2"
-                >
-                  <div className="flex items-center gap-2.5 min-w-0">
-                    <span className="w-5 h-5 rounded-md bg-purple-500/20 text-purple-300 font-bold text-[10px] flex items-center justify-center shrink-0">
-                      #{i + 1}
-                    </span>
-                    <span className="text-xs font-semibold text-slate-200 truncate">{b.name}</span>
-                  </div>
-                  <span className="text-xs font-black text-emerald-400 shrink-0">
-                    ₹{b.revenue}
-                  </span>
+              {(summary?.top_selling_bundles || []).length === 0 ? (
+                <div className="p-6 text-center text-xs text-slate-500 font-medium">
+                  No bundle sales recorded yet.
                 </div>
-              ))}
+              ) : (
+                (summary?.top_selling_bundles || []).map((b, i) => (
+                  <div
+                    key={b.id}
+                    className="p-3 rounded-xl bg-slate-950/60 border border-slate-800/80 flex items-center justify-between gap-2"
+                  >
+                    <div className="flex items-center gap-2.5 min-w-0">
+                      <span className="w-5 h-5 rounded-md bg-purple-500/20 text-purple-300 font-bold text-[10px] flex items-center justify-center shrink-0">
+                        #{i + 1}
+                      </span>
+                      <span className="text-xs font-semibold text-slate-200 truncate">{b.name}</span>
+                    </div>
+                    <span className="text-xs font-black text-emerald-400 shrink-0">
+                      ₹{b.revenue}
+                    </span>
+                  </div>
+                ))
+              )}
             </div>
           </div>
 
@@ -191,15 +194,15 @@ export default function Dashboard() {
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <div className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse" />
-                <h4 className="text-xs font-bold text-white">Connector Engine</h4>
+                <h4 className="text-xs font-bold text-white">Cloud Engine</h4>
               </div>
               <span className="text-[11px] font-mono text-purple-300 font-bold">
-                v{summary?.connector_status.version || '1.4.2'}
+                v2.0.0
               </span>
             </div>
 
             <p className="text-xs text-slate-400 leading-relaxed font-medium">
-              High-frequency sync active. Connected to WooCommerce REST layer with sub-100ms response times.
+              High-frequency sync active. Connected to Firebase Cloud Firestore database.
             </p>
 
             <Link
@@ -244,52 +247,66 @@ export default function Dashboard() {
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-800/60 text-slate-200">
-              {orders.slice(0, 5).map((order) => (
-                <tr key={order.id} className="hover:bg-slate-800/30 transition-colors">
-                  <td className="py-3 px-3 font-mono font-bold text-purple-300">
-                    {order.order_number}
-                  </td>
-                  <td className="py-3 px-3">
-                    <div className="font-bold text-white">{order.customer.first_name} {order.customer.last_name || ''}</div>
-                    <div className="text-[11px] text-slate-400">{order.customer.email}</div>
-                  </td>
-                  <td className="py-3 px-3 max-w-[200px] truncate">
-                    {order.items.map((it) => it.name).join(', ')}
-                  </td>
-                  <td className="py-3 px-3 font-bold text-white">
-                    {formatCurrency(order.total)}
-                  </td>
-                  <td className="py-3 px-3 text-slate-400 font-medium">
-                    {order.payment_method}
-                  </td>
-                  <td className="py-3 px-3">
-                    <span
-                      className={`px-2 py-0.5 rounded-md text-[10px] font-black uppercase tracking-wider ${
-                        order.status === 'completed'
-                          ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20'
-                          : order.status === 'processing'
-                          ? 'bg-blue-500/10 text-blue-400 border border-blue-500/20'
-                          : 'bg-amber-500/10 text-amber-400 border border-amber-500/20'
-                      }`}
-                    >
-                      {order.status}
-                    </span>
-                  </td>
-                  <td className="py-3 px-3">
-                    {order.google_drive_sent ? (
-                      <span className="inline-flex items-center gap-1 text-[11px] font-bold text-emerald-400">
-                        <CheckCircle2 className="w-3.5 h-3.5" />
-                        <span>Delivered</span>
-                      </span>
-                    ) : (
-                      <span className="inline-flex items-center gap-1 text-[11px] font-bold text-amber-400">
-                        <AlertTriangle className="w-3.5 h-3.5" />
-                        <span>Pending</span>
-                      </span>
-                    )}
+              {orders.length === 0 ? (
+                <tr>
+                  <td colSpan={7} className="py-12 text-center text-slate-500">
+                    <div className="flex flex-col items-center justify-center gap-2">
+                      <ShoppingCart className="w-8 h-8 text-slate-600" />
+                      <p className="text-sm font-bold text-slate-300">No orders yet</p>
+                      <p className="text-xs text-slate-500 max-w-sm">
+                        When a customer completes a purchase on your store, the live transaction and delivery status will appear here.
+                      </p>
+                    </div>
                   </td>
                 </tr>
-              ))}
+              ) : (
+                orders.slice(0, 5).map((order) => (
+                  <tr key={order.id} className="hover:bg-slate-800/30 transition-colors">
+                    <td className="py-3 px-3 font-mono font-bold text-purple-300">
+                      {order.order_number}
+                    </td>
+                    <td className="py-3 px-3">
+                      <div className="font-bold text-white">{order.customer.first_name} {order.customer.last_name || ''}</div>
+                      <div className="text-[11px] text-slate-400">{order.customer.email}</div>
+                    </td>
+                    <td className="py-3 px-3 max-w-[200px] truncate">
+                      {order.items.map((it) => it.name).join(', ')}
+                    </td>
+                    <td className="py-3 px-3 font-bold text-white">
+                      {formatCurrency(order.total)}
+                    </td>
+                    <td className="py-3 px-3 text-slate-400 font-medium">
+                      {order.payment_method}
+                    </td>
+                    <td className="py-3 px-3">
+                      <span
+                        className={`px-2 py-0.5 rounded-md text-[10px] font-black uppercase tracking-wider ${
+                          order.status === 'completed'
+                            ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20'
+                            : order.status === 'processing'
+                            ? 'bg-blue-500/10 text-blue-400 border border-blue-500/20'
+                            : 'bg-amber-500/10 text-amber-400 border border-amber-500/20'
+                        }`}
+                      >
+                        {order.status}
+                      </span>
+                    </td>
+                    <td className="py-3 px-3">
+                      {order.google_drive_sent ? (
+                        <span className="inline-flex items-center gap-1 text-[11px] font-bold text-emerald-400">
+                          <CheckCircle2 className="w-3.5 h-3.5" />
+                          <span>Delivered</span>
+                        </span>
+                      ) : (
+                        <span className="inline-flex items-center gap-1 text-[11px] font-bold text-amber-400">
+                          <AlertTriangle className="w-3.5 h-3.5" />
+                          <span>Pending</span>
+                        </span>
+                      )}
+                    </td>
+                  </tr>
+                ))
+              )}
             </tbody>
           </table>
         </div>

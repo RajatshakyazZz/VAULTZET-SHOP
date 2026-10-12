@@ -81,10 +81,10 @@ export default function Sidebar() {
         </div>
         <div className="flex flex-col">
           <span className="font-extrabold text-[15px] text-white tracking-tight leading-none">
-            ReelsBundles
+            Vaultzet Shop
           </span>
           <span className="text-[11px] font-bold text-purple-400 tracking-wide mt-1">
-            PORTAL CONNECTOR v1
+            COMMAND CENTER v2.0
           </span>
         </div>
       </div>
