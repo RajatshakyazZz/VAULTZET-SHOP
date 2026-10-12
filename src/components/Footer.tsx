@@ -11,8 +11,10 @@ import {
   ArrowRight,
   PlaySquare,
 } from 'lucide-react';
+import { useStoreSettings } from '@/context/StoreSettingsContext';
 
 export default function Footer() {
+  const { settings } = useStoreSettings();
   const highlights = [
     {
       title: 'Instant Access',
@@ -156,14 +158,14 @@ export default function Footer() {
               Contact Us
             </Link>
             <span className="text-gray-300">•</span>
-            <a href="mailto:support@reelsbundles.in" className="hover:text-[#6f33e8] transition-colors">
-              support@reelsbundles.in
+            <a href={`mailto:${settings.supportEmail}`} className="hover:text-[#6f33e8] transition-colors">
+              {settings.supportEmail}
             </a>
           </div>
 
           {/* Bottom Copyright Row matching Image 7 */}
           <div className="pt-4 border-t border-gray-100 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-gray-500 font-medium">
-            <p>© 2026 Reels Bundle.</p>
+            <p>© {new Date().getFullYear()} {settings.storeName}.</p>
             <div className="px-3 py-1 rounded-full bg-white border border-gray-200 text-gray-600 text-[11px] font-bold shadow-sm">
               Designed by DigoNest
             </div>

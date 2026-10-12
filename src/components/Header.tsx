@@ -5,11 +5,13 @@ import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { ShoppingCart, Search, Menu, X, Play } from 'lucide-react';
 import { useCart } from '@/context/CartContext';
+import { useStoreSettings } from '@/context/StoreSettingsContext';
 
 export default function Header() {
   const pathname = usePathname();
   const router = useRouter();
   const { cartCount, setIsCartOpen } = useCart();
+  const { settings } = useStoreSettings();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
 
@@ -31,17 +33,17 @@ export default function Header() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-[74px] gap-4">
           
-          {/* Exact Brand Logo matching Image 1 */}
+          {/* Dynamic Brand Logo synced with Admin Panel */}
           <Link href="/" className="flex items-center gap-2.5 group shrink-0">
             <div className="w-10 h-8 rounded-lg bg-gradient-to-tr from-[#fe5f9b] via-[#9b28ff] to-[#6d3dff] flex items-center justify-center text-white shadow-sm shadow-purple-500/20 group-hover:scale-105 transition-transform">
               <Play className="w-4 h-4 fill-white ml-0.5" />
             </div>
             <div className="flex flex-col">
               <span className="font-black text-[17px] text-[#162048] tracking-tight leading-tight">
-                Reels Bundle
+                {settings.storeName}
               </span>
               <span className="text-[12px] font-medium text-[#7a829e] tracking-tight">
-                Premium Reels for Your Growth
+                {settings.tagline}
               </span>
             </div>
           </Link>

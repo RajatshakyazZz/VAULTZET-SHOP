@@ -396,13 +396,18 @@ class PortalApiClient {
     if (db) {
       try {
         await setDoc(doc(db, 'store_settings', 'branding'), branding, { merge: true });
-      } catch {}
+        if (branding.store_name) {
+          await setDoc(doc(db, 'store_settings', 'general'), { store_name: branding.store_name }, { merge: true });
+        }
+      } catch (e) {
+        console.warn('Firestore updateBranding error:', e);
+      }
     }
     await logAdminAction({
       adminEmail: 'admin@vaultzet.com',
       action: 'UPDATE_BRANDING',
       module: 'Branding',
-      details: 'Updated store colors & logo',
+      details: `Updated store branding & name to "${branding.store_name}"`,
     });
     return branding;
   }
@@ -456,13 +461,18 @@ class PortalApiClient {
     if (db) {
       try {
         await setDoc(doc(db, 'store_settings', 'general'), config, { merge: true });
-      } catch {}
+        if (config.store_name) {
+          await setDoc(doc(db, 'store_settings', 'branding'), { store_name: config.store_name }, { merge: true });
+        }
+      } catch (e) {
+        console.warn('Firestore updateStoreSetup error:', e);
+      }
     }
     await logAdminAction({
       adminEmail: 'admin@vaultzet.com',
       action: 'UPDATE_STORE_SETUP',
       module: 'Store Setup',
-      details: 'Updated currency and checkout parameters',
+      details: `Updated store name to "${config.store_name}" and checkout parameters`,
     });
     return config;
   }

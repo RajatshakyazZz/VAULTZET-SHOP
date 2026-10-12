@@ -40,13 +40,28 @@ export default function Hero() {
     return () => clearTimeout(timeout);
   }, [displayText, isDeleting, phraseIndex]);
 
-  // Featured items exactly matching Image 1:
-  // Left: 1200+ AI Glass Cutting ASMR
-  // Center: 500+ AI Indian Glamour Model
-  // Right: 2500+ Stickman Animation
-  const leftCard = BUNDLE_PRODUCTS.find((p) => p.id === 'rb-glass-asmr-1200') || BUNDLE_PRODUCTS[8];
-  const centerCard = BUNDLE_PRODUCTS.find((p) => p.id === 'rb-glamour-500') || BUNDLE_PRODUCTS[6];
-  const rightCard = BUNDLE_PRODUCTS.find((p) => p.id === 'rb-stickman-2500') || BUNDLE_PRODUCTS[7];
+  // Dynamic rotation state for the 3 hero preview cards
+  const [activeOffset, setActiveOffset] = useState(0);
+  const [isRotating, setIsRotating] = useState(true);
+
+  // Randomize initial cards on mount so every visit/refresh shows different bundles
+  useEffect(() => {
+    setActiveOffset(Math.floor(Math.random() * BUNDLE_PRODUCTS.length));
+  }, []);
+
+  // Continuous auto-rotation every 5.5 seconds unless user hovers
+  useEffect(() => {
+    if (!isRotating) return;
+    const interval = setInterval(() => {
+      setActiveOffset((prev) => (prev + 1) % BUNDLE_PRODUCTS.length);
+    }, 5500);
+    return () => clearInterval(interval);
+  }, [isRotating]);
+
+  const totalBundles = BUNDLE_PRODUCTS.length;
+  const leftCard = BUNDLE_PRODUCTS[activeOffset % totalBundles];
+  const centerCard = BUNDLE_PRODUCTS[(activeOffset + 1) % totalBundles];
+  const rightCard = BUNDLE_PRODUCTS[(activeOffset + 2) % totalBundles];
 
   return (
     <section className="pt-4 pb-8 sm:pt-6 sm:pb-12">
@@ -139,20 +154,25 @@ export default function Hero() {
             </div>
 
             {/* Right: 3 Phone Stack matching Image 1 */}
-            <div className="lg:col-span-5 flex flex-col items-center justify-center relative">
+            <div
+              className="lg:col-span-5 flex flex-col items-center justify-center relative"
+              onMouseEnter={() => setIsRotating(false)}
+              onMouseLeave={() => setIsRotating(true)}
+            >
               
               <div className="relative w-full max-w-[340px] h-[360px] flex items-center justify-center">
                 
-                {/* Left Card: 1200+ AI Glass Cutting ASMR (-8deg tilt) */}
+                {/* Left Card (-8deg tilt) */}
                 {leftCard && (
                   <Link
                     href={`/product/${leftCard.slug}`}
-                    className="absolute left-0 w-44 aspect-[9/16] rounded-[22px] overflow-hidden shadow-xl border border-slate-200 transform -rotate-8 -translate-x-4 scale-90 z-10 transition-transform hover:scale-95 duration-300 block bg-slate-900"
+                    key={`left-${leftCard.id}`}
+                    className="absolute left-0 w-44 aspect-[9/16] rounded-[22px] overflow-hidden shadow-xl border border-slate-200 transform -rotate-8 -translate-x-4 scale-90 z-10 transition-all hover:scale-95 duration-500 block bg-slate-900 group"
                   >
                     <img
                       src={leftCard.thumbnail}
                       alt={leftCard.title}
-                      className="w-full h-full object-cover"
+                      className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
                     />
                     <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/20 to-black/20 flex flex-col justify-between p-3 text-white">
                       <div className="w-8 h-8 rounded-full bg-white/90 shadow-md flex items-center justify-center mx-auto my-auto text-[#6b35f2]">
@@ -163,23 +183,24 @@ export default function Hero() {
                           TRENDING PREVIEW
                         </span>
                         <p className="text-[11px] font-bold text-white line-clamp-1">
-                          1200+ AI Glass Cutting...
+                          {leftCard.title}
                         </p>
                       </div>
                     </div>
                   </Link>
                 )}
 
-                {/* Right Card: 2500+ Stickman Animation (+8deg tilt) */}
+                {/* Right Card (+8deg tilt) */}
                 {rightCard && (
                   <Link
                     href={`/product/${rightCard.slug}`}
-                    className="absolute right-0 w-44 aspect-[9/16] rounded-[22px] overflow-hidden shadow-xl border border-slate-200 transform rotate-8 translate-x-4 scale-90 z-10 transition-transform hover:scale-95 duration-300 block bg-slate-900"
+                    key={`right-${rightCard.id}`}
+                    className="absolute right-0 w-44 aspect-[9/16] rounded-[22px] overflow-hidden shadow-xl border border-slate-200 transform rotate-8 translate-x-4 scale-90 z-10 transition-all hover:scale-95 duration-500 block bg-slate-900 group"
                   >
                     <img
                       src={rightCard.thumbnail}
                       alt={rightCard.title}
-                      className="w-full h-full object-cover"
+                      className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
                     />
                     <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/20 to-black/20 flex flex-col justify-between p-3 text-white">
                       <div className="w-8 h-8 rounded-full bg-white/90 shadow-md flex items-center justify-center mx-auto my-auto text-[#6b35f2]">
@@ -190,23 +211,24 @@ export default function Hero() {
                           TRENDING PREVIEW
                         </span>
                         <p className="text-[11px] font-bold text-white line-clamp-1">
-                          2500+ Stickman Animation...
+                          {rightCard.title}
                         </p>
                       </div>
                     </div>
                   </Link>
                 )}
 
-                {/* Center Upright Card: 500+ AI Indian Glamour Model (Front) */}
+                {/* Center Upright Card (Front) */}
                 {centerCard && (
                   <Link
                     href={`/product/${centerCard.slug}`}
-                    className="relative w-48 sm:w-52 aspect-[9/16] rounded-[26px] overflow-hidden shadow-[0_20px_50px_rgba(20,10,60,0.25)] border-[3px] border-white z-20 transition-transform hover:scale-105 duration-300 block bg-slate-900"
+                    key={`center-${centerCard.id}`}
+                    className="relative w-48 sm:w-52 aspect-[9/16] rounded-[26px] overflow-hidden shadow-[0_20px_50px_rgba(20,10,60,0.25)] border-[3px] border-white z-20 transition-all hover:scale-105 duration-500 block bg-slate-900 group"
                   >
                     <img
                       src={centerCard.thumbnail}
                       alt={centerCard.title}
-                      className="w-full h-full object-cover"
+                      className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
                     />
                     <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-transparent to-black/30 flex flex-col justify-between p-3.5 text-white">
                       <span className="self-start text-[9px] font-black uppercase px-2 py-0.5 rounded-full bg-white/20 backdrop-blur-md text-white border border-white/20">
@@ -222,7 +244,7 @@ export default function Hero() {
                           HOT PREVIEW
                         </span>
                         <p className="text-xs font-extrabold text-white line-clamp-2 leading-tight">
-                          500+ AI Indian Glamour Model...
+                          {centerCard.title}
                         </p>
                       </div>
                     </div>
@@ -231,8 +253,22 @@ export default function Hero() {
 
               </div>
 
+              {/* Dynamic Rotation Indicators */}
+              <div className="flex items-center gap-1.5 mt-2">
+                {Array.from({ length: 6 }).map((_, idx) => (
+                  <button
+                    key={idx}
+                    onClick={() => setActiveOffset(idx)}
+                    className={`h-1.5 rounded-full transition-all duration-300 ${
+                      (activeOffset % 6) === idx ? 'w-5 bg-purple-600' : 'w-1.5 bg-slate-300 hover:bg-purple-300'
+                    }`}
+                    aria-label={`Preview card group ${idx + 1}`}
+                  />
+                ))}
+              </div>
+
               {/* Bottom Quality Badges matching Image 1 */}
-              <div className="flex items-center gap-2.5 mt-3">
+              <div className="flex items-center gap-2.5 mt-2">
                 <span className="px-3.5 py-1 rounded-full text-[11px] font-bold bg-white text-[#4f587d] border border-[#e4dcf7] shadow-sm">
                   9:16 Vertical
                 </span>

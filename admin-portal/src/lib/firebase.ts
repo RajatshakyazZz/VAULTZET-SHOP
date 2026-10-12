@@ -41,7 +41,7 @@ try {
   console.warn('Firebase initialized in fallback mock mode:', error);
 }
 
-export { app, auth, db };
+export { app, auth, db, firebaseConfig };
 
 export interface AdminAuditEntry {
   id?: string;

@@ -25,6 +25,7 @@ import { portalApi } from '../api/client';
 import StatCard from '../components/common/StatCard';
 import { formatCurrency, formatDate } from '../lib/utils';
 import { Link } from 'react-router-dom';
+import { useBackendHealth } from '../context/BackendHealthContext';
 
 export default function Dashboard() {
   const { data: summary, isLoading: isSummaryLoading, refetch } = useQuery({
@@ -37,9 +38,45 @@ export default function Dashboard() {
     queryFn: () => portalApi.getOrders(),
   });
 
+  const { status, errorMessage, openModal } = useBackendHealth();
+
   return (
     <div className="space-y-7">
       
+      {/* Backend Connection Warning Banner if not connected */}
+      {status !== 'connected' && (
+        <div
+          className={`p-4 rounded-2xl border flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 shadow-lg ${
+            status === 'error'
+              ? 'bg-rose-950/60 border-rose-500/50 text-rose-200'
+              : 'bg-amber-950/60 border-amber-500/50 text-amber-200'
+          }`}
+        >
+          <div className="flex items-center gap-3">
+            <AlertTriangle className={`w-5 h-5 shrink-0 ${status === 'error' ? 'text-rose-400' : 'text-amber-400'}`} />
+            <div>
+              <div className="text-xs sm:text-sm font-black text-white">
+                {status === 'error'
+                  ? '⚠️ Backend Connection Error / बैकएंड कनेक्शन एरर'
+                  : '⚠️ Firebase Demo Mode / बैकएंड कीज कन्फ़िगर नहीं हैं'}
+              </div>
+              <p className="text-xs opacity-90 mt-0.5">
+                {errorMessage ||
+                  'Firestore database is not reachable. Live orders, coupons, and store settings cannot sync.'}
+              </p>
+            </div>
+          </div>
+          <button
+            onClick={openModal}
+            className={`px-3.5 py-2 rounded-xl text-xs font-black text-white transition-all shrink-0 ${
+              status === 'error' ? 'bg-rose-600 hover:bg-rose-500' : 'bg-amber-600 hover:bg-amber-500'
+            }`}
+          >
+            Checkup & Solution
+          </button>
+        </div>
+      )}
+
       {/* Top Banner / Heading */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
@@ -51,7 +88,7 @@ export default function Dashboard() {
             Store Performance Overview
           </h1>
           <p className="text-xs sm:text-sm text-slate-400 font-medium mt-0.5">
-            Real-time sales, fulfillment, and revenue metrics for vaultzet.shop
+            Real-time sales, fulfillment, and revenue metrics for store.vaultzet.shop
           </p>
         </div>
 

@@ -12,11 +12,14 @@ import {
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { useToast } from '../../context/ToastContext';
+import { useBackendHealth } from '../../context/BackendHealthContext';
 import { portalApi } from '../../api/client';
+import { AlertTriangle, CheckCircle2 } from 'lucide-react';
 
 export default function Topbar() {
   const { admin, logout, apiKey } = useAuth();
   const { success } = useToast();
+  const { status, openModal } = useBackendHealth();
   const navigate = useNavigate();
 
   const handleCopyKey = () => {
@@ -32,13 +35,14 @@ export default function Topbar() {
       {/* Left: Store Domain & Site Mode Badge */}
       <div className="flex items-center gap-3">
         <a
-          href="https://vaultzet.shop"
+          href="https://store.vaultzet.shop"
           target="_blank"
           rel="noopener noreferrer"
           className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-900 border border-slate-800 text-xs font-bold text-slate-200 hover:border-purple-500/40 hover:text-white transition-all group"
+          title="Open Live Customer Store"
         >
           <Globe className="w-3.5 h-3.5 text-purple-400" />
-          <span>vaultzet.shop</span>
+          <span>store.vaultzet.shop</span>
           <ExternalLink className="w-3 h-3 text-slate-400 group-hover:text-purple-400 transition-colors" />
         </a>
 
@@ -51,11 +55,32 @@ export default function Topbar() {
           <span>STORE: LIVE</span>
         </Link>
 
-        {/* Firebase Sync Badge */}
-        <div className="hidden lg:flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-slate-900/60 border border-slate-800 text-[11px] font-semibold text-slate-400">
-          <Database className="w-3 h-3 text-amber-400" />
-          <span>Firebase Audit Live</span>
-        </div>
+        {/* Backend Health Check Badge */}
+        <button
+          onClick={openModal}
+          title="Click to view Backend Diagnostics & Connection Details"
+          className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl border text-xs font-bold transition-all ${
+            status === 'connected'
+              ? 'bg-emerald-950/40 border-emerald-500/30 text-emerald-300 hover:bg-emerald-900/40'
+              : status === 'placeholder'
+              ? 'bg-amber-950/40 border-amber-500/30 text-amber-300 hover:bg-amber-900/40'
+              : status === 'checking'
+              ? 'bg-slate-900 border-slate-800 text-slate-400'
+              : 'bg-rose-950/60 border-rose-500 text-rose-300 animate-pulse hover:bg-rose-900/60 shadow-md shadow-rose-950/50'
+          }`}
+        >
+          {status === 'connected' && <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />}
+          {status === 'placeholder' && <AlertTriangle className="w-3 h-3 text-amber-400" />}
+          {status === 'error' && <AlertTriangle className="w-3.5 h-3.5 text-rose-400" />}
+          {status === 'checking' && <RefreshCw className="w-3 h-3 animate-spin text-slate-400" />}
+
+          <span>
+            {status === 'connected' && 'BACKEND: CONNECTED'}
+            {status === 'placeholder' && 'BACKEND: DEMO KEYS'}
+            {status === 'error' && 'BACKEND: ERROR'}
+            {status === 'checking' && 'CHECKING...'}
+          </span>
+        </button>
       </div>
 
       {/* Right: Key Status, Quick Actions, Profile & Logout */}
