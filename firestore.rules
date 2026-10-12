@@ -223,8 +223,8 @@ service cloud.firestore {
       // Admin creates or updates products with valid schema
       allow create, update: if isValidProduct(request.resource.data);
 
-      // Catalog deletion is prevented (products can be set to draft/private)
-      allow delete: if false;
+      // Admin can remove products
+      allow delete: if true;
     }
 
     // 3. Store Settings

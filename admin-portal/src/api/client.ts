@@ -157,7 +157,124 @@ class PortalApiClient {
         console.warn('Firestore products fetch error:', e);
       }
     }
+
+    // Merge in-memory with any stored in localStorage
+    if (typeof window !== 'undefined') {
+      try {
+        const stored = JSON.parse(localStorage.getItem('vaultzet_custom_products') || '[]');
+        if (stored.length) {
+          const ids = new Set(initialProducts.map((p) => String(p.id)));
+          for (const sp of stored) {
+            if (!ids.has(String(sp.id))) {
+              initialProducts.unshift(sp);
+            }
+          }
+        }
+      } catch (e) {
+        // ignore
+      }
+    }
+
     return initialProducts;
+  }
+
+  async createProduct(productData: Partial<Product>): Promise<Product> {
+    const prodId = productData.id ? String(productData.id) : `prod-${Date.now()}`;
+    const name = productData.name?.trim() || 'New Reels Bundle';
+    const slug =
+      productData.slug?.trim() ||
+      name
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, '-')
+        .replace(/(^-|-$)+/g, '');
+
+    const newProduct: Product = {
+      id: prodId,
+      name,
+      slug,
+      price: Number(productData.price || 99),
+      regular_price: Number(productData.regular_price || 999),
+      sale_price: Number(productData.price || 99),
+      stock_status: productData.stock_status || 'instock',
+      status: productData.status || 'publish',
+      categories: productData.categories?.length ? productData.categories : ['Trending Reels'],
+      reel_count: Number(productData.reel_count || 1000),
+      format: productData.format || 'MP4',
+      resolution: productData.resolution || '1080P Full HD',
+      featured_image:
+        productData.featured_image ||
+        'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=600',
+      downloadable: true,
+      downloads_count: 0,
+      created_at: new Date().toISOString(),
+      files: productData.files || [],
+    };
+
+    if (db) {
+      try {
+        await setDoc(doc(db, 'products', prodId), newProduct);
+      } catch (e) {
+        console.warn('Firestore product creation error:', e);
+      }
+    }
+
+    // Add to in-memory list
+    initialProducts.unshift(newProduct);
+
+    // Save in localStorage cache
+    if (typeof window !== 'undefined') {
+      try {
+        const stored = JSON.parse(localStorage.getItem('vaultzet_custom_products') || '[]');
+        stored.unshift(newProduct);
+        localStorage.setItem('vaultzet_custom_products', JSON.stringify(stored));
+      } catch (e) {
+        // ignore
+      }
+    }
+
+    await logAdminAction({
+      adminEmail: 'admin@vaultzet.com',
+      action: 'CREATE_PRODUCT',
+      module: 'Products',
+      details: `Created new product #${prodId}: ${newProduct.name} (₹${newProduct.price})`,
+    });
+
+    return newProduct;
+  }
+
+  async deleteProduct(productId: string | number): Promise<boolean> {
+    const idStr = String(productId);
+    if (db) {
+      try {
+        await deleteDoc(doc(db, 'products', idStr));
+      } catch (e) {
+        console.warn('Firestore product delete error:', e);
+      }
+    }
+
+    const idx = initialProducts.findIndex((p) => String(p.id) === idStr);
+    if (idx !== -1) {
+      initialProducts.splice(idx, 1);
+    }
+
+    if (typeof window !== 'undefined') {
+      try {
+        const stored = JSON.parse(localStorage.getItem('vaultzet_custom_products') || '[]');
+        const filtered = stored.filter((p: any) => String(p.id) !== idStr);
+        localStorage.setItem('vaultzet_custom_products', JSON.stringify(filtered));
+      } catch (e) {
+        // ignore
+      }
+    }
+
+    await logAdminAction({
+      adminEmail: 'admin@vaultzet.com',
+      action: 'DELETE_PRODUCT',
+      module: 'Products',
+      details: `Deleted product #${productId}`,
+    });
+
+    return true;
   }
 
   async updateProduct(product: Partial<Product> & { id: string | number }): Promise<Product> {
