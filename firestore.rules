@@ -1,0 +1,268 @@
+rules_version = '2';
+
+// ===============================================================
+// Assumed Data Model & Architecture
+// ===============================================================
+//
+// Application: Vaultzet Digital Storefront & Admin Portal
+// Context:
+//   - Customer Storefront (store.vaultzet.shop): Guest checkout (no Firebase Auth UID).
+//   - Admin Portal (adminp.vaultzet.shop): Master-password authenticated at app/edge layer.
+//
+// Collections:
+// 1. orders:
+//    - orderNumber: string (required, 3..60 chars)
+//    - customer: map (required) -> { fullName: string (1..100), email: string (5..100, email regex), phone?: string (<=30) }
+//    - items: list (required, 1..50 items)
+//    - orderBump: map or null (optional)
+//    - totalAmount: number (required, >= 0, <= 10,000,000)
+//    - paymentMethod: string (required, 2..100 chars)
+//    - status: string (required, in ['pending', 'processing', 'completed', 'on-hold', 'failed', 'refunded', 'cancelled'])
+//    - createdAt: timestamp (optional)
+//    - timestampIso: string (optional, <= 50 chars)
+//    - transactionId: string (optional, <= 100 chars)
+//    - Protection: Deletion strictly denied. Crucial fields immutable on update.
+//
+// 2. products:
+//    - name: string (required, 1..250 chars)
+//    - price: number (required, >= 0, <= 1,000,000)
+//    - slug: string (optional, <= 150 chars)
+//    - status: string (optional, in ['publish', 'draft', 'pending', 'private'])
+//    - Protection: Deletion strictly denied to protect catalog integrity.
+//
+// 3. store_settings:
+//    - IDs: 'general', 'branding', 'site_mode', 'meta_pixel', 'whatsapp'
+//    - String fields bounded to prevent resource exhaustion / DoS.
+//    - Protection: Deletion strictly denied.
+//
+// 4. coupons:
+//    - code: string (required, 1..50 chars)
+//    - discount_type: string (required, in ['percent', 'fixed_cart', 'fixed_product'])
+//    - amount: number (required, >= 0, <= 1,000,000)
+//    - is_active: bool (optional)
+//
+// 5. admin_audit_logs:
+//    - adminEmail: string (required, 3..100 chars)
+//    - action: string (required, 1..100 chars)
+//    - module: string (required, 1..100 chars)
+//    - details: string (required, 1..1000 chars)
+//    - Protection: Append-only. Updates and deletes strictly denied.
+//
+// ===============================================================
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ===============================================================
+    // Helper Functions
+    // ===============================================================
+
+    function isValidEmail(email) {
+      return email is string &&
+        email.matches("^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$");
+    }
+
+    function isValidString(val, minLen, maxLen) {
+      return val is string &&
+        val.size() >= minLen &&
+        val.size() <= maxLen;
+    }
+
+    function isValidOptionalString(data, field, maxLen) {
+      return !(field in data) ||
+        data[field] == null ||
+        (data[field] is string && data[field].size() <= maxLen);
+    }
+
+    function isValidOptionalNumber(data, field, minVal, maxVal) {
+      return !(field in data) ||
+        data[field] == null ||
+        (data[field] is number && data[field] >= minVal && data[field] <= maxVal);
+    }
+
+    // ===============================================================
+    // Domain Validators
+    // ===============================================================
+
+    function isValidOrder(data) {
+      return data.keys().hasAll(['orderNumber', 'customer', 'items', 'totalAmount', 'paymentMethod', 'status']) &&
+        data.keys().hasOnly(['id', 'orderNumber', 'customer', 'items', 'orderBump', 'totalAmount', 'paymentMethod', 'status', 'createdAt', 'timestampIso', 'transactionId']) &&
+        isValidString(data.orderNumber, 3, 60) &&
+        data.customer is map &&
+        data.customer.keys().hasAll(['fullName', 'email']) &&
+        isValidString(data.customer.fullName, 1, 100) &&
+        isValidString(data.customer.email, 5, 100) &&
+        isValidEmail(data.customer.email) &&
+        isValidOptionalString(data.customer, 'phone', 30) &&
+        data.items is list &&
+        data.items.size() >= 1 &&
+        data.items.size() <= 50 &&
+        (!('orderBump' in data) || data.orderBump == null || data.orderBump is map) &&
+        data.totalAmount is number &&
+        data.totalAmount >= 0 &&
+        data.totalAmount <= 10000000 &&
+        isValidString(data.paymentMethod, 2, 100) &&
+        data.status is string &&
+        data.status in ['pending', 'processing', 'completed', 'on-hold', 'failed', 'refunded', 'cancelled'] &&
+        (!('createdAt' in data) || data.createdAt is timestamp) &&
+        isValidOptionalString(data, 'timestampIso', 50) &&
+        isValidOptionalString(data, 'transactionId', 100);
+    }
+
+    function areOrderImmutableFieldsUnchanged() {
+      return request.resource.data.orderNumber == resource.data.orderNumber &&
+        request.resource.data.customer == resource.data.customer &&
+        request.resource.data.items == resource.data.items &&
+        request.resource.data.totalAmount == resource.data.totalAmount &&
+        (!('createdAt' in resource.data) || request.resource.data.createdAt == resource.data.createdAt);
+    }
+
+    function isValidProduct(data) {
+      return data.keys().hasAll(['name', 'price']) &&
+        isValidString(data.name, 1, 250) &&
+        data.price is number &&
+        data.price >= 0 &&
+        data.price <= 1000000 &&
+        isValidOptionalString(data, 'id', 100) &&
+        isValidOptionalString(data, 'slug', 150) &&
+        isValidOptionalString(data, 'description', 5000) &&
+        isValidOptionalString(data, 'format', 50) &&
+        isValidOptionalString(data, 'resolution', 50) &&
+        isValidOptionalString(data, 'featured_image', 1000) &&
+        isValidOptionalString(data, 'created_at', 50) &&
+        isValidOptionalString(data, 'googleDriveLink', 1000) &&
+        isValidOptionalNumber(data, 'regular_price', 0, 1000000) &&
+        isValidOptionalNumber(data, 'sale_price', 0, 1000000) &&
+        isValidOptionalNumber(data, 'reel_count', 0, 1000000) &&
+        isValidOptionalNumber(data, 'downloads_count', 0, 10000000) &&
+        (!('status' in data) || data.status in ['publish', 'draft', 'pending', 'private']) &&
+        (!('stock_status' in data) || data.stock_status in ['instock', 'outofstock', 'onbackorder']) &&
+        (!('downloadable' in data) || data.downloadable is bool) &&
+        (!('categories' in data) || (data.categories is list && data.categories.size() <= 30)) &&
+        (!('files' in data) || (data.files is list && data.files.size() <= 50));
+    }
+
+    function isValidStoreSetting(data) {
+      return data is map &&
+        isValidOptionalString(data, 'store_name', 120) &&
+        isValidOptionalString(data, 'contact_email', 120) &&
+        isValidOptionalString(data, 'support_whatsapp', 50) &&
+        isValidOptionalString(data, 'currency', 20) &&
+        isValidOptionalString(data, 'currency_symbol', 10) &&
+        isValidOptionalString(data, 'tagline', 200) &&
+        isValidOptionalString(data, 'logo_url', 1000) &&
+        isValidOptionalString(data, 'favicon_url', 1000) &&
+        isValidOptionalString(data, 'primary_color', 30) &&
+        isValidOptionalString(data, 'secondary_color', 30) &&
+        isValidOptionalString(data, 'accent_color', 30) &&
+        isValidOptionalString(data, 'font_family', 50) &&
+        isValidOptionalString(data, 'mode', 20) &&
+        isValidOptionalString(data, 'maintenance_message', 1000) &&
+        isValidOptionalString(data, 'pixel_id', 100) &&
+        isValidOptionalString(data, 'phone_number', 50);
+    }
+
+    function isValidCoupon(data) {
+      return data.keys().hasAll(['code', 'discount_type', 'amount']) &&
+        isValidString(data.code, 1, 50) &&
+        data.discount_type in ['percent', 'fixed_cart', 'fixed_product'] &&
+        data.amount is number &&
+        data.amount >= 0 &&
+        data.amount <= 1000000 &&
+        isValidOptionalString(data, 'id', 50) &&
+        isValidOptionalString(data, 'description', 200) &&
+        isValidOptionalString(data, 'expiry_date', 50) &&
+        isValidOptionalNumber(data, 'usage_count', 0, 1000000) &&
+        isValidOptionalNumber(data, 'usage_limit', 0, 1000000) &&
+        (!('is_active' in data) || data.is_active is bool);
+    }
+
+    function isValidAuditLog(data) {
+      return data.keys().hasAll(['adminEmail', 'action', 'module', 'details']) &&
+        isValidString(data.adminEmail, 3, 100) &&
+        isValidString(data.action, 1, 100) &&
+        isValidString(data.module, 1, 100) &&
+        isValidString(data.details, 1, 1000) &&
+        isValidOptionalString(data, 'id', 50) &&
+        isValidOptionalString(data, 'ipAddress', 50) &&
+        isValidOptionalString(data, 'timestamp', 50) &&
+        (!('createdAt' in data) || data.createdAt is timestamp);
+    }
+
+    // ===============================================================
+    // Collection Rules
+    // ===============================================================
+
+    // 1. Orders
+    match /orders/{orderId} {
+      // Storefront queries orders by customer.email & reads by orderId; Admin views all orders
+      allow read: if true;
+
+      // Guest storefront creates orders with strict schema validation
+      allow create: if isValidOrder(request.resource.data);
+
+      // Admin updates order status without tampering with buyer, items, or amount
+      allow update: if isValidOrder(request.resource.data) && areOrderImmutableFieldsUnchanged();
+
+      // Deletion is strictly prohibited: prevents wiping of orders
+      allow delete: if false;
+    }
+
+    // 2. Products
+    match /products/{productId} {
+      // Storefront & Admin read products
+      allow read: if true;
+
+      // Admin creates or updates products with valid schema
+      allow create, update: if isValidProduct(request.resource.data);
+
+      // Catalog deletion is prevented (products can be set to draft/private)
+      allow delete: if false;
+    }
+
+    // 3. Store Settings
+    match /store_settings/{settingId} {
+      // Storefront & Admin read settings (general, branding, site_mode, etc.)
+      allow read: if true;
+
+      // Only recognized setting docs can be saved with bounded sizes
+      allow create, update: if settingId in ['general', 'branding', 'site_mode', 'meta_pixel', 'whatsapp'] &&
+                               isValidStoreSetting(request.resource.data);
+
+      // Settings documents cannot be deleted
+      allow delete: if false;
+    }
+
+    // 4. Coupons
+    match /coupons/{couponId} {
+      // Storefront verifies coupon codes & Admin views list
+      allow read: if true;
+
+      // Admin creates or updates coupons with validation
+      allow create, update: if isValidCoupon(request.resource.data);
+
+      // Admin can remove coupons
+      allow delete: if true;
+    }
+
+    // 5. Admin Audit Logs
+    match /admin_audit_logs/{logId} {
+      // Admin reads recent logs
+      allow read: if true;
+
+      // Admin portal appends audit entries with validation
+      allow create: if isValidAuditLog(request.resource.data);
+
+      // Audit logs are append-only: tamper and wipe proof
+      allow update, delete: if false;
+    }
+
+    // ===============================================================
+    // Default Deny Rule
+    // ===============================================================
+    // All other collections or paths are blocked by default.
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
