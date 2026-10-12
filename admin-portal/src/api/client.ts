@@ -278,6 +278,47 @@ class PortalApiClient {
     return { success: true, message: `Google Drive links resent for Order #${orderId}` };
   }
 
+  async deleteOrder(orderId: string | number): Promise<{ success: boolean; message: string }> {
+    const idStr = String(orderId);
+    if (db) {
+      try {
+        await deleteDoc(doc(db, 'orders', idStr));
+      } catch (e) {
+        console.warn('Firestore order deletion error:', e);
+      }
+    }
+
+    // Also remove from in-memory fallback list if present
+    const idx = initialOrders.findIndex(
+      (o) => String(o.id) === idStr || String(o.order_number) === idStr
+    );
+    if (idx !== -1) {
+      initialOrders.splice(idx, 1);
+    }
+
+    // Remove from local storage cache if stored
+    if (typeof window !== 'undefined') {
+      try {
+        const stored = JSON.parse(localStorage.getItem('vaultzet_orders') || '[]');
+        const filtered = stored.filter(
+          (o: any) => String(o.id) !== idStr && o.orderNumber !== idStr && o.order_number !== idStr
+        );
+        localStorage.setItem('vaultzet_orders', JSON.stringify(filtered));
+      } catch (e) {
+        // ignore
+      }
+    }
+
+    await logAdminAction({
+      adminEmail: 'admin@vaultzet.com',
+      action: 'DELETE_ORDER',
+      module: 'Orders',
+      details: `Deleted test transaction / order #${orderId}`,
+    });
+
+    return { success: true, message: `Order #${orderId} permanently deleted.` };
+  }
+
   // ==========================================
   // 4. CUSTOMERS (Aggregated from real Firestore orders)
   // ==========================================

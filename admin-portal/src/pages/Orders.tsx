@@ -14,6 +14,7 @@ import {
   CreditCard,
   Mail,
   Phone,
+  Trash2,
 } from 'lucide-react';
 import { portalApi } from '../api/client';
 import { Order } from '../api/types';
@@ -54,6 +55,32 @@ export default function Orders() {
     },
     onError: () => error('Resend Failed', 'Could not dispatch delivery email.'),
   });
+
+  const deleteMutation = useMutation({
+    mutationFn: (id: string | number) => portalApi.deleteOrder(id),
+    onSuccess: (res, deletedId) => {
+      queryClient.setQueryData(['orders'], (old: Order[] = []) =>
+        old.filter((o) => o.id !== deletedId && o.order_number !== deletedId)
+      );
+      if (
+        selectedOrder &&
+        (selectedOrder.id === deletedId || selectedOrder.order_number === deletedId)
+      ) {
+        setSelectedOrder(null);
+      }
+      queryClient.invalidateQueries({ queryKey: ['daily-summary'] });
+      queryClient.invalidateQueries({ queryKey: ['recent-orders'] });
+      success('Order Deleted', res.message);
+    },
+    onError: (err: any) =>
+      error('Delete Failed', err.message || 'Could not delete order from database.'),
+  });
+
+  const handleDeleteOrder = (order: Order) => {
+    if (confirm(`Permanently delete order #${order.order_number}? This cannot be undone.`)) {
+      deleteMutation.mutate(order.id);
+    }
+  };
 
   const handleTriggerSync = async () => {
     setIsSyncing(true);
@@ -146,6 +173,13 @@ export default function Orders() {
             title="Resend Google Drive Access"
           >
             <Send className="w-3.5 h-3.5" />
+          </button>
+          <button
+            onClick={() => handleDeleteOrder(o)}
+            className="p-1.5 rounded-lg bg-rose-500/10 hover:bg-rose-500/25 text-rose-400 border border-rose-500/20 hover:border-rose-500/40 transition-colors"
+            title="Delete Test Transaction"
+          >
+            <Trash2 className="w-3.5 h-3.5" />
           </button>
         </div>
       ),
@@ -308,6 +342,13 @@ export default function Orders() {
               >
                 <Send className="w-4 h-4" />
                 <span>Resend Google Drive Access Email</span>
+              </button>
+              <button
+                onClick={() => handleDeleteOrder(selectedOrder)}
+                className="w-full py-2.5 rounded-xl bg-rose-950/40 hover:bg-rose-900/60 border border-rose-500/30 text-rose-300 font-bold text-xs flex items-center justify-center gap-2 transition-all"
+              >
+                <Trash2 className="w-4 h-4" />
+                <span>Delete This Order Permanently</span>
               </button>
             </div>
 

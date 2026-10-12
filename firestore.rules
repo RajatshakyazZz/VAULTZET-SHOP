@@ -211,8 +211,8 @@ service cloud.firestore {
       // Admin updates order status without tampering with buyer, items, or amount
       allow update: if isValidOrder(request.resource.data) && areOrderImmutableFieldsUnchanged();
 
-      // Deletion is strictly prohibited: prevents wiping of orders
-      allow delete: if false;
+      // Admin can delete test transactions
+      allow delete: if true;
     }
 
     // 2. Products

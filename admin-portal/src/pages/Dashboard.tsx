@@ -1,5 +1,5 @@
 import React from 'react';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import {
   IndianRupee,
   ShoppingCart,
@@ -11,6 +11,7 @@ import {
   AlertTriangle,
   Play,
   Flame,
+  Trash2,
 } from 'lucide-react';
 import {
   AreaChart,
@@ -26,8 +27,12 @@ import StatCard from '../components/common/StatCard';
 import { formatCurrency, formatDate } from '../lib/utils';
 import { Link } from 'react-router-dom';
 import { useBackendHealth } from '../context/BackendHealthContext';
+import { useToast } from '../context/ToastContext';
 
 export default function Dashboard() {
+  const queryClient = useQueryClient();
+  const { success, error } = useToast();
+
   const { data: summary, isLoading: isSummaryLoading, refetch } = useQuery({
     queryKey: ['daily-summary'],
     queryFn: () => portalApi.getDailySummary(),
@@ -39,6 +44,25 @@ export default function Dashboard() {
   });
 
   const { status, errorMessage, openModal } = useBackendHealth();
+
+  const deleteMutation = useMutation({
+    mutationFn: (id: string | number) => portalApi.deleteOrder(id),
+    onSuccess: (res, deletedId) => {
+      queryClient.setQueryData(['recent-orders'], (old: any[] = []) =>
+        old.filter((o) => o.id !== deletedId && o.order_number !== deletedId)
+      );
+      queryClient.invalidateQueries({ queryKey: ['orders'] });
+      queryClient.invalidateQueries({ queryKey: ['daily-summary'] });
+      success('Order Deleted', res.message);
+    },
+    onError: (err: any) => error('Delete Failed', err.message || 'Could not delete order.'),
+  });
+
+  const handleDelete = (order: any) => {
+    if (confirm(`Permanently delete test order #${order.order_number}?`)) {
+      deleteMutation.mutate(order.id);
+    }
+  };
 
   return (
     <div className="space-y-7">
@@ -281,12 +305,13 @@ export default function Dashboard() {
                 <th className="py-2.5 px-3">Payment</th>
                 <th className="py-2.5 px-3">Status</th>
                 <th className="py-2.5 px-3">Drive Access</th>
+                <th className="py-2.5 px-3 text-right">Action</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-800/60 text-slate-200">
               {orders.length === 0 ? (
                 <tr>
-                  <td colSpan={7} className="py-12 text-center text-slate-500">
+                  <td colSpan={8} className="py-12 text-center text-slate-500">
                     <div className="flex flex-col items-center justify-center gap-2">
                       <ShoppingCart className="w-8 h-8 text-slate-600" />
                       <p className="text-sm font-bold text-slate-300">No orders yet</p>
@@ -340,6 +365,15 @@ export default function Dashboard() {
                           <span>Pending</span>
                         </span>
                       )}
+                    </td>
+                    <td className="py-3 px-3 text-right">
+                      <button
+                        onClick={() => handleDelete(order)}
+                        className="p-1.5 rounded-lg bg-rose-500/10 hover:bg-rose-500/25 text-rose-400 border border-rose-500/20 hover:border-rose-500/40 transition-colors"
+                        title="Delete this test order"
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                      </button>
                     </td>
                   </tr>
                 ))
