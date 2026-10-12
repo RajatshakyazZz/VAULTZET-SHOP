@@ -1,5 +1,11 @@
 import React, { createContext, useContext, useEffect, useState, useCallback } from 'react';
-import { db, firebaseConfig } from '../lib/firebase';
+import {
+  db,
+  firebaseConfig,
+  saveCustomFirebaseConfig,
+  clearCustomFirebaseConfig,
+  FirebaseConfigObject,
+} from '../lib/firebase';
 import { doc, getDoc } from 'firebase/firestore';
 import {
   CheckCircle2,
@@ -13,6 +19,8 @@ import {
   Key,
   Copy,
   Check,
+  Sliders,
+  RotateCcw,
 } from 'lucide-react';
 
 export type HealthStatus = 'checking' | 'connected' | 'error' | 'placeholder';
@@ -26,6 +34,7 @@ export interface BackendHealthState {
   errorCode: string | null;
   lastChecked: string | null;
   isModalOpen: boolean;
+  hasCustomConfig: boolean;
   openModal: () => void;
   closeModal: () => void;
   runHealthCheck: () => Promise<void>;
@@ -43,10 +52,13 @@ export function BackendHealthProvider({ children }: { children: React.ReactNode 
 
   const rawKey = firebaseConfig.apiKey || '';
   const apiKeyMasked = rawKey.length > 8 ? `${rawKey.slice(0, 6)}...${rawKey.slice(-4)}` : 'NOT SET';
+  const hasCustomConfig =
+    typeof window !== 'undefined' && !!localStorage.getItem('vaultzet_firebase_config');
   const isPlaceholderKey =
-    !import.meta.env.VITE_FIREBASE_API_KEY ||
-    rawKey.includes('Demo') ||
-    firebaseConfig.projectId === 'reelsbundles-admin';
+    !hasCustomConfig &&
+    (!import.meta.env.VITE_FIREBASE_API_KEY ||
+      rawKey.includes('Demo') ||
+      firebaseConfig.projectId === 'reelsbundles-admin');
 
   const runHealthCheck = useCallback(async () => {
     setStatus('checking');
@@ -115,6 +127,7 @@ export function BackendHealthProvider({ children }: { children: React.ReactNode 
         errorCode,
         lastChecked,
         isModalOpen,
+        hasCustomConfig,
         openModal,
         closeModal,
         runHealthCheck,
@@ -144,14 +157,80 @@ function BackendHealthModal() {
     errorCode,
     lastChecked,
     isModalOpen,
+    hasCustomConfig,
     closeModal,
     runHealthCheck,
   } = useBackendHealth();
 
   const [copiedRule, setCopiedRule] = useState(false);
   const [isChecking, setIsChecking] = useState(false);
+  const [showDirectConfig, setShowDirectConfig] = useState(false);
+
+  // Direct configuration form fields
+  const [cfgApiKey, setCfgApiKey] = useState(firebaseConfig.apiKey || '');
+  const [cfgProjectId, setCfgProjectId] = useState(firebaseConfig.projectId || 'vaultzet-5873e');
+  const [cfgAuthDomain, setCfgAuthDomain] = useState(firebaseConfig.authDomain || 'vaultzet-5873e.firebaseapp.com');
+  const [cfgStorageBucket, setCfgStorageBucket] = useState(firebaseConfig.storageBucket || 'vaultzet-5873e.firebasestorage.app');
+  const [cfgAppId, setCfgAppId] = useState(firebaseConfig.appId || '');
+  const [cfgMessagingSenderId, setCfgMessagingSenderId] = useState(firebaseConfig.messagingSenderId || '');
+  const [pasteSnippet, setPasteSnippet] = useState('');
+  const [pasteStatus, setPasteStatus] = useState<string | null>(null);
 
   if (!isModalOpen) return null;
+
+  const handleJsonPaste = (text: string) => {
+    setPasteSnippet(text);
+    setPasteStatus(null);
+    try {
+      let cleaned = text.trim();
+      const extractRegex = (key: string) => {
+        const match = cleaned.match(new RegExp(`${key}["']?\\s*:\\s*["']([^"']+)["']`));
+        return match ? match[1] : '';
+      };
+
+      const extractedApiKey = extractRegex('apiKey');
+      const extractedProjectId = extractRegex('projectId');
+      const extractedAuthDomain = extractRegex('authDomain');
+      const extractedStorageBucket = extractRegex('storageBucket');
+      const extractedAppId = extractRegex('appId');
+      const extractedSenderId = extractRegex('messagingSenderId');
+
+      if (extractedApiKey) setCfgApiKey(extractedApiKey);
+      if (extractedProjectId) setCfgProjectId(extractedProjectId);
+      if (extractedAuthDomain) setCfgAuthDomain(extractedAuthDomain);
+      if (extractedStorageBucket) setCfgStorageBucket(extractedStorageBucket);
+      if (extractedAppId) setCfgAppId(extractedAppId);
+      if (extractedSenderId) setCfgMessagingSenderId(extractedSenderId);
+
+      if (extractedApiKey || extractedProjectId) {
+        setPasteStatus('Keys parsed successfully! Click "Save & Connect" below.');
+      }
+    } catch (e: any) {
+      setPasteStatus('Could not auto-parse keys. Please edit fields directly.');
+    }
+  };
+
+  const handleSaveDirectConfig = () => {
+    if (!cfgApiKey || !cfgProjectId) {
+      alert('API Key and Project ID are required.');
+      return;
+    }
+    const newConfig: FirebaseConfigObject = {
+      apiKey: cfgApiKey.trim(),
+      projectId: cfgProjectId.trim(),
+      authDomain: cfgAuthDomain.trim() || `${cfgProjectId.trim()}.firebaseapp.com`,
+      storageBucket: cfgStorageBucket.trim() || `${cfgProjectId.trim()}.firebasestorage.app`,
+      messagingSenderId: cfgMessagingSenderId.trim() || '1029384756',
+      appId: cfgAppId.trim() || '1:1029384756:web:vaultzet',
+    };
+    saveCustomFirebaseConfig(newConfig);
+  };
+
+  const handleResetConfig = () => {
+    if (confirm('Reset to default configuration?')) {
+      clearCustomFirebaseConfig();
+    }
+  };
 
   const handleRecheck = async () => {
     setIsChecking(true);
@@ -265,6 +344,160 @@ service cloud.firestore {
               {latencyMs !== null ? `${latencyMs} ms` : 'N/A'}
             </span>
           </div>
+        </div>
+
+        {/* Direct Firebase Setup Card */}
+        <div className="p-4 rounded-2xl bg-slate-950/80 border border-slate-800 space-y-3">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <Key className="w-4 h-4 text-purple-400" />
+              <span className="text-xs font-bold text-white uppercase tracking-wider">
+                Direct Firebase Setup (Keys Yahan Add Karein)
+              </span>
+            </div>
+            <div className="flex items-center gap-2">
+              {hasCustomConfig && (
+                <span className="text-[10px] bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 px-2 py-0.5 rounded-full font-bold">
+                  Browser Config Active
+                </span>
+              )}
+              <button
+                type="button"
+                onClick={() => setShowDirectConfig(!showDirectConfig)}
+                className="text-xs font-bold text-purple-400 hover:text-purple-300 underline"
+              >
+                {showDirectConfig ? 'Hide Inputs' : 'Edit / Paste Keys'}
+              </button>
+            </div>
+          </div>
+
+          <p className="text-xs text-slate-400 leading-relaxed">
+            Agar aapne Vercel environment variables set nahi kiye hain, toh aap yahan direct Firebase keys paste karke live database se connect kar sakte hain:
+          </p>
+
+          {showDirectConfig && (
+            <div className="space-y-3 pt-2 border-t border-slate-800 animate-fade-in">
+              {/* Quick Paste JSON */}
+              <div>
+                <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-1">
+                  Quick Paste Firebase Config (JSON ya code snippet)
+                </label>
+                <textarea
+                  value={pasteSnippet}
+                  onChange={(e) => handleJsonPaste(e.target.value)}
+                  placeholder={`const firebaseConfig = {\n  apiKey: "AIzaSy...",\n  projectId: "vaultzet-5873e",\n  ...\n};`}
+                  rows={3}
+                  className="w-full bg-slate-900 border border-slate-800 rounded-xl px-3 py-2 text-xs font-mono text-slate-200 focus:outline-none focus:border-purple-500 placeholder-slate-600"
+                />
+                {pasteStatus && (
+                  <p className="text-[11px] text-emerald-400 font-semibold mt-1">{pasteStatus}</p>
+                )}
+              </div>
+
+              {/* Individual Form Inputs */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-1">
+                    Firebase API Key *
+                  </label>
+                  <input
+                    type="text"
+                    value={cfgApiKey}
+                    onChange={(e) => setCfgApiKey(e.target.value)}
+                    placeholder="AIzaSy..."
+                    className="w-full bg-slate-900 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-purple-500 font-mono"
+                  />
+                </div>
+
+                <div>
+                  <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-1">
+                    Project ID *
+                  </label>
+                  <input
+                    type="text"
+                    value={cfgProjectId}
+                    onChange={(e) => setCfgProjectId(e.target.value)}
+                    placeholder="vaultzet-5873e"
+                    className="w-full bg-slate-900 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-purple-500 font-mono"
+                  />
+                </div>
+
+                <div>
+                  <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-1">
+                    Auth Domain
+                  </label>
+                  <input
+                    type="text"
+                    value={cfgAuthDomain}
+                    onChange={(e) => setCfgAuthDomain(e.target.value)}
+                    placeholder="vaultzet-5873e.firebaseapp.com"
+                    className="w-full bg-slate-900 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-purple-500 font-mono"
+                  />
+                </div>
+
+                <div>
+                  <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-1">
+                    Storage Bucket
+                  </label>
+                  <input
+                    type="text"
+                    value={cfgStorageBucket}
+                    onChange={(e) => setCfgStorageBucket(e.target.value)}
+                    placeholder="vaultzet-5873e.firebasestorage.app"
+                    className="w-full bg-slate-900 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-purple-500 font-mono"
+                  />
+                </div>
+
+                <div>
+                  <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-1">
+                    App ID
+                  </label>
+                  <input
+                    type="text"
+                    value={cfgAppId}
+                    onChange={(e) => setCfgAppId(e.target.value)}
+                    placeholder="1:1029384756:web:..."
+                    className="w-full bg-slate-900 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-purple-500 font-mono"
+                  />
+                </div>
+
+                <div>
+                  <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-1">
+                    Messaging Sender ID
+                  </label>
+                  <input
+                    type="text"
+                    value={cfgMessagingSenderId}
+                    onChange={(e) => setCfgMessagingSenderId(e.target.value)}
+                    placeholder="1029384756"
+                    className="w-full bg-slate-900 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-purple-500 font-mono"
+                  />
+                </div>
+              </div>
+
+              <div className="flex items-center justify-between pt-2">
+                {hasCustomConfig ? (
+                  <button
+                    type="button"
+                    onClick={handleResetConfig}
+                    className="px-3 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-rose-400 text-xs font-bold flex items-center gap-1.5 transition-colors"
+                  >
+                    <RotateCcw className="w-3.5 h-3.5" />
+                    Reset to Defaults
+                  </button>
+                ) : <div />}
+
+                <button
+                  type="button"
+                  onClick={handleSaveDirectConfig}
+                  className="px-4 py-2 rounded-xl bg-purple-600 hover:bg-purple-500 text-white text-xs font-bold flex items-center gap-1.5 transition-colors shadow-lg shadow-purple-600/30"
+                >
+                  <Check className="w-3.5 h-3.5" />
+                  Save & Connect to Firebase
+                </button>
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Error Details if any */}

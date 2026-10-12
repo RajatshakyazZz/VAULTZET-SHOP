@@ -380,19 +380,57 @@ class PortalApiClient {
   }
 
   // ==========================================
+  // PERSISTENCE HELPERS (LocalStorage + Cloud Dual-Sync)
+  // ==========================================
+  private getSavedSetting<T>(key: string, defaultValue: T): T {
+    if (typeof window !== 'undefined') {
+      try {
+        const stored = localStorage.getItem(`vaultzet_setting_${key}`);
+        if (stored) {
+          const parsed = JSON.parse(stored);
+          if (typeof defaultValue === 'object' && defaultValue !== null && !Array.isArray(defaultValue)) {
+            return { ...defaultValue, ...parsed };
+          }
+          return parsed;
+        }
+      } catch (e) {
+        console.warn(`localStorage read error for ${key}:`, e);
+      }
+    }
+    return defaultValue;
+  }
+
+  private saveSettingLocally<T>(key: string, value: T): void {
+    if (typeof window !== 'undefined') {
+      try {
+        localStorage.setItem(`vaultzet_setting_${key}`, JSON.stringify(value));
+      } catch (e) {
+        console.warn(`localStorage write error for ${key}:`, e);
+      }
+    }
+  }
+
+  // ==========================================
   // 7. BRANDING
   // ==========================================
   async getBranding(): Promise<StoreBranding> {
     if (db) {
       try {
         const snap = await getDoc(doc(db, 'store_settings', 'branding'));
-        if (snap.exists()) return snap.data() as StoreBranding;
-      } catch {}
+        if (snap.exists()) {
+          const data = snap.data() as StoreBranding;
+          this.saveSettingLocally('branding', data);
+          return data;
+        }
+      } catch (e) {
+        console.warn('Firestore branding fetch error, using local cache:', e);
+      }
     }
-    return initialBranding;
+    return this.getSavedSetting('branding', initialBranding);
   }
 
   async updateBranding(branding: StoreBranding): Promise<StoreBranding> {
+    this.saveSettingLocally('branding', branding);
     if (db) {
       try {
         await setDoc(doc(db, 'store_settings', 'branding'), branding, { merge: true });
@@ -419,17 +457,26 @@ class PortalApiClient {
     if (db) {
       try {
         const snap = await getDoc(doc(db, 'store_settings', 'site_mode'));
-        if (snap.exists()) return snap.data() as SiteModeConfig;
-      } catch {}
+        if (snap.exists()) {
+          const data = snap.data() as SiteModeConfig;
+          this.saveSettingLocally('site_mode', data);
+          return data;
+        }
+      } catch (e) {
+        console.warn('Firestore site_mode fetch error, using local cache:', e);
+      }
     }
-    return initialSiteMode;
+    return this.getSavedSetting('site_mode', initialSiteMode);
   }
 
   async updateSiteMode(config: SiteModeConfig): Promise<SiteModeConfig> {
+    this.saveSettingLocally('site_mode', config);
     if (db) {
       try {
         await setDoc(doc(db, 'store_settings', 'site_mode'), config, { merge: true });
-      } catch {}
+      } catch (e) {
+        console.warn('Firestore updateSiteMode error:', e);
+      }
     }
     await logAdminAction({
       adminEmail: 'admin@vaultzet.com',
@@ -451,13 +498,20 @@ class PortalApiClient {
     if (db) {
       try {
         const snap = await getDoc(doc(db, 'store_settings', 'general'));
-        if (snap.exists()) return snap.data() as StoreSetupConfig;
-      } catch {}
+        if (snap.exists()) {
+          const data = snap.data() as StoreSetupConfig;
+          this.saveSettingLocally('general', data);
+          return data;
+        }
+      } catch (e) {
+        console.warn('Firestore general config fetch error, using local cache:', e);
+      }
     }
-    return initialStoreSetup;
+    return this.getSavedSetting('general', initialStoreSetup);
   }
 
   async updateStoreSetup(config: StoreSetupConfig): Promise<StoreSetupConfig> {
+    this.saveSettingLocally('general', config);
     if (db) {
       try {
         await setDoc(doc(db, 'store_settings', 'general'), config, { merge: true });
@@ -484,17 +538,26 @@ class PortalApiClient {
     if (db) {
       try {
         const snap = await getDoc(doc(db, 'store_settings', 'meta_pixel'));
-        if (snap.exists()) return snap.data() as MetaPixelConfig;
-      } catch {}
+        if (snap.exists()) {
+          const data = snap.data() as MetaPixelConfig;
+          this.saveSettingLocally('meta_pixel', data);
+          return data;
+        }
+      } catch (e) {
+        console.warn('Firestore meta_pixel fetch error, using local cache:', e);
+      }
     }
-    return initialMetaPixel;
+    return this.getSavedSetting('meta_pixel', initialMetaPixel);
   }
 
   async updateMetaPixel(config: MetaPixelConfig): Promise<MetaPixelConfig> {
+    this.saveSettingLocally('meta_pixel', config);
     if (db) {
       try {
         await setDoc(doc(db, 'store_settings', 'meta_pixel'), config, { merge: true });
-      } catch {}
+      } catch (e) {
+        console.warn('Firestore updateMetaPixel error:', e);
+      }
     }
     await logAdminAction({
       adminEmail: 'admin@vaultzet.com',
@@ -512,17 +575,26 @@ class PortalApiClient {
     if (db) {
       try {
         const snap = await getDoc(doc(db, 'store_settings', 'whatsapp'));
-        if (snap.exists()) return snap.data() as WhatsappButtonConfig;
-      } catch {}
+        if (snap.exists()) {
+          const data = snap.data() as WhatsappButtonConfig;
+          this.saveSettingLocally('whatsapp', data);
+          return data;
+        }
+      } catch (e) {
+        console.warn('Firestore whatsapp fetch error, using local cache:', e);
+      }
     }
-    return initialWhatsappButton;
+    return this.getSavedSetting('whatsapp', initialWhatsappButton);
   }
 
   async updateWhatsappButton(config: WhatsappButtonConfig): Promise<WhatsappButtonConfig> {
+    this.saveSettingLocally('whatsapp', config);
     if (db) {
       try {
         await setDoc(doc(db, 'store_settings', 'whatsapp'), config, { merge: true });
-      } catch {}
+      } catch (e) {
+        console.warn('Firestore updateWhatsapp error:', e);
+      }
     }
     await logAdminAction({
       adminEmail: 'admin@vaultzet.com',
@@ -593,21 +665,24 @@ class PortalApiClient {
   // ==========================================
   // 16. SETTINGS & INTEGRATIONS
   // ==========================================
-  // 16. SETTINGS & INTEGRATIONS
-  // ==========================================
   async getCashfreeConfig(): Promise<PgBridgeConfig> {
     if (db) {
       try {
         const snap = await getDoc(doc(db, 'store_settings', 'cashfree'));
-        if (snap.exists()) return snap.data() as PgBridgeConfig;
+        if (snap.exists()) {
+          const data = snap.data() as PgBridgeConfig;
+          this.saveSettingLocally('cashfree', data);
+          return data;
+        }
       } catch (e) {
-        console.warn('Firestore cashfree config fetch error:', e);
+        console.warn('Firestore cashfree config fetch error, using local cache:', e);
       }
     }
-    return initialPgBridge;
+    return this.getSavedSetting('cashfree', initialPgBridge);
   }
 
   async updateCashfreeConfig(config: PgBridgeConfig): Promise<PgBridgeConfig> {
+    this.saveSettingLocally('cashfree', config);
     if (db) {
       try {
         await setDoc(doc(db, 'store_settings', 'cashfree'), config, { merge: true });
@@ -633,23 +708,99 @@ class PortalApiClient {
   }
 
   async getDnpMetaConfig(): Promise<DnpMetaConfig> {
-    return initialDnpMeta;
+    if (db) {
+      try {
+        const snap = await getDoc(doc(db, 'store_settings', 'dnp_meta'));
+        if (snap.exists()) {
+          const data = snap.data() as DnpMetaConfig;
+          this.saveSettingLocally('dnp_meta', data);
+          return data;
+        }
+      } catch {}
+    }
+    return this.getSavedSetting('dnp_meta', initialDnpMeta);
+  }
+
+  async updateDnpMetaConfig(config: DnpMetaConfig): Promise<DnpMetaConfig> {
+    this.saveSettingLocally('dnp_meta', config);
+    if (db) {
+      try {
+        await setDoc(doc(db, 'store_settings', 'dnp_meta'), config, { merge: true });
+      } catch {}
+    }
+    return config;
   }
 
   async getMmcConfig(): Promise<MmcAnalyticsConfig> {
-    return initialMmc;
+    if (db) {
+      try {
+        const snap = await getDoc(doc(db, 'store_settings', 'mmc_analytics'));
+        if (snap.exists()) {
+          const data = snap.data() as MmcAnalyticsConfig;
+          this.saveSettingLocally('mmc_analytics', data);
+          return data;
+        }
+      } catch {}
+    }
+    return this.getSavedSetting('mmc_analytics', initialMmc);
+  }
+
+  async updateMmcConfig(config: MmcAnalyticsConfig): Promise<MmcAnalyticsConfig> {
+    this.saveSettingLocally('mmc_analytics', config);
+    if (db) {
+      try {
+        await setDoc(doc(db, 'store_settings', 'mmc_analytics'), config, { merge: true });
+      } catch {}
+    }
+    return config;
   }
 
   async getRankMathConfig(): Promise<RankMathConfig> {
-    return initialRankMath;
+    if (db) {
+      try {
+        const snap = await getDoc(doc(db, 'store_settings', 'rankmath_seo'));
+        if (snap.exists()) {
+          const data = snap.data() as RankMathConfig;
+          this.saveSettingLocally('rankmath_seo', data);
+          return data;
+        }
+      } catch {}
+    }
+    return this.getSavedSetting('rankmath_seo', initialRankMath);
   }
 
   async updateRankMathConfig(config: RankMathConfig): Promise<RankMathConfig> {
+    this.saveSettingLocally('rankmath_seo', config);
+    if (db) {
+      try {
+        await setDoc(doc(db, 'store_settings', 'rankmath_seo'), config, { merge: true });
+      } catch {}
+    }
     return config;
   }
 
   async getLiteSpeedConfig(): Promise<LiteSpeedConfig> {
-    return initialLiteSpeed;
+    if (db) {
+      try {
+        const snap = await getDoc(doc(db, 'store_settings', 'litespeed_cache'));
+        if (snap.exists()) {
+          const data = snap.data() as LiteSpeedConfig;
+          this.saveSettingLocally('litespeed_cache', data);
+          return data;
+        }
+      } catch {}
+    }
+    return this.getSavedSetting('litespeed_cache', initialLiteSpeed);
+  }
+
+  async updateLiteSpeedConfig(config: LiteSpeedConfig): Promise<LiteSpeedConfig> {
+    this.saveSettingLocally('litespeed_cache', config);
+    if (db) {
+      try {
+        await setDoc(doc(db, 'store_settings', 'litespeed_cache'), config, { merge: true });
+      } catch {}
+    }
+    return config;
   }
 
   async purgeLiteSpeedCache(): Promise<{ success: boolean }> {

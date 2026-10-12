@@ -19,15 +19,55 @@ import {
   Firestore,
 } from 'firebase/firestore';
 
-// Environment variables or fallback defaults for local sandbox testing
-const firebaseConfig = {
-  apiKey: import.meta.env.VITE_FIREBASE_API_KEY || 'AIzaSyDemoAdminPortalKey_ReelsBundles_2026',
-  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN || 'reelsbundles-admin.firebaseapp.com',
-  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID || 'reelsbundles-admin',
-  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET || 'reelsbundles-admin.appspot.com',
-  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID || '1029384756',
-  appId: import.meta.env.VITE_FIREBASE_APP_ID || '1:1029384756:web:8a9b0c1d2e3f4a5b',
-};
+export interface FirebaseConfigObject {
+  apiKey: string;
+  authDomain: string;
+  projectId: string;
+  storageBucket: string;
+  messagingSenderId: string;
+  appId: string;
+}
+
+export function getEffectiveFirebaseConfig(): FirebaseConfigObject {
+  if (typeof window !== 'undefined') {
+    try {
+      const stored = localStorage.getItem('vaultzet_firebase_config');
+      if (stored) {
+        const parsed = JSON.parse(stored);
+        if (parsed.apiKey && parsed.projectId) {
+          return parsed;
+        }
+      }
+    } catch (e) {
+      console.warn('Error reading stored Firebase config:', e);
+    }
+  }
+
+  return {
+    apiKey: import.meta.env.VITE_FIREBASE_API_KEY || 'AIzaSyDemoAdminPortalKey_ReelsBundles_2026',
+    authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN || 'vaultzet-5873e.firebaseapp.com',
+    projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID || 'vaultzet-5873e',
+    storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET || 'vaultzet-5873e.firebasestorage.app',
+    messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID || '1029384756',
+    appId: import.meta.env.VITE_FIREBASE_APP_ID || '1:1029384756:web:8a9b0c1d2e3f4a5b',
+  };
+}
+
+export function saveCustomFirebaseConfig(config: FirebaseConfigObject) {
+  if (typeof window !== 'undefined') {
+    localStorage.setItem('vaultzet_firebase_config', JSON.stringify(config));
+    window.location.reload();
+  }
+}
+
+export function clearCustomFirebaseConfig() {
+  if (typeof window !== 'undefined') {
+    localStorage.removeItem('vaultzet_firebase_config');
+    window.location.reload();
+  }
+}
+
+const firebaseConfig = getEffectiveFirebaseConfig();
 
 let app: FirebaseApp | null = null;
 let auth: Auth | null = null;

@@ -233,7 +233,7 @@ service cloud.firestore {
       allow read: if true;
 
       // Only recognized setting docs can be saved with bounded sizes
-      allow create, update: if settingId in ['general', 'branding', 'site_mode', 'meta_pixel', 'whatsapp', 'cashfree'] &&
+      allow create, update: if settingId in ['general', 'branding', 'site_mode', 'meta_pixel', 'whatsapp', 'cashfree', 'rankmath_seo', 'dnp_meta', 'mmc_analytics', 'litespeed_cache'] &&
                                isValidStoreSetting(request.resource.data);
 
       // Settings documents cannot be deleted
