@@ -40,9 +40,12 @@ export default function Content() {
     category: 'AI Reels',
     bundleSlug: '',
     bundleTitle: '',
-    bundlePrice: 49,
+    bundlePrice: 59,
+    bundleOriginalPrice: 499,
+    reelCount: 1000,
     isActive: true,
-    likes: 1250,
+    likes: 0,
+    views: 15,
   });
 
   // Query: Pages & Content
@@ -114,9 +117,12 @@ export default function Content() {
         category: 'AI Reels',
         bundleSlug: '',
         bundleTitle: '',
-        bundlePrice: 49,
+        bundlePrice: 59,
+        bundleOriginalPrice: 499,
+        reelCount: 1000,
         isActive: true,
-        likes: 1250,
+        likes: 0,
+        views: 15,
       });
     },
     onError: (err: any) => error('Creation Failed', err.message || 'Could not save reel.'),
@@ -163,9 +169,12 @@ export default function Content() {
       category: reelForm.category,
       bundleSlug: reelForm.bundleSlug || undefined,
       bundleTitle: reelForm.bundleTitle || undefined,
-      bundlePrice: Number(reelForm.bundlePrice || 49),
+      bundlePrice: Number(reelForm.bundlePrice || 59),
+      bundleOriginalPrice: Number(reelForm.bundleOriginalPrice || 499),
+      reelCount: Number(reelForm.reelCount || 1000),
       isActive: reelForm.isActive,
-      likes: Number(reelForm.likes || 1000),
+      likes: Number(reelForm.likes || 0),
+      views: Number(reelForm.views || 15),
     });
   };
 
@@ -177,6 +186,9 @@ export default function Content() {
         bundleSlug: prod.slug,
         bundleTitle: prod.name,
         bundlePrice: prod.price,
+        bundleOriginalPrice: prod.regular_price || prod.price * 5,
+        reelCount: prod.reel_count || 1000,
+        category: prod.categories?.[0] || prev.category,
       }));
     } else {
       setReelForm((prev) => ({

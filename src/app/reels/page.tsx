@@ -2,28 +2,48 @@
 
 import React, { useState, useRef, useEffect } from 'react';
 import Link from 'next/link';
-import { Play, Pause, Volume2, VolumeX, Zap, Heart, ArrowLeft, ExternalLink } from 'lucide-react';
+import {
+  Heart,
+  Eye,
+  Volume2,
+  VolumeX,
+  ShoppingCart,
+  ArrowLeft,
+  ArrowUpRight,
+  Play,
+  Pause,
+  Sparkles,
+  Check,
+} from 'lucide-react';
 import { BUNDLE_PRODUCTS } from '@/data/bundles';
 import { useCart } from '@/context/CartContext';
 import { ReelItem, BundleProduct } from '@/types';
 import { getStoreReels, initialStoreReels, parseVideoUrl } from '@/lib/reels';
 
 export default function ReelsFeedPage() {
-  const { buyNow } = useCart();
+  const { addToCart, setIsCartOpen } = useCart();
   const [reels, setReels] = useState<ReelItem[]>(initialStoreReels);
-  const [activeVideoId, setActiveVideoId] = useState<string | null>(null);
+  const [activeReelId, setActiveReelId] = useState<string>(initialStoreReels[0]?.id || '');
   const [isMuted, setIsMuted] = useState(true);
   const [likes, setLikes] = useState<{ [key: string]: number }>({});
-  const videoRefs = useRef<{ [key: string]: HTMLVideoElement | null }>({});
+  const [likedReels, setLikedReels] = useState<{ [key: string]: boolean }>({});
+  const [addedAnimation, setAddedAnimation] = useState<{ [key: string]: boolean }>({});
+  const [isPlayingMap, setIsPlayingMap] = useState<{ [key: string]: boolean }>({});
 
+  const videoRefs = useRef<{ [key: string]: HTMLVideoElement | null }>({});
+  const containerRefs = useRef<{ [key: string]: HTMLDivElement | null }>({});
+
+  // 1. Fetch live reels from Firestore / Local storage
   useEffect(() => {
     let isMounted = true;
     getStoreReels().then((data) => {
       if (isMounted && data && data.length > 0) {
         setReels(data);
+        setActiveReelId(data[0].id);
+
         const initialLikes: { [key: string]: number } = {};
         data.forEach((r) => {
-          initialLikes[r.id] = r.likes || Math.floor(Math.random() * 1500 + 800);
+          initialLikes[r.id] = r.likes ?? 0;
         });
         setLikes(initialLikes);
       }
@@ -33,128 +53,246 @@ export default function ReelsFeedPage() {
     };
   }, []);
 
+  // 2. IntersectionObserver to auto-play active video on scroll / swipe (Instagram style)
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting && entry.intersectionRatio >= 0.55) {
+            const targetId = entry.target.getAttribute('data-reel-id');
+            if (targetId) {
+              setActiveReelId(targetId);
+            }
+          }
+        });
+      },
+      {
+        threshold: [0.55],
+      }
+    );
+
+    Object.values(containerRefs.current).forEach((el) => {
+      if (el) observer.observe(el);
+    });
+
+    return () => {
+      observer.disconnect();
+    };
+  }, [reels]);
+
+  // 3. Play active video and pause others
+  useEffect(() => {
+    Object.entries(videoRefs.current).forEach(([id, video]) => {
+      if (!video) return;
+      if (id === activeReelId) {
+        video.muted = isMuted;
+        video.play().then(() => {
+          setIsPlayingMap((prev) => ({ ...prev, [id]: true }));
+        }).catch(() => {
+          setIsPlayingMap((prev) => ({ ...prev, [id]: false }));
+        });
+      } else {
+        video.pause();
+        setIsPlayingMap((prev) => ({ ...prev, [id]: false }));
+      }
+    });
+  }, [activeReelId, isMuted]);
+
+  // Toggle Play / Pause on direct tap
   const handleTogglePlay = (id: string) => {
     const video = videoRefs.current[id];
-
-    if (activeVideoId === id) {
-      if (video) video.pause();
-      setActiveVideoId(null);
-    } else {
-      // Pause previous playing video
-      if (activeVideoId && videoRefs.current[activeVideoId]) {
-        videoRefs.current[activeVideoId]?.pause();
-      }
-      if (video) {
+    if (video) {
+      if (video.paused) {
         video.play().catch(() => {});
+        setIsPlayingMap((prev) => ({ ...prev, [id]: true }));
+      } else {
+        video.pause();
+        setIsPlayingMap((prev) => ({ ...prev, [id]: false }));
       }
-      setActiveVideoId(id);
+    } else {
+      // Toggle for YouTube or other
+      setIsPlayingMap((prev) => ({ ...prev, [id]: !prev[id] }));
     }
   };
 
+  // Like button toggle
   const handleLike = (id: string) => {
-    setLikes((prev) => ({
-      ...prev,
-      [id]: (prev[id] || 500) + 1,
-    }));
+    setLikedReels((prev) => {
+      const alreadyLiked = !!prev[id];
+      setLikes((currLikes) => ({
+        ...currLikes,
+        [id]: (currLikes[id] || 0) + (alreadyLiked ? -1 : 1),
+      }));
+      return { ...prev, [id]: !alreadyLiked };
+    });
   };
 
-  const handleBuyReelBundle = (reel: ReelItem) => {
-    // 1. Try to match with existing curated bundles
+  // Sound toggle across all videos
+  const handleToggleMute = () => {
+    const nextMuted = !isMuted;
+    setIsMuted(nextMuted);
+    Object.values(videoRefs.current).forEach((v) => {
+      if (v) v.muted = nextMuted;
+    });
+  };
+
+  // Add to Cart handler matching competitor
+  const handleAddToCart = (reel: ReelItem) => {
     const matched = BUNDLE_PRODUCTS.find(
       (b) => b.slug === reel.bundleSlug || b.id === reel.bundleId
     );
 
     if (matched) {
-      buyNow(matched, 'personal');
-      return;
+      addToCart(matched, 'personal');
+    } else {
+      const fallbackBundle: BundleProduct = {
+        id: reel.bundleId || `bundle-${reel.id}`,
+        slug: reel.bundleSlug || 'viral-reels-bundle',
+        title: reel.bundleTitle || reel.title,
+        shortDescription: `Viral reels package with instant cloud access.`,
+        category: reel.category || 'AI Reels',
+        categorySlug: 'ai-reels',
+        reelCount: reel.reelCount || 1000,
+        personalPrice: reel.bundlePrice || 59,
+        personalOriginalPrice: reel.bundleOriginalPrice || 499,
+        resellerPrice: (reel.bundlePrice || 59) * 2,
+        resellerOriginalPrice: (reel.bundleOriginalPrice || 499) * 2,
+        thumbnail: reel.poster || 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=600',
+        galleryImages: [reel.poster || 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=600'],
+        tags: ['BESTSELLER', '1080P'],
+        rating: 5.0,
+        reviewCount: 140,
+        resolution: '1080P Full HD',
+        aspectRatio: '9:16 Vertical',
+        format: 'MP4',
+        audioIncluded: true,
+        googleDriveLink: '',
+        features: ['Instant Access', 'Zero Watermark', 'Viral Retention'],
+        faqs: [],
+      };
+      addToCart(fallbackBundle, 'personal');
     }
 
-    // 2. Synthesize a clean checkout product for custom created bundles
-    const customBundle: BundleProduct = {
-      id: reel.bundleId || `custom-${reel.id}`,
-      slug: reel.bundleSlug || 'viral-reels-pack',
-      title: reel.bundleTitle || reel.title,
-      shortDescription: `Curated digital video reel package: ${reel.title}`,
-      category: reel.category || 'AI Reels',
-      categorySlug: 'ai-reels',
-      reelCount: 1000,
-      personalPrice: reel.bundlePrice || 49,
-      personalOriginalPrice: (reel.bundlePrice || 49) * 5,
-      resellerPrice: (reel.bundlePrice || 49) * 2,
-      resellerOriginalPrice: (reel.bundlePrice || 49) * 10,
-      thumbnail: reel.poster || 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=600',
-      galleryImages: [reel.poster || 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=600'],
-      tags: ['INSTANT ACCESS', 'HD'],
-      rating: 5.0,
-      reviewCount: 120,
-      resolution: '1080P Full HD',
-      aspectRatio: '9:16 Vertical',
-      format: 'MP4',
-      audioIncluded: true,
-      googleDriveLink: '',
-      features: ['Direct Instant Download', 'High Retention Format', 'Commercial Rights'],
-      faqs: [],
-    };
-
-    buyNow(customBundle, 'personal');
+    setAddedAnimation((prev) => ({ ...prev, [reel.id]: true }));
+    setTimeout(() => {
+      setAddedAnimation((prev) => ({ ...prev, [reel.id]: false }));
+      setIsCartOpen(true);
+    }, 600);
   };
 
   return (
-    <div className="py-6 sm:py-10 bg-slate-950 text-white min-h-screen">
-      <div className="max-w-4xl mx-auto px-4 space-y-6">
-        
-        {/* Top Header */}
-        <div className="flex items-center justify-between">
-          <Link
-            href="/"
-            className="inline-flex items-center gap-2 text-xs font-bold text-slate-400 hover:text-white"
-          >
-            <ArrowLeft className="w-4 h-4" />
-            <span>Back to Store</span>
-          </Link>
-          <div className="text-center">
-            <h1 className="text-xl font-black text-white">Vertical Video Reel Feed</h1>
-            <p className="text-xs text-slate-400">Scroll to preview viral reels samples & YouTube Shorts</p>
+    <div className="min-h-screen bg-[#faf8fd] text-slate-900 selection:bg-purple-100">
+      
+      {/* =========================================================================
+          DESKTOP HEADER (Matches Screenshot Exactly: REELS PREVIEW + Swipe. Preview. Pick Your Bundle.)
+          ========================================================================= */}
+      <div className="hidden sm:block max-w-5xl mx-auto pt-8 pb-6 px-4">
+        <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
+          <div>
+            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-black uppercase tracking-wider bg-[#f0e8fc] text-[#6e37f5] border border-[#e4d4fc] shadow-xs">
+              <Sparkles className="w-3 h-3 text-[#6e37f5]" />
+              <span>REELS PREVIEW</span>
+            </div>
+            <h1 className="text-3xl sm:text-4xl font-black text-slate-900 tracking-tight leading-tight mt-3">
+              Swipe. Preview. Pick Your Bundle.
+            </h1>
           </div>
-          <div className="w-16" />
+
+          <div className="flex items-center gap-4 text-xs font-medium text-slate-500">
+            <span>Scroll vertically to explore more previews.</span>
+            <Link
+              href="/"
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white hover:bg-slate-100 text-slate-700 font-bold border border-slate-200 transition-colors shadow-xs"
+            >
+              <ArrowLeft className="w-3.5 h-3.5" />
+              <span>Back to Store</span>
+            </Link>
+          </div>
         </div>
+      </div>
 
-        {/* Vertical Feed Cards */}
-        <div className="space-y-12 flex flex-col items-center">
-          {reels.map((reel) => {
-            const isPlaying = activeVideoId === reel.id;
-            const parsed = parseVideoUrl(reel.videoUrl);
-            const isYouTube = reel.videoType === 'youtube' || parsed.videoType === 'youtube' || Boolean(reel.youtubeId);
-            const ytId = reel.youtubeId || parsed.youtubeId;
+      {/* =========================================================================
+          MOBILE TOP FLOATING BAR (Full-screen YouTube Shorts / Instagram Reels Style)
+          ========================================================================= */}
+      <div className="sm:hidden fixed top-0 inset-x-0 z-40 p-4 bg-gradient-to-b from-black/80 via-black/40 to-transparent flex items-center justify-between text-white pointer-events-auto">
+        <Link
+          href="/"
+          className="w-9 h-9 rounded-full bg-black/50 backdrop-blur-md border border-white/20 flex items-center justify-center text-white"
+        >
+          <ArrowLeft className="w-4 h-4" />
+        </Link>
 
-            return (
+        <span className="px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider bg-black/60 text-white backdrop-blur-md border border-white/20 shadow-sm">
+          REELS PREVIEW
+        </span>
+
+        <button
+          onClick={handleToggleMute}
+          className="w-9 h-9 rounded-full bg-black/50 backdrop-blur-md border border-white/20 flex items-center justify-center text-white"
+        >
+          {isMuted ? <VolumeX className="w-4 h-4" /> : <Volume2 className="w-4 h-4" />}
+        </button>
+      </div>
+
+      {/* =========================================================================
+          MAIN FEED CONTAINER
+          - Desktop: Centered vertical cards with smooth scrolling
+          - Mobile: Fullscreen 100dvh snap-mandatory Instagram Reels swipe experience
+          ========================================================================= */}
+      <div className="h-[100dvh] sm:h-auto overflow-y-scroll snap-y snap-mandatory scrollbar-none sm:space-y-12 sm:pb-24 sm:max-w-md sm:mx-auto">
+        {reels.map((reel) => {
+          const isActive = activeReelId === reel.id;
+          const parsed = parseVideoUrl(reel.videoUrl);
+          const isYouTube = reel.videoType === 'youtube' || parsed.videoType === 'youtube' || Boolean(reel.youtubeId);
+          const ytId = reel.youtubeId || parsed.youtubeId;
+          const isPlaying = isPlayingMap[reel.id] ?? isActive;
+
+          const regularPrice = reel.bundleOriginalPrice || (reel.bundlePrice ? reel.bundlePrice * 8 : 499);
+          const salePrice = reel.bundlePrice || 59;
+          const discountPct = Math.round((1 - salePrice / regularPrice) * 100);
+
+          return (
+            <div
+              key={reel.id}
+              ref={(el) => {
+                containerRefs.current[reel.id] = el;
+              }}
+              data-reel-id={reel.id}
+              className="h-[100dvh] sm:h-auto sm:aspect-[9/16] w-full snap-start snap-always relative overflow-hidden bg-black sm:rounded-[36px] sm:shadow-[0_25px_60px_-15px_rgba(0,0,0,0.3)] sm:border-[4px] sm:border-slate-900/10 flex flex-col justify-between group select-none"
+            >
+              {/* TOP STORY/TIMELINE PROGRESS BAR (Like Instagram Reels) */}
+              <div className="absolute top-2.5 sm:top-3.5 inset-x-3 sm:inset-x-4 z-30 pointer-events-none">
+                <div className="w-full h-1 bg-white/30 rounded-full overflow-hidden">
+                  <div
+                    className={`h-full bg-white transition-all duration-300 ${
+                      isActive && isPlaying ? 'w-full animate-pulse' : 'w-1/3'
+                    }`}
+                  />
+                </div>
+              </div>
+
+              {/* =================================================================
+                  VIDEO LAYER: Full Bleed YouTube Embed OR Direct HTML5 Video
+                  ================================================================= */}
               <div
-                key={reel.id}
-                className="w-full max-w-[360px] aspect-[9/16] rounded-[36px] bg-black p-3.5 shadow-2xl border-4 border-slate-800 relative flex flex-col justify-between overflow-hidden group select-none"
+                onClick={() => handleTogglePlay(reel.id)}
+                className="absolute inset-0 w-full h-full cursor-pointer overflow-hidden bg-black"
               >
-                {/* Dynamic Island */}
-                <div className="absolute top-2 left-1/2 -translate-x-1/2 w-24 h-4 bg-slate-900 rounded-full z-30" />
-
-                {/* Video Player: YouTube Iframe OR HTML5 Video */}
                 {isYouTube && ytId ? (
-                  isPlaying ? (
+                  isActive ? (
                     <iframe
                       src={`https://www.youtube-nocookie.com/embed/${ytId}?autoplay=1&mute=${
                         isMuted ? 1 : 0
-                      }&loop=1&playlist=${ytId}&controls=1&modestbranding=1&playsinline=1&rel=0`}
-                      className="absolute inset-0 w-full h-full border-0 z-0"
+                      }&loop=1&playlist=${ytId}&controls=0&modestbranding=1&playsinline=1&rel=0&showinfo=0`}
+                      className="absolute inset-0 w-full h-full border-0 pointer-events-none scale-105"
                       allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                       allowFullScreen
                     />
                   ) : (
                     <img
-                      src={
-                        reel.poster ||
-                        `https://img.youtube.com/vi/${ytId}/hqdefault.jpg`
-                      }
+                      src={reel.poster || `https://img.youtube.com/vi/${ytId}/hqdefault.jpg`}
                       alt={reel.title}
-                      onClick={() => handleTogglePlay(reel.id)}
-                      className="absolute inset-0 w-full h-full object-cover cursor-pointer"
+                      className="w-full h-full object-cover"
                     />
                   )
                 ) : (
@@ -167,109 +305,152 @@ export default function ReelsFeedPage() {
                     loop
                     playsInline
                     muted={isMuted}
-                    onClick={() => handleTogglePlay(reel.id)}
-                    className="absolute inset-0 w-full h-full object-cover cursor-pointer"
+                    className="w-full h-full object-cover"
                   />
                 )}
 
-                {/* Top Controls */}
-                <div className="relative z-20 flex items-center justify-between pt-6 px-1">
-                  <div className="flex items-center gap-1.5">
-                    <span className="px-3 py-1 rounded-full text-[10px] font-black uppercase bg-black/60 text-white backdrop-blur-md border border-white/20">
-                      {reel.category || 'Viral Reel'}
-                    </span>
-                    {isYouTube && (
-                      <span className="px-2 py-0.5 rounded-full text-[9px] font-black uppercase bg-red-600/80 text-white border border-red-500/30">
-                        YouTube
-                      </span>
-                    )}
-                  </div>
-
-                  <button
-                    onClick={() => {
-                      setIsMuted(!isMuted);
-                      Object.values(videoRefs.current).forEach((v) => {
-                        if (v) v.muted = !isMuted;
-                      });
-                    }}
-                    className="p-2 rounded-full bg-black/60 text-white backdrop-blur-md border border-white/20"
-                    title={isMuted ? 'Unmute' : 'Mute'}
-                  >
-                    {isMuted ? <VolumeX className="w-4 h-4" /> : <Volume2 className="w-4 h-4" />}
-                  </button>
-                </div>
-
-                {/* Center Play Indicator (for pausing/playing) */}
-                {(!isYouTube || !isPlaying) && (
-                  <div
-                    onClick={() => handleTogglePlay(reel.id)}
-                    className={`absolute inset-0 z-10 flex items-center justify-center cursor-pointer transition-opacity ${
-                      isPlaying ? 'opacity-0 hover:opacity-100 bg-black/20' : 'opacity-100 bg-black/40'
-                    }`}
-                  >
-                    <div className="w-16 h-16 rounded-full bg-white/30 backdrop-blur-md border border-white/40 flex items-center justify-center text-white shadow-2xl">
-                      {isPlaying ? (
-                        <Pause className="w-7 h-7 fill-white" />
-                      ) : (
-                        <Play className="w-7 h-7 fill-white ml-1" />
-                      )}
+                {/* PAUSED OVERLAY INDICATOR */}
+                {!isPlaying && (
+                  <div className="absolute inset-0 bg-black/30 flex items-center justify-center transition-opacity z-10">
+                    <div className="w-14 h-14 rounded-full bg-white/20 backdrop-blur-md border border-white/40 flex items-center justify-center text-white shadow-2xl">
+                      <Play className="w-7 h-7 fill-white ml-1" />
                     </div>
                   </div>
                 )}
+              </div>
 
-                {/* Right Side Social Actions */}
-                <div className="absolute right-3.5 bottom-24 z-20 flex flex-col items-center gap-4">
-                  <button
-                    onClick={() => handleLike(reel.id)}
-                    className="flex flex-col items-center gap-1 group/like"
-                  >
-                    <div className="w-11 h-11 rounded-full bg-black/60 backdrop-blur-md border border-white/20 flex items-center justify-center group-hover/like:scale-110 transition-transform">
-                      <Heart className="w-5 h-5 fill-rose-500 text-rose-500" />
-                    </div>
-                    <span className="text-[11px] font-bold text-white shadow-sm">
-                      {likes[reel.id] || 980}
-                    </span>
-                  </button>
+              {/* TOP SHADOW GRADIENT */}
+              <div className="absolute top-0 inset-x-0 h-28 bg-gradient-to-b from-black/80 via-black/30 to-transparent pointer-events-none z-10" />
+
+              {/* =================================================================
+                  RIGHT VERTICAL ACTION ICONS (Matches Screenshot Exactly)
+                  ================================================================= */}
+              <div className="absolute right-3.5 bottom-28 sm:bottom-28 z-30 flex flex-col items-center gap-3.5 pointer-events-auto">
+                
+                {/* 1. Heart (Like) button */}
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleLike(reel.id);
+                  }}
+                  className="flex flex-col items-center gap-1 group/like transition-transform active:scale-90"
+                >
+                  <div className="w-11 h-11 rounded-full bg-black/45 backdrop-blur-md border border-white/25 flex items-center justify-center text-white shadow-lg group-hover/like:scale-110 transition-transform">
+                    <Heart
+                      className={`w-5 h-5 transition-colors ${
+                        likedReels[reel.id] ? 'fill-rose-500 text-rose-500' : 'text-white'
+                      }`}
+                    />
+                  </div>
+                  <span className="text-[11px] font-bold text-white drop-shadow-[0_1px_3px_rgba(0,0,0,0.8)]">
+                    {likes[reel.id] ?? 0}
+                  </span>
+                </button>
+
+                {/* 2. Eye (Views) counter */}
+                <div className="flex flex-col items-center gap-1">
+                  <div className="w-11 h-11 rounded-full bg-black/45 backdrop-blur-md border border-white/25 flex items-center justify-center text-white shadow-lg">
+                    <Eye className="w-5 h-5 text-white" />
+                  </div>
+                  <span className="text-[11px] font-bold text-white drop-shadow-[0_1px_3px_rgba(0,0,0,0.8)]">
+                    {reel.views || 15}
+                  </span>
                 </div>
 
-                {/* Bottom Details & Direct Buy */}
-                <div className="relative z-20 bg-gradient-to-t from-black/95 via-black/70 to-transparent p-4 rounded-2xl space-y-3">
-                  <div>
-                    <h3 className="font-extrabold text-sm text-white line-clamp-1">
-                      {reel.title}
-                    </h3>
-                    <div className="flex items-center gap-2 text-xs text-white/80 mt-1">
-                      <span className="font-extrabold text-emerald-400">
-                        ₹{reel.bundlePrice || 49}.00
-                      </span>
-                      <span>•</span>
-                      <span>{reel.category || 'Reel Bundle'}</span>
+                {/* 3. Mute/Unmute sound button */}
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleToggleMute();
+                  }}
+                  className="w-11 h-11 rounded-full bg-black/45 backdrop-blur-md border border-white/25 flex items-center justify-center text-white shadow-lg active:scale-90 transition-transform"
+                  title={isMuted ? 'Unmute' : 'Mute'}
+                >
+                  {isMuted ? <VolumeX className="w-5 h-5 text-white" /> : <Volume2 className="w-5 h-5 text-white" />}
+                </button>
+
+                {/* 4. Add to Cart with glowing orange flame ring (matching image) */}
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleAddToCart(reel);
+                  }}
+                  className="flex flex-col items-center gap-1 group/cart mt-0.5 active:scale-95 transition-transform"
+                  title="Add to Cart"
+                >
+                  <div className="w-11 h-11 rounded-full bg-gradient-to-tr from-amber-500 via-orange-500 to-rose-500 p-[2px] shadow-lg shadow-orange-500/40 group-hover/cart:scale-110 transition-transform">
+                    <div className="w-full h-full rounded-full bg-black/85 flex items-center justify-center text-amber-400">
+                      {addedAnimation[reel.id] ? (
+                        <Check className="w-5 h-5 text-emerald-400" />
+                      ) : (
+                        <ShoppingCart className="w-5 h-5 text-amber-400" />
+                      )}
                     </div>
                   </div>
+                  <span className="text-[9px] font-black text-white uppercase tracking-wider text-center drop-shadow-[0_1px_3px_rgba(0,0,0,0.9)] leading-tight">
+                    {addedAnimation[reel.id] ? 'Added!' : 'Add to Cart'}
+                  </span>
+                </button>
 
-                  <div className="grid grid-cols-2 gap-2">
-                    <Link
-                      href={reel.bundleSlug ? `/product/${reel.bundleSlug}` : '/shop'}
-                      className="py-2.5 rounded-xl bg-white/20 hover:bg-white/30 text-white font-bold text-xs text-center backdrop-blur-md transition-colors"
-                    >
-                      View Details
-                    </Link>
-                    <button
-                      onClick={() => handleBuyReelBundle(reel)}
-                      className="py-2.5 rounded-xl btn-gradient-primary text-white font-black text-xs flex items-center justify-center gap-1.5 shadow-md"
-                    >
-                      <Zap className="w-3.5 h-3.5 fill-white" />
-                      <span>Buy Now</span>
-                    </button>
+              </div>
+
+              {/* =================================================================
+                  BOTTOM OVERLAY DETAILS (Matches Competitor Screenshot Exactly)
+                  ================================================================= */}
+              <div className="absolute inset-x-0 bottom-0 p-4 sm:p-5 pt-16 bg-gradient-to-t from-black via-black/75 to-transparent z-20 space-y-2 pointer-events-auto pr-18 sm:pr-20">
+                
+                {/* 1. Category Pill */}
+                <div>
+                  <span className="px-3 py-0.5 rounded-full text-[11px] font-black uppercase tracking-wider bg-black/60 text-white backdrop-blur-md border border-white/20 inline-block">
+                    {reel.category || 'AI Reels'}
+                  </span>
+                </div>
+
+                {/* 2. Bundle Title with external arrow linking directly to /product/{slug} */}
+                <Link
+                  href={reel.bundleSlug ? `/product/${reel.bundleSlug}` : '/shop'}
+                  className="block font-black text-white text-sm sm:text-base leading-snug hover:text-purple-300 transition-colors group/title drop-shadow-sm"
+                >
+                  <span>{reel.bundleTitle || reel.title}</span>
+                  <ArrowUpRight className="inline-block w-4 h-4 ml-1 text-purple-400 group-hover/title:translate-x-0.5 group-hover/title:-translate-y-0.5 transition-transform" />
+                </Link>
+
+                {/* 3. Sample title (e.g. Pani Puri) */}
+                <div className="text-xs text-white/80 font-medium">
+                  {reel.title}
+                </div>
+
+                {/* 4. Badges Row: {reelCount}+ REELS & PRICE pill with % OFF */}
+                <div className="flex flex-wrap items-center gap-2 pt-1">
+                  
+                  {/* Reel Count Pill */}
+                  <div className="px-2.5 py-1 rounded-full bg-black/80 text-white border border-white/20 text-[10px] sm:text-[11px] font-black tracking-wider uppercase">
+                    {reel.reelCount || 1000}+ REELS
                   </div>
+
+                  {/* Price Pill matching Screenshot */}
+                  <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-white text-slate-900 shadow-md text-xs font-bold">
+                    <span className="text-[10px] text-slate-400 uppercase font-black">PRICE</span>
+                    <span className="text-[11px] text-slate-400 line-through">
+                      ₹{regularPrice}.00
+                    </span>
+                    <span className="text-xs font-black text-[#6929c4]">
+                      ₹{salePrice}.00
+                    </span>
+                    <span className="px-1.5 py-0.2 rounded text-[10px] font-black bg-[#e5f8f0] text-[#0e8a5a]">
+                      {discountPct}% OFF
+                    </span>
+                  </div>
+
                 </div>
 
               </div>
-            );
-          })}
-        </div>
 
+            </div>
+          );
+        })}
       </div>
+
     </div>
   );
 }

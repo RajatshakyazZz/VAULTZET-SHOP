@@ -59,8 +59,11 @@ export interface ReelItem {
   bundleSlug?: string;
   bundleTitle?: string;
   bundlePrice?: number;
+  bundleOriginalPrice?: number;
+  reelCount?: number;
   order?: number;
   likes?: number;
+  views?: number;
   isActive: boolean;
   createdAt?: string;
 }
