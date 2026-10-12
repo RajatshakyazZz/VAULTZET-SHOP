@@ -1,0 +1,89 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --rb-bg: #faf9ff;
+  --rb-text: #182247;
+  --rb-muted: #6e7696;
+  --rb-purple: #6c3cf0;
+  --rb-purple-light: #8f46ff;
+  --rb-purple-dark: #5126c9;
+  --rb-pink: #ff4fb3;
+  --rb-green: #078860;
+  --rb-line: #e9e4fb;
+}
+
+body {
+  background-color: var(--rb-bg);
+  color: var(--rb-text);
+  font-family: 'Inter', ui-sans-serif, system-ui, -apple-system, sans-serif;
+  overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Custom scrollbars */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-track {
+  background: #f1edff;
+}
+::-webkit-scrollbar-thumb {
+  background: #c5b4f8;
+  border-radius: 999px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #6c3cf0;
+}
+
+/* Mask gradient for continuous marquee */
+.marquee-mask {
+  mask-image: linear-gradient(to right, transparent 0%, black 5%, black 95%, transparent 100%);
+  -webkit-mask-image: linear-gradient(to right, transparent 0%, black 5%, black 95%, transparent 100%);
+}
+
+/* Blinking caret */
+@keyframes blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0; }
+}
+
+.typewriter-caret {
+  display: inline-block;
+  width: 3px;
+  height: 1.1em;
+  background: #6c3cf0;
+  margin-left: 4px;
+  vertical-align: middle;
+  animation: blink 0.8s infinite;
+}
+
+/* Button glow */
+.btn-gradient-primary {
+  background: linear-gradient(100deg, rgb(97, 44, 255) 0%, rgb(155, 40, 255) 54%, rgb(255, 45, 155) 100%);
+  box-shadow: 0 10px 24px rgba(151, 42, 235, 0.25);
+  transition: all 0.2s ease-in-out;
+}
+.btn-gradient-primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 14px 30px rgba(151, 42, 235, 0.35);
+}
+
+.btn-gradient-orange {
+  background: linear-gradient(105deg, #ef2f32 0%, #ff4f21 28%, #ff7a00 58%, #ffbd16 78%, #f43a2f 100%);
+  box-shadow: 0 12px 26px rgba(238, 72, 27, 0.24);
+  transition: all 0.2s ease-in-out;
+}
+.btn-gradient-orange:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 16px 32px rgba(238, 72, 27, 0.36);
+}
+
+/* Glassmorphism */
+.glass-panel {
+  background: rgba(255, 255, 255, 0.94);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+}
