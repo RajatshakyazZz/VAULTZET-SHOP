@@ -4,12 +4,15 @@ import React, { useState } from 'react';
 import Link from 'next/link';
 import { Mail, KeyRound, FolderOpen, Download, ShieldCheck, CheckCircle2, ArrowRight } from 'lucide-react';
 
+import { getCustomerOrders } from '@/lib/firebase';
+
 export default function MyOrdersPage() {
   const [email, setEmail] = useState('');
   const [otp, setOtp] = useState('');
   const [step, setStep] = useState<'email' | 'otp' | 'orders'>('email');
   const [mockGeneratedOtp, setMockGeneratedOtp] = useState('');
   const [orders, setOrders] = useState<any[]>([]);
+  const [loading, setLoading] = useState(false);
 
   const handleSendOtp = (e: React.FormEvent) => {
     e.preventDefault();
@@ -21,20 +24,20 @@ export default function MyOrdersPage() {
     setStep('otp');
   };
 
-  const handleVerifyOtp = (e: React.FormEvent) => {
+  const handleVerifyOtp = async (e: React.FormEvent) => {
     e.preventDefault();
     if (otp === mockGeneratedOtp || otp === '123456') {
-      // Find orders matching this email or show all orders from local storage
+      setLoading(true);
       try {
-        const stored = JSON.parse(localStorage.getItem('vaultzet_orders') || '[]');
-        const userOrders = stored.filter(
-          (o: any) => o.customer?.email?.toLowerCase() === email.toLowerCase()
-        );
-        setOrders(userOrders.length > 0 ? userOrders : stored);
+        const firestoreOrders = await getCustomerOrders(email);
+        setOrders(firestoreOrders);
       } catch {
-        setOrders([]);
+        const stored = JSON.parse(localStorage.getItem('vaultzet_orders') || '[]');
+        setOrders(stored);
+      } finally {
+        setLoading(false);
+        setStep('orders');
       }
-      setStep('orders');
     } else {
       alert('Invalid OTP code. Please enter the code shown in the demo banner.');
     }

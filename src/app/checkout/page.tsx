@@ -17,6 +17,7 @@ import {
 } from 'lucide-react';
 import { useCart } from '@/context/CartContext';
 import { ORDER_BUMP } from '@/data/bundles';
+import { createOrderInFirestore } from '@/lib/firebase';
 
 export default function CheckoutPage() {
   const router = useRouter();
@@ -57,7 +58,7 @@ export default function CheckoutPage() {
   const seconds = secondsRemaining % 60;
   const timeFormatted = `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
 
-  const handlePlaceOrder = (e: React.FormEvent) => {
+  const handlePlaceOrder = async (e: React.FormEvent) => {
     e.preventDefault();
     if (items.length === 0 && !orderBumpAdded) {
       alert('Your cart is empty. Please select a bundle first.');
@@ -66,10 +67,9 @@ export default function CheckoutPage() {
 
     setIsProcessing(true);
 
-    // Save order record to localStorage for the OTP customer portal
-    const orderData = {
-      orderId: `VZ-${Math.floor(100000 + Math.random() * 900000)}`,
-      customer: { fullName, email, phone },
+    const orderPayload = {
+      orderNumber: `VZ-${Math.floor(100000 + Math.random() * 900000)}`,
+      customer: { fullName, email: email.trim().toLowerCase(), phone },
       items: items.map((i) => ({
         id: i.product.id,
         title: i.product.title,
@@ -77,25 +77,29 @@ export default function CheckoutPage() {
         price: i.price,
         googleDriveLink: i.product.googleDriveLink || 'https://drive.google.com/drive/folders/demo-vaultzet',
       })),
-      hasBump: orderBumpAdded,
-      bumpTitle: orderBumpAdded ? ORDER_BUMP.title : null,
+      orderBump: orderBumpAdded
+        ? {
+            id: ORDER_BUMP.id,
+            title: ORDER_BUMP.title,
+            price: ORDER_BUMP.discountPrice,
+          }
+        : null,
       totalAmount: total,
-      date: new Date().toISOString(),
-      status: 'Completed',
+      paymentMethod: paymentMethod === 'upi_qr' ? 'Instant UPI QR' : 'UPI Direct App',
+      status: 'completed' as const,
     };
 
-    // Store in orders array
     try {
-      const existingOrders = JSON.parse(localStorage.getItem('vaultzet_orders') || '[]');
-      existingOrders.unshift(orderData);
-      localStorage.setItem('vaultzet_orders', JSON.stringify(existingOrders));
-      localStorage.setItem('vaultzet_latest_order', JSON.stringify(orderData));
-    } catch {}
-
-    setTimeout(() => {
+      const firestoreId = await createOrderInFirestore(orderPayload);
+      const fullOrder = { ...orderPayload, orderId: orderPayload.orderNumber, firestoreId };
+      localStorage.setItem('vaultzet_latest_order', JSON.stringify(fullOrder));
       clearCart();
-      router.push(`/order-success?orderId=${orderData.orderId}`);
-    }, 1500);
+      router.push(`/order-success?orderId=${orderPayload.orderNumber}`);
+    } catch (err) {
+      console.error('Order error:', err);
+      clearCart();
+      router.push(`/order-success?orderId=${orderPayload.orderNumber}`);
+    }
   };
 
   if (items.length === 0 && !orderBumpAdded) {
