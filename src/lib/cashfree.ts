@@ -36,11 +36,49 @@ export interface CashfreeOrderResponse {
  * Retrieve Cashfree credentials from Environment Variables or Firestore
  */
 export async function getCashfreeCredentials(): Promise<CashfreeCredentials> {
-  let appId = process.env.CASHFREE_APP_ID || '';
-  let secretKey = process.env.CASHFREE_SECRET_KEY || '';
-  let environment: 'PRODUCTION' | 'SANDBOX' = (process.env.CASHFREE_ENV === 'SANDBOX' ? 'SANDBOX' : 'PRODUCTION');
+  // Check all common environment variable naming patterns
+  let appId = (
+    process.env.CASHFREE_APP_ID ||
+    process.env.NEXT_PUBLIC_CASHFREE_APP_ID ||
+    process.env.CASHFREE_CLIENT_ID ||
+    process.env.NEXT_PUBLIC_CASHFREE_CLIENT_ID ||
+    process.env.CASHFREE_API_KEY ||
+    process.env.NEXT_PUBLIC_CASHFREE_API_KEY ||
+    process.env.CF_APP_ID ||
+    process.env.CF_CLIENT_ID ||
+    ''
+  ).trim();
+
+  let secretKey = (
+    process.env.CASHFREE_SECRET_KEY ||
+    process.env.NEXT_PUBLIC_CASHFREE_SECRET_KEY ||
+    process.env.CASHFREE_CLIENT_SECRET ||
+    process.env.NEXT_PUBLIC_CASHFREE_CLIENT_SECRET ||
+    process.env.CASHFREE_API_SECRET ||
+    process.env.NEXT_PUBLIC_CASHFREE_API_SECRET ||
+    process.env.CF_SECRET_KEY ||
+    process.env.CF_CLIENT_SECRET ||
+    ''
+  ).trim();
+
+  const envVar = (
+    process.env.CASHFREE_ENV ||
+    process.env.NEXT_PUBLIC_CASHFREE_ENV ||
+    ''
+  ).toUpperCase().trim();
+
+  let environment: 'PRODUCTION' | 'SANDBOX' = 'PRODUCTION';
+  if (envVar === 'SANDBOX' || envVar === 'TEST') {
+    environment = 'SANDBOX';
+  } else if (envVar === 'PRODUCTION' || envVar === 'PROD' || envVar === 'LIVE') {
+    environment = 'PRODUCTION';
+  }
+
   let apiVersion = process.env.CASHFREE_API_VERSION || '2023-08-01';
-  let returnUrl = process.env.CASHFREE_RETURN_URL || 'https://store.vaultzet.shop/api/payment/cashfree/return';
+  let returnUrl =
+    process.env.CASHFREE_RETURN_URL ||
+    process.env.NEXT_PUBLIC_CASHFREE_RETURN_URL ||
+    'https://store.vaultzet.shop/api/payment/cashfree/return';
   let enabled = true;
 
   // If not configured in environment variables, read from Firestore store_settings/cashfree
@@ -49,9 +87,15 @@ export async function getCashfreeCredentials(): Promise<CashfreeCredentials> {
       const snap = await getDoc(doc(db, 'store_settings', 'cashfree'));
       if (snap.exists()) {
         const data = snap.data();
-        if (data.app_id) appId = data.app_id;
-        if (data.secret_key) secretKey = data.secret_key;
-        if (data.environment) environment = data.environment;
+        if (data.app_id || data.appId) {
+          appId = (data.app_id || data.appId).trim();
+        }
+        if (data.secret_key || data.secretKey) {
+          secretKey = (data.secret_key || data.secretKey).trim();
+        }
+        if (data.environment) {
+          environment = data.environment === 'SANDBOX' ? 'SANDBOX' : 'PRODUCTION';
+        }
         if (data.api_version) apiVersion = data.api_version;
         if (data.return_url) returnUrl = data.return_url;
         if (typeof data.enabled === 'boolean') enabled = data.enabled;
@@ -59,6 +103,13 @@ export async function getCashfreeCredentials(): Promise<CashfreeCredentials> {
     } catch (err) {
       console.warn('Failed to load Cashfree credentials from Firestore:', err);
     }
+  }
+
+  // Intelligent auto-detection of environment from key prefix
+  if (appId.startsWith('TEST') || secretKey.startsWith('cfsk_ma_test_')) {
+    environment = 'SANDBOX';
+  } else if (appId.startsWith('PROD') || secretKey.startsWith('cfsk_ma_prod_')) {
+    environment = 'PRODUCTION';
   }
 
   return {
@@ -80,7 +131,9 @@ export async function createCashfreePgOrder(
   const creds = await getCashfreeCredentials();
 
   if (!creds.appId || !creds.secretKey) {
-    throw new Error('Cashfree App ID or Secret Key is not configured. Please set them in Admin Portal or Vercel Environment.');
+    throw new Error(
+      'Cashfree App ID or Secret Key is not configured in Storefront (store.vaultzet.shop). If you set them in Vercel, please ensure they are added to the Storefront project (CASHFREE_APP_ID & CASHFREE_SECRET_KEY) and then click "Redeploy".'
+    );
   }
 
   const baseUrl = creds.environment === 'SANDBOX'

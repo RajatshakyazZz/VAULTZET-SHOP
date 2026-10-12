@@ -205,9 +205,16 @@ export default function CheckoutPage() {
           {errorMessage && (
             <div className="mb-6 p-4 rounded-2xl bg-rose-50 border border-rose-200 text-rose-800 text-xs font-semibold flex items-start gap-3">
               <AlertCircle className="w-4 h-4 text-rose-600 shrink-0 mt-0.5" />
-              <div className="flex-1">
-                <span className="font-bold">Checkout Issue: </span>
-                {errorMessage}
+              <div className="flex-1 space-y-1">
+                <div>
+                  <span className="font-bold">Checkout Issue: </span>
+                  {errorMessage}
+                </div>
+                {errorMessage.includes('Cashfree') && (
+                  <p className="text-[11px] text-rose-700 font-normal mt-1 leading-relaxed">
+                    Note: Agar aapne Vercel me environment variables add kar diye hain, toh Vercel dashboard me <strong>Deployments &gt; Redeploy</strong> karna zaroori hota hai taaki nayi keys live ho sakein.
+                  </p>
+                )}
               </div>
             </div>
           )}
