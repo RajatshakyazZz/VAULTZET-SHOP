@@ -18,6 +18,7 @@ interface AuthContextType {
   isLoading: boolean;
   apiKey: string | null;
   admin: AdminProfile | null;
+  loginWithPassword: (password: string) => Promise<boolean>;
   loginWithApiKey: (key: string) => Promise<boolean>;
   loginWithFirebase: (email: string, pass: string) => Promise<boolean>;
   logout: () => void;
@@ -75,6 +76,37 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       window.removeEventListener('portal:unauthorized', handleUnauthorized);
     };
   }, []);
+
+  const loginWithPassword = async (pass: string): Promise<boolean> => {
+    setIsLoading(true);
+    const configuredPassword = import.meta.env.VITE_ADMIN_PASSWORD;
+
+    if (configuredPassword && pass === configuredPassword) {
+      const profile: AdminProfile = {
+        name: 'Vaultzet Administrator',
+        email: 'admin@vaultzet.shop',
+        role: 'SuperAdmin',
+        source: 'portal-key',
+      };
+      setApiKey('vaultzet_admin_token');
+      setAdmin(profile);
+      localStorage.setItem('rb_portal_api_key', 'vaultzet_admin_token');
+      localStorage.setItem('rb_portal_admin_profile', JSON.stringify(profile));
+
+      await logAdminAction({
+        adminEmail: profile.email,
+        action: 'PASSWORD_LOGIN',
+        module: 'Auth',
+        details: 'Admin authenticated with master password',
+      });
+
+      setIsLoading(false);
+      return true;
+    }
+
+    setIsLoading(false);
+    return false;
+  };
 
   const loginWithApiKey = async (key: string): Promise<boolean> => {
     setIsLoading(true);
@@ -180,6 +212,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         isLoading,
         apiKey,
         admin,
+        loginWithPassword,
         loginWithApiKey,
         loginWithFirebase,
         logout,
