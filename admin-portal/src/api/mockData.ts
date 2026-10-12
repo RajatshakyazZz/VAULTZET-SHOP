@@ -307,7 +307,7 @@ export const initialCashfreeConfig: PgBridgeConfig = {
   secret_key: '',
   environment: 'PRODUCTION',
   api_version: '2023-08-01',
-  return_url: 'https://store.vaultzet.shop/api/payment/cashfree/return',
+  return_url: 'https://vaultzet.shop/api/payment/cashfree/return',
   webhook_secret: '',
 };
 

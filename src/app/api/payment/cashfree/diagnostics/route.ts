@@ -27,9 +27,10 @@ export async function GET() {
       secretKey: mask(creds.secretKey),
       environment: creds.environment,
       apiVersion: creds.apiVersion,
+      returnUrl: creds.returnUrl,
       source,
       instructions: !hasAppId || !hasSecretKey
-        ? 'To fix: In Vercel > Storefront Project > Settings > Environment Variables, add CASHFREE_APP_ID and CASHFREE_SECRET_KEY, then click Deployments > Redeploy.'
+        ? 'To fix: In Vercel > Storefront Project (vaultzet.shop) > Settings > Environment Variables, add CASHFREE_APP_ID and CASHFREE_SECRET_KEY, then click Deployments > Redeploy.'
         : 'Cashfree credentials detected successfully on Storefront.',
     });
   } catch (err: any) {

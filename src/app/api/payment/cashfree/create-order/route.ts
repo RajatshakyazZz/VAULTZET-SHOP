@@ -15,6 +15,12 @@ export async function POST(request: Request) {
       );
     }
 
+    const hostHeader = request.headers.get('host') || '';
+    const isLocalhost = hostHeader.includes('localhost');
+    const returnBaseUrl = isLocalhost
+      ? `http://${hostHeader}`
+      : 'https://vaultzet.shop';
+
     // 1. Generate Cashfree Order Session
     const cashfreeOrder = await createCashfreePgOrder({
       orderId: orderNumber,
@@ -24,6 +30,7 @@ export async function POST(request: Request) {
         email: customer.email,
         phone: customer.phone || '9999999999',
       },
+      returnUrl: `${returnBaseUrl}/api/payment/cashfree/return?order_id={order_id}`,
     });
 
     // 2. Persist Pending Order to Firestore

@@ -35,14 +35,14 @@ export default function Topbar() {
       {/* Left: Store Domain & Site Mode Badge */}
       <div className="flex items-center gap-3">
         <a
-          href="https://store.vaultzet.shop"
+          href="https://vaultzet.shop"
           target="_blank"
           rel="noopener noreferrer"
           className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-900 border border-slate-800 text-xs font-bold text-slate-200 hover:border-purple-500/40 hover:text-white transition-all group"
           title="Open Live Customer Store"
         >
           <Globe className="w-3.5 h-3.5 text-purple-400" />
-          <span>store.vaultzet.shop</span>
+          <span>vaultzet.shop</span>
           <ExternalLink className="w-3 h-3 text-slate-400 group-hover:text-purple-400 transition-colors" />
         </a>
 

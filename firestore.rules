@@ -6,7 +6,7 @@ rules_version = '2';
 //
 // Application: Vaultzet Digital Storefront & Admin Portal
 // Context:
-//   - Customer Storefront (store.vaultzet.shop): Guest checkout (no Firebase Auth UID).
+//   - Customer Storefront (vaultzet.shop): Guest checkout (no Firebase Auth UID).
 //   - Admin Portal (adminp.vaultzet.shop): Master-password authenticated at app/edge layer.
 //
 // Collections:

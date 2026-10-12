@@ -73,7 +73,13 @@ export default function SettingsIntegrations() {
 
   // Sync state when data arrives
   React.useEffect(() => {
-    if (pgConfig) setPgForm(pgConfig);
+    if (pgConfig) {
+      setPgForm({
+        ...pgConfig,
+        return_url: (pgConfig.return_url || 'https://vaultzet.shop/api/payment/cashfree/return')
+          .replace('store.vaultzet.shop', 'vaultzet.shop'),
+      });
+    }
   }, [pgConfig]);
 
   React.useEffect(() => {
@@ -319,7 +325,7 @@ export default function SettingsIntegrations() {
               <div className="space-y-0.5">
                 <div className="text-xs font-bold text-white">Enable Cashfree on Storefront</div>
                 <div className="text-[11px] text-slate-400">
-                  When active, customers on store.vaultzet.shop will checkout via Cashfree Gateway.
+                  When active, customers on vaultzet.shop will checkout via Cashfree Gateway.
                 </div>
               </div>
               <button
@@ -410,7 +416,7 @@ export default function SettingsIntegrations() {
                 <label className="text-xs font-bold text-slate-300">Customer Return / Redirect URL</label>
                 <input
                   type="text"
-                  value={pgForm.return_url || 'https://store.vaultzet.shop/api/payment/cashfree/return'}
+                  value={pgForm.return_url || 'https://vaultzet.shop/api/payment/cashfree/return'}
                   onChange={(e) => setPgForm({ ...pgForm, return_url: e.target.value })}
                   className="w-full mt-1.5 px-3 py-2 rounded-xl bg-slate-950 border border-slate-700 text-xs text-white focus:outline-none focus:border-purple-500 font-mono"
                 />

@@ -6,7 +6,8 @@ import { doc, updateDoc } from 'firebase/firestore';
 export async function GET(request: Request) {
   const url = new URL(request.url);
   const orderId = url.searchParams.get('order_id');
-  const baseUrl = `${url.protocol}//${url.host}`;
+  const isLocalhost = url.host.includes('localhost');
+  const baseUrl = isLocalhost ? `${url.protocol}//${url.host}` : 'https://vaultzet.shop';
 
   if (!orderId) {
     return NextResponse.redirect(`${baseUrl}/checkout?error=missing_order_id`);

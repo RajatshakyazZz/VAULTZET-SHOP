@@ -554,7 +554,7 @@ service cloud.firestore {
           {/* Issue 2: Vercel Env Vars for Storefront */}
           <div className="p-3.5 rounded-xl bg-slate-950 border border-slate-800 space-y-2">
             <span className="text-xs font-bold text-purple-300 block">
-              2. Storefront Vercel Keys (store.vaultzet.shop)
+              2. Storefront Vercel Keys (vaultzet.shop)
             </span>
             <p className="text-[11px] text-slate-400 leading-relaxed">
               Customer Storefront ke Vercel project mai ye environment variables add karein taaki Storefront aur Admin Panel same database se connect ho sakein:
