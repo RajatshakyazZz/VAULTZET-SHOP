@@ -45,6 +45,7 @@ import {
   LiteSpeedConfig,
   OrderSyncParams,
   DownloadableFileTokenResponse,
+  ReelItem,
 } from './types';
 import { db, logAdminAction } from '../lib/firebase';
 import {
@@ -58,6 +59,105 @@ import {
   query,
   orderBy,
 } from 'firebase/firestore';
+
+export const initialReels: ReelItem[] = [
+  {
+    id: 'reel-1',
+    title: 'Pani Puri Viral Street Food',
+    videoUrl: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4',
+    videoType: 'direct',
+    poster: 'https://images.unsplash.com/photo-1601050690597-df0568f70950?auto=format&fit=crop&w=600&q=80',
+    category: 'Street Food',
+    bundleId: 'rb-premanand-1000',
+    bundleSlug: '1000-premanand-ji-maharaj-reels-bundle',
+    bundleTitle: '1000+ Premanand Ji Maharaj Reels Bundle',
+    bundlePrice: 49,
+    likes: 1420,
+    isActive: true,
+    order: 1,
+    createdAt: new Date().toISOString(),
+  },
+  {
+    id: 'reel-2',
+    title: 'Ulti Dunia Twisted World AI',
+    videoUrl: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerEscapes.mp4',
+    videoType: 'direct',
+    poster: 'https://reelsbundles.in/wp-content/uploads/2026/10/1000-ulti-pulti-duniya-ulti-duniya-reverse-world-ai-reels-bundle-2-768x576.png',
+    category: 'AI Reels',
+    bundleId: 'rb-ulti-1000',
+    bundleSlug: '1000-ulti-pulti-duniya-ulti-duniya-reverse-world-ai-reels-bundle',
+    bundleTitle: '1000+ Ulti Pulti Duniya AI Reels Bundle',
+    bundlePrice: 49,
+    likes: 2850,
+    isActive: true,
+    order: 2,
+    createdAt: new Date().toISOString(),
+  },
+  {
+    id: 'reel-3',
+    title: 'AI Influencer Girls High Quality',
+    videoUrl: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerFun.mp4',
+    videoType: 'direct',
+    poster: 'https://reelsbundles.in/wp-content/uploads/2026/10/500-ai-influencer-girls-reels-bundle-4-2-768x576.jpg',
+    category: 'AI Reels',
+    bundleId: 'rb-influencer-500',
+    bundleSlug: '500-ai-influencer-girls-reels-bundle',
+    bundleTitle: '500+ AI Influencer Girls Reels Bundle',
+    bundlePrice: 99,
+    likes: 3120,
+    isActive: true,
+    order: 3,
+    createdAt: new Date().toISOString(),
+  },
+  {
+    id: 'reel-4',
+    title: 'AI Funny Kids 3D Animation',
+    videoUrl: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerJoyBlazes.mp4',
+    videoType: 'direct',
+    poster: 'https://reelsbundles.in/wp-content/uploads/2026/10/1500-ai-funny-kids-reels-bundle-4-2-768x576.jpg',
+    category: 'Comedy Reels',
+    bundleId: 'rb-funny-kids-1500',
+    bundleSlug: '1500-ai-funny-kids-reels-bundle',
+    bundleTitle: '1500+ AI Funny Kids Reels Bundle',
+    bundlePrice: 49,
+    likes: 1980,
+    isActive: true,
+    order: 4,
+    createdAt: new Date().toISOString(),
+  },
+  {
+    id: 'reel-5',
+    title: 'Street Food & Cafe Blogging',
+    videoUrl: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4',
+    videoType: 'direct',
+    poster: 'https://images.unsplash.com/photo-1555396273-367ea4eb4db5?auto=format&fit=crop&w=600&q=80',
+    category: 'Food Blogs',
+    bundleId: 'rb-food-blogs-500',
+    bundleSlug: '500-street-food-reels-bundle',
+    bundleTitle: '500+ Food Blogs Reels Bundle',
+    bundlePrice: 49,
+    likes: 890,
+    isActive: true,
+    order: 5,
+    createdAt: new Date().toISOString(),
+  },
+  {
+    id: 'reel-6',
+    title: 'Dr Skeleton Health & Fitness',
+    videoUrl: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerEscapes.mp4',
+    videoType: 'direct',
+    poster: 'https://reelsbundles.in/wp-content/uploads/2026/10/500-dr-skeleton-health-reels-bundle-1-2-768x576.png',
+    category: 'Fitness & Health',
+    bundleId: 'rb-skeleton-500',
+    bundleSlug: '500-dr-skeleton-health-reels-bundle',
+    bundleTitle: '500+ Dr Skeleton Health Reels Bundle',
+    bundlePrice: 49,
+    likes: 2450,
+    isActive: true,
+    order: 6,
+    createdAt: new Date().toISOString(),
+  },
+];
 
 class PortalApiClient {
   private apiKey: string | null = null;
@@ -520,21 +620,199 @@ class PortalApiClient {
   }
 
   // ==========================================
-  // 6. CONTENT
+  // 6. CONTENT & REELS
   // ==========================================
   async getContent(): Promise<ContentItem[]> {
     return initialContent;
   }
 
   async getCategories(): Promise<string[]> {
-    return ['AI Reels', 'Story Reels', 'Aesthetic Reels', 'Comedy Reels', 'Animals Reels'];
+    return ['AI Reels', 'Story Reels', 'Aesthetic Reels', 'Comedy Reels', 'Animals Reels', 'Luxury & Motivation', 'Fitness & Health', 'Street Food'];
   }
 
   async uploadMedia(file: File): Promise<{ url: string; id: string }> {
+    // Generate object URL or clean simulated asset upload
+    const objectUrl = URL.createObjectURL(file);
     return {
-      url: `https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&w=800&q=80`,
+      url: objectUrl,
       id: `media-${Date.now()}`,
     };
+  }
+
+  parseVideoUrl(url: string): { videoType: 'youtube' | 'direct'; youtubeId?: string; embedUrl?: string } {
+    if (!url) return { videoType: 'direct' };
+    const trimmed = url.trim();
+    const ytRegex = /(?:youtube\.com\/(?:shorts\/|watch\?v=|embed\/)|youtu\.be\/)([a-zA-Z0-9_-]{11})/;
+    const match = trimmed.match(ytRegex);
+    if (match && match[1]) {
+      const ytId = match[1];
+      return {
+        videoType: 'youtube',
+        youtubeId: ytId,
+        embedUrl: `https://www.youtube-nocookie.com/embed/${ytId}?autoplay=1&mute=1&loop=1&playlist=${ytId}&controls=1&modestbranding=1&playsinline=1&rel=0`,
+      };
+    }
+    return { videoType: 'direct' };
+  }
+
+  async getReels(): Promise<ReelItem[]> {
+    if (db) {
+      try {
+        const snap = await getDocs(collection(db, 'reels'));
+        if (!snap.empty) {
+          return snap.docs.map((d) => ({ id: d.id, ...d.data() } as ReelItem));
+        } else {
+          for (const reel of initialReels) {
+            await setDoc(doc(db, 'reels', reel.id), reel);
+          }
+          return initialReels;
+        }
+      } catch (e) {
+        console.warn('Firestore reels fetch error:', e);
+      }
+    }
+
+    if (typeof window !== 'undefined') {
+      try {
+        const stored = JSON.parse(localStorage.getItem('vaultzet_custom_reels') || '[]');
+        if (stored.length) {
+          const ids = new Set(initialReels.map((r) => r.id));
+          return [...stored, ...initialReels.filter((r) => !ids.has(r.id))];
+        }
+      } catch (e) {
+        // ignore
+      }
+    }
+
+    return initialReels;
+  }
+
+  async createReel(reelData: Partial<ReelItem>): Promise<ReelItem> {
+    const id = reelData.id || `reel-${Date.now()}`;
+    const url = reelData.videoUrl?.trim() || '';
+    const parsed = this.parseVideoUrl(url);
+
+    let poster = reelData.poster?.trim() || '';
+    if (!poster && parsed.youtubeId) {
+      poster = `https://img.youtube.com/vi/${parsed.youtubeId}/hqdefault.jpg`;
+    } else if (!poster) {
+      poster = 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&w=600&q=80';
+    }
+
+    const newReel: ReelItem = {
+      id,
+      title: reelData.title?.trim() || 'Viral Video Reel',
+      videoUrl: url,
+      videoType: parsed.videoType,
+      youtubeId: parsed.youtubeId,
+      poster,
+      category: reelData.category?.trim() || 'AI Reels',
+      bundleId: reelData.bundleId,
+      bundleSlug: reelData.bundleSlug,
+      bundleTitle: reelData.bundleTitle,
+      bundlePrice: reelData.bundlePrice,
+      order: reelData.order ?? 0,
+      likes: reelData.likes ?? Math.floor(Math.random() * 2000 + 500),
+      isActive: reelData.isActive ?? true,
+      createdAt: new Date().toISOString(),
+    };
+
+    if (db) {
+      try {
+        await setDoc(doc(db, 'reels', id), newReel);
+      } catch (e) {
+        console.warn('Firestore reel creation error:', e);
+      }
+    }
+
+    initialReels.unshift(newReel);
+
+    if (typeof window !== 'undefined') {
+      try {
+        const stored = JSON.parse(localStorage.getItem('vaultzet_custom_reels') || '[]');
+        stored.unshift(newReel);
+        localStorage.setItem('vaultzet_custom_reels', JSON.stringify(stored));
+      } catch (e) {
+        // ignore
+      }
+    }
+
+    await logAdminAction({
+      adminEmail: 'admin@vaultzet.com',
+      action: 'CREATE_REEL',
+      module: 'Content & Reels',
+      details: `Created new reel #${id}: ${newReel.title} (${newReel.videoType})`,
+    });
+
+    return newReel;
+  }
+
+  async updateReel(id: string, updates: Partial<ReelItem>): Promise<ReelItem> {
+    if (db) {
+      try {
+        await setDoc(doc(db, 'reels', id), updates, { merge: true });
+      } catch (e) {
+        console.warn('Firestore reel update error:', e);
+      }
+    }
+
+    const idx = initialReels.findIndex((r) => r.id === id);
+    if (idx !== -1) {
+      initialReels[idx] = { ...initialReels[idx], ...updates };
+    }
+
+    if (typeof window !== 'undefined') {
+      try {
+        const stored = JSON.parse(localStorage.getItem('vaultzet_custom_reels') || '[]');
+        const updated = stored.map((r: ReelItem) => (r.id === id ? { ...r, ...updates } : r));
+        localStorage.setItem('vaultzet_custom_reels', JSON.stringify(updated));
+      } catch (e) {
+        // ignore
+      }
+    }
+
+    await logAdminAction({
+      adminEmail: 'admin@vaultzet.com',
+      action: 'UPDATE_REEL',
+      module: 'Content & Reels',
+      details: `Updated reel #${id}`,
+    });
+
+    return { id, ...updates } as ReelItem;
+  }
+
+  async deleteReel(id: string): Promise<boolean> {
+    if (db) {
+      try {
+        await deleteDoc(doc(db, 'reels', id));
+      } catch (e) {
+        console.warn('Firestore reel delete error:', e);
+      }
+    }
+
+    const idx = initialReels.findIndex((r) => r.id === id);
+    if (idx !== -1) {
+      initialReels.splice(idx, 1);
+    }
+
+    if (typeof window !== 'undefined') {
+      try {
+        const stored = JSON.parse(localStorage.getItem('vaultzet_custom_reels') || '[]');
+        const filtered = stored.filter((r: ReelItem) => r.id !== id);
+        localStorage.setItem('vaultzet_custom_reels', JSON.stringify(filtered));
+      } catch (e) {
+        // ignore
+      }
+    }
+
+    await logAdminAction({
+      adminEmail: 'admin@vaultzet.com',
+      action: 'DELETE_REEL',
+      module: 'Content & Reels',
+      details: `Deleted reel #${id}`,
+    });
+
+    return true;
   }
 
   // ==========================================

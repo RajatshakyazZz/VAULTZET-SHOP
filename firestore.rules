@@ -48,6 +48,24 @@ rules_version = '2';
 //    - details: string (required, 1..1000 chars)
 //    - Protection: Append-only. Updates and deletes strictly denied.
 //
+// 6. reels:
+//    - title: string (required, 1..250 chars)
+//    - videoUrl: string (required, 5..1000 chars)
+//    - id: string (optional, <= 100 chars)
+//    - videoType: string (optional, <= 50 chars)
+//    - youtubeId: string (optional, <= 50 chars)
+//    - poster: string (optional, <= 1000 chars)
+//    - category: string (optional, <= 100 chars)
+//    - bundleId: string (optional, <= 100 chars)
+//    - bundleSlug: string (optional, <= 150 chars)
+//    - bundleTitle: string (optional, <= 250 chars)
+//    - bundlePrice: number (optional, 0..1,000,000)
+//    - order: number (optional, -1000..10,000)
+//    - likes: number (optional, 0..10,000,000)
+//    - createdAt: string (optional, <= 100 chars)
+//    - isActive: bool (optional)
+//    - Protection: Storefront & Admin read; schema validated on write; deletion permitted.
+//
 // ===============================================================
 
 service cloud.firestore {
@@ -196,6 +214,25 @@ service cloud.firestore {
         (!('createdAt' in data) || data.createdAt is timestamp);
     }
 
+    function isValidReel(data) {
+      return data.keys().hasAll(['title', 'videoUrl']) &&
+        isValidString(data.title, 1, 250) &&
+        isValidString(data.videoUrl, 5, 1000) &&
+        isValidOptionalString(data, 'id', 100) &&
+        isValidOptionalString(data, 'videoType', 50) &&
+        isValidOptionalString(data, 'youtubeId', 50) &&
+        isValidOptionalString(data, 'poster', 1000) &&
+        isValidOptionalString(data, 'category', 100) &&
+        isValidOptionalString(data, 'bundleId', 100) &&
+        isValidOptionalString(data, 'bundleSlug', 150) &&
+        isValidOptionalString(data, 'bundleTitle', 250) &&
+        isValidOptionalNumber(data, 'bundlePrice', 0, 1000000) &&
+        isValidOptionalNumber(data, 'order', -1000, 10000) &&
+        isValidOptionalNumber(data, 'likes', 0, 10000000) &&
+        isValidOptionalString(data, 'createdAt', 100) &&
+        (!('isActive' in data) || data.isActive == null || data.isActive is bool);
+    }
+
     // ===============================================================
     // Collection Rules
     // ===============================================================
@@ -262,6 +299,18 @@ service cloud.firestore {
 
       // Audit logs are append-only: tamper and wipe proof
       allow update, delete: if false;
+    }
+
+    // 6. Reels
+    match /reels/{reelId} {
+      // Storefront & Admin read reels for video showcase & previews
+      allow read: if true;
+
+      // Admin creates or updates reels with strict schema validation
+      allow create, update: if isValidReel(request.resource.data);
+
+      // Admin can remove reels
+      allow delete: if true;
     }
 
     // ===============================================================

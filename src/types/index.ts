@@ -46,3 +46,21 @@ export interface OrderBumpItem {
   thumbnail: string;
   reelCount: number;
 }
+
+export interface ReelItem {
+  id: string;
+  title: string;
+  videoUrl: string;
+  videoType: 'youtube' | 'direct' | 'embed';
+  youtubeId?: string;
+  poster?: string;
+  category?: string;
+  bundleId?: string;
+  bundleSlug?: string;
+  bundleTitle?: string;
+  bundlePrice?: number;
+  order?: number;
+  likes?: number;
+  isActive: boolean;
+  createdAt?: string;
+}
