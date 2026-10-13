@@ -79,6 +79,12 @@ export const metadata: Metadata = {
     shortcut: '/logo.png',
     apple: '/logo.png',
   },
+  verification: {
+    google: 'googlef90de30240e3b03b',
+    other: {
+      'google-site-verification': ['googlef90de30240e3b03b', 'googlef90de30240e3b03b.html'],
+    },
+  },
   formatDetection: {
     telephone: false,
   },
@@ -125,6 +131,8 @@ export default function RootLayout({
   return (
     <html lang="en">
       <head>
+        <meta name="google-site-verification" content="googlef90de30240e3b03b" />
+        <meta name="google-site-verification" content="googlef90de30240e3b03b.html" />
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
