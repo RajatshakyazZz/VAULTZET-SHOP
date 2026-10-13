@@ -204,7 +204,9 @@ class PortalApiClient {
     const orders = await this.getOrders();
     const paidOrders = orders.filter((o) => o.status === 'completed');
     const totalSales = paidOrders.reduce((sum, o) => sum + (o.total || 0), 0);
-    const pendingOrders = orders.filter((o) => o.status === 'pending' || o.status === 'processing');
+    const pendingOrders = orders.filter(
+      (o) => o.status === 'pending' || o.status === 'processing' || o.status === 'failed'
+    );
     const refundedOrders = orders.filter((o) => o.status === 'refunded');
     const uniqueCustomerEmails = new Set(paidOrders.map((o) => o.customer.email).filter(Boolean));
 
@@ -477,7 +479,7 @@ class PortalApiClient {
   }
 
   // ==========================================
-  // 3. ORDERS (Direct Realtime Firestore + Deleted Tombstone Sync)
+  // 3. ORDERS (Direct Realtime Firestore + Deleted Tombstone Sync with Telegram Bot)
   // ==========================================
   private async getDeletedOrderIds(): Promise<Set<string>> {
     const deletedSet = new Set<string>();
@@ -492,13 +494,20 @@ class PortalApiClient {
 
     if (db) {
       try {
-        const snap = await getDoc(doc(db, 'store_settings', 'dnp_meta'));
-        if (snap.exists()) {
-          const data = snap.data();
-          if (data.maintenance_message) {
-            const parsed = JSON.parse(data.maintenance_message);
-            if (Array.isArray(parsed)) {
-              parsed.forEach((id) => deletedSet.add(String(id)));
+        const [metaPixelSnap, dnpMetaSnap] = await Promise.all([
+          getDoc(doc(db, 'store_settings', 'meta_pixel')),
+          getDoc(doc(db, 'store_settings', 'dnp_meta')),
+        ]);
+        for (const snap of [metaPixelSnap, dnpMetaSnap]) {
+          if (snap.exists()) {
+            const data = snap.data();
+            if (data?.maintenance_message) {
+              try {
+                const parsed = JSON.parse(data.maintenance_message);
+                if (Array.isArray(parsed)) {
+                  parsed.forEach((id) => deletedSet.add(String(id)));
+                }
+              } catch {}
             }
           }
         }
@@ -514,19 +523,28 @@ class PortalApiClient {
       if (id) currentSet.add(String(id));
     });
 
-    const arr = Array.from(currentSet).slice(-150);
+    // Keep latest 40 IDs so JSON.stringify is always valid JSON under 990 chars
+    const arr = Array.from(currentSet).slice(-40);
+    const serialized = JSON.stringify(arr);
 
     if (typeof window !== 'undefined') {
       try {
-        localStorage.setItem('vaultzet_deleted_order_ids', JSON.stringify(arr));
+        localStorage.setItem('vaultzet_deleted_order_ids', serialized);
       } catch {}
     }
 
     if (db) {
       try {
         await setDoc(
+          doc(db, 'store_settings', 'meta_pixel'),
+          { maintenance_message: serialized },
+          { merge: true }
+        );
+      } catch {}
+      try {
+        await setDoc(
           doc(db, 'store_settings', 'dnp_meta'),
-          { maintenance_message: JSON.stringify(arr).slice(0, 990) },
+          { maintenance_message: serialized },
           { merge: true }
         );
       } catch {}
@@ -538,46 +556,64 @@ class PortalApiClient {
 
     if (db) {
       try {
-        const q = query(collection(db, 'orders'), orderBy('createdAt', 'desc'));
-        const snap = await getDocs(q);
+        const snap = await getDocs(collection(db, 'orders'));
         if (!snap.empty) {
-          return snap.docs
-            .map((d) => {
-              const data = d.data();
-              return {
-                id: d.id,
-                order_number: data.orderNumber || d.id,
-                status: data.status || 'completed',
-                total: Number(data.totalAmount || 0),
-                currency: 'INR',
-                customer: {
-                  id: data.customer?.email || 'c-unknown',
-                  first_name:
-                    data.customer?.fullName?.split(' ')[0] ||
-                    data.customer?.fullName ||
-                    'Customer',
-                  last_name: data.customer?.fullName?.split(' ').slice(1).join(' ') || '',
-                  email: data.customer?.email || '',
-                  phone: data.customer?.phone || '',
-                },
-                items: (data.items || []).map((it: any) => ({
-                  product_id: it.id,
-                  name: it.title,
-                  quantity: 1,
-                  subtotal: it.price,
-                  total: it.price,
-                  license: it.license || 'personal',
-                })),
-                payment_method: data.paymentMethod || 'UPI / Instant QR',
-                transaction_id: data.transactionId || `UPI-${d.id.slice(0, 8)}`,
-                date_created: data.timestampIso || new Date().toISOString(),
-                google_drive_sent: (data.status || 'completed') === 'completed',
-              } as Order;
-            })
-            .filter(
-              (o) =>
-                !deletedIds.has(String(o.id)) && !deletedIds.has(String(o.order_number))
-            );
+          const activeOrders: Order[] = [];
+
+          for (const d of snap.docs) {
+            const data = d.data();
+            const docId = String(d.id);
+            const orderNum = String(data.orderNumber || d.id);
+            const rawStatus = String(data.status || 'pending').toLowerCase();
+
+            // If marked deleted in localStorage or meta_pixel, ensure Firestore status is 'cancelled' so Telegram Bot stays 100% in sync
+            if (deletedIds.has(docId) || deletedIds.has(orderNum)) {
+              if (rawStatus !== 'cancelled') {
+                updateDoc(doc(db, 'orders', docId), { status: 'cancelled' }).catch(() => {});
+              }
+              continue;
+            }
+
+            if (rawStatus === 'cancelled') {
+              continue;
+            }
+
+            activeOrders.push({
+              id: docId,
+              order_number: orderNum,
+              status: (rawStatus as Order['status']) || 'pending',
+              total: Number(data.totalAmount || 0),
+              currency: 'INR',
+              customer: {
+                id: data.customer?.email || 'c-unknown',
+                first_name:
+                  data.customer?.fullName?.split(' ')[0] ||
+                  data.customer?.fullName ||
+                  'Customer',
+                last_name: data.customer?.fullName?.split(' ').slice(1).join(' ') || '',
+                email: data.customer?.email || '',
+                phone: data.customer?.phone || '',
+              },
+              items: (data.items || []).map((it: any) => ({
+                product_id: it.id,
+                name: it.title,
+                quantity: 1,
+                subtotal: it.price,
+                total: it.price,
+                license: it.license || 'personal',
+              })),
+              payment_method: data.paymentMethod || 'UPI / Instant QR',
+              transaction_id: data.transactionId || `UPI-${docId.slice(0, 8)}`,
+              date_created: data.timestampIso || new Date().toISOString(),
+              google_drive_sent: rawStatus === 'completed',
+            } as Order);
+          }
+
+          activeOrders.sort(
+            (a, b) => new Date(b.date_created).getTime() - new Date(a.date_created).getTime()
+          );
+
+          return activeOrders;
         }
       } catch (e) {
         console.warn('Firestore orders fetch error:', e);
@@ -625,13 +661,14 @@ class PortalApiClient {
     const idStr = String(orderId);
     const idsToPurge = [idStr];
 
-    // 1. Delete from Firestore directly (both by doc ID and by orderNumber)
+    // 1. Mark status as 'cancelled' in Firestore (and attempt deleteDoc) so Telegram Bot and Admin Panel immediately hide it
     if (db) {
       try {
+        await updateDoc(doc(db, 'orders', idStr), { status: 'cancelled' });
+      } catch {}
+      try {
         await deleteDoc(doc(db, 'orders', idStr));
-      } catch (e) {
-        console.warn('Firestore direct order deletion note:', e);
-      }
+      } catch {}
 
       try {
         const snap = await getDocs(collection(db, 'orders'));
@@ -641,6 +678,9 @@ class PortalApiClient {
             idsToPurge.push(d.id);
             if (data.orderNumber) idsToPurge.push(String(data.orderNumber));
             try {
+              await updateDoc(doc(db, 'orders', d.id), { status: 'cancelled' });
+            } catch {}
+            try {
               await deleteDoc(doc(db, 'orders', d.id));
             } catch {}
           }
@@ -648,7 +688,7 @@ class PortalApiClient {
       } catch {}
     }
 
-    // 2. Persist tombstone IDs in Firestore + localStorage so Dashboard & Customers never show deleted orders
+    // 2. Persist tombstone IDs in Firestore (store_settings/meta_pixel) + localStorage
     await this.markOrderIdsAsDeleted(idsToPurge);
 
     // 3. Remove from in-memory fallback list if present
@@ -679,12 +719,12 @@ class PortalApiClient {
       adminEmail: 'admin@vaultzet.com',
       action: 'DELETE_ORDER',
       module: 'Orders',
-      details: `Permanently deleted order #${orderId} and purged its metrics from Dashboard`,
+      details: `Permanently deleted order #${orderId} and purged its metrics from Dashboard & Telegram Bot`,
     });
 
     return {
       success: true,
-      message: `Order #${orderId} and all associated dashboard metrics permanently deleted.`,
+      message: `Order #${orderId} permanently deleted from both Admin Panel and Telegram Bot.`,
     };
   }
 
@@ -696,6 +736,9 @@ class PortalApiClient {
       allIds.push(String(o.id));
       if (o.order_number) allIds.push(String(o.order_number));
       if (db) {
+        try {
+          await updateDoc(doc(db, 'orders', String(o.id)), { status: 'cancelled' });
+        } catch {}
         try {
           await deleteDoc(doc(db, 'orders', String(o.id)));
         } catch {}
@@ -713,7 +756,7 @@ class PortalApiClient {
 
     return {
       success: true,
-      message: 'All orders and dashboard revenue stats have been completely cleared.',
+      message: 'All orders and revenue stats have been cleared from Admin Panel and Telegram Bot.',
     };
   }
 

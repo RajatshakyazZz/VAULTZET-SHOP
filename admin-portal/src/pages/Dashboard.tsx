@@ -56,7 +56,7 @@ export default function Dashboard() {
     paidOrders.map((o: any) => o.customer?.email).filter(Boolean)
   ).size;
   const livePendingOrders = orders.filter(
-    (o: any) => o.status === 'pending' || o.status === 'processing'
+    (o: any) => o.status === 'pending' || o.status === 'processing' || o.status === 'failed'
   ).length;
   const liveAvgAov = liveTotalOrders > 0 ? Math.round(liveNetRevenue / liveTotalOrders) : 0;
   const liveRevenueTrend = [{ date: 'Today', revenue: liveNetRevenue, orders: liveTotalOrders }];

@@ -393,18 +393,33 @@ export async function sendProductAddedTelegramAlert(product: {
 }
 
 /**
- * 5. Fetch Live Firestore Orders (excluding deleted tombstones) for Bot Commands & Night Summary
+ * 5. Fetch Live Firestore Orders (excluding deleted/cancelled tombstones) for Bot Commands & Night Summary
+ *    100% synced with Admin Panel (store_settings/meta_pixel + status === 'cancelled')
  */
 async function fetchActiveFirestoreOrders(): Promise<any[]> {
   if (!db) return [];
   try {
     const deletedSet = new Set<string>();
     try {
-      const metaSnap = await getDoc(doc(db, 'store_settings', 'dnp_meta'));
-      if (metaSnap.exists()) {
-        const list = metaSnap.data()?.deleted_order_ids;
-        if (Array.isArray(list)) {
-          list.forEach((id: any) => deletedSet.add(String(id)));
+      const [metaPixelSnap, dnpMetaSnap] = await Promise.all([
+        getDoc(doc(db, 'store_settings', 'meta_pixel')),
+        getDoc(doc(db, 'store_settings', 'dnp_meta')),
+      ]);
+
+      for (const snap of [metaPixelSnap, dnpMetaSnap]) {
+        if (snap.exists()) {
+          const data = snap.data();
+          if (data?.maintenance_message) {
+            try {
+              const parsed = JSON.parse(data.maintenance_message);
+              if (Array.isArray(parsed)) {
+                parsed.forEach((id: any) => deletedSet.add(String(id)));
+              }
+            } catch {}
+          }
+          if (Array.isArray(data?.deleted_order_ids)) {
+            data.deleted_order_ids.forEach((id: any) => deletedSet.add(String(id)));
+          }
         }
       }
     } catch {}
@@ -416,7 +431,12 @@ async function fetchActiveFirestoreOrders(): Promise<any[]> {
       const d = docSnap.data();
       const docId = String(docSnap.id);
       const orderNum = String(d.orderNumber || docSnap.id);
-      if (deletedSet.has(docId) || deletedSet.has(orderNum)) return;
+      const status = String(d.status || 'pending').toLowerCase();
+
+      // Exclude deleted or cancelled orders so Telegram Bot and Admin Panel show 100% identical data
+      if (status === 'cancelled' || deletedSet.has(docId) || deletedSet.has(orderNum)) {
+        return;
+      }
 
       orders.push({
         id: docId,
@@ -425,7 +445,7 @@ async function fetchActiveFirestoreOrders(): Promise<any[]> {
         items: Array.isArray(d.items) ? d.items : [],
         orderBump: d.orderBump || null,
         totalAmount: Number(d.totalAmount || 0),
-        status: d.status || 'pending',
+        status,
         paymentMethod: d.paymentMethod || 'Cashfree',
         timestampIso: d.timestampIso || new Date().toISOString(),
       });
@@ -455,6 +475,10 @@ export function getCommandCenterButtons(): Array<Array<TelegramInlineButton>> {
   ];
 }
 
+function isPendingOrAbandonedStatus(status: string): boolean {
+  return status === 'pending' || status === 'processing' || status === 'failed';
+}
+
 /**
  * 6. Interactive Command & Night Summary Generator
  *    Modes: 'today' | 'orders' | 'pending' | 'night_summary' | 'help'
@@ -467,9 +491,9 @@ export async function sendStoreCommandReport(
 ━━━━━━━━━━━━━━━━━━━━━━
 Welcome <b>Rajat Shakya</b>! Use these commands anytime to manage your store directly from Telegram:
 
-📊 <b>/today</b> — Today's live sales, revenue (₹), pending checkouts &amp; top bundle
-✅ <b>/orders</b> — Last 5 paid orders + 1-click Google Drive WhatsApp buttons
-⏳ <b>/pending</b> — Last 5 abandoned checkouts + 1-click 20% discount recovery buttons
+📊 <b>/today</b> — Live Store Report (Synced 100% with Admin Panel)
+✅ <b>/orders</b> — Paid orders + 1-click Google Drive WhatsApp buttons
+⏳ <b>/pending</b> — Abandoned / Pending checkouts + 1-click 20% discount recovery
 🌙 <b>/summary</b> — Full Daily Night Report + All-Time store performance
 ❓ <b>/help</b> — Show this command menu
 
@@ -482,21 +506,21 @@ Welcome <b>Rajat Shakya</b>! Use these commands anytime to manage your store dir
   const todayKey = getIstDateKey();
 
   const paidOrders = orders.filter((o) => o.status === 'completed');
-  const pendingOrders = orders.filter((o) => o.status === 'pending' || o.status === 'processing');
+  const pendingOrders = orders.filter((o) => isPendingOrAbandonedStatus(o.status));
+  const verifiedCustomers = new Set(
+    paidOrders.map((o) => o.customer?.email).filter(Boolean)
+  ).size;
 
   const todayOrders = orders.filter((o) => getIstDateKey(o.timestampIso) === todayKey);
   const todayPaid = todayOrders.filter((o) => o.status === 'completed');
-  const todayPending = todayOrders.filter(
-    (o) => o.status === 'pending' || o.status === 'processing'
-  );
+  const todayPending = todayOrders.filter((o) => isPendingOrAbandonedStatus(o.status));
 
   const todayRevenue = todayPaid.reduce((acc, o) => acc + Number(o.totalAmount || 0), 0);
   const allTimeRevenue = paidOrders.reduce((acc, o) => acc + Number(o.totalAmount || 0), 0);
 
-  // Compute Top Selling Bundle
+  // Compute Top Selling Bundle (strictly from paid orders, matching Admin Panel)
   const bundleCounts = new Map<string, { count: number; revenue: number }>();
-  const sourceForTop = todayPaid.length > 0 ? todayPaid : paidOrders;
-  sourceForTop.forEach((o) => {
+  paidOrders.forEach((o) => {
     (o.items || []).forEach((it: any) => {
       const title = it.title || it.name || 'Viral Reels Bundle';
       const cur = bundleCounts.get(title) || { count: 0, revenue: 0 };
@@ -506,26 +530,28 @@ Welcome <b>Rajat Shakya</b>! Use these commands anytime to manage your store dir
     });
   });
 
-  let topBundleText = 'No sales recorded yet';
+  let topBundleText = 'No bundle sales recorded yet';
   if (bundleCounts.size > 0) {
-    const sorted = Array.from(bundleCounts.entries()).sort((a, b) => b[1].count - a[1].count);
+    const sorted = Array.from(bundleCounts.entries()).sort((a, b) => b[1].revenue - a[1].revenue);
     const [topName, stats] = sorted[0];
     topBundleText = `${escapeHtml(topName)} (${stats.count} sold — ₹${stats.revenue})`;
   }
 
   if (mode === 'today') {
     const convRate =
-      todayOrders.length > 0
-        ? `${Math.round((todayPaid.length / todayOrders.length) * 100)}%`
+      orders.length > 0
+        ? `${Math.round((paidOrders.length / orders.length) * 100)}%`
         : '0%';
 
-    const text = `📊⚡ <b>TODAY'S LIVE STORE REPORT (${escapeHtml(todayKey)})</b> ⚡📊
+    const text = `📊⚡ <b>LIVE STORE REPORT (${escapeHtml(todayKey)})</b> ⚡📊
+<i>(100% Synced with Admin Panel)</i>
 ━━━━━━━━━━━━━━━━━━━━━━
 
-💰 <b>Today's Revenue:</b> <b>₹${todayRevenue}.00</b>
-✅ <b>Paid Orders Today:</b> <b>${todayPaid.length}</b>
-⏳ <b>Abandoned / Pending Today:</b> <b>${todayPending.length}</b>
-📈 <b>Checkout Conversion Rate:</b> <b>${convRate}</b>
+💰 <b>Net Revenue:</b> <b>₹${allTimeRevenue}.00</b> <i>(Today: ₹${todayRevenue}.00)</i>
+✅ <b>Total Paid Orders:</b> <b>${paidOrders.length}</b> <i>(Today: ${todayPaid.length})</i>
+👥 <b>Active Customers:</b> <b>${verifiedCustomers}</b>
+⏳ <b>Pending / Abandoned:</b> <b>${pendingOrders.length}</b> <i>(Today: ${todayPending.length})</i>
+📈 <b>Conversion Rate:</b> <b>${convRate}</b>
 
 🏆 <b>Top Selling Bundle:</b>
    • ${topBundleText}
@@ -569,7 +595,7 @@ Welcome <b>Rajat Shakya</b>! Use these commands anytime to manage your store dir
 
     const text = `✅📦 <b>RECENT PAID ORDERS (Total: ${paidOrders.length})</b> 📦✅
 ━━━━━━━━━━━━━━━━━━━━━━
-💵 <b>All-Time Revenue:</b> <b>₹${allTimeRevenue}.00</b>
+💵 <b>Net Revenue:</b> <b>₹${allTimeRevenue}.00</b>
 
 ${listText}
 
@@ -589,7 +615,8 @@ ${listText}
               const phone = o.customer?.phone || 'N/A';
               const bundle = o.items?.[0]?.title || 'Viral Reels Bundle';
               const disc = Math.max(19, Math.round(Number(o.totalAmount || 49) * 0.8));
-              return `${i + 1}. <b>#${escapeHtml(o.orderNumber)}</b> — <b>₹${o.totalAmount}</b> (20% Off: ₹${disc})\n   👤 ${escapeHtml(name)} (<code>${escapeHtml(phone)}</code>)\n   📦 ${escapeHtml(bundle)}`;
+              const statusTag = o.status === 'failed' ? 'ABANDONED' : 'PENDING';
+              return `${i + 1}. <b>#${escapeHtml(o.orderNumber)}</b> [${statusTag}] — <b>₹${o.totalAmount}</b> (20% Off: ₹${disc})\n   👤 ${escapeHtml(name)} (<code>${escapeHtml(phone)}</code>)\n   📦 ${escapeHtml(bundle)}`;
             })
             .join('\n\n')
         : '🎉 <i>Zero abandoned checkouts right now!</i>';
@@ -624,28 +651,31 @@ ${listText}
   }
 
   // mode === 'night_summary'
-  const potentialAbandonedValue = todayPending.reduce(
+  const potentialAbandonedValue = pendingOrders.reduce(
     (acc, o) => acc + Number(o.totalAmount || 0),
     0
   );
 
-  const text = `🌙📊 <b>10:00 PM DAILY STORE SUMMARY — VAULTZET</b> 📊🌙
+  const text = `🌙📊 <b>DAILY STORE SUMMARY — VAULTZET</b> 📊🌙
+<i>(100% Synced with Admin Panel)</i>
 ━━━━━━━━━━━━━━━━━━━━━━
 📅 <b>Date (IST):</b> ${escapeHtml(todayKey)}
 
 🔥 <b>TODAY'S PERFORMANCE:</b>
    • 💰 <b>Today's Revenue:</b> <b>₹${todayRevenue}.00</b>
-   • ✅ <b>Completed Sales:</b> <b>${todayPaid.length} Orders</b>
-   • ⏳ <b>Abandoned Checkouts:</b> <b>${todayPending.length} Leads</b> (₹${potentialAbandonedValue} recoverable)
+   • ✅ <b>Completed Sales Today:</b> <b>${todayPaid.length} Orders</b>
+   • ⏳ <b>Abandoned / Pending Today:</b> <b>${todayPending.length} Leads</b>
 
-🏦 <b>ALL-TIME STORE TOTALS:</b>
-   • 💎 <b>Total Gross Revenue:</b> <b>₹${allTimeRevenue}.00</b>
+🏦 <b>ADMIN PANEL TOTALS:</b>
+   • 💎 <b>Net Revenue:</b> <b>₹${allTimeRevenue}.00</b>
    • 📦 <b>Total Paid Orders:</b> <b>${paidOrders.length}</b>
+   • 👥 <b>Active Customers:</b> <b>${verifiedCustomers}</b>
+   • ⏳ <b>Pending / Abandoned:</b> <b>${pendingOrders.length}</b> (₹${potentialAbandonedValue} recoverable)
    • 🏆 <b>Top Bundle:</b> ${topBundleText}
 
 🕒 <b>Generated At:</b> ${escapeHtml(getIstTimestamp())}
 ━━━━━━━━━━━━━━━━━━━━━━
-<i>Tap ⏳ Abandoned Leads below to follow up with today's pending buyers on WhatsApp before sleeping!</i> 🚀`;
+<i>Tap ⏳ Abandoned Leads below to follow up with pending buyers on WhatsApp!</i> 🚀`;
 
   return sendTelegramMessage(text, getCommandCenterButtons());
 }
