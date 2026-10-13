@@ -1,4 +1,6 @@
 import { BundleProduct } from '@/types';
+import { db } from '@/lib/firebase';
+import { collection, getDocs } from 'firebase/firestore';
 
 export interface CategoryItem {
   id?: string;
@@ -9,8 +11,10 @@ export interface CategoryItem {
   bg?: string;
   border?: string;
   iconColor?: string;
+  description?: string;
   aliases?: string[];
-  keywords: string[];
+  keywords?: string[];
+  created_at?: string;
 }
 
 export const COMPETITOR_CATEGORIES: CategoryItem[] = [
@@ -402,7 +406,8 @@ export const COMPETITOR_CATEGORIES: CategoryItem[] = [
  */
 export function productMatchesCategory(
   product: BundleProduct | any,
-  targetCategorySlug: string
+  targetCategorySlug: string,
+  categoriesList?: CategoryItem[]
 ): boolean {
   if (!targetCategorySlug || targetCategorySlug === 'all') return true;
   if (!product) return false;
@@ -441,7 +446,8 @@ export function productMatchesCategory(
   }
 
   // 3. Find Category Definition
-  const catDef = COMPETITOR_CATEGORIES.find(
+  const lookup = categoriesList && categoriesList.length > 0 ? categoriesList : COMPETITOR_CATEGORIES;
+  const catDef = lookup.find(
     (c) =>
       c.slug.toLowerCase() === targetClean ||
       (Array.isArray(c.aliases) && c.aliases.includes(targetClean))
@@ -464,25 +470,31 @@ export function productMatchesCategory(
     .join(' ')
     .toLowerCase();
 
-  return (catDef.keywords || []).some((kw) => textCorpus.includes(kw.toLowerCase()));
+  const keywords = Array.isArray(catDef.keywords) && catDef.keywords.length > 0
+    ? catDef.keywords
+    : catDef.name.toLowerCase().split(/\s+/).filter(w => w.length > 2);
+
+  return keywords.some((kw) => textCorpus.includes(kw.toLowerCase()));
 }
 
 /**
- * Computes live product counts for each of the 61 categories.
+ * Computes live product counts for each category.
  */
 export function calculateCategoryCounts(
-  products: (BundleProduct | any)[]
+  products: (BundleProduct | any)[],
+  categoriesList?: CategoryItem[]
 ): Record<string, number> {
   const safeProducts = Array.isArray(products) ? products.filter(Boolean) : [];
+  const lookup = categoriesList && categoriesList.length > 0 ? categoriesList : COMPETITOR_CATEGORIES;
   const counts: Record<string, number> = {
     all: safeProducts.length,
   };
 
   try {
-    for (const cat of COMPETITOR_CATEGORIES) {
+    for (const cat of lookup) {
       let matchCount = 0;
       for (const prod of safeProducts) {
-        if (productMatchesCategory(prod, cat.slug)) {
+        if (productMatchesCategory(prod, cat.slug, lookup)) {
           matchCount++;
         }
       }
@@ -494,4 +506,82 @@ export function calculateCategoryCounts(
 
   return counts;
 }
+
+let cachedCustomCategories: CategoryItem[] | null = null;
+let lastCatFetchTime = 0;
+
+export function getLocalCategoriesSync(): CategoryItem[] {
+  if (typeof window === 'undefined') return COMPETITOR_CATEGORIES;
+  try {
+    const raw = localStorage.getItem('vaultzet_custom_categories');
+    if (!raw) return COMPETITOR_CATEGORIES;
+    const custom = JSON.parse(raw);
+    if (Array.isArray(custom) && custom.length > 0) {
+      const customSlugs = new Set(custom.map((c: any) => String(c.slug || '').toLowerCase()));
+      const initialFiltered = COMPETITOR_CATEGORIES.filter((c) => !customSlugs.has(c.slug.toLowerCase()));
+      return [...custom, ...initialFiltered];
+    }
+  } catch {}
+  return COMPETITOR_CATEGORIES;
+}
+
+export async function fetchCustomCategories(force = false): Promise<CategoryItem[]> {
+  const now = Date.now();
+  if (!force && cachedCustomCategories && now - lastCatFetchTime < 30000) {
+    return cachedCustomCategories;
+  }
+
+  const localCategories = getLocalCategoriesSync();
+  const list: CategoryItem[] = [];
+  const slugSet = new Set<string>();
+
+  if (db) {
+    try {
+      const snap = await getDocs(collection(db, 'categories'));
+      snap.docs.forEach((d) => {
+        const data = d.data();
+        const name = String(data.name || 'Category');
+        const slug = String(data.slug || name.toLowerCase().replace(/[^a-z0-9]+/g, '-'));
+        const cat: CategoryItem = {
+          id: d.id,
+          name,
+          slug,
+          count: Number(data.count || 0),
+          icon: data.icon || '✨',
+          bg: data.bg || '#f4ebff',
+          border: data.border || '#e9d5ff',
+          iconColor: data.iconColor || '#7c3aed',
+          description: data.description || '',
+          keywords: Array.isArray(data.keywords) && data.keywords.length > 0 ? data.keywords : name.toLowerCase().split(/\s+/),
+          created_at: data.created_at || data.createdAt || '',
+        };
+        list.push(cat);
+        slugSet.add(slug.toLowerCase());
+      });
+    } catch (e) {
+      console.warn('Error fetching categories from Firestore:', e);
+    }
+  }
+
+  // Merge any local categories not yet in Firestore
+  for (const lc of localCategories) {
+    if (!slugSet.has(lc.slug.toLowerCase())) {
+      list.push(lc);
+      slugSet.add(lc.slug.toLowerCase());
+    }
+  }
+
+  // Merge with static COMPETITOR_CATEGORIES
+  for (const cc of COMPETITOR_CATEGORIES) {
+    if (!slugSet.has(cc.slug.toLowerCase())) {
+      list.push(cc);
+      slugSet.add(cc.slug.toLowerCase());
+    }
+  }
+
+  cachedCustomCategories = list;
+  lastCatFetchTime = now;
+  return list;
+}
+
 

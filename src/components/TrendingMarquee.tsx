@@ -1,16 +1,34 @@
 'use client';
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { ArrowRight, ShoppingCart, Film } from 'lucide-react';
 import { BUNDLE_PRODUCTS } from '@/data/bundles';
 import { useCart } from '@/context/CartContext';
 import { optimizeImageUrl } from '@/lib/imageOptimized';
+import {
+  fetchCustomProducts,
+  getAllCatalogBundles,
+  getLocalCustomProductsSync,
+} from '@/lib/customProducts';
+import { BundleProduct } from '@/types';
 
 export default function TrendingMarquee() {
   const { addToCart, buyNow } = useCart();
-  const trendingItems = BUNDLE_PRODUCTS.filter((b) => !b.isUpcoming).slice(0, 6);
-  const loopItems = [...trendingItems, ...trendingItems];
+  const [items, setItems] = useState<BundleProduct[]>(() => {
+    const local = getLocalCustomProductsSync();
+    const all = getAllCatalogBundles(local, BUNDLE_PRODUCTS);
+    return all.filter((b) => !b.isUpcoming).slice(0, 6);
+  });
+
+  useEffect(() => {
+    fetchCustomProducts().then((res) => {
+      const all = getAllCatalogBundles(res, BUNDLE_PRODUCTS);
+      setItems(all.filter((b) => !b.isUpcoming).slice(0, 6));
+    }).catch(() => {});
+  }, []);
+
+  const loopItems = [...items, ...items];
 
   return (
     <section className="py-6 sm:py-8 overflow-hidden [contain:layout_style]">
@@ -48,11 +66,12 @@ export default function TrendingMarquee() {
           <div className="relative w-full overflow-hidden marquee-mask">
             <div className="flex gap-4 w-max animate-marquee hover:[animation-play-state:paused] py-2 will-change-transform">
               {loopItems.map((bundle, index) => {
-                const discount = Math.round(
-                  ((bundle.personalOriginalPrice - bundle.personalPrice) /
-                    bundle.personalOriginalPrice) *
-                    100
-                );
+                const origPrice = bundle.personalOriginalPrice || 499;
+                const currPrice = bundle.personalPrice || 99;
+                const discount =
+                  origPrice > currPrice
+                    ? Math.round(((origPrice - currPrice) / origPrice) * 100)
+                    : 80;
 
                 return (
                   <div

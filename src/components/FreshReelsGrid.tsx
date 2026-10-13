@@ -1,15 +1,32 @@
 'use client';
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { ArrowRight, ShoppingCart, Film } from 'lucide-react';
 import { BUNDLE_PRODUCTS } from '@/data/bundles';
 import { useCart } from '@/context/CartContext';
 import { optimizeImageUrl } from '@/lib/imageOptimized';
+import {
+  fetchCustomProducts,
+  getAllCatalogBundles,
+  getLocalCustomProductsSync,
+} from '@/lib/customProducts';
+import { BundleProduct } from '@/types';
 
 export default function FreshReelsGrid() {
   const { addToCart, buyNow } = useCart();
-  const freshBundles = BUNDLE_PRODUCTS.filter((b) => !b.isUpcoming).slice(0, 8);
+  const [freshBundles, setFreshBundles] = useState<BundleProduct[]>(() => {
+    const local = getLocalCustomProductsSync();
+    const all = getAllCatalogBundles(local, BUNDLE_PRODUCTS);
+    return all.filter((b) => !b.isUpcoming).slice(0, 8);
+  });
+
+  useEffect(() => {
+    fetchCustomProducts().then((res) => {
+      const all = getAllCatalogBundles(res, BUNDLE_PRODUCTS);
+      setFreshBundles(all.filter((b) => !b.isUpcoming).slice(0, 8));
+    }).catch(() => {});
+  }, []);
 
   return (
     <section className="py-6 sm:py-8 [contain:layout_style]">
@@ -46,11 +63,12 @@ export default function FreshReelsGrid() {
           {/* Product Cards Grid (4 columns) */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-5">
             {freshBundles.map((bundle) => {
-              const discount = Math.round(
-                ((bundle.personalOriginalPrice - bundle.personalPrice) /
-                  bundle.personalOriginalPrice) *
-                  100
-              );
+              const origPrice = bundle.personalOriginalPrice || 499;
+              const currPrice = bundle.personalPrice || 99;
+              const discount =
+                origPrice > currPrice
+                  ? Math.round(((origPrice - currPrice) / origPrice) * 100)
+                  : 80;
 
               return (
                 <div
@@ -83,7 +101,7 @@ export default function FreshReelsGrid() {
 
                     {/* 1080P Badge in Bottom Right */}
                     <span className="absolute bottom-2.5 right-2.5 px-2 py-0.5 rounded-md text-[10px] font-black bg-black/85 text-white border border-white/20">
-                      {bundle.resolution.includes('1080') ? '1080P' : 'HD'}
+                      {String(bundle.resolution || '').includes('1080') ? '1080P' : 'HD'}
                     </span>
                   </Link>
 

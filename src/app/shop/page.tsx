@@ -14,12 +14,18 @@ import {
   HardDrive,
   Check,
 } from 'lucide-react';
-import { BUNDLE_PRODUCTS, CATEGORIES } from '@/data/bundles';
+import { BUNDLE_PRODUCTS, CATEGORIES as DEFAULT_CATEGORIES } from '@/data/bundles';
 import { useCart } from '@/context/CartContext';
 import { optimizeImageUrl } from '@/lib/imageOptimized';
-import { fetchCustomProducts } from '@/lib/customProducts';
+import { fetchCustomProducts, getAllCatalogBundles } from '@/lib/customProducts';
 import { BundleProduct } from '@/types';
-import { calculateCategoryCounts, productMatchesCategory } from '@/lib/categories';
+import {
+  calculateCategoryCounts,
+  productMatchesCategory,
+  fetchCustomCategories,
+  getLocalCategoriesSync,
+  CategoryItem,
+} from '@/lib/categories';
 
 function ShopContent() {
   const searchParams = useSearchParams();
@@ -27,6 +33,7 @@ function ShopContent() {
   const initialSearch = searchParams.get('s') || '';
 
   const [customProducts, setCustomProducts] = useState<BundleProduct[]>([]);
+  const [categories, setCategories] = useState<CategoryItem[]>(() => getLocalCategoriesSync());
   const [selectedCategory, setSelectedCategory] = useState(initialCategory);
   const [searchTerm, setSearchTerm] = useState(initialSearch);
   const [minPrice, setMinPrice] = useState(49);
@@ -40,35 +47,27 @@ function ShopContent() {
         setCustomProducts(res);
       }
     }).catch(() => {});
+
+    fetchCustomCategories().then((cats) => {
+      if (cats && cats.length > 0) {
+        setCategories(cats);
+      }
+    }).catch(() => {});
   }, []);
 
   const allBundles = useMemo(() => {
-    const validCustom = (customProducts || []).filter(
-      (p): p is BundleProduct => Boolean(p && typeof p.slug === 'string')
-    );
-    const validInitial = (BUNDLE_PRODUCTS || []).filter(
-      (b): b is BundleProduct => Boolean(b && typeof b.slug === 'string')
-    );
-    if (validCustom.length === 0) return validInitial;
-
-    const customSlugs = new Set(
-      validCustom.map((p) => String(p.slug || '').toLowerCase())
-    );
-    const filteredInitial = validInitial.filter(
-      (b) => !customSlugs.has(String(b.slug || '').toLowerCase())
-    );
-    return [...validCustom, ...filteredInitial];
+    return getAllCatalogBundles(customProducts, BUNDLE_PRODUCTS);
   }, [customProducts]);
 
   const categoryCounts = useMemo(() => {
-    return calculateCategoryCounts(allBundles);
-  }, [allBundles]);
+    return calculateCategoryCounts(allBundles, categories);
+  }, [allBundles, categories]);
 
   const filteredBundles = useMemo(() => {
     return allBundles
       .filter((b) => {
         if (!b) return false;
-        const matchesCategory = productMatchesCategory(b, selectedCategory);
+        const matchesCategory = productMatchesCategory(b, selectedCategory, categories);
         const q = String(searchTerm || '').toLowerCase().trim();
         const matchesSearch =
           !q ||
@@ -87,7 +86,7 @@ function ShopContent() {
         if (sortBy === 'reels') return (b.reelCount || 0) - (a.reelCount || 0);
         return (b.isHot ? 1 : 0) - (a.isHot ? 1 : 0);
       });
-  }, [allBundles, selectedCategory, searchTerm, minPrice, maxPrice, sortBy]);
+  }, [allBundles, selectedCategory, categories, searchTerm, minPrice, maxPrice, sortBy]);
 
   const clearFilters = () => {
     setSelectedCategory('all');
@@ -130,7 +129,7 @@ function ShopContent() {
                 <Layers className="w-4 h-4" />
               </div>
               <div>
-                <div className="text-base font-black text-[#162048] leading-tight">{CATEGORIES.length}</div>
+                <div className="text-base font-black text-[#162048] leading-tight">{categories.length}</div>
                 <div className="text-[11px] font-semibold text-gray-400">Categories</div>
               </div>
             </div>
@@ -206,7 +205,7 @@ function ShopContent() {
                     Categories
                   </label>
                   <div className="space-y-1 max-h-72 overflow-y-auto pr-1 scrollbar-thin">
-                    {CATEGORIES.map((cat) => {
+                    {categories.map((cat) => {
                       const isSelected = selectedCategory === cat.slug;
                       const count = categoryCounts[cat.slug] || 0;
 

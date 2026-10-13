@@ -1,9 +1,22 @@
-import React from 'react';
+'use client';
+
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { ArrowRight } from 'lucide-react';
-import { CATEGORIES } from '@/data/bundles';
+import { CATEGORIES as DEFAULT_CATEGORIES } from '@/data/bundles';
+import { fetchCustomCategories, getLocalCategoriesSync, CategoryItem } from '@/lib/categories';
 
 export default function CategoryGrid() {
+  const [categories, setCategories] = useState<CategoryItem[]>(() => getLocalCategoriesSync());
+
+  useEffect(() => {
+    fetchCustomCategories().then((res) => {
+      if (res && res.length > 0) {
+        setCategories(res);
+      }
+    }).catch(() => {});
+  }, []);
+
   return (
     <section className="py-4 sm:py-6 [contain:layout_style]">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -41,7 +54,7 @@ export default function CategoryGrid() {
 
           {/* 8 Category Cards in 2 Rows of 4 matching Competitor Screenshot */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3.5 sm:gap-4">
-            {CATEGORIES.slice(0, 8).map((cat) => (
+            {categories.slice(0, 8).map((cat) => (
               <Link
                 key={cat.slug}
                 href={`/shop?cat=${cat.slug}`}

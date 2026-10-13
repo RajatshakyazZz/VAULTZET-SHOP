@@ -48,7 +48,8 @@ rules_version = '2';
 //    - is_hot: bool (optional)
 //    - is_trending: bool (optional)
 //    - downloadable: bool (optional)
-//    - status: string (optional, in ['publish', 'draft', 'pending', 'private'])
+//    - is_deleted: bool (optional)
+//    - status: string (optional, in ['publish', 'draft', 'pending', 'private', 'trash'])
 //    - stock_status: string (optional, in ['instock', 'outofstock', 'onbackorder'])
 //    - categories: list (optional, <= 50 items)
 //    - gallery_images: list (optional, <= 50 items)
@@ -216,7 +217,8 @@ service cloud.firestore {
         isValidOptionalBool(data, 'is_hot') &&
         isValidOptionalBool(data, 'is_trending') &&
         isValidOptionalBool(data, 'downloadable') &&
-        (!('status' in data) || data.status == null || data.status in ['publish', 'draft', 'pending', 'private']) &&
+        isValidOptionalBool(data, 'is_deleted') &&
+        (!('status' in data) || data.status == null || data.status in ['publish', 'draft', 'pending', 'private', 'trash']) &&
         (!('stock_status' in data) || data.stock_status == null || data.stock_status in ['instock', 'outofstock', 'onbackorder']) &&
         isValidOptionalList(data, 'categories', 50) &&
         isValidOptionalList(data, 'gallery_images', 50) &&

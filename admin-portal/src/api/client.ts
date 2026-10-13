@@ -171,9 +171,19 @@ class PortalApiClient {
   // ==========================================
   async getProducts(): Promise<Product[]> {
     let localCustomProds: Product[] = [];
+    let localDeletedSlugs = new Set<string>();
     if (typeof window !== 'undefined') {
       try {
         localCustomProds = JSON.parse(localStorage.getItem('vaultzet_custom_products') || '[]');
+      } catch (e) {}
+      try {
+        const delRaw = localStorage.getItem('vaultzet_deleted_slugs');
+        if (delRaw) {
+          const parsed = JSON.parse(delRaw);
+          if (Array.isArray(parsed)) {
+            parsed.forEach((s) => localDeletedSlugs.add(String(s).toLowerCase()));
+          }
+        }
       } catch (e) {}
     }
 
@@ -181,20 +191,61 @@ class PortalApiClient {
       try {
         const snap = await getDocs(collection(db, 'products'));
         if (!snap.empty) {
-          const dbProds = snap.docs.map((d) => ({ id: d.id, ...d.data() } as Product));
-          const dbIdSet = new Set(dbProds.map((p) => String(p.id)));
-          const dbSlugSet = new Set(dbProds.map((p) => p.slug).filter(Boolean));
+          const dbProds: Product[] = [];
+          const dbIdSet = new Set<string>();
+          const dbSlugSet = new Set<string>();
+
+          snap.docs.forEach((d) => {
+            const data = d.data();
+            const id = String(d.id);
+            const slug = String(data.slug || id).toLowerCase();
+            const isDeleted = Boolean(data.is_deleted || data.status === 'trash');
+
+            dbIdSet.add(id);
+            if (slug) dbSlugSet.add(slug);
+
+            if (isDeleted) {
+              localDeletedSlugs.add(id.toLowerCase());
+              if (slug) localDeletedSlugs.add(slug);
+            } else {
+              dbProds.push({ id: d.id, ...data } as Product);
+            }
+          });
+
+          // Sync back deleted slugs into localStorage
+          if (typeof window !== 'undefined') {
+            try {
+              localStorage.setItem('vaultzet_deleted_slugs', JSON.stringify(Array.from(localDeletedSlugs)));
+            } catch {}
+          }
 
           const uncommittedLocal = localCustomProds.filter(
-            (lp) => !dbIdSet.has(String(lp.id)) && (!lp.slug || !dbSlugSet.has(lp.slug))
+            (lp) =>
+              !dbIdSet.has(String(lp.id)) &&
+              (!lp.slug || !dbSlugSet.has(lp.slug.toLowerCase())) &&
+              !localDeletedSlugs.has(String(lp.id).toLowerCase()) &&
+              (!lp.slug || !localDeletedSlugs.has(lp.slug.toLowerCase()))
           );
 
-          const combined = [...uncommittedLocal, ...dbProds];
+          const combined = [...uncommittedLocal, ...dbProds].filter(
+            (p) =>
+              !p.is_deleted &&
+              p.status !== 'trash' &&
+              !localDeletedSlugs.has(String(p.id).toLowerCase()) &&
+              (!p.slug || !localDeletedSlugs.has(p.slug.toLowerCase()))
+          );
+
           const combinedIdSet = new Set(combined.map((p) => String(p.id)));
-          const combinedSlugSet = new Set(combined.map((p) => p.slug).filter(Boolean));
+          const combinedSlugSet = new Set(combined.map((p) => p.slug?.toLowerCase()).filter(Boolean));
 
           const missing = initialProducts.filter(
-            (p) => !combinedIdSet.has(String(p.id)) && (!p.slug || !combinedSlugSet.has(p.slug))
+            (p) =>
+              !combinedIdSet.has(String(p.id)) &&
+              (!p.slug || !combinedSlugSet.has(p.slug.toLowerCase())) &&
+              !dbIdSet.has(String(p.id)) &&
+              (!p.slug || !dbSlugSet.has(p.slug.toLowerCase())) &&
+              !localDeletedSlugs.has(String(p.id).toLowerCase()) &&
+              (!p.slug || !localDeletedSlugs.has(p.slug.toLowerCase()))
           );
           return [...combined, ...missing];
         } else {
@@ -211,8 +262,14 @@ class PortalApiClient {
 
     // Merge in-memory with any stored in localStorage
     const idSet = new Set(initialProducts.map((p) => String(p.id)));
-    const missingLocal = localCustomProds.filter((lp) => !idSet.has(String(lp.id)));
-    return [...missingLocal, ...initialProducts];
+    const missingLocal = localCustomProds.filter(
+      (lp) => !idSet.has(String(lp.id)) && !localDeletedSlugs.has(String(lp.id).toLowerCase())
+    );
+    return [...missingLocal, ...initialProducts].filter(
+      (p) =>
+        !localDeletedSlugs.has(String(p.id).toLowerCase()) &&
+        (!p.slug || !localDeletedSlugs.has(p.slug.toLowerCase()))
+    );
   }
 
   async createProduct(productData: Partial<Product>): Promise<Product> {
@@ -337,17 +394,51 @@ class PortalApiClient {
     return newProduct;
   }
 
-  async deleteProduct(productId: string | number): Promise<boolean> {
+  async deleteProduct(productId: string | number, slug?: string): Promise<boolean> {
     const idStr = String(productId);
+    const slugStr = slug ? String(slug).toLowerCase() : '';
+
     if (db) {
       try {
-        await deleteDoc(doc(db, 'products', idStr));
+        // Mark as trash in Firestore so it's recognized as deleted by storefront & portal
+        const docRef = doc(db, 'products', idStr);
+        await setDoc(
+          docRef,
+          {
+            id: idStr,
+            name: '[DELETED]',
+            price: 0,
+            status: 'trash',
+            is_deleted: true,
+            deleted_at: new Date().toISOString(),
+          },
+          { merge: true }
+        );
+
+        if (slugStr && slugStr !== idStr) {
+          try {
+            await setDoc(
+              doc(db, 'products', slugStr),
+              {
+                id: slugStr,
+                name: '[DELETED]',
+                price: 0,
+                status: 'trash',
+                is_deleted: true,
+                deleted_at: new Date().toISOString(),
+              },
+              { merge: true }
+            );
+          } catch {}
+        }
       } catch (e) {
         console.warn('Firestore product delete error:', e);
       }
     }
 
-    const idx = initialProducts.findIndex((p) => String(p.id) === idStr);
+    const idx = initialProducts.findIndex(
+      (p) => String(p.id) === idStr || (slugStr && p.slug?.toLowerCase() === slugStr)
+    );
     if (idx !== -1) {
       initialProducts.splice(idx, 1);
     }
@@ -355,8 +446,16 @@ class PortalApiClient {
     if (typeof window !== 'undefined') {
       try {
         const stored = JSON.parse(localStorage.getItem('vaultzet_custom_products') || '[]');
-        const filtered = stored.filter((p: any) => String(p.id) !== idStr);
+        const filtered = stored.filter(
+          (p: any) => String(p.id) !== idStr && (!slugStr || p.slug?.toLowerCase() !== slugStr)
+        );
         localStorage.setItem('vaultzet_custom_products', JSON.stringify(filtered));
+
+        const deletedSlugs = JSON.parse(localStorage.getItem('vaultzet_deleted_slugs') || '[]');
+        const set = new Set(deletedSlugs);
+        set.add(idStr.toLowerCase());
+        if (slugStr) set.add(slugStr);
+        localStorage.setItem('vaultzet_deleted_slugs', JSON.stringify(Array.from(set)));
       } catch (e) {
         // ignore
       }
@@ -366,7 +465,7 @@ class PortalApiClient {
       adminEmail: 'admin@vaultzet.com',
       action: 'DELETE_PRODUCT',
       module: 'Products',
-      details: `Deleted product #${productId}`,
+      details: `Deleted product #${productId} (${slugStr || idStr})`,
     });
 
     return true;

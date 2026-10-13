@@ -215,12 +215,17 @@ export default function Products() {
   });
 
   const deleteProductMutation = useMutation({
-    mutationFn: (id: string | number) => portalApi.deleteProduct(id),
-    onSuccess: (_, deletedId) => {
+    mutationFn: ({ id, slug }: { id: string | number; slug?: string }) =>
+      portalApi.deleteProduct(id, slug),
+    onSuccess: (_, { id, slug }) => {
       queryClient.setQueryData(['products'], (old: Product[] = []) =>
-        old.filter((p) => String(p.id) !== String(deletedId))
+        old.filter(
+          (p) =>
+            String(p.id) !== String(id) &&
+            (!slug || p.slug?.toLowerCase() !== String(slug).toLowerCase())
+        )
       );
-      success('Product Deleted', 'Bundle removed from catalog.');
+      success('Product Deleted', 'Bundle permanently removed from catalog.');
     },
     onError: (err: any) => error('Delete Failed', err.message || 'Could not delete product.'),
   });
@@ -356,7 +361,7 @@ export default function Products() {
 
   const handleDeleteProduct = (prod: Product) => {
     if (confirm(`Permanently delete bundle "${prod.name}"? This cannot be undone.`)) {
-      deleteProductMutation.mutate(prod.id);
+      deleteProductMutation.mutate({ id: prod.id, slug: prod.slug });
     }
   };
 

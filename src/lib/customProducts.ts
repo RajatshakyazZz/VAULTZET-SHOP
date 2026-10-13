@@ -111,16 +111,38 @@ export function mapFirestoreDocToBundleProduct(data: any): BundleProduct {
 }
 
 let cachedCustomProducts: BundleProduct[] | null = null;
+let cachedDeletedSlugs = new Set<string>();
 let lastFetchTime = 0;
+
+export function getDeletedSlugsSync(): Set<string> {
+  const set = new Set<string>(cachedDeletedSlugs);
+  if (typeof window !== 'undefined') {
+    try {
+      const raw = localStorage.getItem('vaultzet_deleted_slugs');
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        if (Array.isArray(parsed)) {
+          parsed.forEach((s) => {
+            if (typeof s === 'string' && s) set.add(s.toLowerCase());
+          });
+        }
+      }
+    } catch {}
+  }
+  return set;
+}
 
 export function getLocalCustomProductsSync(): BundleProduct[] {
   if (typeof window === 'undefined') return [];
+  const deleted = getDeletedSlugsSync();
   try {
     const raw = localStorage.getItem('vaultzet_custom_products');
     if (!raw) return [];
     const parsed = JSON.parse(raw);
     if (Array.isArray(parsed)) {
-      return parsed.map(mapFirestoreDocToBundleProduct);
+      return parsed
+        .map(mapFirestoreDocToBundleProduct)
+        .filter((p) => !deleted.has(p.slug.toLowerCase()) && !deleted.has(p.id.toLowerCase()));
     }
   } catch {}
   return [];
@@ -135,16 +157,27 @@ export async function fetchCustomProducts(force = false): Promise<BundleProduct[
   const list: BundleProduct[] = [];
   const localList = getLocalCustomProductsSync();
   const slugSet = new Set<string>();
+  const deletedSet = getDeletedSlugsSync();
 
   if (db) {
     try {
       const snap = await getDocs(collection(db, 'products'));
       snap.docs.forEach((d) => {
         const data = d.data();
-        if (data.status !== 'draft' && data.status !== 'trash') {
+        const slug = String(data.slug || d.id || '').toLowerCase();
+        const isDeleted = Boolean(data.is_deleted || data.status === 'trash' || data.status === 'draft');
+
+        if (isDeleted) {
+          deletedSet.add(d.id.toLowerCase());
+          if (slug) deletedSet.add(slug);
+          cachedDeletedSlugs.add(d.id.toLowerCase());
+          if (slug) cachedDeletedSlugs.add(slug);
+        } else {
           const bundle = mapFirestoreDocToBundleProduct({ id: d.id, ...data });
-          list.push(bundle);
-          slugSet.add(bundle.slug.toLowerCase());
+          if (!deletedSet.has(bundle.slug.toLowerCase()) && !deletedSet.has(bundle.id.toLowerCase())) {
+            list.push(bundle);
+            slugSet.add(bundle.slug.toLowerCase());
+          }
         }
       });
     } catch (e) {
@@ -152,9 +185,9 @@ export async function fetchCustomProducts(force = false): Promise<BundleProduct[
     }
   }
 
-  // Merge any local products not yet in Firestore
+  // Merge any local products not yet in Firestore (and not deleted)
   for (const lp of localList) {
-    if (!slugSet.has(lp.slug.toLowerCase())) {
+    if (!slugSet.has(lp.slug.toLowerCase()) && !deletedSet.has(lp.slug.toLowerCase())) {
       list.push(lp);
       slugSet.add(lp.slug.toLowerCase());
     }
@@ -165,12 +198,39 @@ export async function fetchCustomProducts(force = false): Promise<BundleProduct[
   return list;
 }
 
+export function getAllCatalogBundles(
+  customProds: BundleProduct[],
+  initialBundles: BundleProduct[] = [],
+  deletedSlugs: Set<string> = getDeletedSlugsSync()
+): BundleProduct[] {
+  const validCustom = (customProds || []).filter(
+    (p): p is BundleProduct =>
+      Boolean(p && typeof p.slug === 'string' && !deletedSlugs.has(p.slug.toLowerCase()) && !deletedSlugs.has(p.id.toLowerCase()))
+  );
+  const customSlugs = new Set(validCustom.map((p) => p.slug.toLowerCase()));
+  const filteredInitial = (initialBundles || []).filter(
+    (b): b is BundleProduct =>
+      Boolean(
+        b &&
+          typeof b.slug === 'string' &&
+          !customSlugs.has(b.slug.toLowerCase()) &&
+          !deletedSlugs.has(b.slug.toLowerCase()) &&
+          !deletedSlugs.has(String(b.id || '').toLowerCase())
+      )
+  );
+
+  // Newly created products are placed AT THE VERY TOP
+  return [...validCustom, ...filteredInitial];
+}
+
 export async function fetchCustomProductBySlug(slug: string): Promise<BundleProduct | null> {
   const clean = slug.trim().toLowerCase();
+  const deletedSet = getDeletedSlugsSync();
+  if (deletedSet.has(clean)) return null;
 
   // 1. Check local cache
   const local = getLocalCustomProductsSync().find(
-    (p) => p.slug.toLowerCase() === clean || p.id.toLowerCase() === clean
+    (p) => (p.slug.toLowerCase() === clean || p.id.toLowerCase() === clean) && !deletedSet.has(p.slug.toLowerCase())
   );
   if (local) return local;
 
@@ -180,7 +240,7 @@ export async function fetchCustomProductBySlug(slug: string): Promise<BundleProd
       const snap = await getDocs(collection(db, 'products'));
       for (const d of snap.docs) {
         const data = d.data();
-        if (data.status === 'draft' || data.status === 'trash') continue;
+        if (data.status === 'draft' || data.status === 'trash' || data.is_deleted) continue;
         if (
           (data.slug && data.slug.toLowerCase() === clean) ||
           d.id.toLowerCase() === clean ||
@@ -200,3 +260,4 @@ export async function fetchCustomProductBySlug(slug: string): Promise<BundleProd
 
   return null;
 }
+
