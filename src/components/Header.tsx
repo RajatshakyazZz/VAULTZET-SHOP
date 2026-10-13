@@ -29,12 +29,12 @@ export default function Header() {
   ];
 
   return (
-    <header className="sticky top-0 z-50 bg-white/95 backdrop-blur-md border-b border-slate-100 shadow-[0_2px_10px_rgba(20,10,50,0.02)]">
+    <header className="sticky top-0 z-50 bg-white border-b border-slate-100 shadow-[0_2px_10px_rgba(20,10,50,0.02)]">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-[74px] gap-4">
           
           {/* Dynamic Brand Logo synced with Admin Panel */}
-          <Link href="/" className="flex items-center gap-2.5 group shrink-0">
+          <Link href="/" prefetch={false} className="flex items-center gap-2.5 group shrink-0">
             <div className="w-10 h-9 rounded-xl bg-black border border-slate-800/80 overflow-hidden flex items-center justify-center shadow-sm shadow-purple-500/20 group-hover:scale-105 transition-transform">
               <img
                 src="/logo.webp"
@@ -63,6 +63,7 @@ export default function Header() {
                 <Link
                   key={link.name}
                   href={link.href}
+                  prefetch={false}
                   className={`text-[15px] font-bold transition-all relative py-1 ${
                     isActive ? 'text-[#162048]' : 'text-[#3c4666] hover:text-[#162048]'
                   }`}

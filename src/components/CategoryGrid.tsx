@@ -1,5 +1,3 @@
-'use client';
-
 import React from 'react';
 import Link from 'next/link';
 import { ArrowRight } from 'lucide-react';
@@ -7,7 +5,7 @@ import { CATEGORIES } from '@/data/bundles';
 
 export default function CategoryGrid() {
   return (
-    <section className="py-4 sm:py-6">
+    <section className="py-4 sm:py-6 [contain:layout_style]">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         
         {/* Outer Section Card Wrapper matching Competitor Screenshot */}
@@ -33,7 +31,8 @@ export default function CategoryGrid() {
 
             <Link
               href="/shop"
-              className="relative z-10 px-4 py-2 rounded-full bg-white/15 hover:bg-white/25 text-white border border-white/30 text-xs font-extrabold transition-all backdrop-blur-md shrink-0 flex items-center gap-1.5"
+              prefetch={false}
+              className="relative z-10 px-4 py-2 rounded-full bg-white/15 hover:bg-white/25 text-white border border-white/30 text-xs font-extrabold transition-colors shrink-0 flex items-center gap-1.5"
             >
               <span>View All Categories</span>
               <ArrowRight className="w-3.5 h-3.5" />
@@ -46,6 +45,7 @@ export default function CategoryGrid() {
               <Link
                 key={cat.slug}
                 href={`/shop?cat=${cat.slug}`}
+                prefetch={false}
                 className="py-5 px-4 rounded-[20px] bg-white border border-[#f1ecfa] shadow-[0_4px_14px_rgba(30,15,70,0.03)] hover:shadow-[0_10px_25px_rgba(108,60,240,0.09)] hover:-translate-y-0.5 transition-all text-center flex flex-col items-center justify-center group"
               >
                 {/* Pastel Icon Box */}

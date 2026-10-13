@@ -13,7 +13,7 @@ export default function TrendingMarquee() {
   const loopItems = [...trendingItems, ...trendingItems];
 
   return (
-    <section className="py-6 sm:py-8 overflow-hidden">
+    <section className="py-6 sm:py-8 overflow-hidden [contain:layout_style]">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         
         {/* Outer Section Card Wrapper matching Image 2 & 3 */}
@@ -36,7 +36,8 @@ export default function TrendingMarquee() {
 
             <Link
               href="/shop"
-              className="px-4 py-2 rounded-full bg-black/25 hover:bg-black/35 text-white border border-white/30 text-xs font-bold transition-all backdrop-blur-md shrink-0 flex items-center gap-1.5"
+              prefetch={false}
+              className="px-4 py-2 rounded-full bg-black/25 hover:bg-black/35 text-white border border-white/30 text-xs font-bold transition-colors shrink-0 flex items-center gap-1.5"
             >
               <span>| View All</span>
               <ArrowRight className="w-3.5 h-3.5" />
@@ -45,7 +46,7 @@ export default function TrendingMarquee() {
 
           {/* Marquee Rail inside the Section Card */}
           <div className="relative w-full overflow-hidden marquee-mask">
-            <div className="flex gap-4 w-max animate-marquee hover:[animation-play-state:paused] py-2">
+            <div className="flex gap-4 w-max animate-marquee hover:[animation-play-state:paused] py-2 will-change-transform">
               {loopItems.map((bundle, index) => {
                 const discount = Math.round(
                   ((bundle.personalOriginalPrice - bundle.personalPrice) /
@@ -61,6 +62,7 @@ export default function TrendingMarquee() {
                     {/* 4:3 Thumbnail matching Image 3 */}
                     <Link
                       href={`/product/${bundle.slug}`}
+                      prefetch={false}
                       className="relative aspect-[4/3] overflow-hidden bg-slate-900 block"
                     >
                       <img
@@ -82,7 +84,7 @@ export default function TrendingMarquee() {
                       </div>
 
                       {/* 1080P Badge in Bottom Right */}
-                      <span className="absolute bottom-2.5 right-2.5 px-2 py-0.5 rounded-md text-[10px] font-black bg-black/80 text-white backdrop-blur-md border border-white/20">
+                      <span className="absolute bottom-2.5 right-2.5 px-2 py-0.5 rounded-md text-[10px] font-black bg-black/85 text-white border border-white/20">
                         1080P
                       </span>
                     </Link>
@@ -91,7 +93,7 @@ export default function TrendingMarquee() {
                     <div className="p-4 flex-1 flex flex-col justify-between space-y-3.5">
                       <div className="space-y-2">
                         {/* Title (2 lines) */}
-                        <Link href={`/product/${bundle.slug}`}>
+                        <Link href={`/product/${bundle.slug}`} prefetch={false}>
                           <h3 className="font-extrabold text-[14px] text-[#162048] hover:text-[#6d36e8] transition-colors line-clamp-2 leading-snug">
                             {bundle.title}
                           </h3>

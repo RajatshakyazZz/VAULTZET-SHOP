@@ -32,31 +32,37 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
   const [isCartOpen, setIsCartOpen] = useState(false);
   const router = useRouter();
 
+  const isHydrated = React.useRef(false);
+
   // Load from storage
   useEffect(() => {
     try {
-      // Remove legacy cart key that mixed Buy Now items with Cart items
       localStorage.removeItem('vaultzet_cart');
 
       const saved = localStorage.getItem('vaultzet_cart_v2');
-      if (saved) {
-        setItems(JSON.parse(saved));
+      if (saved && saved !== '[]') {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          setItems(parsed);
+        }
       }
       const savedBuyNow = sessionStorage.getItem('vaultzet_buynow_item');
-      if (savedBuyNow) {
+      if (savedBuyNow && savedBuyNow !== 'null') {
         setBuyNowItem(JSON.parse(savedBuyNow));
       }
       const savedBump = localStorage.getItem('vaultzet_bump');
-      if (savedBump) {
-        setOrderBumpAdded(JSON.parse(savedBump));
+      if (savedBump === 'true') {
+        setOrderBumpAdded(true);
       }
     } catch {
       // ignore
     }
+    isHydrated.current = true;
   }, []);
 
-  // Save cart to local storage
+  // Save cart to local storage after initial hydration
   useEffect(() => {
+    if (!isHydrated.current) return;
     try {
       localStorage.setItem('vaultzet_cart_v2', JSON.stringify(items));
       localStorage.setItem('vaultzet_bump', JSON.stringify(orderBumpAdded));

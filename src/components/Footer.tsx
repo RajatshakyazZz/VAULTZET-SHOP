@@ -58,7 +58,7 @@ export default function Footer() {
   ];
 
   return (
-    <footer className="pt-6 pb-24 md:pb-12">
+    <footer className="pt-6 pb-24 md:pb-12 [contain:layout_style]">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6">
         
         {/* 5 Feature Highlights Bar matching Image 7 */}
@@ -99,7 +99,7 @@ export default function Footer() {
             
             {/* Brand Left Column */}
             <div className="lg:col-span-5 space-y-3">
-              <Link href="/" className="flex items-center gap-3">
+              <Link href="/" prefetch={false} className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-2xl bg-black border border-slate-800 overflow-hidden flex items-center justify-center shadow-md shrink-0">
                   <img
                     src="/logo.webp"
@@ -154,6 +154,7 @@ export default function Footer() {
                     <Link
                       key={link.label}
                       href={link.href}
+                      prefetch={false}
                       className="p-3.5 rounded-2xl bg-white border border-[#eae2f8] hover:border-[#6f33e8] shadow-sm flex items-center justify-between group transition-all"
                     >
                       <span className="text-xs sm:text-sm font-extrabold text-gray-800 group-hover:text-[#6f33e8] transition-colors">
@@ -170,15 +171,15 @@ export default function Footer() {
 
           {/* Legal Links Bar */}
           <div className="pt-6 border-t border-gray-100 flex flex-wrap items-center justify-center gap-x-4 gap-y-2 text-xs font-semibold text-[#4a5270]">
-            <Link href="/refund-policy" className="hover:text-[#6f33e8] transition-colors">
+            <Link href="/refund-policy" prefetch={false} className="hover:text-[#6f33e8] transition-colors">
               Refund Policy
             </Link>
             <span className="text-gray-300">•</span>
-            <Link href="/terms-and-conditions" className="hover:text-[#6f33e8] transition-colors">
+            <Link href="/terms-and-conditions" prefetch={false} className="hover:text-[#6f33e8] transition-colors">
               Terms & Conditions
             </Link>
             <span className="text-gray-300">•</span>
-            <Link href="/contact-us" className="hover:text-[#6f33e8] transition-colors">
+            <Link href="/contact-us" prefetch={false} className="hover:text-[#6f33e8] transition-colors">
               Contact Us
             </Link>
             <span className="text-gray-300">•</span>

@@ -39,7 +39,7 @@ export default function UpcomingBundles() {
   };
 
   return (
-    <section className="py-6 sm:py-8">
+    <section className="py-6 sm:py-8 [contain:layout_style]">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         
         {/* Outer Section Card Wrapper */}
@@ -66,14 +66,14 @@ export default function UpcomingBundles() {
               <div className="flex items-center gap-1.5">
                 <button
                   onClick={scrollLeft}
-                  className="w-8 h-8 rounded-lg bg-white/15 hover:bg-white/25 border border-white/30 text-white flex items-center justify-center transition-all backdrop-blur-md"
+                  className="w-8 h-8 rounded-lg bg-white/15 hover:bg-white/25 border border-white/30 text-white flex items-center justify-center transition-colors"
                   aria-label="Previous"
                 >
                   <ChevronLeft className="w-4 h-4" />
                 </button>
                 <button
                   onClick={scrollRight}
-                  className="w-8 h-8 rounded-lg bg-white/15 hover:bg-white/25 border border-white/30 text-white flex items-center justify-center transition-all backdrop-blur-md"
+                  className="w-8 h-8 rounded-lg bg-white/15 hover:bg-white/25 border border-white/30 text-white flex items-center justify-center transition-colors"
                   aria-label="Next"
                 >
                   <ChevronRight className="w-4 h-4" />

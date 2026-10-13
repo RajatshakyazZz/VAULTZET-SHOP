@@ -1,5 +1,3 @@
-'use client';
-
 import React from 'react';
 import { TrendingUp, Users, Star, Award } from 'lucide-react';
 
@@ -36,7 +34,7 @@ export default function CreatorProof() {
   ];
 
   return (
-    <section className="py-14 sm:py-20 border-t border-slate-100">
+    <section className="py-14 sm:py-20 border-t border-slate-100 [contain:layout_style]">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         
         {/* Heading */}

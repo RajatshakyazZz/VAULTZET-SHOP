@@ -12,7 +12,7 @@ export default function FreshReelsGrid() {
   const freshBundles = BUNDLE_PRODUCTS.filter((b) => !b.isUpcoming).slice(0, 8);
 
   return (
-    <section className="py-6 sm:py-8">
+    <section className="py-6 sm:py-8 [contain:layout_style]">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         
         {/* Outer Section Card Wrapper */}
@@ -35,7 +35,8 @@ export default function FreshReelsGrid() {
 
             <Link
               href="/shop"
-              className="px-4 py-2 rounded-full bg-white/15 hover:bg-white/25 text-white border border-white/30 text-xs font-bold transition-all backdrop-blur-md shrink-0 flex items-center gap-1.5"
+              prefetch={false}
+              className="px-4 py-2 rounded-full bg-white/15 hover:bg-white/25 text-white border border-white/30 text-xs font-bold transition-colors shrink-0 flex items-center gap-1.5"
             >
               <span>| View All</span>
               <ArrowRight className="w-3.5 h-3.5" />
@@ -59,6 +60,7 @@ export default function FreshReelsGrid() {
                   {/* Thumbnail matching Image 3 & 4 */}
                   <Link
                     href={`/product/${bundle.slug}`}
+                    prefetch={false}
                     className="relative aspect-[4/3] overflow-hidden bg-slate-900 block"
                   >
                     <img
@@ -80,7 +82,7 @@ export default function FreshReelsGrid() {
                     </div>
 
                     {/* 1080P Badge in Bottom Right */}
-                    <span className="absolute bottom-2.5 right-2.5 px-2 py-0.5 rounded-md text-[10px] font-black bg-black/80 text-white backdrop-blur-md border border-white/20">
+                    <span className="absolute bottom-2.5 right-2.5 px-2 py-0.5 rounded-md text-[10px] font-black bg-black/85 text-white border border-white/20">
                       {bundle.resolution.includes('1080') ? '1080P' : 'HD'}
                     </span>
                   </Link>
@@ -88,7 +90,7 @@ export default function FreshReelsGrid() {
                   {/* Body */}
                   <div className="p-4 flex-1 flex flex-col justify-between space-y-3.5">
                     <div className="space-y-2">
-                      <Link href={`/product/${bundle.slug}`}>
+                      <Link href={`/product/${bundle.slug}`} prefetch={false}>
                         <h3 className="font-extrabold text-[14px] text-[#162048] hover:text-[#2d5584] transition-colors line-clamp-2 leading-snug">
                           {bundle.title}
                         </h3>

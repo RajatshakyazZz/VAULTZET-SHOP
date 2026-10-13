@@ -124,6 +124,7 @@ export default function Hero() {
               <div className="flex flex-wrap items-center gap-3.5 pt-1">
                 <Link
                   href="/shop"
+                  prefetch={false}
                   className="px-6 py-3.5 rounded-2xl bg-gradient-to-r from-[#6734f7] via-[#a32bf6] to-[#f92893] text-white font-extrabold text-[14px] flex items-center gap-2.5 shadow-[0_12px_26px_rgba(163,43,246,0.28)] hover:scale-[1.02] active:scale-95 transition-transform"
                 >
                   <span className="w-6 h-6 rounded-lg bg-white/20 flex items-center justify-center text-xs leading-none">
@@ -150,7 +151,7 @@ export default function Hero() {
                 {/* 129 Published Bundles (Purple Gradient) */}
                 <div className="relative overflow-hidden p-4 rounded-[20px] bg-gradient-to-br from-[#5d3be3] to-[#8353f5] text-white flex items-center gap-3 shadow-[0_10px_24px_rgba(93,59,227,0.2)]">
                   <div className="absolute -right-5 -bottom-6 w-20 h-20 rounded-full bg-white/12 pointer-events-none" />
-                  <div className="w-10 h-10 rounded-2xl bg-white/15 border border-white/25 backdrop-blur-xs flex items-center justify-center shrink-0">
+                  <div className="w-10 h-10 rounded-2xl bg-white/15 border border-white/25 flex items-center justify-center shrink-0">
                     <FolderKanban className="w-4 h-4 text-white" />
                   </div>
                   <div className="leading-tight relative z-10">
@@ -162,7 +163,7 @@ export default function Hero() {
                 {/* 222K+ Ready-to-Post Reels (Coral/Pink Gradient) */}
                 <div className="relative overflow-hidden p-4 rounded-[20px] bg-gradient-to-br from-[#ef3966] to-[#f86669] text-white flex items-center gap-3 shadow-[0_10px_24px_rgba(239,57,102,0.2)]">
                   <div className="absolute -right-5 -bottom-6 w-20 h-20 rounded-full bg-white/12 pointer-events-none" />
-                  <div className="w-10 h-10 rounded-2xl bg-white/15 border border-white/25 backdrop-blur-xs flex items-center justify-center shrink-0">
+                  <div className="w-10 h-10 rounded-2xl bg-white/15 border border-white/25 flex items-center justify-center shrink-0">
                     <Film className="w-4 h-4 text-white" />
                   </div>
                   <div className="leading-tight relative z-10">
@@ -174,7 +175,7 @@ export default function Hero() {
                 {/* Up to 1080P Maximum Quality (Teal Gradient) */}
                 <div className="relative overflow-hidden p-4 rounded-[20px] bg-gradient-to-br from-[#06967d] to-[#11b594] text-white flex items-center gap-3 shadow-[0_10px_24px_rgba(6,150,125,0.2)]">
                   <div className="absolute -right-5 -bottom-6 w-20 h-20 rounded-full bg-white/12 pointer-events-none" />
-                  <div className="w-10 h-10 rounded-2xl bg-white/15 border border-white/25 backdrop-blur-xs flex items-center justify-center shrink-0">
+                  <div className="w-10 h-10 rounded-2xl bg-white/15 border border-white/25 flex items-center justify-center shrink-0">
                     <ShieldCheck className="w-4 h-4 text-white" />
                   </div>
                   <div className="leading-tight relative z-10">
@@ -195,10 +196,10 @@ export default function Hero() {
             >
               {/* Extra Concentrated Pink/Violet Glow Directly Behind the 3 Phones */}
               <div
-                className="pointer-events-none absolute inset-0 -m-6 rounded-full blur-2xl opacity-90 z-0"
+                className="pointer-events-none absolute inset-0 -m-6 rounded-full opacity-90 z-0"
                 style={{
                   background:
-                    'radial-gradient(circle at 50% 50%, rgba(250, 168, 224, 0.65) 0%, rgba(196, 160, 255, 0.45) 45%, transparent 78%)',
+                    'radial-gradient(circle at 50% 50%, rgba(250, 168, 224, 0.55) 0%, rgba(196, 160, 255, 0.35) 45%, transparent 72%)',
                 }}
               />
 
@@ -208,6 +209,7 @@ export default function Hero() {
                 {leftCard && (
                   <Link
                     href={`/product/${leftCard.slug}`}
+                    prefetch={false}
                     key={`left-${leftCard.id}`}
                     className="absolute left-1 sm:left-0 w-[150px] sm:w-[175px] aspect-[9/16] rounded-[24px] overflow-hidden shadow-[0_20px_45px_rgba(30,15,70,0.22)] border-[5px] border-white transform -rotate-[8deg] -translate-x-4 sm:-translate-x-6 translate-y-2 z-10 transition-all hover:scale-95 duration-500 block bg-slate-900 group"
                   >
@@ -241,6 +243,7 @@ export default function Hero() {
                 {rightCard && (
                   <Link
                     href={`/product/${rightCard.slug}`}
+                    prefetch={false}
                     key={`right-${rightCard.id}`}
                     className="absolute right-1 sm:right-0 w-[150px] sm:w-[175px] aspect-[9/16] rounded-[24px] overflow-hidden shadow-[0_20px_45px_rgba(30,15,70,0.22)] border-[5px] border-white transform rotate-[8deg] translate-x-4 sm:translate-x-6 translate-y-2 z-10 transition-all hover:scale-95 duration-500 block bg-slate-900 group"
                   >
@@ -274,6 +277,7 @@ export default function Hero() {
                 {centerCard && (
                   <Link
                     href={`/product/${centerCard.slug}`}
+                    prefetch={false}
                     key={`center-${centerCard.id}`}
                     className="relative w-[180px] sm:w-[210px] aspect-[9/16] rounded-[28px] overflow-hidden shadow-[0_26px_60px_rgba(25,12,65,0.34)] border-[6px] border-white -translate-y-2 z-20 transition-all hover:scale-[1.03] duration-500 block bg-slate-900 group"
                   >

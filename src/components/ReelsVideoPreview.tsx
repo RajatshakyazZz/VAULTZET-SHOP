@@ -100,7 +100,7 @@ export default function ReelsVideoPreview() {
   };
 
   return (
-    <section id="rbui-preview" className="py-6 sm:py-8">
+    <section id="rbui-preview" className="py-6 sm:py-8 [contain:layout_style]">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         
         {/* Outer Section Card Wrapper */}
@@ -122,7 +122,8 @@ export default function ReelsVideoPreview() {
 
             <Link
               href="/reels"
-              className="px-4 py-2 rounded-full bg-black/25 hover:bg-black/35 text-white border border-white/30 text-xs font-bold transition-all backdrop-blur-md shrink-0 flex items-center gap-1.5"
+              prefetch={false}
+              className="px-4 py-2 rounded-full bg-black/25 hover:bg-black/35 text-white border border-white/30 text-xs font-bold transition-colors shrink-0 flex items-center gap-1.5"
             >
               <span>View Full Feed</span>
               <ArrowRight className="w-3.5 h-3.5" />
@@ -198,7 +199,7 @@ export default function ReelsVideoPreview() {
 
                   {/* Top bar controls */}
                   <div className="relative z-20 flex justify-between items-center">
-                    <span className="px-2 py-0.5 rounded-full text-[9px] font-black uppercase bg-black/75 text-white backdrop-blur-sm">
+                    <span className="px-2 py-0.5 rounded-full text-[9px] font-black uppercase bg-black/80 text-white">
                       {item.category || (isYouTube ? 'YouTube' : 'Reel')}
                     </span>
                     <button
@@ -211,7 +212,7 @@ export default function ReelsVideoPreview() {
                           if (v) v.muted = !isMuted;
                         });
                       }}
-                      className="p-1.5 rounded-full bg-black/75 text-white backdrop-blur-sm"
+                      className="p-1.5 rounded-full bg-black/80 text-white"
                     >
                       {isMuted ? <VolumeX className="w-3.5 h-3.5" /> : <Volume2 className="w-3.5 h-3.5" />}
                     </button>
