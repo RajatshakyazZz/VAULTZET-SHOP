@@ -33,18 +33,10 @@ function ShopContent() {
   const categoryCounts = useMemo(() => {
     const counts: Record<string, number> = {
       all: BUNDLE_PRODUCTS.length,
-      'ai-reels': 59,
-      'story-reels': 20,
-      'aesthetic-reels': 15,
-      'entertainment-reels': 14,
-      'comedy-reels': 11,
-      'animals-reels': 9,
-      'animation-reels': 9,
-      'fitness-reels': 8,
-      'sports-fitness': 1,
-      'trending-reels': 1,
-      'unboxing-reels': 1,
     };
+    for (const b of BUNDLE_PRODUCTS) {
+      counts[b.categorySlug] = (counts[b.categorySlug] || 0) + 1;
+    }
     return counts;
   }, []);
 
@@ -52,10 +44,13 @@ function ShopContent() {
     return BUNDLE_PRODUCTS.filter((b) => {
       const matchesCategory =
         selectedCategory === 'all' || b.categorySlug === selectedCategory;
+      const q = searchTerm.toLowerCase().trim();
       const matchesSearch =
-        b.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        b.category.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        b.shortDescription.toLowerCase().includes(searchTerm.toLowerCase());
+        !q ||
+        b.title.toLowerCase().includes(q) ||
+        b.category.toLowerCase().includes(q) ||
+        b.shortDescription.toLowerCase().includes(q) ||
+        (b.tags && b.tags.some((t) => t.toLowerCase().includes(q)));
       const matchesPrice =
         b.personalPrice >= minPrice && b.personalPrice <= maxPrice;
       return matchesCategory && matchesSearch && matchesPrice;
@@ -97,7 +92,7 @@ function ShopContent() {
                 <Sparkles className="w-4 h-4 fill-[#6f33e8]/20" />
               </div>
               <div>
-                <div className="text-base font-black text-[#162048] leading-tight">129</div>
+                <div className="text-base font-black text-[#162048] leading-tight">{BUNDLE_PRODUCTS.length}</div>
                 <div className="text-[11px] font-semibold text-gray-400">Published Bundles</div>
               </div>
             </div>
@@ -108,7 +103,7 @@ function ShopContent() {
                 <Layers className="w-4 h-4" />
               </div>
               <div>
-                <div className="text-base font-black text-[#162048] leading-tight">61</div>
+                <div className="text-base font-black text-[#162048] leading-tight">{CATEGORIES.length}</div>
                 <div className="text-[11px] font-semibold text-gray-400">Categories</div>
               </div>
             </div>
@@ -186,7 +181,7 @@ function ShopContent() {
                   <div className="space-y-1 max-h-72 overflow-y-auto pr-1 scrollbar-thin">
                     {CATEGORIES.map((cat) => {
                       const isSelected = selectedCategory === cat.slug;
-                      const count = categoryCounts[cat.slug] || cat.count || 8;
+                      const count = categoryCounts[cat.slug] || 0;
 
                       return (
                         <button
