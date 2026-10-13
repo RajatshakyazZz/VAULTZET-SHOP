@@ -3,50 +3,76 @@
 import React from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Home, PlaySquare, LayoutGrid, ShoppingCart } from 'lucide-react';
 import { useCart } from '@/context/CartContext';
 
 export default function MobileBottomNav() {
   const pathname = usePathname();
   const { cartCount, setIsCartOpen } = useCart();
 
-  // Hide on checkout, thankyou, or full-screen reels player
-  if (
-    pathname.includes('/checkout') ||
-    pathname.includes('/order-success') ||
-    pathname.startsWith('/reels')
-  ) {
+  // Hide on checkout or thankyou pages
+  if (pathname.includes('/checkout') || pathname.includes('/order-success')) {
     return null;
   }
 
+  const isReelsPage = pathname.startsWith('/reels');
+
   const navItems = [
-    { name: 'Home', href: '/', icon: Home },
-    { name: 'Previews', href: '/reels', icon: PlaySquare },
-    { name: 'Bundles', href: '/shop', icon: LayoutGrid },
+    {
+      name: 'Home',
+      href: '/',
+      icon: (
+        <svg className="w-[22px] h-[22px]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round">
+          <path d="m3 9.5 9-7 9 7V20a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
+          <path d="M9 22V12h6v10" />
+        </svg>
+      ),
+    },
+    {
+      name: 'Preview',
+      href: '/reels',
+      icon: (
+        <svg className="w-[22px] h-[22px]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round">
+          <rect x="3.5" y="3.5" width="17" height="17" rx="5" />
+          <path d="m10 8.5 5.5 3.5-5.5 3.5z" fill="currentColor" stroke="none" />
+        </svg>
+      ),
+    },
+    {
+      name: 'Bundle',
+      href: '/shop',
+      icon: (
+        <svg className="w-[22px] h-[22px]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M4 6.5 12 3l8 3.5-8 3.5zM4 11l8 3.5 8-3.5M4 15.5 12 19l8-3.5" />
+        </svg>
+      ),
+    },
   ];
 
   return (
-    <nav className="md:hidden fixed left-3 right-3 bottom-[calc(0.65rem+env(safe-area-inset-bottom,0px))] z-40 bg-white border border-purple-200/80 rounded-[22px] shadow-[0_16px_40px_rgba(39,25,76,0.22)] px-3 py-2 flex items-center justify-around">
+    <nav className="md:hidden fixed left-2 right-2 bottom-2 z-50 min-h-[58px] bg-white/95 backdrop-blur-xl border border-[#4e377e]/12 rounded-[19px] shadow-[0_16px_40px_rgba(39,25,76,0.19)] px-1.5 py-1.5 grid grid-cols-4 items-stretch">
       {navItems.map((item) => {
-        const Icon = item.icon;
-        const isActive = pathname === item.href;
+        const isActive = item.href === '/reels' ? isReelsPage : pathname === item.href;
 
         return (
           <Link
             key={item.name}
             href={item.href}
             prefetch={false}
-            className={`flex flex-col items-center justify-center py-1 px-3 rounded-2xl transition-all relative ${
+            className={`relative flex flex-col items-center justify-center py-1 px-1 rounded-[14px] transition-all ${
               isActive
-                ? 'text-rb-purple font-extrabold bg-purple-100/60'
-                : 'text-[#4a5270] hover:text-rb-purple font-semibold'
+                ? 'bg-gradient-to-br from-[#f1ecff] to-[#fff1f8] text-[#5c32d5] font-extrabold'
+                : 'text-[#777189] hover:text-[#5c32d5] font-bold'
             }`}
           >
-            <Icon className={`w-5 h-5 ${isActive ? 'stroke-[2.5]' : 'stroke-2'}`} />
-            <span className="text-[10px] mt-0.5 tracking-tight">{item.name}</span>
             {isActive && (
-              <span className="absolute -top-1 w-5 h-1 bg-gradient-to-r from-rb-purple to-rb-pink rounded-full" />
+              <span className="absolute -top-[5px] left-1/2 -translate-x-1/2 w-6 h-[3px] rounded-full bg-gradient-to-r from-[#6d3fe8] to-[#e74a9d]" />
             )}
+            <span className="relative flex items-center justify-center w-[26px] h-[26px]">
+              {item.icon}
+            </span>
+            <span className="text-[10px] mt-0.5 tracking-tight font-extrabold leading-tight">
+              {item.name}
+            </span>
           </Link>
         );
       })}
@@ -54,18 +80,22 @@ export default function MobileBottomNav() {
       {/* Cart Button */}
       <button
         onClick={() => setIsCartOpen(true)}
-        className="flex flex-col items-center justify-center py-1 px-3 rounded-2xl text-[#4a5270] hover:text-rb-purple font-semibold relative"
-        aria-label="Open Cart"
+        className="relative flex flex-col items-center justify-center py-1 px-1 rounded-[14px] text-[#777189] hover:text-[#5c32d5] font-bold transition-all"
+        aria-label="Cart"
       >
-        <div className="relative">
-          <ShoppingCart className="w-5 h-5 stroke-2" />
+        <span className="relative flex items-center justify-center w-[26px] h-[26px]">
+          <svg className="w-[22px] h-[22px]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M3 4h2l2.1 10.2a2 2 0 0 0 2 1.6h7.8a2 2 0 0 0 2-1.6L20 8H6.2M9 20h.01M17 20h.01" />
+          </svg>
           {cartCount > 0 && (
-            <span className="absolute -top-1.5 -right-2.5 w-4 h-4 rounded-full bg-red-600 text-[10px] font-black text-white flex items-center justify-center shadow-sm">
+            <span className="absolute -top-1 -right-2 min-w-[17px] h-[17px] px-1 rounded-full bg-gradient-to-br from-[#6c3ee4] to-[#d83f9a] text-white text-[9px] font-black flex items-center justify-center border-2 border-white shadow-sm">
               {cartCount}
             </span>
           )}
-        </div>
-        <span className="text-[10px] mt-0.5 tracking-tight font-bold">Cart</span>
+        </span>
+        <span className="text-[10px] mt-0.5 tracking-tight font-extrabold leading-tight">
+          Cart
+        </span>
       </button>
     </nav>
   );

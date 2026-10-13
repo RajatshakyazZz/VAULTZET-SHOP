@@ -2,6 +2,24 @@ import { ReelItem } from '@/types';
 
 export const initialStoreReels: ReelItem[] = [
   {
+    id: 'reel-baby-food',
+    title: '250+ Baby Food Eating Reels Bundle – Cute Baby Food & Eating Videos',
+    videoUrl: 'https://reelsbundlepro.com/wp-content/uploads/2026/04/250-Baby-Food-Eating-Food-Ai-Reels-1.mp4',
+    videoType: 'direct',
+    poster: '/baby-strawberry-reel.jpg',
+    category: 'Baby Reels',
+    bundleId: 'rb-baby-food-250',
+    bundleSlug: '250-baby-food-eating-reels-bundle',
+    bundleTitle: '250+ Baby Food Eating Reels Bundle – Cute Baby Food & Eating Videos',
+    bundlePrice: 69,
+    bundleOriginalPrice: 399,
+    reelCount: 250,
+    likes: 0,
+    views: 4,
+    isActive: true,
+    order: 0,
+  },
+  {
     id: 'reel-1',
     title: 'Pani Puri Viral Street Food',
     videoUrl: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4',
