@@ -301,6 +301,10 @@ export default function ReelsFeedPage() {
             reel.bundleOriginalPrice || (reel.bundlePrice ? reel.bundlePrice * 6 : 399);
           const salePrice = reel.bundlePrice || 69;
           const discountPct = Math.round((1 - salePrice / regularPrice) * 100);
+          const feedPoster =
+            reel.poster ||
+            resolveBundleSlug(reel.bundleSlug || reel.title)?.thumbnail ||
+            '/baby-strawberry-reel.jpg';
 
           return (
             <div
@@ -326,33 +330,36 @@ export default function ReelsFeedPage() {
                 onClick={() => handleTogglePlay(reel.feedKey)}
                 className="absolute inset-0 w-full h-full cursor-pointer overflow-hidden bg-black"
               >
-                {isYouTube && ytId ? (
-                  isActive ? (
-                    <iframe
-                      src={`https://www.youtube-nocookie.com/embed/${ytId}?autoplay=1&mute=${
-                        isMuted ? 1 : 0
-                      }&loop=1&playlist=${ytId}&controls=0&modestbranding=1&playsinline=1&rel=0&showinfo=0`}
-                      className="absolute inset-0 w-full h-full border-0 pointer-events-none scale-105"
-                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                      allowFullScreen
-                    />
-                  ) : (
-                    <img
-                      src={reel.poster || `https://img.youtube.com/vi/${ytId}/hqdefault.jpg`}
-                      alt={reel.title}
-                      className="w-full h-full object-cover"
-                    />
-                  )
-                ) : (
-                  <video
-                    ref={(el) => {
-                      videoRefs.current[reel.feedKey] = el;
-                    }}
-                    src={reel.videoUrl}
-                    poster={reel.poster}
-                    loop
-                    playsInline
-                    muted={isMuted}
+                    {isYouTube && ytId ? (
+                      isActive ? (
+                        <iframe
+                          src={`https://www.youtube-nocookie.com/embed/${ytId}?autoplay=1&mute=${
+                            isMuted ? 1 : 0
+                          }&loop=1&playlist=${ytId}&controls=0&modestbranding=1&playsinline=1&rel=0&showinfo=0`}
+                          className="absolute inset-0 w-full h-full border-0 pointer-events-none scale-105"
+                          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                          allowFullScreen
+                        />
+                      ) : (
+                        <img
+                          src={feedPoster}
+                          alt={reel.title}
+                          className="w-full h-full object-cover"
+                          onError={(e) => {
+                            (e.currentTarget as HTMLImageElement).src = '/baby-strawberry-reel.jpg';
+                          }}
+                        />
+                      )
+                    ) : (
+                      <video
+                        ref={(el) => {
+                          videoRefs.current[reel.feedKey] = el;
+                        }}
+                        src={reel.videoUrl}
+                        poster={feedPoster}
+                        loop
+                        playsInline
+                        muted={isMuted}
                     onTimeUpdate={(e) => {
                       const v = e.currentTarget;
                       if (v.duration) {

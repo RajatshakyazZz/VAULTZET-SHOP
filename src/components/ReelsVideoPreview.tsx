@@ -136,6 +136,11 @@ export default function ReelsVideoPreview() {
               const isYouTube = item.videoType === 'youtube' || parsed.videoType === 'youtube' || Boolean(item.youtubeId);
               const ytId = item.youtubeId || parsed.youtubeId;
 
+              const reelPoster =
+                item.poster ||
+                resolveBundleSlug(item.bundleSlug || item.title)?.thumbnail ||
+                '/baby-strawberry-reel.jpg';
+
               return (
                 <div
                   key={item.id}
@@ -154,13 +159,16 @@ export default function ReelsVideoPreview() {
                       />
                     ) : (
                       <img
-                        src={item.poster || `https://img.youtube.com/vi/${ytId}/maxresdefault.jpg`}
+                        src={reelPoster}
                         alt={item.title}
                         width={540}
                         height={960}
                         loading="lazy"
                         decoding="async"
                         onClick={() => handleTogglePlay(item.id)}
+                        onError={(e) => {
+                          (e.currentTarget as HTMLImageElement).src = '/baby-strawberry-reel.jpg';
+                        }}
                         className="absolute inset-0 w-full h-full object-cover cursor-pointer"
                       />
                     )
@@ -170,7 +178,7 @@ export default function ReelsVideoPreview() {
                         videoRefs.current[item.id] = el;
                       }}
                       src={item.videoUrl}
-                      poster={item.poster}
+                      poster={reelPoster}
                       autoPlay
                       loop
                       playsInline
@@ -180,13 +188,16 @@ export default function ReelsVideoPreview() {
                     />
                   ) : (
                     <img
-                      src={item.poster}
+                      src={reelPoster}
                       alt={item.title}
                       width={540}
                       height={960}
                       loading="lazy"
                       decoding="async"
                       onClick={() => handleTogglePlay(item.id)}
+                      onError={(e) => {
+                        (e.currentTarget as HTMLImageElement).src = '/baby-strawberry-reel.jpg';
+                      }}
                       className="absolute inset-0 w-full h-full object-cover cursor-pointer"
                     />
                   )}
