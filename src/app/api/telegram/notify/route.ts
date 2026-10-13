@@ -3,16 +3,19 @@ import {
   sendAbandonedOrPendingTelegramAlert,
   sendSaleSuccessTelegramAlert,
   sendProductAddedTelegramAlert,
+  sendLeadCapturedTelegramAlert,
+  sendStoreCommandReport,
 } from '@/lib/telegram';
 
 export async function POST(request: Request) {
   try {
     const body = await request.json();
-    const { event, data } = body;
+    const event = body.event || body.type;
+    const data = body.data || body;
 
-    if (!event || !data) {
+    if (!event) {
       return NextResponse.json(
-        { success: false, error: 'Missing event or data payload' },
+        { success: false, error: 'Missing event type' },
         { status: 400 }
       );
     }
@@ -27,6 +30,10 @@ export async function POST(request: Request) {
       ok = await sendSaleSuccessTelegramAlert(data);
     } else if (event === 'product_added') {
       ok = await sendProductAddedTelegramAlert(data);
+    } else if (event === 'lead_captured') {
+      ok = await sendLeadCapturedTelegramAlert(data);
+    } else if (event === 'night_summary') {
+      ok = await sendStoreCommandReport('night_summary');
     } else {
       return NextResponse.json(
         { success: false, error: `Unknown event type: ${event}` },

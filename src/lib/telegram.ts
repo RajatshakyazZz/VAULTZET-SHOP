@@ -1,9 +1,17 @@
-// Telegram Instant Alert Bot for Vaultzet Store
+// Telegram Instant Alert & Command Center Bot for Vaultzet Store
 // Locked exclusively to Owner Chat ID: 5950203511
 
-const TELEGRAM_BOT_TOKEN =
+import { collection, getDocs, doc, getDoc } from 'firebase/firestore';
+import { db } from '@/lib/firebase';
+import { BUNDLE_PRODUCTS } from '@/data/bundles';
+
+export const TELEGRAM_BOT_TOKEN =
   process.env.TELEGRAM_BOT_TOKEN || '8995964034:AAHo5Sy8ziH00VzNvY8G33oAAc2m9ZT77jQ';
-const OWNER_CHAT_ID = '5950203511';
+export const OWNER_CHAT_ID = '5950203511';
+
+export type TelegramInlineButton =
+  | { text: string; url: string }
+  | { text: string; callback_data: string };
 
 function escapeHtml(text: string): string {
   return String(text || '')
@@ -12,15 +20,25 @@ function escapeHtml(text: string): string {
     .replace(/>/g, '&gt;');
 }
 
-function getIstTimestamp(): string {
+export function getIstTimestamp(): string {
   try {
     return new Date().toLocaleString('en-IN', {
       timeZone: 'Asia/Kolkata',
       dateStyle: 'medium',
-      timeStyle: 'medium',
+      timeStyle: 'short',
     });
   } catch {
     return new Date().toISOString();
+  }
+}
+
+function getIstDateKey(dateInput?: string | number | Date): string {
+  try {
+    const d = dateInput ? new Date(dateInput) : new Date();
+    if (isNaN(d.getTime())) return '';
+    return d.toLocaleDateString('en-CA', { timeZone: 'Asia/Kolkata' }); // YYYY-MM-DD in IST
+  } catch {
+    return '';
   }
 }
 
@@ -37,10 +55,16 @@ export function buildWhatsAppFollowUpUrl(phone: string, message: string): string
   return `https://wa.me/${digits}?text=${encodeURIComponent(message)}`;
 }
 
-async function sendTelegramMessage(
+export async function sendTelegramMessage(
   htmlText: string,
-  inlineButtons?: Array<Array<{ text: string; url: string }>>
+  inlineButtons?: Array<Array<TelegramInlineButton>>,
+  targetChatId: string = OWNER_CHAT_ID
 ): Promise<boolean> {
+  // Strictly lock all store notifications and command responses to owner ID 5950203511
+  if (String(targetChatId) !== OWNER_CHAT_ID) {
+    return false;
+  }
+
   try {
     const endpoint = `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`;
     const payload: Record<string, any> = {
@@ -96,10 +120,26 @@ export interface OrderAlertData {
   totalAmount: number;
   paymentStatus?: string;
   paymentMethod?: string;
+  reason?: string;
+}
+
+function resolveDriveLinkForItem(item: { id?: string; title?: string; googleDriveLink?: string }): string {
+  if (item.googleDriveLink && item.googleDriveLink.startsWith('http')) {
+    return item.googleDriveLink;
+  }
+  const matched = BUNDLE_PRODUCTS.find(
+    (b) =>
+      (item.id && b.id === item.id) ||
+      (item.title && b.title.toLowerCase() === item.title.toLowerCase())
+  );
+  return matched?.googleDriveLink || 'https://vaultzet.shop/my-order';
 }
 
 /**
  * 1. Alert for Checkout Initiated OR Payment Abandoned / Incomplete
+ *    Includes:
+ *    - 1-Click Standard WhatsApp Follow-Up Button
+ *    - 1-Click "Offer 20% Discount on WhatsApp" Recovery Button
  */
 export async function sendAbandonedOrPendingTelegramAlert(
   data: OrderAlertData,
@@ -109,6 +149,9 @@ export async function sendAbandonedOrPendingTelegramAlert(
   const customerEmail = data.customer?.email?.trim() || 'N/A';
   const customerPhone = data.customer?.phone?.trim() || 'N/A';
   const items = data.items || [];
+  const totalAmount = Number(data.totalAmount || 49);
+  const discountedAmount = Math.max(19, Math.round(totalAmount * 0.8));
+  const discountSaved = Math.max(10, totalAmount - discountedAmount);
 
   const productNamesList =
     items.map((i) => i.title).join(', ') +
@@ -124,10 +167,14 @@ export async function sendAbandonedOrPendingTelegramAlert(
               )}) — ₹${it.price}`
           )
           .join('\n')
-      : '   • Digital Reels Bundle';
+      : '   • Viral Reels Bundle';
 
   const bumpLine = data.orderBump
     ? `\n🎁 <b>Bonus Bump:</b> ${escapeHtml(data.orderBump.title)} (+₹${data.orderBump.price})`
+    : '';
+
+  const reasonLine = data.reason
+    ? `\n📝 <b>Note:</b> ${escapeHtml(data.reason)}`
     : '';
 
   const header =
@@ -144,7 +191,7 @@ export async function sendAbandonedOrPendingTelegramAlert(
 
 🆔 <b>Order ID:</b> <code>${escapeHtml(data.orderNumber)}</code>
 📌 <b>Status:</b> ${statusBadge}
-💰 <b>Cart Value:</b> <b>₹${data.totalAmount}.00</b>
+💰 <b>Cart Value:</b> <b>₹${totalAmount}.00</b> (20% Off Recovery: <b>₹${discountedAmount}</b>)
 
 👤 <b>Customer Details:</b>
    • <b>Name:</b> ${escapeHtml(customerName)}
@@ -152,24 +199,34 @@ export async function sendAbandonedOrPendingTelegramAlert(
    • <b>Email:</b> <code>${escapeHtml(customerEmail)}</code>
 
 📦 <b>Selected Products:</b>
-${itemsFormatted}${bumpLine}
+${itemsFormatted}${bumpLine}${reasonLine}
 
 🕒 <b>Time (IST):</b> ${escapeHtml(getIstTimestamp())}
 ━━━━━━━━━━━━━━━━━━━━━━
-👇 <i>Tap the button below to instantly follow up with the customer on WhatsApp with pre-filled product details!</i>`;
+👇 <i>Tap below to follow up or send an instant 20% discount offer on WhatsApp:</i>`;
 
-  const followUpMsg = `Hi ${customerName}! 👋\n\nWe noticed you were checking out on *Vaultzet Store* (Order #${data.orderNumber}), but your payment of *₹${data.totalAmount}* was not completed.\n\n📦 *Your Selected Bundle(s):*\n• ${productNamesList || 'Viral Reels Bundle'}\n\n✨ Complete your order now to get *100% Instant Google Drive Download Access*:\n👉 https://vaultzet.shop/checkout\n\nReply here if you need any help with UPI or payment! 🚀`;
+  const followUpMsg = `Hi ${customerName}! 👋\n\nWe noticed you were checking out on *Vaultzet Store* (Order #${data.orderNumber}), but your payment of *₹${totalAmount}* was not completed.\n\n📦 *Your Selected Bundle(s):*\n• ${productNamesList || 'Viral Reels Bundle'}\n\n✨ Complete your order now to get *100% Instant Google Drive Download Access*:\n👉 https://vaultzet.shop/checkout\n\nReply here if you need any help with UPI or payment! 🚀`;
 
-  const waUrl = buildWhatsAppFollowUpUrl(customerPhone, followUpMsg);
+  const discountOfferMsg = `Hi ${customerName}! 🎁 *Special 15-Minute Offer from Vaultzet Store!*\n\nComplete your order (#${data.orderNumber}) for *${productNamesList || 'Viral Reels Bundle'}* in the next 15 minutes and get an *EXTRA 20% DISCOUNT (Save ₹${discountSaved}!)* 🔥\n\n💰 *Special Price for You:* Just *₹${discountedAmount}* (instead of ₹${totalAmount})\n📂 *Delivery:* 100% Instant Google Drive Link\n\n👉 Complete your order now:\nhttps://vaultzet.shop/checkout\n\nOr reply *YES* here to get a direct ₹${discountedAmount} UPI payment link right now! ⚡`;
+
+  const waFollowUpUrl = buildWhatsAppFollowUpUrl(customerPhone, followUpMsg);
+  const waDiscountUrl = buildWhatsAppFollowUpUrl(customerPhone, discountOfferMsg);
 
   return sendTelegramMessage(text, [
-    [{ text: `💬 WhatsApp Follow-Up (${customerPhone})`, url: waUrl }],
-    [{ text: '🌐 Open Vaultzet Store', url: 'https://vaultzet.shop' }],
+    [{ text: `💬 Follow Up on WhatsApp (${customerPhone})`, url: waFollowUpUrl }],
+    [{ text: `🎁 Offer 20% Discount (₹${discountedAmount}) on WhatsApp`, url: waDiscountUrl }],
+    [
+      { text: '📊 Today Stats', callback_data: 'cmd_today' },
+      { text: '⏳ All Pending Leads', callback_data: 'cmd_pending' },
+    ],
   ]);
 }
 
 /**
  * 2. Alert for Confirmed Sale / Successful Payment
+ *    Includes:
+ *    - 1-Click "Send Google Drive Link on WhatsApp" Button with exact bundle Drive URLs
+ *    - 1-Click "Send Thank You & Order Summary on WhatsApp" Button
  */
 export async function sendSaleSuccessTelegramAlert(data: OrderAlertData): Promise<boolean> {
   const customerName = data.customer?.fullName?.trim() || 'Customer';
@@ -181,17 +238,29 @@ export async function sendSaleSuccessTelegramAlert(data: OrderAlertData): Promis
     items.map((i) => i.title).join(', ') +
     (data.orderBump ? ` + ${data.orderBump.title}` : '');
 
-  const itemsFormatted =
+  const itemsWithLinks =
     items.length > 0
-      ? items
-          .map(
-            (it, idx) =>
-              `   ${idx + 1}. <b>${escapeHtml(it.title)}</b> [${escapeHtml(
-                (it.license || 'personal').toUpperCase()
-              )}] — ₹${it.price}`
-          )
-          .join('\n')
-      : '   • Digital Reels Bundle';
+      ? items.map((it) => ({
+          ...it,
+          resolvedDriveLink: resolveDriveLinkForItem(it),
+        }))
+      : [
+          {
+            title: 'Viral Reels Bundle',
+            license: 'personal',
+            price: data.totalAmount,
+            resolvedDriveLink: 'https://vaultzet.shop/my-order',
+          },
+        ];
+
+  const itemsFormatted = itemsWithLinks
+    .map(
+      (it, idx) =>
+        `   ${idx + 1}. <b>${escapeHtml(it.title)}</b> [${escapeHtml(
+          (it.license || 'personal').toUpperCase()
+        )}] — ₹${it.price}\n      📂 <a href="${escapeHtml(it.resolvedDriveLink)}">Open Google Drive Folder</a>`
+    )
+    .join('\n');
 
   const bumpLine = data.orderBump
     ? `\n🎁 <b>Order Bump Included:</b> ${escapeHtml(data.orderBump.title)} (+₹${data.orderBump.price})`
@@ -201,7 +270,7 @@ export async function sendSaleSuccessTelegramAlert(data: OrderAlertData): Promis
 ━━━━━━━━━━━━━━━━━━━━━━
 
 🆔 <b>Order ID:</b> <code>${escapeHtml(data.orderNumber)}</code>
-✅ <b>Payment Status:</b> <b>PAID & VERIFIED</b>
+✅ <b>Payment Status:</b> <b>PAID &amp; VERIFIED</b>
 💵 <b>Total Paid:</b> <b>₹${data.totalAmount}.00</b>
 💳 <b>Gateway:</b> ${escapeHtml(data.paymentMethod || 'Cashfree UPI / Card')}
 
@@ -210,24 +279,85 @@ export async function sendSaleSuccessTelegramAlert(data: OrderAlertData): Promis
    • <b>Phone / WhatsApp:</b> <code>${escapeHtml(customerPhone)}</code>
    • <b>Email:</b> <code>${escapeHtml(customerEmail)}</code>
 
-📦 <b>Purchased Bundles:</b>
+📦 <b>Purchased Bundles &amp; Drive Links:</b>
 ${itemsFormatted}${bumpLine}
 
 🕒 <b>Time (IST):</b> ${escapeHtml(getIstTimestamp())}
-━━━━━━━━━━━━━━━━━━━━━━`;
+━━━━━━━━━━━━━━━━━━━━━━
+👇 <i>Tap below to send the buyer their direct Google Drive download link on WhatsApp in 1 click!</i>`;
 
-  const thankYouMsg = `Hi ${customerName}! 🎉\n\nThank you for your purchase on *Vaultzet Store*!\n\n✅ *Order ID:* ${data.orderNumber}\n📦 *Product:* ${productNamesList || 'Viral Reels Bundle'}\n💰 *Amount Paid:* ₹${data.totalAmount}.00\n\n📂 *Download Your Reels Bundle Here:*\n👉 https://vaultzet.shop/my-order\n(Enter your email: ${customerEmail})\n\nHave questions? Just reply to this message! 🚀`;
+  const driveLinksText = itemsWithLinks
+    .map((it, idx) => `${idx + 1}. *${it.title}*\n📂 Drive Link: ${it.resolvedDriveLink}`)
+    .join('\n\n');
 
-  const waUrl = buildWhatsAppFollowUpUrl(customerPhone, thankYouMsg);
+  const driveDeliveryMsg = `Hi ${customerName}! 🎉\n\nThank you for your purchase on *Vaultzet Store*! Your payment of *₹${data.totalAmount}.00* (Order #${data.orderNumber}) is confirmed. ✅\n\n📂 *Here is your Instant Google Drive Download Access:*\n\n${driveLinksText}\n\n🔑 You can also access all your orders anytime at:\n👉 https://vaultzet.shop/my-order (Email: ${customerEmail})\n\nEnjoy your reels & grow fast! Reply here if you need any assistance. 🚀`;
+
+  const thankYouMsg = `Hi ${customerName}! 🎉\n\nThank you for your order (#${data.orderNumber}) of *${productNamesList || 'Viral Reels Bundle'}* on *Vaultzet Store*!\n\nLet me know if you were able to open your Google Drive folder smoothly. Happy creating! 🚀`;
+
+  const waDriveUrl = buildWhatsAppFollowUpUrl(customerPhone, driveDeliveryMsg);
+  const waThankYouUrl = buildWhatsAppFollowUpUrl(customerPhone, thankYouMsg);
 
   return sendTelegramMessage(text, [
-    [{ text: `📲 Send Order & Drive Link on WhatsApp (${customerPhone})`, url: waUrl }],
-    [{ text: '🌐 Open Storefront', url: 'https://vaultzet.shop' }],
+    [{ text: `📂 Send Drive Link on WhatsApp (${customerPhone})`, url: waDriveUrl }],
+    [{ text: `💬 Send Thank-You Check-In on WhatsApp`, url: waThankYouUrl }],
+    [
+      { text: '📊 Today Revenue (/today)', callback_data: 'cmd_today' },
+      { text: '📦 Recent Orders (/orders)', callback_data: 'cmd_orders' },
+    ],
   ]);
 }
 
 /**
- * 3. Alert for New Product Added
+ * 3. Alert for Live High-Intent Visitor / Lead on Checkout Page
+ *    Triggered as soon as buyer enters their phone number on /checkout
+ */
+export async function sendLeadCapturedTelegramAlert(data: OrderAlertData): Promise<boolean> {
+  const customerName = data.customer?.fullName?.trim() || 'Checkout Visitor';
+  const customerEmail = data.customer?.email?.trim() || 'Typing...';
+  const customerPhone = data.customer?.phone?.trim() || 'N/A';
+  const items = data.items || [];
+  const totalAmount = Number(data.totalAmount || 49);
+  const discountedAmount = Math.max(19, Math.round(totalAmount * 0.8));
+
+  const productNamesList =
+    items.map((i) => i.title).join(', ') +
+    (data.orderBump ? ` + ${data.orderBump.title}` : '');
+
+  const itemsFormatted =
+    items.length > 0
+      ? items
+          .map((it, idx) => `   ${idx + 1}. <b>${escapeHtml(it.title)}</b> — ₹${it.price}`)
+          .join('\n')
+      : '   • Viral Reels Bundle';
+
+  const text = `🔥👀 <b>LIVE HIGH-INTENT BUYER ON CHECKOUT!</b> 👀🔥
+━━━━━━━━━━━━━━━━━━━━━━
+<i>A customer just entered their WhatsApp number on the checkout page!</i>
+
+👤 <b>Lead Details:</b>
+   • <b>Name:</b> ${escapeHtml(customerName)}
+   • <b>WhatsApp / Phone:</b> <code>${escapeHtml(customerPhone)}</code>
+   • <b>Email:</b> <code>${escapeHtml(customerEmail)}</code>
+
+🛍️ <b>Cart Items (₹${totalAmount}.00):</b>
+${itemsFormatted}
+
+🕒 <b>Time (IST):</b> ${escapeHtml(getIstTimestamp())}
+━━━━━━━━━━━━━━━━━━━━━━
+👇 <i>If they don't complete payment in 2 minutes, tap below to close the sale on WhatsApp:</i>`;
+
+  const helpMsg = `Hi ${customerName}! 👋\n\nI saw you are checking out *${productNamesList || 'our Viral Reels Bundle'}* (₹${totalAmount}) on *Vaultzet Store*.\n\nDo you need any help with UPI payment or have any questions about the Google Drive download link? Just reply here! 🚀`;
+
+  const discountMsg = `Hi ${customerName}! 🎁 *Special Live Offer from Vaultzet Store!*\n\nComplete your checkout for *${productNamesList || 'Viral Reels Bundle'}* in the next 15 minutes and get *20% OFF* — pay just *₹${discountedAmount}* instead of ₹${totalAmount}!\n\n👉 Checkout now: https://vaultzet.shop/checkout\nOr reply *YES* here for a direct ₹${discountedAmount} UPI link! ⚡`;
+
+  return sendTelegramMessage(text, [
+    [{ text: `💬 Message Lead on WhatsApp (${customerPhone})`, url: buildWhatsAppFollowUpUrl(customerPhone, helpMsg) }],
+    [{ text: `🎁 Offer 20% Off (₹${discountedAmount}) on WhatsApp`, url: buildWhatsAppFollowUpUrl(customerPhone, discountMsg) }],
+  ]);
+}
+
+/**
+ * 4. Alert for New Product Added
  */
 export async function sendProductAddedTelegramAlert(product: {
   id?: string;
@@ -251,12 +381,273 @@ export async function sendProductAddedTelegramAlert(product: {
 📂 <b>Category:</b> ${escapeHtml(categoryStr)}
 💰 <b>Sale Price:</b> <b>₹${product.price}.00</b> (MRP: ₹${product.regular_price || product.price * 5}.00)
 🎬 <b>Reels Count:</b> ${product.reel_count || 1000}+ Reels (${escapeHtml(product.resolution || '1080P HD')})
-☁️ <b>Google Drive Delivery:</b> ${product.googleDriveLink ? '✅ Configured & Active' : '✅ Ready'}
+☁️ <b>Google Drive Delivery:</b> ${product.googleDriveLink ? '✅ Configured &amp; Active' : '✅ Ready'}
 
 🕒 <b>Uploaded At (IST):</b> ${escapeHtml(getIstTimestamp())}
 ━━━━━━━━━━━━━━━━━━━━━━`;
 
   return sendTelegramMessage(text, [
     [{ text: '🔗 View New Bundle on Vaultzet Store', url: productUrl }],
+    [{ text: '📊 Check Today Stats (/today)', callback_data: 'cmd_today' }],
   ]);
+}
+
+/**
+ * 5. Fetch Live Firestore Orders (excluding deleted tombstones) for Bot Commands & Night Summary
+ */
+async function fetchActiveFirestoreOrders(): Promise<any[]> {
+  if (!db) return [];
+  try {
+    const deletedSet = new Set<string>();
+    try {
+      const metaSnap = await getDoc(doc(db, 'store_settings', 'dnp_meta'));
+      if (metaSnap.exists()) {
+        const list = metaSnap.data()?.deleted_order_ids;
+        if (Array.isArray(list)) {
+          list.forEach((id: any) => deletedSet.add(String(id)));
+        }
+      }
+    } catch {}
+
+    const snap = await getDocs(collection(db, 'orders'));
+    const orders: any[] = [];
+
+    snap.docs.forEach((docSnap) => {
+      const d = docSnap.data();
+      const docId = String(docSnap.id);
+      const orderNum = String(d.orderNumber || docSnap.id);
+      if (deletedSet.has(docId) || deletedSet.has(orderNum)) return;
+
+      orders.push({
+        id: docId,
+        orderNumber: orderNum,
+        customer: d.customer || {},
+        items: Array.isArray(d.items) ? d.items : [],
+        orderBump: d.orderBump || null,
+        totalAmount: Number(d.totalAmount || 0),
+        status: d.status || 'pending',
+        paymentMethod: d.paymentMethod || 'Cashfree',
+        timestampIso: d.timestampIso || new Date().toISOString(),
+      });
+    });
+
+    orders.sort(
+      (a, b) => new Date(b.timestampIso).getTime() - new Date(a.timestampIso).getTime()
+    );
+    return orders;
+  } catch (err) {
+    console.warn('Error fetching orders for Telegram bot:', err);
+    return [];
+  }
+}
+
+export function getCommandCenterButtons(): Array<Array<TelegramInlineButton>> {
+  return [
+    [
+      { text: '📊 Today Report (/today)', callback_data: 'cmd_today' },
+      { text: '✅ Paid Orders (/orders)', callback_data: 'cmd_orders' },
+    ],
+    [
+      { text: '⏳ Abandoned Leads (/pending)', callback_data: 'cmd_pending' },
+      { text: '🌙 Night Summary (/summary)', callback_data: 'cmd_summary' },
+    ],
+    [{ text: '🛍️ Open Vaultzet Store', url: 'https://vaultzet.shop' }],
+  ];
+}
+
+/**
+ * 6. Interactive Command & Night Summary Generator
+ *    Modes: 'today' | 'orders' | 'pending' | 'night_summary' | 'help'
+ */
+export async function sendStoreCommandReport(
+  mode: 'today' | 'orders' | 'pending' | 'night_summary' | 'help'
+): Promise<boolean> {
+  if (mode === 'help') {
+    const helpText = `🤖 <b>VAULTZET STORE COMMAND CENTER</b> ⚡
+━━━━━━━━━━━━━━━━━━━━━━
+Welcome <b>Rajat Shakya</b>! Use these commands anytime to manage your store directly from Telegram:
+
+📊 <b>/today</b> — Today's live sales, revenue (₹), pending checkouts &amp; top bundle
+✅ <b>/orders</b> — Last 5 paid orders + 1-click Google Drive WhatsApp buttons
+⏳ <b>/pending</b> — Last 5 abandoned checkouts + 1-click 20% discount recovery buttons
+🌙 <b>/summary</b> — Full Daily Night Report + All-Time store performance
+❓ <b>/help</b> — Show this command menu
+
+<i>💡 Or simply tap any quick-action button below:</i>`;
+
+    return sendTelegramMessage(helpText, getCommandCenterButtons());
+  }
+
+  const orders = await fetchActiveFirestoreOrders();
+  const todayKey = getIstDateKey();
+
+  const paidOrders = orders.filter(
+    (o) => o.status === 'completed' || o.status === 'processing'
+  );
+  const pendingOrders = orders.filter((o) => o.status === 'pending');
+
+  const todayOrders = orders.filter((o) => getIstDateKey(o.timestampIso) === todayKey);
+  const todayPaid = todayOrders.filter(
+    (o) => o.status === 'completed' || o.status === 'processing'
+  );
+  const todayPending = todayOrders.filter((o) => o.status === 'pending');
+
+  const todayRevenue = todayPaid.reduce((acc, o) => acc + Number(o.totalAmount || 0), 0);
+  const allTimeRevenue = paidOrders.reduce((acc, o) => acc + Number(o.totalAmount || 0), 0);
+
+  // Compute Top Selling Bundle
+  const bundleCounts = new Map<string, { count: number; revenue: number }>();
+  const sourceForTop = todayPaid.length > 0 ? todayPaid : paidOrders;
+  sourceForTop.forEach((o) => {
+    (o.items || []).forEach((it: any) => {
+      const title = it.title || it.name || 'Viral Reels Bundle';
+      const cur = bundleCounts.get(title) || { count: 0, revenue: 0 };
+      cur.count += 1;
+      cur.revenue += Number(it.price || o.totalAmount || 0);
+      bundleCounts.set(title, cur);
+    });
+  });
+
+  let topBundleText = 'No sales recorded yet';
+  if (bundleCounts.size > 0) {
+    const sorted = Array.from(bundleCounts.entries()).sort((a, b) => b[1].count - a[1].count);
+    const [topName, stats] = sorted[0];
+    topBundleText = `${escapeHtml(topName)} (${stats.count} sold — ₹${stats.revenue})`;
+  }
+
+  if (mode === 'today') {
+    const convRate =
+      todayOrders.length > 0
+        ? `${Math.round((todayPaid.length / todayOrders.length) * 100)}%`
+        : '0%';
+
+    const text = `📊⚡ <b>TODAY'S LIVE STORE REPORT (${escapeHtml(todayKey)})</b> ⚡📊
+━━━━━━━━━━━━━━━━━━━━━━
+
+💰 <b>Today's Revenue:</b> <b>₹${todayRevenue}.00</b>
+✅ <b>Paid Orders Today:</b> <b>${todayPaid.length}</b>
+⏳ <b>Abandoned / Pending Today:</b> <b>${todayPending.length}</b>
+📈 <b>Checkout Conversion Rate:</b> <b>${convRate}</b>
+
+🏆 <b>Top Selling Bundle:</b>
+   • ${topBundleText}
+
+🕒 <b>Updated (IST):</b> ${escapeHtml(getIstTimestamp())}
+━━━━━━━━━━━━━━━━━━━━━━`;
+
+    return sendTelegramMessage(text, getCommandCenterButtons());
+  }
+
+  if (mode === 'orders') {
+    const recentPaid = paidOrders.slice(0, 5);
+    const listText =
+      recentPaid.length > 0
+        ? recentPaid
+            .map((o, i) => {
+              const name = o.customer?.fullName || 'Customer';
+              const phone = o.customer?.phone || 'N/A';
+              const bundle = o.items?.[0]?.title || 'Viral Reels Bundle';
+              return `${i + 1}. <b>#${escapeHtml(o.orderNumber)}</b> — <b>₹${o.totalAmount}</b>\n   👤 ${escapeHtml(name)} (<code>${escapeHtml(phone)}</code>)\n   📦 ${escapeHtml(bundle)}`;
+            })
+            .join('\n\n')
+        : '<i>No completed orders found yet.</i>';
+
+    const buttons: Array<Array<TelegramInlineButton>> = [];
+    recentPaid.slice(0, 3).forEach((o) => {
+      const phone = o.customer?.phone || '';
+      const name = o.customer?.fullName || 'Customer';
+      const firstItem = o.items?.[0] || { title: 'Viral Reels Bundle' };
+      const driveLink = resolveDriveLinkForItem(firstItem);
+      const msg = `Hi ${name}! 🎉 Here is your Google Drive download link for Order #${o.orderNumber} (*${firstItem.title}*):\n📂 ${driveLink}\n\nThank you for shopping at Vaultzet Store! 🚀`;
+      buttons.push([
+        {
+          text: `📂 Send Drive Link: #${o.orderNumber} (${name})`,
+          url: buildWhatsAppFollowUpUrl(phone, msg),
+        },
+      ]);
+    });
+
+    buttons.push(...getCommandCenterButtons());
+
+    const text = `✅📦 <b>RECENT PAID ORDERS (Total: ${paidOrders.length})</b> 📦✅
+━━━━━━━━━━━━━━━━━━━━━━
+💵 <b>All-Time Revenue:</b> <b>₹${allTimeRevenue}.00</b>
+
+${listText}
+
+━━━━━━━━━━━━━━━━━━━━━━
+👇 <i>Tap any order button below to send its Google Drive link on WhatsApp:</i>`;
+
+    return sendTelegramMessage(text, buttons);
+  }
+
+  if (mode === 'pending') {
+    const recentPending = pendingOrders.slice(0, 5);
+    const listText =
+      recentPending.length > 0
+        ? recentPending
+            .map((o, i) => {
+              const name = o.customer?.fullName || 'Customer';
+              const phone = o.customer?.phone || 'N/A';
+              const bundle = o.items?.[0]?.title || 'Viral Reels Bundle';
+              const disc = Math.max(19, Math.round(Number(o.totalAmount || 49) * 0.8));
+              return `${i + 1}. <b>#${escapeHtml(o.orderNumber)}</b> — <b>₹${o.totalAmount}</b> (20% Off: ₹${disc})\n   👤 ${escapeHtml(name)} (<code>${escapeHtml(phone)}</code>)\n   📦 ${escapeHtml(bundle)}`;
+            })
+            .join('\n\n')
+        : '🎉 <i>Zero abandoned checkouts right now!</i>';
+
+    const buttons: Array<Array<TelegramInlineButton>> = [];
+    recentPending.slice(0, 3).forEach((o) => {
+      const phone = o.customer?.phone || '';
+      const name = o.customer?.fullName || 'Customer';
+      const bundle = o.items?.[0]?.title || 'Viral Reels Bundle';
+      const total = Number(o.totalAmount || 49);
+      const disc = Math.max(19, Math.round(total * 0.8));
+      const msg = `Hi ${name}! 🎁 Complete your Vaultzet Store order (#${o.orderNumber}) for *${bundle}* in the next 15 mins and get *20% OFF* — pay just *₹${disc}* instead of ₹${total}!\n\n👉 https://vaultzet.shop/checkout\nReply *YES* for a direct ₹${disc} UPI link! 🚀`;
+      buttons.push([
+        {
+          text: `🎁 Recover #${o.orderNumber} (${name} • Offer ₹${disc})`,
+          url: buildWhatsAppFollowUpUrl(phone, msg),
+        },
+      ]);
+    });
+
+    buttons.push(...getCommandCenterButtons());
+
+    const text = `⏳🚨 <b>ABANDONED / PENDING CHECKOUTS (${pendingOrders.length})</b> 🚨⏳
+━━━━━━━━━━━━━━━━━━━━━━
+
+${listText}
+
+━━━━━━━━━━━━━━━━━━━━━━
+👇 <i>Tap any lead below to send an instant 20% discount recovery offer on WhatsApp:</i>`;
+
+    return sendTelegramMessage(text, buttons);
+  }
+
+  // mode === 'night_summary'
+  const potentialAbandonedValue = todayPending.reduce(
+    (acc, o) => acc + Number(o.totalAmount || 0),
+    0
+  );
+
+  const text = `🌙📊 <b>10:00 PM DAILY STORE SUMMARY — VAULTZET</b> 📊🌙
+━━━━━━━━━━━━━━━━━━━━━━
+📅 <b>Date (IST):</b> ${escapeHtml(todayKey)}
+
+🔥 <b>TODAY'S PERFORMANCE:</b>
+   • 💰 <b>Today's Revenue:</b> <b>₹${todayRevenue}.00</b>
+   • ✅ <b>Completed Sales:</b> <b>${todayPaid.length} Orders</b>
+   • ⏳ <b>Abandoned Checkouts:</b> <b>${todayPending.length} Leads</b> (₹${potentialAbandonedValue} recoverable)
+
+🏦 <b>ALL-TIME STORE TOTALS:</b>
+   • 💎 <b>Total Gross Revenue:</b> <b>₹${allTimeRevenue}.00</b>
+   • 📦 <b>Total Paid Orders:</b> <b>${paidOrders.length}</b>
+   • 🏆 <b>Top Bundle:</b> ${topBundleText}
+
+🕒 <b>Generated At:</b> ${escapeHtml(getIstTimestamp())}
+━━━━━━━━━━━━━━━━━━━━━━
+<i>Tap ⏳ Abandoned Leads below to follow up with today's pending buyers on WhatsApp before sleeping!</i> 🚀`;
+
+  return sendTelegramMessage(text, getCommandCenterButtons());
 }

@@ -66,6 +66,55 @@ export default function CheckoutPage() {
   const seconds = secondsRemaining % 60;
   const timeFormatted = `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
 
+  // High-Intent Lead Capture Alert: notify Telegram as soon as buyer enters a valid 10-digit WhatsApp number
+  useEffect(() => {
+    const cleanDigits = phone.replace(/[^0-9]/g, '');
+    if (cleanDigits.length < 10) return;
+
+    const sessionKey = `vaultzet_lead_notified_${cleanDigits.slice(-10)}`;
+    if (typeof window !== 'undefined' && sessionStorage.getItem(sessionKey)) {
+      return;
+    }
+
+    const leadTimer = setTimeout(() => {
+      try {
+        if (typeof window !== 'undefined') {
+          sessionStorage.setItem(sessionKey, '1');
+        }
+        fetch('/api/telegram/notify', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            event: 'lead_captured',
+            data: {
+              orderNumber: 'LIVE-LEAD',
+              customer: {
+                fullName: fullName.trim() || 'Checkout Visitor',
+                email: email.trim() || 'Entering email...',
+                phone: phone.trim(),
+              },
+              items: items.map((i) => ({
+                id: i.product.id,
+                title: i.product.title,
+                license: i.license,
+                price: i.price,
+              })),
+              orderBump: orderBumpAdded
+                ? {
+                    title: ORDER_BUMP.title,
+                    price: ORDER_BUMP.discountPrice,
+                  }
+                : null,
+              totalAmount: total,
+            },
+          }),
+        }).catch(() => {});
+      } catch {}
+    }, 1500);
+
+    return () => clearTimeout(leadTimer);
+  }, [phone, fullName, email, items, orderBumpAdded, total]);
+
   const handlePlaceOrder = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrorMessage(null);
