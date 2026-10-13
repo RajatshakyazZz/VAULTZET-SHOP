@@ -62,10 +62,10 @@ export default function FreshReelsGrid() {
                     className="relative aspect-[4/3] overflow-hidden bg-slate-900 block"
                   >
                     <img
-                      src={optimizeImageUrl(bundle.thumbnail, 384, 72)}
+                      src={optimizeImageUrl(bundle.thumbnail, 256, 55)}
                       alt={bundle.title}
-                      width={384}
-                      height={288}
+                      width={256}
+                      height={192}
                       loading="lazy"
                       decoding="async"
                       className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
@@ -73,14 +73,14 @@ export default function FreshReelsGrid() {
 
                     {/* Diagonal Red/Orange Ribbon */}
                     <div className="absolute top-0 right-0 overflow-hidden w-24 h-24 pointer-events-none">
-                      <div className="absolute transform rotate-45 bg-gradient-to-r from-red-600 to-rose-600 text-white font-black text-[9px] py-1 right-[-32px] top-[18px] w-[120px] text-center shadow-md flex items-center justify-center gap-1">
+                      <div className="absolute transform rotate-45 bg-gradient-to-r from-red-700 to-rose-700 text-white font-black text-[9px] py-1 right-[-32px] top-[18px] w-[120px] text-center shadow-md flex items-center justify-center gap-1">
                         <span>🔥</span>
                         <span>HOT</span>
                       </div>
                     </div>
 
                     {/* 1080P Badge in Bottom Right */}
-                    <span className="absolute bottom-2.5 right-2.5 px-2 py-0.5 rounded-md text-[10px] font-black bg-black/75 text-white backdrop-blur-md border border-white/20">
+                    <span className="absolute bottom-2.5 right-2.5 px-2 py-0.5 rounded-md text-[10px] font-black bg-black/80 text-white backdrop-blur-md border border-white/20">
                       {bundle.resolution.includes('1080') ? '1080P' : 'HD'}
                     </span>
                   </Link>
@@ -96,10 +96,10 @@ export default function FreshReelsGrid() {
 
                       {/* Meta Pills */}
                       <div className="flex items-center gap-2 pt-0.5">
-                        <span className="px-2.5 py-0.5 rounded-md text-[11px] font-extrabold bg-[#e6fbfb] text-[#0d9488]">
+                        <span className="px-2.5 py-0.5 rounded-md text-[11px] font-extrabold bg-[#e6fbfb] text-[#065f5b]">
                           {bundle.reelCount}+ Reels
                         </span>
-                        <span className="px-2 py-0.5 rounded-md text-[11px] font-bold bg-[#f1f2f6] text-[#64748b] flex items-center gap-1">
+                        <span className="px-2 py-0.5 rounded-md text-[11px] font-bold bg-[#f1f2f6] text-[#334155] flex items-center gap-1">
                           <Film className="w-3 h-3" />
                           <span>MP4</span>
                         </span>
@@ -110,14 +110,14 @@ export default function FreshReelsGrid() {
                     <div className="pt-2 border-t border-slate-100 space-y-2.5">
                       <div className="flex items-baseline justify-between">
                         <div className="flex items-baseline gap-2">
-                          <span className="text-xs text-[#8d95b5] line-through font-semibold">
+                          <span className="text-xs text-[#525b7a] line-through font-semibold">
                             ₹{bundle.personalOriginalPrice}.00
                           </span>
                           <span className="text-xl font-black text-[#162048]">
                             ₹{bundle.personalPrice}.00
                           </span>
                         </div>
-                        <span className="px-2 py-0.5 rounded-md text-[10px] font-extrabold bg-[#e8fbf3] text-[#087a55]">
+                        <span className="px-2 py-0.5 rounded-md text-[10px] font-extrabold bg-[#e8fbf3] text-[#065f46]">
                           {discount}% OFF
                         </span>
                       </div>

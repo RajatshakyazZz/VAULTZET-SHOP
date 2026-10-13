@@ -18,16 +18,31 @@ export default function ReelsVideoPreview() {
 
   useEffect(() => {
     let isMounted = true;
-    const timer = setTimeout(() => {
+    let hasFetched = false;
+
+    const loadLiveReels = () => {
+      if (hasFetched || !isMounted) return;
+      hasFetched = true;
+      cleanup();
       getStoreReels().then((data) => {
         if (isMounted && data && data.length > 0) {
           setReels(data);
         }
       });
-    }, 1500);
+    };
+
+    const events = ['scroll', 'pointerdown', 'touchstart', 'keydown'] as const;
+    const cleanup = () => {
+      events.forEach((evt) => window.removeEventListener(evt, loadLiveReels));
+    };
+
+    events.forEach((evt) =>
+      window.addEventListener(evt, loadLiveReels, { once: true, passive: true })
+    );
+
     return () => {
       isMounted = false;
-      clearTimeout(timer);
+      cleanup();
     };
   }, []);
 
@@ -99,7 +114,7 @@ export default function ReelsVideoPreview() {
                 <h2 className="text-xl sm:text-2xl font-black text-white tracking-tight leading-tight">
                   Preview the Reels Before You Buy
                 </h2>
-                <p className="text-xs sm:text-[13px] text-white/85 font-medium mt-0.5">
+                <p className="text-xs sm:text-[13px] text-white/95 font-medium mt-0.5">
                   Watch real samples, check video quality, and choose the bundle that fits your content.
                 </p>
               </div>
@@ -107,7 +122,7 @@ export default function ReelsVideoPreview() {
 
             <Link
               href="/reels"
-              className="px-4 py-2 rounded-full bg-white/15 hover:bg-white/25 text-white border border-white/30 text-xs font-bold transition-all backdrop-blur-md shrink-0 flex items-center gap-1.5"
+              className="px-4 py-2 rounded-full bg-black/25 hover:bg-black/35 text-white border border-white/30 text-xs font-bold transition-all backdrop-blur-md shrink-0 flex items-center gap-1.5"
             >
               <span>View Full Feed</span>
               <ArrowRight className="w-3.5 h-3.5" />
@@ -142,8 +157,8 @@ export default function ReelsVideoPreview() {
                       <img
                         src={optimizeImageUrl(
                           item.poster || `https://img.youtube.com/vi/${ytId}/hqdefault.jpg`,
-                          384,
-                          72
+                          256,
+                          55
                         )}
                         alt={item.title}
                         width={208}
@@ -160,7 +175,7 @@ export default function ReelsVideoPreview() {
                         videoRefs.current[item.id] = el;
                       }}
                       src={item.videoUrl}
-                      poster={optimizeImageUrl(item.poster, 384, 72)}
+                      poster={optimizeImageUrl(item.poster, 256, 55)}
                       autoPlay
                       loop
                       playsInline
@@ -170,7 +185,7 @@ export default function ReelsVideoPreview() {
                     />
                   ) : (
                     <img
-                      src={optimizeImageUrl(item.poster, 384, 72)}
+                      src={optimizeImageUrl(item.poster, 256, 55)}
                       alt={item.title}
                       width={208}
                       height={370}
@@ -183,10 +198,12 @@ export default function ReelsVideoPreview() {
 
                   {/* Top bar controls */}
                   <div className="relative z-20 flex justify-between items-center">
-                    <span className="px-2 py-0.5 rounded-full text-[9px] font-black uppercase bg-black/60 text-white backdrop-blur-sm">
+                    <span className="px-2 py-0.5 rounded-full text-[9px] font-black uppercase bg-black/75 text-white backdrop-blur-sm">
                       {item.category || (isYouTube ? 'YouTube' : 'Reel')}
                     </span>
                     <button
+                      type="button"
+                      aria-label={isMuted ? `Unmute ${item.title}` : `Mute ${item.title}`}
                       onClick={(e) => {
                         e.stopPropagation();
                         setIsMuted(!isMuted);
@@ -194,7 +211,7 @@ export default function ReelsVideoPreview() {
                           if (v) v.muted = !isMuted;
                         });
                       }}
-                      className="p-1.5 rounded-full bg-black/60 text-white backdrop-blur-sm"
+                      className="p-1.5 rounded-full bg-black/75 text-white backdrop-blur-sm"
                     >
                       {isMuted ? <VolumeX className="w-3.5 h-3.5" /> : <Volume2 className="w-3.5 h-3.5" />}
                     </button>
@@ -219,14 +236,15 @@ export default function ReelsVideoPreview() {
                   )}
 
                   {/* Bottom Bar: Title & Buy Now */}
-                  <div className="relative z-20 flex items-center justify-between gap-1 pt-2 bg-gradient-to-t from-black/90 via-black/50 to-transparent p-2 rounded-xl">
+                  <div className="relative z-20 flex items-center justify-between gap-1 pt-2 bg-gradient-to-t from-black/95 via-black/70 to-transparent p-2 rounded-xl">
                     <span className="text-xs font-bold text-white truncate max-w-[95px]">
                       {item.title}
                     </span>
 
                     <button
+                      type="button"
                       onClick={() => handleBuy(item)}
-                      className="px-2.5 py-1 rounded-full bg-[#ff5722] hover:bg-[#e64a19] text-white text-[11px] font-black shrink-0 flex items-center gap-0.5 shadow-md"
+                      className="px-2.5 py-1 rounded-full bg-[#c23000] hover:bg-[#a32600] text-white text-[11px] font-black shrink-0 flex items-center gap-0.5 shadow-md"
                     >
                       <span>Buy Now</span>
                       <span>›</span>

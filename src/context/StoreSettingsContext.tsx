@@ -85,8 +85,13 @@ export function StoreSettingsProvider({ children }: { children: React.ReactNode 
     let unsubGeneral: (() => void) | undefined;
     let unsubBranding: (() => void) | undefined;
     let isCancelled = false;
+    let hasTriggered = false;
 
-    const timer = setTimeout(async () => {
+    const startFirestoreSync = async () => {
+      if (hasTriggered || isCancelled) return;
+      hasTriggered = true;
+      cleanupListeners();
+
       try {
         const [{ db }, { doc, onSnapshot }] = await Promise.all([
           import('@/lib/firebase'),
@@ -97,7 +102,6 @@ export function StoreSettingsProvider({ children }: { children: React.ReactNode 
           return;
         }
 
-        // 1. Listen to store_settings/general (configured in Admin Panel > Store Setup)
         unsubGeneral = onSnapshot(
           doc(db, 'store_settings', 'general'),
           (docSnap) => {
@@ -120,13 +124,11 @@ export function StoreSettingsProvider({ children }: { children: React.ReactNode 
             }
             setIsLoading(false);
           },
-          (err) => {
-            console.warn('Storefront store_settings/general sync:', err);
+          () => {
             setIsLoading(false);
           }
         );
 
-        // 2. Listen to store_settings/branding (configured in Admin Panel > Branding)
         unsubBranding = onSnapshot(
           doc(db, 'store_settings', 'branding'),
           (docSnap) => {
@@ -147,19 +149,25 @@ export function StoreSettingsProvider({ children }: { children: React.ReactNode 
               });
             }
           },
-          (err) => {
-            console.warn('Storefront store_settings/branding sync:', err);
-          }
+          () => {}
         );
-      } catch (e) {
-        console.warn('Storefront settings sync error:', e);
+      } catch {
         setIsLoading(false);
       }
-    }, 1500);
+    };
+
+    const events = ['scroll', 'pointerdown', 'touchstart', 'keydown'] as const;
+    const cleanupListeners = () => {
+      events.forEach((evt) => window.removeEventListener(evt, startFirestoreSync));
+    };
+
+    events.forEach((evt) =>
+      window.addEventListener(evt, startFirestoreSync, { once: true, passive: true })
+    );
 
     return () => {
       isCancelled = true;
-      clearTimeout(timer);
+      cleanupListeners();
       if (unsubGeneral) unsubGeneral();
       if (unsubBranding) unsubBranding();
     };

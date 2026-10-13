@@ -95,12 +95,12 @@ export default function MembershipPlans() {
             >
               <div
                 className={`text-xs sm:text-sm font-extrabold ${
-                  selectedTab === 'personal' ? 'text-[#6936f5]' : 'text-gray-700'
+                  selectedTab === 'personal' ? 'text-[#5b28e0]' : 'text-gray-800'
                 }`}
               >
                 Personal
               </div>
-              <div className="text-[11px] text-gray-500 font-medium">
+              <div className="text-[11px] text-[#434a63] font-medium">
                 For your own pages
               </div>
             </button>
@@ -116,16 +116,16 @@ export default function MembershipPlans() {
               <div>
                 <div
                   className={`text-xs sm:text-sm font-extrabold ${
-                    selectedTab === 'reseller' ? 'text-[#6936f5]' : 'text-gray-700'
+                    selectedTab === 'reseller' ? 'text-[#5b28e0]' : 'text-gray-800'
                   }`}
                 >
                   Reseller
                 </div>
-                <div className="text-[11px] text-gray-500 font-medium">
+                <div className="text-[11px] text-[#434a63] font-medium">
                   For resale & clients
                 </div>
               </div>
-              <span className="text-[10px] font-black uppercase tracking-wider text-rose-600 bg-rose-50 px-2 py-0.5 rounded-md border border-rose-200">
+              <span className="text-[10px] font-black uppercase tracking-wider text-[#9f1239] bg-rose-50 px-2 py-0.5 rounded-md border border-rose-200">
                 POPULAR
               </span>
             </button>
@@ -140,7 +140,7 @@ export default function MembershipPlans() {
                 <Play className="w-5 h-5 fill-white text-white ml-0.5" />
               </div>
               <div>
-                <span className="text-[10px] sm:text-[11px] font-black uppercase tracking-wider text-[#6f33e8] bg-[#f0ebfc] px-2.5 py-0.5 rounded-md inline-block mb-1">
+                <span className="text-[10px] sm:text-[11px] font-black uppercase tracking-wider text-[#5b28e0] bg-[#f0ebfc] px-2.5 py-0.5 rounded-md inline-block mb-1">
                   {selectedTab === 'personal' ? 'PERSONAL ACCESS' : 'RESELLER ACCESS'}
                 </span>
                 <h3 className="text-xl sm:text-2xl font-black text-[#162048]">
@@ -148,7 +148,7 @@ export default function MembershipPlans() {
                     ? 'All Bundles – Personal Use'
                     : 'All Bundles – Reseller & Commercial Use'}
                 </h3>
-                <p className="text-xs sm:text-sm text-gray-500 font-medium mt-0.5">
+                <p className="text-xs sm:text-sm text-[#4a5270] font-medium mt-0.5">
                   {selectedTab === 'personal'
                     ? 'Premium ready-to-post reels for your own pages and channels.'
                     : 'Resell, rebrand, and use for clients with master resell rights.'}
@@ -162,24 +162,24 @@ export default function MembershipPlans() {
               {/* Left Price Box */}
               <div className="md:col-span-5 bg-[#fbf9fe] border border-[#eee8fa] rounded-2xl p-5 flex flex-col justify-between space-y-4">
                 <div className="flex items-center justify-between">
-                  <span className="text-[11px] font-bold tracking-wider text-gray-500 uppercase">
+                  <span className="text-[11px] font-bold tracking-wider text-[#4a5270] uppercase">
                     ONE-TIME PRICE
                   </span>
-                  <span className="bg-[#e8fbf3] text-[#087a55] border border-emerald-200 font-extrabold text-[11px] px-2 py-0.5 rounded-md">
+                  <span className="bg-[#e8fbf3] text-[#065f46] border border-emerald-200 font-extrabold text-[11px] px-2 py-0.5 rounded-md">
                     {selectedTab === 'personal' ? '73% OFF' : '74% OFF'}
                   </span>
                 </div>
 
                 <div className="flex items-baseline gap-2 pt-1">
-                  <span className="text-4xl sm:text-5xl font-black text-[#6936f5]">
+                  <span className="text-4xl sm:text-5xl font-black text-[#5b28e0]">
                     ₹{currentPlan.price}
                   </span>
-                  <span className="text-gray-400 text-base line-through font-medium">
+                  <span className="text-[#525b7a] text-base line-through font-medium">
                     ₹{currentPlan.originalPrice}
                   </span>
                 </div>
 
-                <div className="text-xs text-gray-500 font-semibold pt-1">
+                <div className="text-xs text-[#4a5270] font-semibold pt-1">
                   Pay once • Instant access
                 </div>
               </div>
@@ -188,7 +188,7 @@ export default function MembershipPlans() {
               <div className="md:col-span-7 flex flex-col justify-center divide-y divide-gray-100">
                 {checklistItems.map((item, index) => (
                   <div key={index} className="py-2.5 flex items-center gap-3 first:pt-0 last:pb-0">
-                    <div className="w-5 h-5 rounded-full bg-[#f0ebfc] text-[#6f33e8] flex items-center justify-center shrink-0">
+                    <div className="w-5 h-5 rounded-full bg-[#f0ebfc] text-[#5b28e0] flex items-center justify-center shrink-0">
                       <Check className="w-3.5 h-3.5 stroke-[3]" />
                     </div>
                     <span className="text-xs sm:text-[13px] font-bold text-gray-800">
@@ -203,7 +203,7 @@ export default function MembershipPlans() {
             {/* Wide Orange CTA Button matching Image 5 */}
             <button
               onClick={handleChoosePlan}
-              className="w-full py-4 px-6 rounded-2xl bg-gradient-to-r from-[#ff4d26] to-[#ff6b3d] hover:from-[#f0421a] hover:to-[#ff5c2a] text-white font-extrabold text-sm sm:text-base flex items-center justify-center gap-2 shadow-[0_8px_24px_rgba(255,77,38,0.3)] transition-all hover:scale-[1.01]"
+              className="w-full py-4 px-6 rounded-2xl bg-gradient-to-r from-[#c23000] to-[#d93800] hover:from-[#a32600] hover:to-[#b82e00] text-white font-extrabold text-sm sm:text-base flex items-center justify-center gap-2 shadow-[0_8px_24px_rgba(194,48,0,0.3)] transition-all hover:scale-[1.01]"
             >
               <span>
                 {selectedTab === 'personal'

@@ -61,7 +61,7 @@ export default function CategoryGrid() {
                 <h3 className="font-extrabold text-[14px] sm:text-[15px] text-[#141d42] group-hover:text-[#6d36e8] transition-colors leading-snug">
                   {cat.name}
                 </h3>
-                <p className="text-[11px] font-semibold text-[#7c86a8] mt-0.5">
+                <p className="text-[11px] font-semibold text-[#4a5270] mt-0.5">
                   {cat.count} Bundles
                 </p>
               </Link>

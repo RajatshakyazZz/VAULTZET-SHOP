@@ -41,13 +41,13 @@ export default function CreatorProof() {
         
         {/* Heading */}
         <div className="text-center max-w-2xl mx-auto mb-12">
-          <div className="inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full bg-purple-100 text-rb-purple text-xs font-black uppercase tracking-wider mb-2">
+          <div className="inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full bg-purple-100 text-[#5126c9] text-xs font-black uppercase tracking-wider mb-2">
             📊 Proven Results
           </div>
           <h2 className="text-2xl sm:text-4xl font-black text-[#182247] tracking-tight">
             Creator Growth in Real Numbers
           </h2>
-          <p className="text-sm sm:text-base text-[#6e7696] mt-1 font-medium">
+          <p className="text-sm sm:text-base text-[#4a5270] mt-1 font-medium">
             See how creators and page owners are dominating the algorithm with our ready-to-post reels.
           </p>
         </div>
@@ -65,7 +65,7 @@ export default function CreatorProof() {
                   <Icon className="w-6 h-6" />
                 </div>
                 <div className="text-2xl sm:text-3xl font-black text-[#182247]">{stat.value}</div>
-                <div className="text-xs font-semibold text-[#6e7696]">{stat.label}</div>
+                <div className="text-xs font-semibold text-[#4a5270]">{stat.label}</div>
               </div>
             );
           })}
@@ -79,7 +79,7 @@ export default function CreatorProof() {
               className="p-6 sm:p-7 rounded-3xl bg-gradient-to-b from-white to-[#fbf9ff] border border-[#ece4fc] shadow-sm flex flex-col justify-between space-y-4"
             >
               <div className="space-y-3">
-                <div className="inline-block px-3 py-1 rounded-full text-[11px] font-black uppercase tracking-wider bg-emerald-100 text-emerald-800">
+                <div className="inline-block px-3 py-1 rounded-full text-[11px] font-black uppercase tracking-wider bg-emerald-100 text-emerald-900">
                   {t.metric}
                 </div>
                 <p className="text-sm text-[#182247] font-medium leading-relaxed italic">
@@ -89,10 +89,10 @@ export default function CreatorProof() {
 
               <div className="pt-4 border-t border-slate-100 flex items-center justify-between">
                 <div>
-                  <h4 className="font-extrabold text-sm text-[#182247]">{t.name}</h4>
-                  <p className="text-xs text-rb-purple font-semibold">{t.channel}</p>
+                  <h3 className="font-extrabold text-sm text-[#182247]">{t.name}</h3>
+                  <p className="text-xs text-[#5126c9] font-semibold">{t.channel}</p>
                 </div>
-                <span className="text-xs font-bold text-slate-400">{t.followers}</span>
+                <span className="text-xs font-bold text-[#4a5270]">{t.followers}</span>
               </div>
             </div>
           ))}

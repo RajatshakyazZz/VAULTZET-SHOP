@@ -37,8 +37,11 @@ export default function Header() {
           <Link href="/" className="flex items-center gap-2.5 group shrink-0">
             <div className="w-10 h-9 rounded-xl bg-black border border-slate-800/80 overflow-hidden flex items-center justify-center shadow-sm shadow-purple-500/20 group-hover:scale-105 transition-transform">
               <img
-                src="/logo.png"
+                src="/logo.webp"
                 alt="Vaultzet Store Logo"
+                width={40}
+                height={36}
+                decoding="async"
                 className="w-full h-full object-cover"
               />
             </div>
@@ -46,7 +49,7 @@ export default function Header() {
               <span className="font-black text-[17px] text-[#162048] tracking-tight leading-tight">
                 {settings.storeName}
               </span>
-              <span className="text-[12px] font-medium text-[#7a829e] tracking-tight">
+              <span className="text-[12px] font-medium text-[#4a5270] tracking-tight">
                 {settings.tagline}
               </span>
             </div>
@@ -61,7 +64,7 @@ export default function Header() {
                   key={link.name}
                   href={link.href}
                   className={`text-[15px] font-bold transition-all relative py-1 ${
-                    isActive ? 'text-[#162048]' : 'text-[#485375] hover:text-[#162048]'
+                    isActive ? 'text-[#162048]' : 'text-[#3c4666] hover:text-[#162048]'
                   }`}
                 >
                   {link.name}
@@ -75,19 +78,23 @@ export default function Header() {
 
           {/* Right Tools (Pill Search + Cart) */}
           <div className="flex items-center gap-3">
-            {/* Pill Search Box matching Image 1 */}
-            <form onSubmit={handleSearchSubmit} className="hidden sm:flex relative items-center">
+            {/* Pill Search Box with non-overlapping 36x36 target size */}
+            <form
+              onSubmit={handleSearchSubmit}
+              className="hidden sm:flex items-center bg-[#fbf9ff] hover:bg-[#f5f0ff] focus-within:bg-white border border-[#e8dfff] rounded-full pl-4 pr-1 py-0.5 focus-within:ring-2 focus-within:ring-[#7c3aed]/20 focus-within:border-[#7c3aed] transition-all"
+            >
               <input
                 type="text"
+                aria-label="Search bundles"
                 placeholder="Search bundles..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-56 lg:w-64 pl-4 pr-10 py-2.5 bg-[#fbf9ff] hover:bg-[#f5f0ff] focus:bg-white text-[13px] font-medium text-[#182247] placeholder:text-[#9098b8] border border-[#e8dfff] rounded-full focus:outline-none focus:ring-2 focus:ring-[#7c3aed]/20 focus:border-[#7c3aed] transition-all"
+                className="w-44 lg:w-52 py-2 bg-transparent text-[13px] font-medium text-[#182247] placeholder:text-[#525b7a] focus:outline-none"
               />
               <button
                 type="submit"
                 aria-label="Search"
-                className="absolute right-3 text-[#7c3aed] hover:scale-110 transition-transform"
+                className="w-9 h-9 rounded-full flex items-center justify-center text-[#5e2de0] hover:bg-purple-100/60 transition-colors shrink-0"
               >
                 <Search className="w-4 h-4" />
               </button>
@@ -113,6 +120,8 @@ export default function Header() {
             {/* Mobile menu toggle */}
             <button
               onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+              aria-label={isMobileMenuOpen ? 'Close navigation menu' : 'Open navigation menu'}
+              aria-expanded={isMobileMenuOpen}
               className="md:hidden p-2 rounded-xl text-[#182247] hover:bg-slate-100"
             >
               {isMobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
@@ -128,19 +137,20 @@ export default function Header() {
                 handleSearchSubmit(e);
                 setIsMobileMenuOpen(false);
               }}
-              className="relative flex items-center sm:hidden"
+              className="flex items-center sm:hidden bg-[#fbf9ff] border border-[#e8dfff] rounded-full pl-4 pr-1 py-0.5"
             >
               <input
                 type="text"
+                aria-label="Search viral reels bundles"
                 placeholder="Search viral reels bundles..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full pl-4 pr-10 py-2.5 bg-[#fbf9ff] text-base font-medium text-[#182247] placeholder:text-[#9098b8] border border-[#e8dfff] rounded-full focus:outline-none focus:ring-2 focus:ring-[#7c3aed]/20 focus:border-[#7c3aed]"
+                className="w-full py-2 bg-transparent text-base font-medium text-[#182247] placeholder:text-[#525b7a] focus:outline-none"
               />
               <button
                 type="submit"
                 aria-label="Search"
-                className="absolute right-3.5 text-[#7c3aed]"
+                className="w-9 h-9 rounded-full flex items-center justify-center text-[#5e2de0] shrink-0"
               >
                 <Search className="w-4 h-4" />
               </button>

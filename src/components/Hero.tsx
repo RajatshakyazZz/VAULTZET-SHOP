@@ -11,9 +11,26 @@ export default function Hero() {
   const [phraseIndex, setPhraseIndex] = useState(0);
   const [displayText, setDisplayText] = useState(phrases[0]);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [hasInteracted, setHasInteracted] = useState(false);
 
-  // Typewriter effect matching Image 1
+  // Dynamic rotation state for the 3 hero preview cards
+  const [activeOffset, setActiveOffset] = useState(0);
+  const [isRotating, setIsRotating] = useState(true);
+
   useEffect(() => {
+    const onInteract = () => setHasInteracted(true);
+    const events = ['scroll', 'pointerdown', 'touchstart', 'keydown'] as const;
+    events.forEach((evt) =>
+      window.addEventListener(evt, onInteract, { once: true, passive: true })
+    );
+    return () => {
+      events.forEach((evt) => window.removeEventListener(evt, onInteract));
+    };
+  }, []);
+
+  // Typewriter effect (starts after first user interaction to prevent initial-load reflows)
+  useEffect(() => {
+    if (!hasInteracted) return;
     const currentPhrase = phrases[phraseIndex];
     let timeout: NodeJS.Timeout;
 
@@ -39,20 +56,16 @@ export default function Hero() {
     }
 
     return () => clearTimeout(timeout);
-  }, [displayText, isDeleting, phraseIndex]);
+  }, [displayText, isDeleting, phraseIndex, hasInteracted]);
 
-  // Dynamic rotation state for the 3 hero preview cards
-  const [activeOffset, setActiveOffset] = useState(0);
-  const [isRotating, setIsRotating] = useState(true);
-
-  // Continuous auto-rotation every 5.5 seconds unless user hovers
+  // Continuous auto-rotation every 5.5 seconds after user interaction unless user hovers
   useEffect(() => {
-    if (!isRotating) return;
+    if (!hasInteracted || !isRotating) return;
     const interval = setInterval(() => {
       setActiveOffset((prev) => (prev + 1) % BUNDLE_PRODUCTS.length);
     }, 5500);
     return () => clearInterval(interval);
-  }, [isRotating]);
+  }, [hasInteracted, isRotating]);
 
   const totalBundles = BUNDLE_PRODUCTS.length;
   const leftCard = BUNDLE_PRODUCTS[activeOffset % totalBundles];
@@ -199,7 +212,7 @@ export default function Hero() {
                     className="absolute left-1 sm:left-0 w-[150px] sm:w-[175px] aspect-[9/16] rounded-[24px] overflow-hidden shadow-[0_20px_45px_rgba(30,15,70,0.22)] border-[5px] border-white transform -rotate-[8deg] -translate-x-4 sm:-translate-x-6 translate-y-2 z-10 transition-all hover:scale-95 duration-500 block bg-slate-900 group"
                   >
                     <img
-                      src={optimizeImageUrl(leftCard.thumbnail, 384, 75)}
+                      src={optimizeImageUrl(leftCard.thumbnail, 256, 55)}
                       alt={leftCard.title}
                       width={175}
                       height={311}
@@ -231,7 +244,7 @@ export default function Hero() {
                     className="absolute right-1 sm:right-0 w-[150px] sm:w-[175px] aspect-[9/16] rounded-[24px] overflow-hidden shadow-[0_20px_45px_rgba(30,15,70,0.22)] border-[5px] border-white transform rotate-[8deg] translate-x-4 sm:translate-x-6 translate-y-2 z-10 transition-all hover:scale-95 duration-500 block bg-slate-900 group"
                   >
                     <img
-                      src={optimizeImageUrl(rightCard.thumbnail, 384, 75)}
+                      src={optimizeImageUrl(rightCard.thumbnail, 256, 55)}
                       alt={rightCard.title}
                       width={175}
                       height={311}
@@ -263,7 +276,7 @@ export default function Hero() {
                     className="relative w-[180px] sm:w-[210px] aspect-[9/16] rounded-[28px] overflow-hidden shadow-[0_26px_60px_rgba(25,12,65,0.34)] border-[6px] border-white -translate-y-2 z-20 transition-all hover:scale-[1.03] duration-500 block bg-slate-900 group"
                   >
                     <img
-                      src={optimizeImageUrl(centerCard.thumbnail, 384, 75)}
+                      src={optimizeImageUrl(centerCard.thumbnail, 256, 55)}
                       alt={centerCard.title}
                       width={210}
                       height={373}

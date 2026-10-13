@@ -94,17 +94,17 @@ export default function UpcomingBundles() {
               >
                 <div className="relative aspect-[4/3] bg-slate-900 overflow-hidden">
                   <img
-                    src={optimizeImageUrl(bundle.thumbnail, 384, 72)}
+                    src={optimizeImageUrl(bundle.thumbnail, 256, 55)}
                     alt={bundle.title}
-                    width={290}
-                    height={218}
+                    width={256}
+                    height={192}
                     loading="lazy"
                     decoding="async"
                     className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 opacity-90"
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-slate-950/80 via-slate-950/20 to-transparent flex items-end p-3">
                     <span className="px-3 py-1 rounded-full bg-white/95 text-slate-900 text-[11px] font-extrabold shadow-md flex items-center gap-1.5">
-                      <Clock className="w-3 h-3 text-[#0d7e8a]" />
+                      <Clock className="w-3 h-3 text-[#06565e]" />
                       <span>Dropping Soon</span>
                     </span>
                   </div>
@@ -112,20 +112,20 @@ export default function UpcomingBundles() {
 
                 <div className="p-4 flex-1 flex flex-col justify-between space-y-3.5">
                   <div className="space-y-1.5">
-                    <span className="text-[10px] font-extrabold text-[#0d7e8a] bg-[#e6fbfb] px-2 py-0.5 rounded-md inline-block">
+                    <span className="text-[10px] font-extrabold text-[#06565e] bg-[#e6fbfb] px-2 py-0.5 rounded-md inline-block">
                       {bundle.category}
                     </span>
                     <h3 className="font-extrabold text-[14px] text-[#162048] line-clamp-2 leading-snug">
                       {bundle.title}
                     </h3>
-                    <p className="text-xs text-gray-500 line-clamp-2 font-medium">
+                    <p className="text-xs text-[#4a5270] line-clamp-2 font-medium">
                       {bundle.shortDescription}
                     </p>
                   </div>
 
                   <button
                     onClick={() => setSelectedBundle(bundle)}
-                    className="w-full py-2.5 px-3 rounded-xl border border-[#0d7e8a]/30 bg-[#f0fdfd] hover:bg-[#0d7e8a] hover:text-white text-[#0d7e8a] font-bold text-xs flex items-center justify-center gap-1.5 transition-all shadow-sm"
+                    className="w-full py-2.5 px-3 rounded-xl border border-[#06565e]/30 bg-[#f0fdfd] hover:bg-[#06565e] hover:text-white text-[#06565e] font-bold text-xs flex items-center justify-center gap-1.5 transition-all shadow-sm"
                   >
                     <Bell className="w-3.5 h-3.5" />
                     <span>Notify Me on Launch</span>

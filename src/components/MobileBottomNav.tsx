@@ -38,7 +38,7 @@ export default function MobileBottomNav() {
             className={`flex flex-col items-center justify-center py-1 px-3 rounded-2xl transition-all relative ${
               isActive
                 ? 'text-rb-purple font-extrabold bg-purple-100/60'
-                : 'text-slate-500 hover:text-rb-purple font-semibold'
+                : 'text-[#4a5270] hover:text-rb-purple font-semibold'
             }`}
           >
             <Icon className={`w-5 h-5 ${isActive ? 'stroke-[2.5]' : 'stroke-2'}`} />
@@ -53,7 +53,7 @@ export default function MobileBottomNav() {
       {/* Cart Button */}
       <button
         onClick={() => setIsCartOpen(true)}
-        className="flex flex-col items-center justify-center py-1 px-3 rounded-2xl text-slate-500 hover:text-rb-purple font-semibold relative"
+        className="flex flex-col items-center justify-center py-1 px-3 rounded-2xl text-[#4a5270] hover:text-rb-purple font-semibold relative"
         aria-label="Open Cart"
       >
         <div className="relative">

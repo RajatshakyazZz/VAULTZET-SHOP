@@ -9,7 +9,7 @@ import { optimizeImageUrl } from '@/lib/imageOptimized';
 
 export default function TrendingMarquee() {
   const { addToCart, buyNow } = useCart();
-  const trendingItems = BUNDLE_PRODUCTS.filter((b) => !b.isUpcoming);
+  const trendingItems = BUNDLE_PRODUCTS.filter((b) => !b.isUpcoming).slice(0, 6);
   const loopItems = [...trendingItems, ...trendingItems];
 
   return (
@@ -20,7 +20,7 @@ export default function TrendingMarquee() {
         <div className="rounded-[28px] sm:rounded-[36px] bg-[#fcfaff] border border-[#f0ebfa] p-4 sm:p-6 space-y-6 shadow-sm">
           
           {/* Exact Red/Coral Gradient Header Banner matching Image 2 & 3 */}
-          <div className="rounded-[20px] bg-gradient-to-r from-[#e5383b] via-[#f04535] to-[#ff5a2f] p-4 sm:p-5 text-white flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shadow-[0_10px_28px_rgba(230,56,59,0.22)] border border-white/20">
+          <div className="rounded-[20px] bg-gradient-to-r from-[#c92a2a] via-[#d93829] to-[#e0461f] p-4 sm:p-5 text-white flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shadow-[0_10px_28px_rgba(230,56,59,0.22)] border border-white/20">
             <div className="flex items-center gap-3">
               {/* White bar indicator on left */}
               <div className="w-[5px] h-10 bg-white rounded-full shrink-0 shadow-sm" />
@@ -28,7 +28,7 @@ export default function TrendingMarquee() {
                 <h2 className="text-xl sm:text-2xl font-black text-white tracking-tight leading-tight">
                   Trending Bundles Creators Love
                 </h2>
-                <p className="text-xs sm:text-[13px] text-white/85 font-medium mt-0.5">
+                <p className="text-xs sm:text-[13px] text-white/95 font-medium mt-0.5">
                   Popular packs creators are choosing right now.
                 </p>
               </div>
@@ -36,7 +36,7 @@ export default function TrendingMarquee() {
 
             <Link
               href="/shop"
-              className="px-4 py-2 rounded-full bg-white/15 hover:bg-white/25 text-white border border-white/30 text-xs font-bold transition-all backdrop-blur-md shrink-0 flex items-center gap-1.5"
+              className="px-4 py-2 rounded-full bg-black/25 hover:bg-black/35 text-white border border-white/30 text-xs font-bold transition-all backdrop-blur-md shrink-0 flex items-center gap-1.5"
             >
               <span>| View All</span>
               <ArrowRight className="w-3.5 h-3.5" />
@@ -64,10 +64,10 @@ export default function TrendingMarquee() {
                       className="relative aspect-[4/3] overflow-hidden bg-slate-900 block"
                     >
                       <img
-                        src={optimizeImageUrl(bundle.thumbnail, 384, 72)}
+                        src={optimizeImageUrl(bundle.thumbnail, 256, 55)}
                         alt={bundle.title}
-                        width={305}
-                        height={229}
+                        width={256}
+                        height={192}
                         loading="lazy"
                         decoding="async"
                         className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
@@ -75,14 +75,14 @@ export default function TrendingMarquee() {
                       
                       {/* Diagonal Red HOT Ribbon Badge in Top Right */}
                       <div className="absolute top-0 right-0 overflow-hidden w-24 h-24 pointer-events-none">
-                        <div className="absolute transform rotate-45 bg-gradient-to-r from-red-600 to-rose-600 text-white font-black text-[9px] py-1 right-[-32px] top-[18px] w-[120px] text-center shadow-md flex items-center justify-center gap-1">
+                        <div className="absolute transform rotate-45 bg-gradient-to-r from-red-700 to-rose-700 text-white font-black text-[9px] py-1 right-[-32px] top-[18px] w-[120px] text-center shadow-md flex items-center justify-center gap-1">
                           <span>🔥</span>
                           <span>HOT</span>
                         </div>
                       </div>
 
                       {/* 1080P Badge in Bottom Right */}
-                      <span className="absolute bottom-2.5 right-2.5 px-2 py-0.5 rounded-md text-[10px] font-black bg-black/75 text-white backdrop-blur-md border border-white/20">
+                      <span className="absolute bottom-2.5 right-2.5 px-2 py-0.5 rounded-md text-[10px] font-black bg-black/80 text-white backdrop-blur-md border border-white/20">
                         1080P
                       </span>
                     </Link>
@@ -99,10 +99,10 @@ export default function TrendingMarquee() {
 
                         {/* Meta Pills: Reel Count & MP4 Format */}
                         <div className="flex items-center gap-2 pt-0.5">
-                          <span className="px-2.5 py-0.5 rounded-md text-[11px] font-extrabold bg-[#e6fbfb] text-[#0d9488]">
+                          <span className="px-2.5 py-0.5 rounded-md text-[11px] font-extrabold bg-[#e6fbfb] text-[#065f5b]">
                             {bundle.reelCount}+ Reels
                           </span>
-                          <span className="px-2 py-0.5 rounded-md text-[11px] font-bold bg-[#f1f2f6] text-[#64748b] flex items-center gap-1">
+                          <span className="px-2 py-0.5 rounded-md text-[11px] font-bold bg-[#f1f2f6] text-[#334155] flex items-center gap-1">
                             <Film className="w-3 h-3" />
                             <span>MP4</span>
                           </span>
@@ -113,14 +113,14 @@ export default function TrendingMarquee() {
                       <div className="pt-2 border-t border-slate-100 space-y-2.5">
                         <div className="flex items-baseline justify-between">
                           <div className="flex items-baseline gap-2">
-                            <span className="text-xs text-[#8d95b5] line-through font-semibold">
+                            <span className="text-xs text-[#525b7a] line-through font-semibold">
                               ₹{bundle.personalOriginalPrice}.00
                             </span>
                             <span className="text-xl font-black text-[#162048]">
                               ₹{bundle.personalPrice}.00
                             </span>
                           </div>
-                          <span className="px-2 py-0.5 rounded-md text-[10px] font-extrabold bg-[#e8fbf3] text-[#087a55]">
+                          <span className="px-2 py-0.5 rounded-md text-[10px] font-extrabold bg-[#e8fbf3] text-[#065f46]">
                             {discount}% OFF
                           </span>
                         </div>

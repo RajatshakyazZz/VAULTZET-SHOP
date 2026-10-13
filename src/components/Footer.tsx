@@ -79,10 +79,10 @@ export default function Footer() {
                     <Icon className="w-5 h-5" />
                   </div>
                   <div>
-                    <h4 className="text-xs sm:text-sm font-extrabold text-[#162048] leading-snug">
+                    <h3 className="text-xs sm:text-sm font-extrabold text-[#162048] leading-snug">
                       {h.title}
-                    </h4>
-                    <p className="text-[11px] text-gray-500 font-medium">
+                    </h3>
+                    <p className="text-[11px] text-[#4a5270] font-medium">
                       {h.subtitle}
                     </p>
                   </div>
@@ -102,8 +102,12 @@ export default function Footer() {
               <Link href="/" className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-2xl bg-black border border-slate-800 overflow-hidden flex items-center justify-center shadow-md shrink-0">
                   <img
-                    src="/logo.png"
+                    src="/logo.webp"
                     alt="Vaultzet Store Logo"
+                    width={40}
+                    height={36}
+                    loading="lazy"
+                    decoding="async"
                     className="w-full h-full object-cover"
                   />
                 </div>
@@ -111,12 +115,12 @@ export default function Footer() {
                   <span className="font-extrabold text-lg text-[#1d2250] tracking-tight block">
                     {settings.storeName || 'Vaultzet Store'}
                   </span>
-                  <span className="text-[11px] font-semibold text-[#6e7696] block">
+                  <span className="text-[11px] font-semibold text-[#4a5270] block">
                     {settings.tagline || 'Premium Reels for Your Growth'}
                   </span>
                 </div>
               </Link>
-              <p className="text-xs sm:text-sm text-gray-500 font-normal leading-relaxed max-w-sm">
+              <p className="text-xs sm:text-sm text-[#4a5270] font-normal leading-relaxed max-w-sm">
                 Premium ready-to-use reels bundles for creators, pages and digital businesses by {settings.storeName || 'Vaultzet Store'}.
               </p>
             </div>
@@ -124,10 +128,10 @@ export default function Footer() {
             {/* Quick Links Column with White Pills matching Image 7 */}
             <div className="lg:col-span-7 space-y-3">
               <div>
-                <h4 className="font-black text-sm text-[#182247]">
+                <h3 className="font-black text-sm text-[#182247]">
                   Quick Links
-                </h4>
-                <p className="text-xs text-gray-500 font-medium">
+                </h3>
+                <p className="text-xs text-[#4a5270] font-medium">
                   Browse important store links and pages.
                 </p>
               </div>
@@ -165,7 +169,7 @@ export default function Footer() {
           </div>
 
           {/* Legal Links Bar */}
-          <div className="pt-6 border-t border-gray-100 flex flex-wrap items-center justify-center gap-x-4 gap-y-2 text-xs font-semibold text-gray-600">
+          <div className="pt-6 border-t border-gray-100 flex flex-wrap items-center justify-center gap-x-4 gap-y-2 text-xs font-semibold text-[#4a5270]">
             <Link href="/refund-policy" className="hover:text-[#6f33e8] transition-colors">
               Refund Policy
             </Link>
@@ -184,7 +188,7 @@ export default function Footer() {
           </div>
 
           {/* Bottom Copyright Row */}
-          <div className="pt-4 border-t border-gray-100 flex flex-col sm:flex-row items-center justify-center gap-3 text-xs text-gray-500 font-medium">
+          <div className="pt-4 border-t border-gray-100 flex flex-col sm:flex-row items-center justify-center gap-3 text-xs text-[#4a5270] font-medium">
             <p>© {new Date().getFullYear()} {settings.storeName || 'Vaultzet Store'}. All rights reserved.</p>
           </div>
 
