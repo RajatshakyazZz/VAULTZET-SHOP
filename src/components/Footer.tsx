@@ -100,8 +100,12 @@ export default function Footer() {
             {/* Brand Left Column */}
             <div className="lg:col-span-5 space-y-3">
               <Link href="/" className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-2xl bg-gradient-to-tr from-[#fe5f9b] via-[#9b28ff] to-[#6d3dff] flex items-center justify-center text-white shadow-md">
-                  <PlaySquare className="w-5 h-5 fill-white/90" />
+                <div className="w-10 h-10 rounded-2xl bg-black border border-slate-800 overflow-hidden flex items-center justify-center shadow-md shrink-0">
+                  <img
+                    src="/logo.png"
+                    alt="Vaultzet Store Logo"
+                    className="w-full h-full object-cover"
+                  />
                 </div>
                 <div>
                   <span className="font-extrabold text-lg text-[#1d2250] tracking-tight block">

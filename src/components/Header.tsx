@@ -35,8 +35,12 @@ export default function Header() {
           
           {/* Dynamic Brand Logo synced with Admin Panel */}
           <Link href="/" className="flex items-center gap-2.5 group shrink-0">
-            <div className="w-10 h-8 rounded-lg bg-gradient-to-tr from-[#fe5f9b] via-[#9b28ff] to-[#6d3dff] flex items-center justify-center text-white shadow-sm shadow-purple-500/20 group-hover:scale-105 transition-transform">
-              <Play className="w-4 h-4 fill-white ml-0.5" />
+            <div className="w-10 h-9 rounded-xl bg-black border border-slate-800/80 overflow-hidden flex items-center justify-center shadow-sm shadow-purple-500/20 group-hover:scale-105 transition-transform">
+              <img
+                src="/logo.png"
+                alt="Vaultzet Store Logo"
+                className="w-full h-full object-cover"
+              />
             </div>
             <div className="flex flex-col">
               <span className="font-black text-[17px] text-[#162048] tracking-tight leading-tight">

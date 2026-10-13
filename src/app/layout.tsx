@@ -81,6 +81,11 @@ export const metadata: Metadata = {
     statusBarStyle: 'default',
     title: 'Vaultzet Store',
   },
+  icons: {
+    icon: '/logo.png',
+    shortcut: '/logo.png',
+    apple: '/logo.png',
+  },
   formatDetection: {
     telephone: false,
   },

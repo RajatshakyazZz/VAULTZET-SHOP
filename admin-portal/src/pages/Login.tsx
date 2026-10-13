@@ -49,8 +49,8 @@ export default function Login() {
         
         {/* Brand Card Header */}
         <div className="text-center space-y-3">
-          <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-gradient-to-tr from-[#fe5f9b] via-[#9b28ff] to-[#6d3dff] text-white shadow-xl shadow-purple-500/25">
-            <Play className="w-6 h-6 fill-white ml-0.5" />
+          <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-black border border-slate-800 overflow-hidden shadow-xl shadow-purple-500/25">
+            <img src="/logo.png" alt="Vaultzet Logo" className="w-full h-full object-cover" />
           </div>
           <div>
             <h1 className="text-2xl font-black text-white tracking-tight">
