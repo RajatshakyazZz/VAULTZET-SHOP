@@ -25,7 +25,7 @@ export interface BundleProduct {
   aspectRatio: string;
   format: string;
   audioIncluded: boolean;
-  googleDriveLink: string;
+  googleDriveLink?: string;
   features: string[];
   faqs: { question: string; answer: string }[];
   aliases?: string[];

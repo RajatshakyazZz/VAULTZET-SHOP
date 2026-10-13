@@ -253,7 +253,6 @@ function CheckoutContent() {
         title: i.product.title,
         license: i.license,
         price: i.price,
-        googleDriveLink: i.product.googleDriveLink || 'https://drive.google.com/drive/folders/demo-vaultzet',
       })),
       orderBump: orderBumpAdded
         ? {

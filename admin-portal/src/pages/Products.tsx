@@ -62,6 +62,7 @@ export default function Products() {
   // 2. CREATE PRODUCT MODAL STATE
   // ==========================================
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  const [addTab, setAddTab] = useState<'basic' | 'media' | 'details' | 'files'>('basic');
   const [createForm, setCreateForm] = useState({
     name: '',
     slug: '',
@@ -69,16 +70,24 @@ export default function Products() {
     regular_price: 999,
     reseller_price: 199,
     reseller_regular_price: 1999,
-    reel_count: 1000,
+    status: 'publish' as Product['status'],
+    stock_status: 'instock' as Product['stock_status'],
     category: 'Trending Reels',
+    reel_count: 1000,
     format: 'MP4',
     resolution: '1080P Full HD (9:16)',
-    googleDriveLink: '',
     featured_image: '',
     preview_video_url: '',
+    gallery_images_text: '',
     short_description: '',
     description: '',
-    status: 'publish' as Product['status'],
+    features_text: '',
+    google_drive_link: '',
+    file_name: '',
+    is_hot: false,
+    is_trending: false,
+    rating: 5,
+    review_count: 443,
   });
 
   // ==========================================
@@ -159,6 +168,7 @@ export default function Products() {
       queryClient.setQueryData(['products'], (old: Product[] = []) => [created, ...old]);
       success('Product Published', `"${created.name}" is now live in store.`);
       setIsCreateModalOpen(false);
+      setAddTab('basic');
       setCreateForm({
         name: '',
         slug: '',
@@ -166,16 +176,24 @@ export default function Products() {
         regular_price: 999,
         reseller_price: 199,
         reseller_regular_price: 1999,
+        status: 'publish',
+        stock_status: 'instock',
+        category: categories[0]?.name || 'Trending Reels',
         reel_count: 1000,
-        category: 'Trending Reels',
         format: 'MP4',
         resolution: '1080P Full HD (9:16)',
-        googleDriveLink: '',
         featured_image: '',
         preview_video_url: '',
+        gallery_images_text: '',
         short_description: '',
         description: '',
-        status: 'publish',
+        features_text: '',
+        google_drive_link: '',
+        file_name: '',
+        is_hot: false,
+        is_trending: false,
+        rating: 5,
+        review_count: 443,
       });
     },
     onError: (err: any) => error('Creation Failed', err.message || 'Could not save product.'),
@@ -422,41 +440,68 @@ export default function Products() {
   const handleCreateSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!createForm.name.trim() || !createForm.price) {
+      setAddTab('basic');
       error('Missing Details', 'Bundle name and price are required.');
       return;
     }
 
+    const autoSlug =
+      createForm.slug.trim() ||
+      createForm.name
+        .trim()
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, '-')
+        .replace(/(^-|-$)+/g, '');
+
+    const galleryImages = createForm.gallery_images_text
+      .split('\n')
+      .map((s) => s.trim())
+      .filter(Boolean);
+
+    const features = createForm.features_text
+      .split('\n')
+      .map((s) => s.trim())
+      .filter(Boolean);
+
+    const files = createForm.google_drive_link.trim()
+      ? [
+          {
+            id: `file-${Date.now()}`,
+            name: createForm.file_name.trim() || `${createForm.name.trim()} Google Drive Access`,
+            file_url: createForm.google_drive_link.trim(),
+          },
+        ]
+      : [];
+
     createMutation.mutate({
       name: createForm.name.trim(),
-      slug: createForm.slug.trim(),
+      slug: autoSlug,
       price: Number(createForm.price),
       regular_price: Number(createForm.regular_price || createForm.price * 5),
       reseller_price: Number(createForm.reseller_price || createForm.price * 2),
       reseller_regular_price: Number(createForm.reseller_regular_price || createForm.price * 10),
       sale_price: Number(createForm.price),
-      reel_count: Number(createForm.reel_count || 1000),
+      status: createForm.status,
+      stock_status: createForm.stock_status,
       categories: [createForm.category.trim() || 'Trending Reels'],
-      format: createForm.format,
-      resolution: createForm.resolution,
+      reel_count: Number(createForm.reel_count || 1000),
+      format: createForm.format.trim() || 'MP4',
+      resolution: createForm.resolution.trim() || '1080P Full HD (9:16)',
       featured_image:
         createForm.featured_image.trim() ||
         'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=600',
       preview_video_url: createForm.preview_video_url.trim(),
+      gallery_images: galleryImages,
       short_description: createForm.short_description.trim(),
       description: createForm.description.trim(),
-      status: createForm.status,
-      stock_status: 'instock',
+      features: features.length > 0 ? features : undefined,
+      google_drive_link: createForm.google_drive_link.trim(),
+      files,
+      is_hot: createForm.is_hot,
+      is_trending: createForm.is_trending,
+      rating: Number(createForm.rating || 5),
+      review_count: Number(createForm.review_count || 443),
       downloadable: true,
-      google_drive_link: createForm.googleDriveLink.trim(),
-      files: createForm.googleDriveLink
-        ? [
-            {
-              id: `file-${Date.now()}`,
-              name: `${createForm.name} Google Drive Access`,
-              file_url: createForm.googleDriveLink.trim(),
-            },
-          ]
-        : [],
     });
   };
 
@@ -1654,157 +1699,572 @@ export default function Products() {
       )}
 
       {/* ========================================================= */}
-      {/* MODAL 3: UPLOAD NEW BUNDLE MODAL */}
+      {/* MODAL 3: ADD NEW PRODUCT MODAL (Identical 4-Tab Full Editor) */}
       {/* ========================================================= */}
       {isCreateModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md overflow-y-auto">
-          <div className="relative w-full max-w-2xl bg-slate-900 border border-slate-800 rounded-3xl p-6 sm:p-8 shadow-2xl shadow-purple-900/30 my-8">
-            <button
-              onClick={() => setIsCreateModalOpen(false)}
-              className="absolute top-5 right-5 p-2 rounded-xl text-slate-400 hover:text-white hover:bg-slate-800 transition-colors"
-            >
-              <X className="w-5 h-5" />
-            </button>
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 bg-black/85 backdrop-blur-md overflow-y-auto">
+          <div className="relative w-full max-w-4xl bg-slate-900 border border-slate-800 rounded-3xl p-6 sm:p-8 shadow-2xl shadow-purple-900/40 my-8 max-h-[92vh] flex flex-col">
+            {/* Modal Header */}
+            <div className="flex items-start justify-between gap-4 pb-4 border-b border-slate-800 shrink-0">
+              <div className="flex items-center gap-3">
+                <img
+                  src={
+                    createForm.featured_image ||
+                    'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=100'
+                  }
+                  alt={createForm.name || 'New Product'}
+                  className="w-12 h-12 rounded-xl object-cover border border-slate-700 shrink-0"
+                  onError={(e) => {
+                    (e.target as HTMLImageElement).src =
+                      'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=100';
+                  }}
+                />
+                <div>
+                  <div className="flex items-center gap-2">
+                    <h2 className="text-lg sm:text-xl font-black text-white">
+                      Add New Product
+                    </h2>
+                    <span className="text-[10px] font-mono text-purple-400 bg-purple-500/10 px-2 py-0.5 rounded">
+                      #new-bundle
+                    </span>
+                  </div>
+                  <p className="text-xs text-slate-400">
+                    New store URL: <code className="text-purple-300">/product/{createForm.slug || 'bundle-slug'}</code>
+                  </p>
+                </div>
+              </div>
 
-            <div className="flex items-center gap-3 mb-6">
-              <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-purple-600 to-indigo-600 flex items-center justify-center shadow-lg shadow-purple-600/30">
-                <Upload className="w-6 h-6 text-white" />
-              </div>
-              <div>
-                <h3 className="text-xl font-black text-white">Upload New Reel Bundle</h3>
-                <p className="text-xs text-slate-400">Add a new digital bundle to your store catalog</p>
-              </div>
+              <button
+                onClick={() => setIsCreateModalOpen(false)}
+                className="p-2 rounded-xl text-slate-400 hover:text-white hover:bg-slate-800 transition-colors"
+              >
+                <X className="w-5 h-5" />
+              </button>
             </div>
 
-            <form onSubmit={handleCreateSubmit} className="space-y-4">
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-xs font-bold text-slate-300 mb-1.5">
-                    Bundle Name *
-                  </label>
-                  <input
-                    type="text"
-                    required
-                    placeholder="e.g. 2000+ AI Luxury & Hustle Reels"
-                    value={createForm.name}
-                    onChange={(e) => {
-                      const name = e.target.value;
-                      const autoSlug = name
-                        .toLowerCase()
-                        .replace(/[^a-z0-9]+/g, '-')
-                        .replace(/(^-|-$)+/g, '');
-                      setCreateForm((prev) => ({ ...prev, name, slug: autoSlug }));
-                    }}
-                    className="w-full px-3.5 py-2.5 rounded-xl bg-slate-950 border border-slate-800 focus:border-purple-500 text-sm font-semibold text-white focus:outline-none"
-                  />
-                </div>
+            {/* Modal Nav Tabs */}
+            <div className="flex items-center gap-2 py-3 border-b border-slate-800 overflow-x-auto shrink-0 scrollbar-none">
+              <button
+                type="button"
+                onClick={() => setAddTab('basic')}
+                className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all ${
+                  addTab === 'basic'
+                    ? 'bg-purple-600 text-white shadow-sm'
+                    : 'text-slate-400 hover:text-white bg-slate-950/60'
+                }`}
+              >
+                1. Overview & Pricing
+              </button>
+              <button
+                type="button"
+                onClick={() => setAddTab('media')}
+                className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all ${
+                  addTab === 'media'
+                    ? 'bg-purple-600 text-white shadow-sm'
+                    : 'text-slate-400 hover:text-white bg-slate-950/60'
+                }`}
+              >
+                2. Media & Preview Video
+              </button>
+              <button
+                type="button"
+                onClick={() => setAddTab('details')}
+                className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all ${
+                  addTab === 'details'
+                    ? 'bg-purple-600 text-white shadow-sm'
+                    : 'text-slate-400 hover:text-white bg-slate-950/60'
+                }`}
+              >
+                3. Content & Descriptions
+              </button>
+              <button
+                type="button"
+                onClick={() => setAddTab('files')}
+                className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all ${
+                  addTab === 'files'
+                    ? 'bg-purple-600 text-white shadow-sm'
+                    : 'text-slate-400 hover:text-white bg-slate-950/60'
+                }`}
+              >
+                4. Google Drive Download Link
+              </button>
+            </div>
 
-                <div>
-                  <label className="block text-xs font-bold text-slate-300 mb-1.5">
-                    URL Slug
-                  </label>
-                  <div className="flex items-center rounded-xl bg-slate-950 border border-slate-800 focus-within:border-purple-500 px-3 py-2.5">
-                    <span className="text-xs text-slate-500 font-mono">/product/</span>
-                    <input
-                      type="text"
-                      required
-                      placeholder="bundle-slug"
-                      value={createForm.slug}
-                      onChange={(e) => setCreateForm((prev) => ({ ...prev, slug: e.target.value }))}
-                      className="w-full bg-transparent text-xs font-mono font-semibold text-purple-300 focus:outline-none pl-1"
+            {/* Modal Form Body */}
+            <form onSubmit={handleCreateSubmit} className="overflow-y-auto py-5 pr-1 space-y-5 flex-1">
+              {/* TAB 1: OVERVIEW & PRICING */}
+              {addTab === 'basic' && (
+                <div className="space-y-4">
+                  {/* Name and Slug */}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-xs font-bold text-slate-300 mb-1.5">
+                        Bundle Name *
+                      </label>
+                      <input
+                        type="text"
+                        placeholder="e.g. 2000+ Stop Scrolling Reels Bundle"
+                        value={createForm.name}
+                        onChange={(e) => {
+                          const name = e.target.value;
+                          const autoSlug = name
+                            .toLowerCase()
+                            .replace(/[^a-z0-9]+/g, '-')
+                            .replace(/(^-|-$)+/g, '');
+                          setCreateForm((prev) => ({
+                            ...prev,
+                            name,
+                            slug: prev.slug === '' || prev.slug === autoSlug.slice(0, -1) ? autoSlug : prev.slug,
+                          }));
+                        }}
+                        className="w-full px-3.5 py-2.5 rounded-xl bg-slate-950 border border-slate-800 focus:border-purple-500 text-sm font-semibold text-white focus:outline-none"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-xs font-bold text-slate-300 mb-1.5">
+                        URL Slug *
+                      </label>
+                      <div className="flex items-center rounded-xl bg-slate-950 border border-slate-800 focus-within:border-purple-500 px-3 py-2.5">
+                        <span className="text-xs text-slate-500 font-mono">/product/</span>
+                        <input
+                          type="text"
+                          placeholder="stop-scrolling-reels-bundle"
+                          value={createForm.slug}
+                          onChange={(e) => setCreateForm((prev) => ({ ...prev, slug: e.target.value }))}
+                          className="w-full bg-transparent text-xs font-mono font-semibold text-purple-300 focus:outline-none pl-1"
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Category & Status */}
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                    <div>
+                      <label className="block text-xs font-bold text-slate-300 mb-1.5">
+                        Primary Category *
+                      </label>
+                      <select
+                        value={createForm.category}
+                        onChange={(e) => setCreateForm((prev) => ({ ...prev, category: e.target.value }))}
+                        className="w-full px-3 py-2.5 rounded-xl bg-slate-950 border border-slate-800 focus:border-purple-500 text-xs font-semibold text-white focus:outline-none"
+                      >
+                        {categories.map((c) => (
+                          <option key={c.slug} value={c.name}>
+                            {c.name}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+
+                    <div>
+                      <label className="block text-xs font-bold text-slate-300 mb-1.5">
+                        Visibility Status
+                      </label>
+                      <select
+                        value={createForm.status}
+                        onChange={(e) => setCreateForm((prev) => ({ ...prev, status: e.target.value as any }))}
+                        className="w-full px-3 py-2.5 rounded-xl bg-slate-950 border border-slate-800 focus:border-purple-500 text-xs font-semibold text-white focus:outline-none"
+                      >
+                        <option value="publish">Publish (Visible to Buyers)</option>
+                        <option value="draft">Draft (Hidden)</option>
+                      </select>
+                    </div>
+
+                    <div>
+                      <label className="block text-xs font-bold text-slate-300 mb-1.5">
+                        Stock Status
+                      </label>
+                      <select
+                        value={createForm.stock_status}
+                        onChange={(e) => setCreateForm((prev) => ({ ...prev, stock_status: e.target.value as any }))}
+                        className="w-full px-3 py-2.5 rounded-xl bg-slate-950 border border-slate-800 focus:border-purple-500 text-xs font-semibold text-white focus:outline-none"
+                      >
+                        <option value="instock">In Stock</option>
+                        <option value="outofstock">Out of Stock</option>
+                      </select>
+                    </div>
+                  </div>
+
+                  {/* Pricing Cards */}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
+                    {/* Personal License */}
+                    <div className="p-4 rounded-2xl bg-slate-950 border border-slate-800/80 space-y-3">
+                      <div className="flex items-center justify-between">
+                        <span className="text-xs font-black text-purple-400 uppercase tracking-wider">
+                          Personal License
+                        </span>
+                        <span className="text-[10px] text-slate-500">For personal use</span>
+                      </div>
+
+                      <div className="grid grid-cols-2 gap-3">
+                        <div>
+                          <label className="block text-[11px] font-bold text-slate-400 mb-1">
+                            Sale Price (₹) *
+                          </label>
+                          <input
+                            type="number"
+                            min="1"
+                            value={createForm.price}
+                            onChange={(e) => {
+                              const p = Number(e.target.value);
+                              setCreateForm((prev) => ({
+                                ...prev,
+                                price: p,
+                                regular_price: prev.regular_price || p * 5,
+                                reseller_price: prev.reseller_price || p * 2,
+                                reseller_regular_price: prev.reseller_regular_price || p * 10,
+                              }));
+                            }}
+                            className="w-full px-3 py-2 rounded-xl bg-slate-900 border border-slate-800 focus:border-purple-500 text-sm font-black text-emerald-400 focus:outline-none"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-[11px] font-bold text-slate-400 mb-1">
+                            Regular MRP (₹)
+                          </label>
+                          <input
+                            type="number"
+                            min="1"
+                            value={createForm.regular_price}
+                            onChange={(e) => setCreateForm((prev) => ({ ...prev, regular_price: Number(e.target.value) }))}
+                            className="w-full px-3 py-2 rounded-xl bg-slate-900 border border-slate-800 focus:border-purple-500 text-sm font-semibold text-slate-400 focus:outline-none"
+                          />
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Reseller License */}
+                    <div className="p-4 rounded-2xl bg-slate-950 border border-slate-800/80 space-y-3">
+                      <div className="flex items-center justify-between">
+                        <span className="text-xs font-black text-amber-400 uppercase tracking-wider">
+                          Reseller Commercial License
+                        </span>
+                        <span className="text-[10px] text-slate-500">With resale rights</span>
+                      </div>
+
+                      <div className="grid grid-cols-2 gap-3">
+                        <div>
+                          <label className="block text-[11px] font-bold text-slate-400 mb-1">
+                            Reseller Price (₹)
+                          </label>
+                          <input
+                            type="number"
+                            min="1"
+                            value={createForm.reseller_price}
+                            onChange={(e) => setCreateForm((prev) => ({ ...prev, reseller_price: Number(e.target.value) }))}
+                            className="w-full px-3 py-2 rounded-xl bg-slate-900 border border-slate-800 focus:border-purple-500 text-sm font-black text-amber-400 focus:outline-none"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-[11px] font-bold text-slate-400 mb-1">
+                            Reseller MRP (₹)
+                          </label>
+                          <input
+                            type="number"
+                            min="1"
+                            value={createForm.reseller_regular_price}
+                            onChange={(e) => setCreateForm((prev) => ({ ...prev, reseller_regular_price: Number(e.target.value) }))}
+                            className="w-full px-3 py-2 rounded-xl bg-slate-900 border border-slate-800 focus:border-purple-500 text-sm font-semibold text-slate-400 focus:outline-none"
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Badges Toggles */}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
+                    <label className="flex items-center gap-3 p-3 rounded-xl bg-slate-950 border border-slate-800 cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={createForm.is_hot}
+                        onChange={(e) => setCreateForm((prev) => ({ ...prev, is_hot: e.target.checked }))}
+                        className="w-4 h-4 rounded text-rose-500 bg-slate-900 border-slate-700"
+                      />
+                      <div>
+                        <div className="text-xs font-bold text-white flex items-center gap-1">
+                          <Flame className="w-3.5 h-3.5 text-rose-400" />
+                          <span>Show "HOT / Best Seller" Badge</span>
+                        </div>
+                        <div className="text-[11px] text-slate-400">Highlights this bundle on shop page</div>
+                      </div>
+                    </label>
+
+                    <label className="flex items-center gap-3 p-3 rounded-xl bg-slate-950 border border-slate-800 cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={createForm.is_trending}
+                        onChange={(e) => setCreateForm((prev) => ({ ...prev, is_trending: e.target.checked }))}
+                        className="w-4 h-4 rounded text-amber-500 bg-slate-900 border-slate-700"
+                      />
+                      <div>
+                        <div className="text-xs font-bold text-white flex items-center gap-1">
+                          <Sparkles className="w-3.5 h-3.5 text-amber-400" />
+                          <span>Show "Trending" Badge</span>
+                        </div>
+                        <div className="text-[11px] text-slate-400">Adds trending tag on thumbnail</div>
+                      </div>
+                    </label>
+                  </div>
+                </div>
+              )}
+
+              {/* TAB 2: MEDIA & PREVIEW VIDEO */}
+              {addTab === 'media' && (
+                <div className="space-y-4">
+                  {/* Featured Image */}
+                  <div>
+                    <label className="block text-xs font-bold text-slate-300 mb-1.5">
+                      Cover Thumbnail Image URL *
+                    </label>
+                    <div className="flex items-center gap-3">
+                      <div className="flex-1 flex items-center rounded-xl bg-slate-950 border border-slate-800 focus-within:border-purple-500 px-3 py-2.5">
+                        <ImageIcon className="w-4 h-4 text-purple-400 mr-2 shrink-0" />
+                        <input
+                          type="url"
+                          value={createForm.featured_image}
+                          onChange={(e) => setCreateForm((prev) => ({ ...prev, featured_image: e.target.value }))}
+                          placeholder="https://images.unsplash.com/... or https://..."
+                          className="w-full bg-transparent text-xs text-white placeholder-slate-600 focus:outline-none"
+                        />
+                      </div>
+                      {createForm.featured_image && (
+                        <img
+                          src={createForm.featured_image}
+                          alt="Cover Preview"
+                          className="w-12 h-12 rounded-xl object-cover border border-slate-700 shrink-0"
+                          onError={(e) => {
+                            (e.target as HTMLElement).style.display = 'none';
+                          }}
+                        />
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Preview Video URL */}
+                  <div>
+                    <label className="block text-xs font-bold text-slate-300 mb-1.5 flex items-center justify-between">
+                      <span>Video Preview URL (YouTube Shorts, YouTube Video, or Direct MP4)</span>
+                      <span className="text-[10px] text-purple-400">Plays when buyer clicks "View Preview"</span>
+                    </label>
+                    <div className="flex items-center rounded-xl bg-slate-950 border border-slate-800 focus-within:border-purple-500 px-3 py-2.5">
+                      <Video className="w-4 h-4 text-rose-400 mr-2 shrink-0" />
+                      <input
+                        type="url"
+                        value={createForm.preview_video_url}
+                        onChange={(e) => setCreateForm((prev) => ({ ...prev, preview_video_url: e.target.value }))}
+                        placeholder="https://www.youtube.com/shorts/... or https://domain.com/video.mp4"
+                        className="w-full bg-transparent text-xs text-white placeholder-slate-600 focus:outline-none"
+                      />
+                    </div>
+                  </div>
+
+                  {/* Gallery Images (One per line) */}
+                  <div>
+                    <label className="block text-xs font-bold text-slate-300 mb-1.5 flex items-center justify-between">
+                      <span>Gallery Images (One URL per line)</span>
+                      <span className="text-[10px] text-slate-500">Additional preview screenshots</span>
+                    </label>
+                    <textarea
+                      rows={3}
+                      value={createForm.gallery_images_text}
+                      onChange={(e) => setCreateForm((prev) => ({ ...prev, gallery_images_text: e.target.value }))}
+                      placeholder="https://images.unsplash.com/...&#10;https://images.unsplash.com/..."
+                      className="w-full px-3.5 py-2.5 rounded-xl bg-slate-950 border border-slate-800 focus:border-purple-500 text-xs font-mono text-slate-200 focus:outline-none"
                     />
                   </div>
                 </div>
-              </div>
+              )}
 
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                <div>
-                  <label className="block text-xs font-bold text-slate-300 mb-1.5">
-                    Selling Price (₹) *
-                  </label>
-                  <input
-                    type="number"
-                    required
-                    min="1"
-                    value={createForm.price}
-                    onChange={(e) => setCreateForm((prev) => ({ ...prev, price: Number(e.target.value) }))}
-                    className="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-800 focus:border-purple-500 text-sm font-black text-emerald-400 focus:outline-none"
-                  />
+              {/* TAB 3: CONTENT & DESCRIPTIONS */}
+              {addTab === 'details' && (
+                <div className="space-y-4">
+                  {/* Reel Count, Resolution, Format */}
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                    <div>
+                      <label className="block text-xs font-bold text-slate-300 mb-1.5">
+                        Total Reels Count
+                      </label>
+                      <input
+                        type="number"
+                        min="1"
+                        value={createForm.reel_count}
+                        onChange={(e) => setCreateForm((prev) => ({ ...prev, reel_count: Number(e.target.value) }))}
+                        className="w-full px-3.5 py-2 rounded-xl bg-slate-950 border border-slate-800 focus:border-purple-500 text-xs font-bold text-purple-300 focus:outline-none"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-xs font-bold text-slate-300 mb-1.5">
+                        Resolution
+                      </label>
+                      <input
+                        type="text"
+                        value={createForm.resolution}
+                        onChange={(e) => setCreateForm((prev) => ({ ...prev, resolution: e.target.value }))}
+                        className="w-full px-3.5 py-2 rounded-xl bg-slate-950 border border-slate-800 focus:border-purple-500 text-xs font-semibold text-white focus:outline-none"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-xs font-bold text-slate-300 mb-1.5">
+                        Video Format
+                      </label>
+                      <input
+                        type="text"
+                        value={createForm.format}
+                        onChange={(e) => setCreateForm((prev) => ({ ...prev, format: e.target.value }))}
+                        className="w-full px-3.5 py-2 rounded-xl bg-slate-950 border border-slate-800 focus:border-purple-500 text-xs font-semibold text-white focus:outline-none"
+                      />
+                    </div>
+                  </div>
+
+                  {/* Rating & Reviews */}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-xs font-bold text-slate-300 mb-1.5 flex items-center gap-1">
+                        <Star className="w-3.5 h-3.5 text-amber-400 fill-amber-400" />
+                        <span>Rating (e.g. 5)</span>
+                      </label>
+                      <input
+                        type="number"
+                        step="0.1"
+                        min="1"
+                        max="5"
+                        value={createForm.rating}
+                        onChange={(e) => setCreateForm((prev) => ({ ...prev, rating: Number(e.target.value) }))}
+                        className="w-full px-3.5 py-2 rounded-xl bg-slate-950 border border-slate-800 focus:border-purple-500 text-xs font-bold text-amber-400 focus:outline-none"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-xs font-bold text-slate-300 mb-1.5">
+                        Total Reviews Count
+                      </label>
+                      <input
+                        type="number"
+                        min="1"
+                        value={createForm.review_count}
+                        onChange={(e) => setCreateForm((prev) => ({ ...prev, review_count: Number(e.target.value) }))}
+                        className="w-full px-3.5 py-2 rounded-xl bg-slate-950 border border-slate-800 focus:border-purple-500 text-xs font-bold text-white focus:outline-none"
+                      />
+                    </div>
+                  </div>
+
+                  {/* Short Description */}
+                  <div>
+                    <label className="block text-xs font-bold text-slate-300 mb-1.5">
+                      Short Description (Summary near buy button)
+                    </label>
+                    <textarea
+                      rows={2}
+                      value={createForm.short_description}
+                      onChange={(e) => setCreateForm((prev) => ({ ...prev, short_description: e.target.value }))}
+                      placeholder="High quality viral reels bundle ready to upload on Instagram, YouTube Shorts, and Facebook..."
+                      className="w-full px-3.5 py-2.5 rounded-xl bg-slate-950 border border-slate-800 focus:border-purple-500 text-xs text-slate-200 focus:outline-none"
+                    />
+                  </div>
+
+                  {/* Detailed Description */}
+                  <div>
+                    <label className="block text-xs font-bold text-slate-300 mb-1.5">
+                      Full Detailed Description / HTML Content
+                    </label>
+                    <textarea
+                      rows={4}
+                      value={createForm.description}
+                      onChange={(e) => setCreateForm((prev) => ({ ...prev, description: e.target.value }))}
+                      placeholder="Write full product overview, what's included, how to use..."
+                      className="w-full px-3.5 py-2.5 rounded-xl bg-slate-950 border border-slate-800 focus:border-purple-500 text-xs text-slate-200 focus:outline-none"
+                    />
+                  </div>
+
+                  {/* Features Bullet Points */}
+                  <div>
+                    <label className="block text-xs font-bold text-slate-300 mb-1.5 flex items-center justify-between">
+                      <span>Feature Bullet Points (One per line)</span>
+                      <span className="text-[10px] text-slate-500">Rendered with checkmarks</span>
+                    </label>
+                    <textarea
+                      rows={3}
+                      value={createForm.features_text}
+                      onChange={(e) => setCreateForm((prev) => ({ ...prev, features_text: e.target.value }))}
+                      placeholder="100% Ready to Post&#10;No Watermark or Logos&#10;Full HD 1080P Resolution&#10;Instant Lifetime Access"
+                      className="w-full px-3.5 py-2.5 rounded-xl bg-slate-950 border border-slate-800 focus:border-purple-500 text-xs text-slate-200 focus:outline-none"
+                    />
+                  </div>
                 </div>
+              )}
 
-                <div>
-                  <label className="block text-xs font-bold text-slate-300 mb-1.5">
-                    Regular MRP (₹)
-                  </label>
-                  <input
-                    type="number"
-                    min="1"
-                    value={createForm.regular_price}
-                    onChange={(e) => setCreateForm((prev) => ({ ...prev, regular_price: Number(e.target.value) }))}
-                    className="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-800 focus:border-purple-500 text-sm font-semibold text-slate-400 focus:outline-none"
-                  />
+              {/* TAB 4: GOOGLE DRIVE & DIGITAL FILE DELIVERY */}
+              {addTab === 'files' && (
+                <div className="space-y-4">
+                  <div className="p-4 rounded-2xl bg-amber-500/10 border border-amber-500/20 text-xs text-amber-300 space-y-1">
+                    <div className="font-bold flex items-center gap-1.5">
+                      <FolderOpen className="w-4 h-4 text-amber-400" />
+                      <span>Customer Download Delivery Link</span>
+                    </div>
+                    <p className="text-[11px] text-slate-400">
+                      When a customer completes purchase via Cashfree on your store, this exact Google Drive / Mega link is automatically unlocked on the confirmation page and sent via email/Telegram!
+                    </p>
+                    <p className="text-[11px] text-emerald-400 font-bold pt-1">
+                      🔒 Security Guarantee: This download link goes directly to the secure database and is NEVER exposed in the frontend source code. Unpaid users cannot access it.
+                    </p>
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-bold text-slate-300 mb-1.5">
+                      Google Drive Folder / Download URL *
+                    </label>
+                    <div className="flex items-center rounded-xl bg-slate-950 border border-slate-800 focus-within:border-purple-500 px-3 py-2.5">
+                      <FolderOpen className="w-4 h-4 text-amber-400 mr-2 shrink-0" />
+                      <input
+                        type="url"
+                        value={createForm.google_drive_link}
+                        onChange={(e) => setCreateForm((prev) => ({ ...prev, google_drive_link: e.target.value }))}
+                        placeholder="https://drive.google.com/drive/folders/... or https://mega.nz/..."
+                        className="w-full bg-transparent text-xs text-white placeholder-slate-600 focus:outline-none font-mono"
+                      />
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-bold text-slate-300 mb-1.5">
+                      File Display Name
+                    </label>
+                    <input
+                      type="text"
+                      value={createForm.file_name}
+                      onChange={(e) => setCreateForm((prev) => ({ ...prev, file_name: e.target.value }))}
+                      placeholder="e.g. 2000+ Stop Scrolling Reels Bundle – Scroll-St.zip (Google Drive Access)"
+                      className="w-full px-3.5 py-2.5 rounded-xl bg-slate-950 border border-slate-800 focus:border-purple-500 text-xs text-white focus:outline-none"
+                    />
+                  </div>
+
+                  {createForm.google_drive_link && (
+                    <div className="p-3.5 rounded-xl bg-slate-950 border border-slate-800 flex items-center justify-between text-xs">
+                      <div className="flex items-center gap-2 truncate pr-2">
+                        <Check className="w-4 h-4 text-emerald-400 shrink-0" />
+                        <span className="font-mono text-purple-300 truncate">
+                          {createForm.google_drive_link}
+                        </span>
+                      </div>
+                      <a
+                        href={createForm.google_drive_link}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="px-3 py-1 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs shrink-0 flex items-center gap-1"
+                      >
+                        <ExternalLink className="w-3 h-3" />
+                        <span>Test Link</span>
+                      </a>
+                    </div>
+                  )}
                 </div>
+              )}
 
-                <div>
-                  <label className="block text-xs font-bold text-slate-300 mb-1.5">
-                    Reels Count
-                  </label>
-                  <input
-                    type="number"
-                    min="1"
-                    value={createForm.reel_count}
-                    onChange={(e) => setCreateForm((prev) => ({ ...prev, reel_count: Number(e.target.value) }))}
-                    className="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-800 focus:border-purple-500 text-sm font-bold text-purple-300 focus:outline-none"
-                  />
-                </div>
-              </div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-xs font-bold text-slate-300 mb-1.5">
-                    Category
-                  </label>
-                  <select
-                    value={createForm.category}
-                    onChange={(e) => setCreateForm((prev) => ({ ...prev, category: e.target.value }))}
-                    className="w-full px-3 py-2.5 rounded-xl bg-slate-950 border border-slate-800 focus:border-purple-500 text-xs font-semibold text-white focus:outline-none"
-                  >
-                    {categories.map((c) => (
-                      <option key={c.slug} value={c.name}>
-                        {c.name}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-
-                <div>
-                  <label className="block text-xs font-bold text-slate-300 mb-1.5">
-                    Google Drive Access Link
-                  </label>
-                  <input
-                    type="url"
-                    placeholder="https://drive.google.com/drive/folders/..."
-                    value={createForm.googleDriveLink}
-                    onChange={(e) => setCreateForm((prev) => ({ ...prev, googleDriveLink: e.target.value }))}
-                    className="w-full px-3 py-2.5 rounded-xl bg-slate-950 border border-slate-800 focus:border-purple-500 text-xs text-white placeholder-slate-600 focus:outline-none"
-                  />
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-xs font-bold text-slate-300 mb-1.5">
-                  Cover Image URL
-                </label>
-                <input
-                  type="url"
-                  placeholder="https://images.unsplash.com/... or https://..."
-                  value={createForm.featured_image}
-                  onChange={(e) => setCreateForm((prev) => ({ ...prev, featured_image: e.target.value }))}
-                  className="w-full px-3 py-2.5 rounded-xl bg-slate-950 border border-slate-800 focus:border-purple-500 text-xs text-white placeholder-slate-600 focus:outline-none"
-                />
-              </div>
-
-              <div className="flex items-center justify-end gap-3 pt-3 border-t border-slate-800">
+              {/* Modal Action Buttons */}
+              <div className="flex items-center justify-between pt-4 border-t border-slate-800 shrink-0">
                 <button
                   type="button"
                   onClick={() => setIsCreateModalOpen(false)}
@@ -1812,12 +2272,20 @@ export default function Products() {
                 >
                   Cancel
                 </button>
+
                 <button
                   type="submit"
                   disabled={createMutation.isPending}
-                  className="px-5 py-2 rounded-xl bg-purple-600 hover:bg-purple-500 text-white font-bold text-xs flex items-center gap-2 shadow-lg shadow-purple-600/30 transition-all disabled:opacity-50"
+                  className="px-6 py-2.5 rounded-xl bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white font-bold text-xs flex items-center gap-2 shadow-lg shadow-purple-600/30 transition-all disabled:opacity-50"
                 >
-                  {createMutation.isPending ? 'Publishing...' : 'Publish Bundle to Store'}
+                  {createMutation.isPending ? (
+                    <span>Publishing Bundle...</span>
+                  ) : (
+                    <>
+                      <Check className="w-4 h-4" />
+                      <span>Publish New Product to Store</span>
+                    </>
+                  )}
                 </button>
               </div>
             </form>

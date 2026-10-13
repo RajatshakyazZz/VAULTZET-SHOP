@@ -1,6 +1,7 @@
 import { BUNDLE_PRODUCTS } from '@/data/bundles';
 import { initialStoreReels } from '@/lib/reels';
 import { BundleProduct, ReelItem } from '@/types';
+import { getLocalCustomProductsSync } from '@/lib/customProducts';
 
 /**
  * Normalizes input slugs by stripping leading/trailing slashes, product prefixes,
@@ -47,9 +48,23 @@ const KEYWORD_MAP: Array<[string[], string]> = [
  * Resolves any slug or alias to a valid BundleProduct in BUNDLE_PRODUCTS.
  * Fallback handles partial matches and reel cross-references so "Bundle Not Found" is never shown.
  */
-export function resolveBundleSlug(rawSlug: string): BundleProduct | undefined {
+export function resolveBundleSlug(
+  rawSlug: string,
+  extraList?: BundleProduct[]
+): BundleProduct | undefined {
   const clean = normalizeSlug(rawSlug);
   if (!clean) return undefined;
+
+  // 0. Search in extra list or local custom products first
+  const customList = extraList || getLocalCustomProductsSync();
+  const customDirect = customList.find(
+    (b) =>
+      b.slug.toLowerCase() === clean ||
+      b.id.toLowerCase() === clean ||
+      clean.includes(b.slug.toLowerCase()) ||
+      b.slug.toLowerCase().includes(clean)
+  );
+  if (customDirect) return customDirect;
 
   // 1. Exact match by slug or ID
   const direct = BUNDLE_PRODUCTS.find(

@@ -17,12 +17,15 @@ import {
 import { BUNDLE_PRODUCTS, CATEGORIES } from '@/data/bundles';
 import { useCart } from '@/context/CartContext';
 import { optimizeImageUrl } from '@/lib/imageOptimized';
+import { fetchCustomProducts } from '@/lib/customProducts';
+import { BundleProduct } from '@/types';
 
 function ShopContent() {
   const searchParams = useSearchParams();
   const initialCategory = searchParams.get('cat') || 'all';
   const initialSearch = searchParams.get('s') || '';
 
+  const [customProducts, setCustomProducts] = useState<BundleProduct[]>([]);
   const [selectedCategory, setSelectedCategory] = useState(initialCategory);
   const [searchTerm, setSearchTerm] = useState(initialSearch);
   const [minPrice, setMinPrice] = useState(49);
@@ -30,18 +33,35 @@ function ShopContent() {
   const [sortBy, setSortBy] = useState<'popular' | 'price-low' | 'price-high' | 'reels'>('popular');
   const { addToCart, buyNow } = useCart();
 
+  useEffect(() => {
+    fetchCustomProducts().then((res) => {
+      if (res && res.length > 0) {
+        setCustomProducts(res);
+      }
+    });
+  }, []);
+
+  const allBundles = useMemo(() => {
+    if (customProducts.length === 0) return BUNDLE_PRODUCTS;
+    const customSlugs = new Set(customProducts.map((p) => p.slug.toLowerCase()));
+    const filteredInitial = BUNDLE_PRODUCTS.filter(
+      (b) => !customSlugs.has(b.slug.toLowerCase())
+    );
+    return [...customProducts, ...filteredInitial];
+  }, [customProducts]);
+
   const categoryCounts = useMemo(() => {
     const counts: Record<string, number> = {
-      all: BUNDLE_PRODUCTS.length,
+      all: allBundles.length,
     };
-    for (const b of BUNDLE_PRODUCTS) {
+    for (const b of allBundles) {
       counts[b.categorySlug] = (counts[b.categorySlug] || 0) + 1;
     }
     return counts;
-  }, []);
+  }, [allBundles]);
 
   const filteredBundles = useMemo(() => {
-    return BUNDLE_PRODUCTS.filter((b) => {
+    return allBundles.filter((b) => {
       const matchesCategory =
         selectedCategory === 'all' || b.categorySlug === selectedCategory;
       const q = searchTerm.toLowerCase().trim();

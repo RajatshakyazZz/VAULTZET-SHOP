@@ -40,6 +40,7 @@ import { LicenseType, BundleProduct } from '@/types';
 import { optimizeImageUrl } from '@/lib/imageOptimized';
 import { getBundleContentDetails } from '@/lib/bundleContent';
 import { resolveBundleSlug } from '@/lib/bundleResolver';
+import { fetchCustomProductBySlug } from '@/lib/customProducts';
 import { parseVideoUrl } from '@/lib/reels';
 
 export default function ProductDetailPage() {
@@ -47,8 +48,17 @@ export default function ProductDetailPage() {
   const rawSlug = (params?.slug as string) || '';
   const { addToCart, buyNow } = useCart();
 
+  const [customProduct, setCustomProduct] = useState<BundleProduct | null>(null);
+
   // Find product by slug, id, aliases, or keyword/reels match
-  const product: BundleProduct | undefined = resolveBundleSlug(rawSlug);
+  const product: BundleProduct | undefined = customProduct || resolveBundleSlug(rawSlug);
+
+  useEffect(() => {
+    if (!rawSlug) return;
+    fetchCustomProductBySlug(rawSlug).then((p) => {
+      if (p) setCustomProduct(p);
+    });
+  }, [rawSlug]);
 
   const [selectedLicense, setSelectedLicense] = useState<LicenseType>('personal');
   const [selectedImage, setSelectedImage] = useState<string | null>(null);

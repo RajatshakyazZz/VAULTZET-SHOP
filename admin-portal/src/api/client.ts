@@ -170,6 +170,13 @@ class PortalApiClient {
   // 2. PRODUCTS (Direct Firestore)
   // ==========================================
   async getProducts(): Promise<Product[]> {
+    let localCustomProds: Product[] = [];
+    if (typeof window !== 'undefined') {
+      try {
+        localCustomProds = JSON.parse(localStorage.getItem('vaultzet_custom_products') || '[]');
+      } catch (e) {}
+    }
+
     if (db) {
       try {
         const snap = await getDocs(collection(db, 'products'));
@@ -177,16 +184,25 @@ class PortalApiClient {
           const dbProds = snap.docs.map((d) => ({ id: d.id, ...d.data() } as Product));
           const dbIdSet = new Set(dbProds.map((p) => String(p.id)));
           const dbSlugSet = new Set(dbProds.map((p) => p.slug).filter(Boolean));
-          const missing = initialProducts.filter(
-            (p) => !dbIdSet.has(String(p.id)) && (!p.slug || !dbSlugSet.has(p.slug))
+
+          const uncommittedLocal = localCustomProds.filter(
+            (lp) => !dbIdSet.has(String(lp.id)) && (!lp.slug || !dbSlugSet.has(lp.slug))
           );
-          return [...dbProds, ...missing];
+
+          const combined = [...uncommittedLocal, ...dbProds];
+          const combinedIdSet = new Set(combined.map((p) => String(p.id)));
+          const combinedSlugSet = new Set(combined.map((p) => p.slug).filter(Boolean));
+
+          const missing = initialProducts.filter(
+            (p) => !combinedIdSet.has(String(p.id)) && (!p.slug || !combinedSlugSet.has(p.slug))
+          );
+          return [...combined, ...missing];
         } else {
           // Auto-seed initial clean products into Firestore
           for (const prod of initialProducts) {
             await setDoc(doc(db, 'products', String(prod.id)), prod);
           }
-          return initialProducts;
+          return [...localCustomProds, ...initialProducts];
         }
       } catch (e) {
         console.warn('Firestore products fetch error:', e);
@@ -194,23 +210,9 @@ class PortalApiClient {
     }
 
     // Merge in-memory with any stored in localStorage
-    if (typeof window !== 'undefined') {
-      try {
-        const stored = JSON.parse(localStorage.getItem('vaultzet_custom_products') || '[]');
-        if (stored.length) {
-          const ids = new Set(initialProducts.map((p) => String(p.id)));
-          for (const sp of stored) {
-            if (!ids.has(String(sp.id))) {
-              initialProducts.unshift(sp);
-            }
-          }
-        }
-      } catch (e) {
-        // ignore
-      }
-    }
-
-    return initialProducts;
+    const idSet = new Set(initialProducts.map((p) => String(p.id)));
+    const missingLocal = localCustomProds.filter((lp) => !idSet.has(String(lp.id)));
+    return [...missingLocal, ...initialProducts];
   }
 
   async createProduct(productData: Partial<Product>): Promise<Product> {
@@ -229,16 +231,34 @@ class PortalApiClient {
       slug,
       price: Number(productData.price || 99),
       regular_price: Number(productData.regular_price || 999),
+      reseller_price: Number(
+        productData.reseller_price || (productData.price ? Number(productData.price) * 2 : 199)
+      ),
+      reseller_regular_price: Number(
+        productData.reseller_regular_price ||
+          (productData.regular_price ? Number(productData.regular_price) * 2 : 1999)
+      ),
       sale_price: Number(productData.price || 99),
       stock_status: productData.stock_status || 'instock',
       status: productData.status || 'publish',
       categories: productData.categories?.length ? productData.categories : ['Trending Reels'],
       reel_count: Number(productData.reel_count || 1000),
       format: productData.format || 'MP4',
-      resolution: productData.resolution || '1080P Full HD',
+      resolution: productData.resolution || '1080P Full HD (9:16)',
       featured_image:
         productData.featured_image ||
         'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=600',
+      preview_video_url: productData.preview_video_url || '',
+      gallery_images: productData.gallery_images || [],
+      short_description: productData.short_description || '',
+      description: productData.description || '',
+      features: productData.features || [],
+      google_drive_link: productData.google_drive_link || '',
+      tags: productData.tags || [],
+      is_hot: Boolean(productData.is_hot),
+      is_trending: Boolean(productData.is_trending),
+      rating: Number(productData.rating || 4.9),
+      review_count: Number(productData.review_count || 350),
       downloadable: true,
       downloads_count: 0,
       created_at: new Date().toISOString(),
@@ -256,12 +276,13 @@ class PortalApiClient {
     // Add to in-memory list
     initialProducts.unshift(newProduct);
 
-    // Save in localStorage cache
+    // Save in localStorage cache so it survives reloads immediately
     if (typeof window !== 'undefined') {
       try {
         const stored = JSON.parse(localStorage.getItem('vaultzet_custom_products') || '[]');
-        stored.unshift(newProduct);
-        localStorage.setItem('vaultzet_custom_products', JSON.stringify(stored));
+        const filtered = stored.filter((p: any) => String(p.id) !== prodId && p.slug !== slug);
+        filtered.unshift(newProduct);
+        localStorage.setItem('vaultzet_custom_products', JSON.stringify(filtered));
       } catch (e) {
         // ignore
       }
@@ -284,7 +305,7 @@ class PortalApiClient {
 📂 <b>Category:</b> ${(newProduct.categories || []).join(', ')}
 💰 <b>Sale Price:</b> <b>₹${newProduct.price}.00</b> (MRP: ₹${newProduct.regular_price}.00)
 🎬 <b>Reels Included:</b> ${newProduct.reel_count}+ Reels (${newProduct.resolution})
-☁️ <b>Google Drive Link:</b> ${newProduct.files?.length ? '✅ Configured & Ready' : '✅ Ready'}
+☁️ <b>Google Drive Link:</b> ${newProduct.files?.length || newProduct.google_drive_link ? '✅ Configured in DB' : '✅ Ready'}
 
 🕒 <b>Uploaded At (IST):</b> ${istTime}
 ━━━━━━━━━━━━━━━━━━━━━━`;
@@ -365,6 +386,21 @@ class PortalApiClient {
     const idx = initialProducts.findIndex((p) => String(p.id) === prodId);
     if (idx !== -1) {
       initialProducts[idx] = { ...initialProducts[idx], ...product };
+    }
+
+    if (typeof window !== 'undefined') {
+      try {
+        const stored = JSON.parse(localStorage.getItem('vaultzet_custom_products') || '[]');
+        const existingIdx = stored.findIndex((p: any) => String(p.id) === prodId);
+        if (existingIdx !== -1) {
+          stored[existingIdx] = { ...stored[existingIdx], ...product };
+        } else {
+          stored.unshift({ ...(idx !== -1 ? initialProducts[idx] : {}), ...product });
+        }
+        localStorage.setItem('vaultzet_custom_products', JSON.stringify(stored));
+      } catch (e) {
+        // ignore
+      }
     }
 
     await logAdminAction({

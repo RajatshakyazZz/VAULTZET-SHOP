@@ -26,20 +26,36 @@ rules_version = '2';
 // 2. products:
 //    - name: string (required, 1..250 chars)
 //    - price: number (required, >= 0, <= 1,000,000)
+//    - id: string (optional, <= 100 chars)
 //    - slug: string (optional, <= 150 chars)
-//    - status: string (optional, in ['publish', 'draft', 'pending', 'private'])
+//    - description: string (optional, <= 20000 chars)
+//    - short_description: string (optional, <= 5000 chars)
+//    - format: string (optional, <= 100 chars)
+//    - resolution: string (optional, <= 100 chars)
+//    - featured_image: string (optional, <= 1000 chars)
+//    - preview_video_url: string (optional, <= 1000 chars)
+//    - created_at: string (optional, <= 100 chars)
+//    - googleDriveLink: string (optional, <= 1000 chars)
+//    - google_drive_link: string (optional, <= 1000 chars)
+//    - regular_price: number (optional, 0..1,000,000)
 //    - reseller_price: number (optional, 0..1,000,000)
 //    - reseller_regular_price: number (optional, 0..1,000,000)
-//    - preview_video_url: string (optional, <= 1000 chars)
-//    - short_description: string (optional, <= 2000 chars)
-//    - gallery_images: list (optional, <= 20 items)
-//    - tags: list (optional, <= 20 items)
-//    - features: list (optional, <= 20 items)
-//    - faqs: list (optional, <= 30 items)
+//    - sale_price: number (optional, 0..1,000,000)
+//    - reel_count: number (optional, 0..1,000,000)
+//    - downloads_count: number (optional, 0..10,000,000)
 //    - rating: number (optional, 0..5)
 //    - review_count: number (optional, 0..10,000,000)
 //    - is_hot: bool (optional)
 //    - is_trending: bool (optional)
+//    - downloadable: bool (optional)
+//    - status: string (optional, in ['publish', 'draft', 'pending', 'private'])
+//    - stock_status: string (optional, in ['instock', 'outofstock', 'onbackorder'])
+//    - categories: list (optional, <= 50 items)
+//    - gallery_images: list (optional, <= 50 items)
+//    - tags: list (optional, <= 50 items)
+//    - features: list (optional, <= 50 items)
+//    - faqs: list (optional, <= 50 items)
+//    - files: list (optional, <= 50 items)
 //    - Protection: Storefront & Admin read; schema validated on write; deletion permitted.
 //
 // 3. store_settings:
@@ -180,34 +196,34 @@ service cloud.firestore {
         data.price <= 1000000 &&
         isValidOptionalString(data, 'id', 100) &&
         isValidOptionalString(data, 'slug', 150) &&
-        isValidOptionalString(data, 'description', 5000) &&
-        isValidOptionalString(data, 'format', 50) &&
-        isValidOptionalString(data, 'resolution', 50) &&
+        isValidOptionalString(data, 'description', 20000) &&
+        isValidOptionalString(data, 'short_description', 5000) &&
+        isValidOptionalString(data, 'format', 100) &&
+        isValidOptionalString(data, 'resolution', 100) &&
         isValidOptionalString(data, 'featured_image', 1000) &&
-        isValidOptionalString(data, 'created_at', 50) &&
+        isValidOptionalString(data, 'preview_video_url', 1000) &&
+        isValidOptionalString(data, 'created_at', 100) &&
         isValidOptionalString(data, 'googleDriveLink', 1000) &&
         isValidOptionalString(data, 'google_drive_link', 1000) &&
         isValidOptionalNumber(data, 'regular_price', 0, 1000000) &&
+        isValidOptionalNumber(data, 'reseller_price', 0, 1000000) &&
+        isValidOptionalNumber(data, 'reseller_regular_price', 0, 1000000) &&
         isValidOptionalNumber(data, 'sale_price', 0, 1000000) &&
         isValidOptionalNumber(data, 'reel_count', 0, 1000000) &&
         isValidOptionalNumber(data, 'downloads_count', 0, 10000000) &&
-        (!('status' in data) || data.status in ['publish', 'draft', 'pending', 'private']) &&
-        (!('stock_status' in data) || data.stock_status in ['instock', 'outofstock', 'onbackorder']) &&
-        (!('downloadable' in data) || data.downloadable is bool) &&
-        (!('categories' in data) || (data.categories is list && data.categories.size() <= 30)) &&
-        (!('files' in data) || (data.files is list && data.files.size() <= 50)) &&
-        isValidOptionalNumber(data, 'reseller_price', 0, 1000000) &&
-        isValidOptionalNumber(data, 'reseller_regular_price', 0, 1000000) &&
-        isValidOptionalString(data, 'preview_video_url', 1000) &&
-        isValidOptionalString(data, 'short_description', 2000) &&
-        isValidOptionalList(data, 'gallery_images', 20) &&
-        isValidOptionalList(data, 'tags', 20) &&
-        isValidOptionalList(data, 'features', 20) &&
-        isValidOptionalList(data, 'faqs', 30) &&
         isValidOptionalNumber(data, 'rating', 0, 5) &&
         isValidOptionalNumber(data, 'review_count', 0, 10000000) &&
         isValidOptionalBool(data, 'is_hot') &&
-        isValidOptionalBool(data, 'is_trending');
+        isValidOptionalBool(data, 'is_trending') &&
+        isValidOptionalBool(data, 'downloadable') &&
+        (!('status' in data) || data.status == null || data.status in ['publish', 'draft', 'pending', 'private']) &&
+        (!('stock_status' in data) || data.stock_status == null || data.stock_status in ['instock', 'outofstock', 'onbackorder']) &&
+        isValidOptionalList(data, 'categories', 50) &&
+        isValidOptionalList(data, 'gallery_images', 50) &&
+        isValidOptionalList(data, 'tags', 50) &&
+        isValidOptionalList(data, 'features', 50) &&
+        isValidOptionalList(data, 'faqs', 50) &&
+        isValidOptionalList(data, 'files', 50);
     }
 
     function isValidStoreSetting(data) {
