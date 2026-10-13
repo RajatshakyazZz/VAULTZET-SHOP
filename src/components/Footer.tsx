@@ -12,9 +12,11 @@ import {
   PlaySquare,
 } from 'lucide-react';
 import { useStoreSettings } from '@/context/StoreSettingsContext';
+import { useCart } from '@/context/CartContext';
 
 export default function Footer() {
   const { settings } = useStoreSettings();
+  const { setIsCartOpen } = useCart();
   const highlights = [
     {
       title: 'Instant Access',
@@ -51,7 +53,7 @@ export default function Footer() {
   const quickLinks = [
     { label: 'Home', href: '/' },
     { label: 'All Bundles', href: '/shop' },
-    { label: 'Cart', href: '/cart' },
+    { label: 'Cart', href: '#cart' },
     { label: 'My Orders', href: '/my-order' },
   ];
 
@@ -111,7 +113,7 @@ export default function Footer() {
                 </div>
               </Link>
               <p className="text-xs sm:text-sm text-gray-500 font-normal leading-relaxed max-w-sm">
-                Premium ready-to-use reels bundles for creators, pages and digital businesses by {settings.storeName || 'Vaultzet'}.
+                Premium ready-to-use reels bundles for creators, pages and digital businesses by {settings.storeName || 'Vaultzet Store'}.
               </p>
             </div>
 
@@ -127,18 +129,32 @@ export default function Footer() {
               </div>
 
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-1">
-                {quickLinks.map((link) => (
-                  <Link
-                    key={link.label}
-                    href={link.href}
-                    className="p-3.5 rounded-2xl bg-white border border-[#eae2f8] hover:border-[#6f33e8] shadow-sm flex items-center justify-between group transition-all"
-                  >
-                    <span className="text-xs sm:text-sm font-extrabold text-gray-800 group-hover:text-[#6f33e8] transition-colors">
-                      {link.label}
-                    </span>
-                    <ArrowRight className="w-3.5 h-3.5 text-[#6f33e8] group-hover:translate-x-0.5 transition-transform" />
-                  </Link>
-                ))}
+                {quickLinks.map((link) =>
+                  link.href === '#cart' ? (
+                    <button
+                      key={link.label}
+                      type="button"
+                      onClick={() => setIsCartOpen(true)}
+                      className="p-3.5 rounded-2xl bg-white border border-[#eae2f8] hover:border-[#6f33e8] shadow-sm flex items-center justify-between group transition-all text-left"
+                    >
+                      <span className="text-xs sm:text-sm font-extrabold text-gray-800 group-hover:text-[#6f33e8] transition-colors">
+                        {link.label}
+                      </span>
+                      <ArrowRight className="w-3.5 h-3.5 text-[#6f33e8] group-hover:translate-x-0.5 transition-transform" />
+                    </button>
+                  ) : (
+                    <Link
+                      key={link.label}
+                      href={link.href}
+                      className="p-3.5 rounded-2xl bg-white border border-[#eae2f8] hover:border-[#6f33e8] shadow-sm flex items-center justify-between group transition-all"
+                    >
+                      <span className="text-xs sm:text-sm font-extrabold text-gray-800 group-hover:text-[#6f33e8] transition-colors">
+                        {link.label}
+                      </span>
+                      <ArrowRight className="w-3.5 h-3.5 text-[#6f33e8] group-hover:translate-x-0.5 transition-transform" />
+                    </Link>
+                  )
+                )}
               </div>
             </div>
 

@@ -13,7 +13,7 @@ export default function RefundPolicyPage() {
 
           <h2 className="text-lg font-bold text-[#182247]">1. Nature of Digital Products</h2>
           <p>
-            All products sold on VaultZet Reels are downloadable digital goods (video reels files, bundles, and media packs) delivered instantaneously via cloud storage links (Google Drive).
+            All products sold on Vaultzet Store are downloadable digital goods (video reels files, bundles, and media packs) delivered instantaneously via cloud storage links (Google Drive).
           </p>
 
           <h2 className="text-lg font-bold text-[#182247]">2. Refund Policy</h2>
@@ -27,7 +27,7 @@ export default function RefundPolicyPage() {
 
           <h2 className="text-lg font-bold text-[#182247]">3. How to Request Assistance</h2>
           <p>
-            If you encounter any issues accessing your bundle, please email our support desk at <strong className="text-slate-800">support@vaultzet.com</strong> with your Order ID.
+            If you encounter any issues accessing your bundle, please email our support desk at <strong className="text-slate-800">support@vaultzet.shop</strong> with your Order ID.
           </p>
         </div>
       </div>

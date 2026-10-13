@@ -91,10 +91,11 @@ export default function MyOrdersPage() {
                 <input
                   type="email"
                   required
+                  autoComplete="email"
                   placeholder="e.g. you@gmail.com"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="w-full px-4 py-3 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-rb-purple"
+                  className="w-full px-4 py-3 rounded-xl border border-slate-200 text-base sm:text-sm focus:outline-none focus:ring-2 focus:ring-rb-purple"
                 />
               </div>
 

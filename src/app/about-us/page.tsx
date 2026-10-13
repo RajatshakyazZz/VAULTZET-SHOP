@@ -15,12 +15,12 @@ export default function AboutUsPage() {
             Empowering Modern Creators & Digital Entrepreneurs
           </h1>
           <p className="text-base text-[#6e7696] font-medium max-w-2xl mx-auto leading-relaxed">
-            VaultZet Reels was built with one goal: To eliminate the hardest bottleneck for content creators — producing dozens of high-retention, high-converting video clips daily.
+            Vaultzet Store was built with one goal: To eliminate the hardest bottleneck for content creators — producing dozens of high-retention, high-converting video clips daily.
           </p>
         </div>
 
         <div className="rounded-3xl p-8 sm:p-12 bg-white border border-[#eae2fa] shadow-sm space-y-6">
-          <h2 className="text-2xl font-black text-[#182247]">Why Choose Our Reels Bundles?</h2>
+          <h2 className="text-2xl font-black text-[#182247]">Why Choose Vaultzet Store?</h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 text-sm text-[#6e7696] font-medium">
             <div className="p-5 rounded-2xl bg-[#faf9ff] border border-purple-100 space-y-2">
               <div className="w-10 h-10 rounded-xl bg-purple-100 text-rb-purple flex items-center justify-center font-black">

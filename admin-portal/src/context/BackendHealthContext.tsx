@@ -58,7 +58,7 @@ export function BackendHealthProvider({ children }: { children: React.ReactNode 
     !hasCustomConfig &&
     (!import.meta.env.VITE_FIREBASE_API_KEY ||
       rawKey.includes('Demo') ||
-      firebaseConfig.projectId === 'reelsbundles-admin');
+      firebaseConfig.projectId === 'demo-project');
 
   const runHealthCheck = useCallback(async () => {
     setStatus('checking');

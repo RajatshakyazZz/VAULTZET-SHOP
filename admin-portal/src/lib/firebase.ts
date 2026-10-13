@@ -44,7 +44,7 @@ export function getEffectiveFirebaseConfig(): FirebaseConfigObject {
   }
 
   return {
-    apiKey: import.meta.env.VITE_FIREBASE_API_KEY || 'AIzaSyDemoAdminPortalKey_ReelsBundles_2026',
+    apiKey: import.meta.env.VITE_FIREBASE_API_KEY || 'AIzaSyDemoAdminPortalKey_Vaultzet_2026',
     authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN || 'vaultzet-5873e.firebaseapp.com',
     projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID || 'vaultzet-5873e',
     storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET || 'vaultzet-5873e.firebasestorage.app',
@@ -97,7 +97,7 @@ export interface AdminAuditEntry {
 const localAuditLogs: AdminAuditEntry[] = [
   {
     id: 'log-1',
-    adminEmail: 'rajat@reelsbundles.in',
+    adminEmail: 'rajat@vaultzet.shop',
     action: 'SITE_MODE_UPDATE',
     module: 'Site Mode',
     details: 'Verified Store status: LIVE mode active',
@@ -105,7 +105,7 @@ const localAuditLogs: AdminAuditEntry[] = [
   },
   {
     id: 'log-2',
-    adminEmail: 'rajat@reelsbundles.in',
+    adminEmail: 'rajat@vaultzet.shop',
     action: 'PRODUCT_PRICE_UPDATE',
     module: 'Products',
     details: 'Updated bundle #rb-premanand-1000 price to ₹49.00',
@@ -113,7 +113,7 @@ const localAuditLogs: AdminAuditEntry[] = [
   },
   {
     id: 'log-3',
-    adminEmail: 'system-webhook@reelsbundles.in',
+    adminEmail: 'system-webhook@vaultzet.shop',
     action: 'WEBHOOK_PROCESSED',
     module: 'Webhooks',
     details: 'Successful payment callback from PG Bridge for Order #9482',

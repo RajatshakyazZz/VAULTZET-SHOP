@@ -46,19 +46,23 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setApiKey(savedKey);
       if (savedAdmin) {
         try {
-          setAdmin(JSON.parse(savedAdmin));
+          const parsed = JSON.parse(savedAdmin);
+          if (parsed?.email && /reelsbundles/i.test(parsed.email)) {
+            parsed.email = 'admin@vaultzet.shop';
+          }
+          setAdmin(parsed);
         } catch {
           setAdmin({
-            name: 'Store Administrator',
-            email: 'admin@reelsbundles.in',
+            name: 'Vaultzet Administrator',
+            email: 'admin@vaultzet.shop',
             role: 'SuperAdmin',
             source: 'portal-key',
           });
         }
       } else {
         setAdmin({
-          name: 'Store Administrator',
-          email: 'admin@reelsbundles.in',
+          name: 'Vaultzet Administrator',
+          email: 'admin@vaultzet.shop',
           role: 'SuperAdmin',
           source: 'portal-key',
         });
@@ -114,8 +118,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       const res = await portalApi.verifyKey(key);
       if (res.valid) {
         const profile: AdminProfile = {
-          name: res.user || 'Store Administrator',
-          email: 'admin@reelsbundles.in',
+          name: res.user || 'Vaultzet Administrator',
+          email: 'admin@vaultzet.shop',
           role: (res.role as AdminRole) || 'SuperAdmin',
           source: 'portal-key',
         };

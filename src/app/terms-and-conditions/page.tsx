@@ -13,7 +13,7 @@ export default function TermsPage() {
 
           <h2 className="text-lg font-bold text-[#182247]">1. License & Usage Rights</h2>
           <p>
-            When purchasing a bundle on VaultZet Reels, you are granted one of two licenses depending on your selection at checkout:
+            When purchasing a bundle on Vaultzet Store, you are granted one of two licenses depending on your selection at checkout:
           </p>
           <ul className="list-disc pl-5 space-y-2">
             <li>
@@ -31,7 +31,7 @@ export default function TermsPage() {
 
           <h2 className="text-lg font-bold text-[#182247]">3. Contact</h2>
           <p>
-            For any queries, please reach out to support@vaultzet.com.
+            For any queries, please reach out to <strong className="text-slate-800">support@vaultzet.shop</strong>.
           </p>
         </div>
       </div>

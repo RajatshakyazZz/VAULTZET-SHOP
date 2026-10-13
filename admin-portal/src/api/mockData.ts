@@ -202,10 +202,10 @@ export const initialContent: ContentItem[] = [
 ];
 
 export const initialBranding: StoreBranding = {
-  store_name: 'Vaultzet Shop',
-  tagline: '220,000+ Viral Reels Bundles & Reseller Rights',
-  logo_url: 'https://reelsbundles.in/wp-content/uploads/2026/10/logo.png',
-  favicon_url: 'https://reelsbundles.in/wp-content/uploads/2026/10/favicon.png',
+  store_name: 'Vaultzet Store',
+  tagline: 'Premium Reels for Your Growth',
+  logo_url: 'https://vaultzet.shop/logo.png',
+  favicon_url: 'https://vaultzet.shop/favicon.ico',
   primary_color: '#9b28ff',
   secondary_color: '#6d3dff',
   accent_color: '#fe5f9b',
@@ -220,8 +220,8 @@ export const initialSiteMode: SiteModeConfig = {
 };
 
 export const initialStoreSetup: StoreSetupConfig = {
-  store_name: 'Vaultzet Digital Shop',
-  contact_email: 'support@vaultzet.com',
+  store_name: 'Vaultzet Store',
+  contact_email: 'support@vaultzet.shop',
   support_whatsapp: '+91 98765 43210',
   currency: 'INR',
   currency_symbol: '₹',
@@ -248,7 +248,7 @@ export const initialMetaPixel: MetaPixelConfig = {
 export const initialWhatsappButton: WhatsappButtonConfig = {
   enabled: true,
   phone_number: '919876543210',
-  default_message: 'Hi Vaultzet Team! I need quick help regarding a Reels Bundle order.',
+  default_message: 'Hi Vaultzet Store Team! I need quick help regarding my order.',
   position: 'bottom-right',
   show_popup_badge: true,
   popup_text: 'Need help? Chat on WhatsApp',
