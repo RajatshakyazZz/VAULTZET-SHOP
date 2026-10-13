@@ -100,7 +100,7 @@ export async function GET(request: Request) {
   try {
     const { searchParams } = new URL(request.url);
     const webhookUrl =
-      searchParams.get('url') || 'https://vaultzet.shop/api/telegram/webhook';
+      searchParams.get('url') || 'https://www.vaultzet.shop/api/telegram/webhook';
 
     const commands = [
       { command: 'today', description: '📊 Today Sales, Revenue (₹), Pending & Top Bundle' },

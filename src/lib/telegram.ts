@@ -481,16 +481,14 @@ Welcome <b>Rajat Shakya</b>! Use these commands anytime to manage your store dir
   const orders = await fetchActiveFirestoreOrders();
   const todayKey = getIstDateKey();
 
-  const paidOrders = orders.filter(
-    (o) => o.status === 'completed' || o.status === 'processing'
-  );
-  const pendingOrders = orders.filter((o) => o.status === 'pending');
+  const paidOrders = orders.filter((o) => o.status === 'completed');
+  const pendingOrders = orders.filter((o) => o.status === 'pending' || o.status === 'processing');
 
   const todayOrders = orders.filter((o) => getIstDateKey(o.timestampIso) === todayKey);
-  const todayPaid = todayOrders.filter(
-    (o) => o.status === 'completed' || o.status === 'processing'
+  const todayPaid = todayOrders.filter((o) => o.status === 'completed');
+  const todayPending = todayOrders.filter(
+    (o) => o.status === 'pending' || o.status === 'processing'
   );
-  const todayPending = todayOrders.filter((o) => o.status === 'pending');
 
   const todayRevenue = todayPaid.reduce((acc, o) => acc + Number(o.totalAmount || 0), 0);
   const allTimeRevenue = paidOrders.reduce((acc, o) => acc + Number(o.totalAmount || 0), 0);

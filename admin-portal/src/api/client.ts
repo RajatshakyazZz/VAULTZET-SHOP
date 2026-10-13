@@ -202,13 +202,15 @@ class PortalApiClient {
   // ==========================================
   async getDailySummary(): Promise<DailySummary> {
     const orders = await this.getOrders();
-    const totalSales = orders.reduce((sum, o) => sum + (o.total || 0), 0);
+    const paidOrders = orders.filter((o) => o.status === 'completed');
+    const totalSales = paidOrders.reduce((sum, o) => sum + (o.total || 0), 0);
     const pendingOrders = orders.filter((o) => o.status === 'pending' || o.status === 'processing');
-    const uniqueCustomerEmails = new Set(orders.map((o) => o.customer.email).filter(Boolean));
+    const refundedOrders = orders.filter((o) => o.status === 'refunded');
+    const uniqueCustomerEmails = new Set(paidOrders.map((o) => o.customer.email).filter(Boolean));
 
-    // Dynamically aggregate top selling bundles ONLY from actual active orders
+    // Dynamically aggregate top selling bundles ONLY from COMPLETED (paid) orders
     const bundleSalesMap = new Map<string, { id: string | number; name: string; sales_count: number; revenue: number }>();
-    orders.forEach((o) => {
+    paidOrders.forEach((o) => {
       (o.items || []).forEach((it) => {
         const key = String(it.product_id || it.name);
         if (!bundleSalesMap.has(key)) {
@@ -233,17 +235,17 @@ class PortalApiClient {
 
     return {
       sales: totalSales,
-      orders: orders.length,
+      orders: paidOrders.length,
       customers: uniqueCustomerEmails.size,
       pending_orders: pendingOrders.length,
-      refunded_orders: 0,
+      refunded_orders: refundedOrders.length,
       gross_revenue: totalSales,
       net_revenue: totalSales,
-      average_order_value: orders.length > 0 ? Math.round(totalSales / orders.length) : 0,
+      average_order_value: paidOrders.length > 0 ? Math.round(totalSales / paidOrders.length) : 0,
       currency: 'INR',
       currency_symbol: '₹',
       revenue_trend: [
-        { date: 'Today', revenue: totalSales, orders: orders.length },
+        { date: 'Today', revenue: totalSales, orders: paidOrders.length },
       ],
       top_selling_bundles: topSellingBundles,
       site_mode: 'LIVE',
@@ -569,7 +571,7 @@ class PortalApiClient {
                 payment_method: data.paymentMethod || 'UPI / Instant QR',
                 transaction_id: data.transactionId || `UPI-${d.id.slice(0, 8)}`,
                 date_created: data.timestampIso || new Date().toISOString(),
-                google_drive_sent: true,
+                google_drive_sent: (data.status || 'completed') === 'completed',
               } as Order;
             })
             .filter(
@@ -720,9 +722,10 @@ class PortalApiClient {
   // ==========================================
   async getCustomers(): Promise<Customer[]> {
     const orders = await this.getOrders();
+    const paidOrders = orders.filter((o) => o.status === 'completed');
     const customerMap = new Map<string, Customer>();
 
-    orders.forEach((o) => {
+    paidOrders.forEach((o) => {
       const email = o.customer.email;
       if (!email) return;
       if (!customerMap.has(email)) {

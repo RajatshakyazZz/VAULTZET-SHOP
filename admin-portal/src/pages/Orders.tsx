@@ -43,9 +43,12 @@ export default function Orders() {
       if (selectedOrder && selectedOrder.id === updated.id) {
         setSelectedOrder((prev) => (prev ? { ...prev, status: updated.status } : null));
       }
+      queryClient.invalidateQueries({ queryKey: ['daily-summary'] });
+      queryClient.invalidateQueries({ queryKey: ['recent-orders'] });
+      queryClient.invalidateQueries({ queryKey: ['customers'] });
       success('Order Updated', `Status changed to ${updated.status}`);
     },
-    onError: () => error('Update Failed', 'Failed to update order status on WooCommerce.'),
+    onError: () => error('Update Failed', 'Failed to update order status.'),
   });
 
   const resendMutation = useMutation({

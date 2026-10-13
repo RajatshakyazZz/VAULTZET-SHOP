@@ -45,10 +45,16 @@ export default function Dashboard() {
 
   const { status, errorMessage, openModal } = useBackendHealth();
 
-  // Compute live metrics directly from current active orders so any deletion updates Dashboard at 0ms
-  const liveNetRevenue = orders.reduce((sum: number, o: any) => sum + Number(o.total || 0), 0);
-  const liveTotalOrders = orders.length;
-  const liveActiveCustomers = new Set(orders.map((o: any) => o.customer?.email).filter(Boolean)).size;
+  // Compute live metrics strictly from COMPLETED (paid) orders so pending/abandoned checkouts are NEVER counted in revenue
+  const paidOrders = React.useMemo(
+    () => orders.filter((o: any) => o.status === 'completed'),
+    [orders]
+  );
+  const liveNetRevenue = paidOrders.reduce((sum: number, o: any) => sum + Number(o.total || 0), 0);
+  const liveTotalOrders = paidOrders.length;
+  const liveActiveCustomers = new Set(
+    paidOrders.map((o: any) => o.customer?.email).filter(Boolean)
+  ).size;
   const livePendingOrders = orders.filter(
     (o: any) => o.status === 'pending' || o.status === 'processing'
   ).length;
@@ -57,7 +63,7 @@ export default function Dashboard() {
 
   const liveTopBundles = React.useMemo(() => {
     const map = new Map<string, { id: string | number; name: string; sales_count: number; revenue: number }>();
-    orders.forEach((o: any) => {
+    paidOrders.forEach((o: any) => {
       (o.items || []).forEach((it: any) => {
         const key = String(it.product_id || it.name);
         if (!map.has(key)) {
@@ -78,7 +84,7 @@ export default function Dashboard() {
       .filter((b) => b.sales_count > 0)
       .sort((a, b) => b.revenue - a.revenue)
       .slice(0, 4);
-  }, [orders]);
+  }, [paidOrders]);
 
   const deleteMutation = useMutation({
     mutationFn: (id: string | number) => portalApi.deleteOrder(id),
