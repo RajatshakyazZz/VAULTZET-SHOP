@@ -7,9 +7,11 @@ import { useRouter } from 'next/navigation';
 
 interface CartContextType {
   items: CartItem[];
+  buyNowItem: CartItem | null;
   addToCart: (product: BundleProduct, license?: LicenseType) => void;
   buyNow: (product: BundleProduct, license?: LicenseType) => void;
   removeFromCart: (productId: string, license: LicenseType) => void;
+  clearBuyNowItem: () => void;
   clearCart: () => void;
   orderBumpAdded: boolean;
   setOrderBumpAdded: (added: boolean) => void;
@@ -25,16 +27,24 @@ const CartContext = createContext<CartContextType | undefined>(undefined);
 
 export function CartProvider({ children }: { children: React.ReactNode }) {
   const [items, setItems] = useState<CartItem[]>([]);
+  const [buyNowItem, setBuyNowItem] = useState<CartItem | null>(null);
   const [orderBumpAdded, setOrderBumpAdded] = useState(false);
   const [isCartOpen, setIsCartOpen] = useState(false);
   const router = useRouter();
 
-  // Load from local storage
+  // Load from storage
   useEffect(() => {
     try {
-      const saved = localStorage.getItem('vaultzet_cart');
+      // Remove legacy cart key that mixed Buy Now items with Cart items
+      localStorage.removeItem('vaultzet_cart');
+
+      const saved = localStorage.getItem('vaultzet_cart_v2');
       if (saved) {
         setItems(JSON.parse(saved));
+      }
+      const savedBuyNow = sessionStorage.getItem('vaultzet_buynow_item');
+      if (savedBuyNow) {
+        setBuyNowItem(JSON.parse(savedBuyNow));
       }
       const savedBump = localStorage.getItem('vaultzet_bump');
       if (savedBump) {
@@ -45,10 +55,10 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     }
   }, []);
 
-  // Save to local storage
+  // Save cart to local storage
   useEffect(() => {
     try {
-      localStorage.setItem('vaultzet_cart', JSON.stringify(items));
+      localStorage.setItem('vaultzet_cart_v2', JSON.stringify(items));
       localStorage.setItem('vaultzet_bump', JSON.stringify(orderBumpAdded));
     } catch {
       // ignore
@@ -69,11 +79,24 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
 
   const buyNow = (product: BundleProduct, license: LicenseType = 'personal') => {
     const price = license === 'reseller' ? product.resellerPrice : product.personalPrice;
-    setItems((prev) => {
-      const filtered = prev.filter((i) => !(i.product.id === product.id && i.license === license));
-      return [...filtered, { product, license, price }];
-    });
-    router.push('/checkout');
+    const singleItem: CartItem = { product, license, price };
+    setBuyNowItem(singleItem);
+    try {
+      sessionStorage.setItem('vaultzet_buynow_item', JSON.stringify(singleItem));
+    } catch {
+      // ignore
+    }
+    setIsCartOpen(false);
+    router.push('/checkout?mode=buynow');
+  };
+
+  const clearBuyNowItem = () => {
+    setBuyNowItem(null);
+    try {
+      sessionStorage.removeItem('vaultzet_buynow_item');
+    } catch {
+      // ignore
+    }
   };
 
   const removeFromCart = (productId: string, license: LicenseType) => {
@@ -97,9 +120,11 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     <CartContext.Provider
       value={{
         items,
+        buyNowItem,
         addToCart,
         buyNow,
         removeFromCart,
+        clearBuyNowItem,
         clearCart,
         orderBumpAdded,
         setOrderBumpAdded,

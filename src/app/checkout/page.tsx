@@ -1,9 +1,9 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, Suspense } from 'react';
 import Link from 'next/link';
 import Script from 'next/script';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import {
   ShieldCheck,
   Zap,
@@ -26,17 +26,26 @@ declare global {
   }
 }
 
-export default function CheckoutPage() {
+function CheckoutContent() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const isBuyNowMode = searchParams.get('mode') === 'buynow';
+
   const {
     items,
+    buyNowItem,
     removeFromCart,
+    clearBuyNowItem,
     orderBumpAdded,
     setOrderBumpAdded,
     subtotal,
     total,
-    clearCart,
   } = useCart();
+
+  // Strictly separate Buy Now (single product only) vs Cart Checkout (all added cart items)
+  const checkoutItems = isBuyNowMode ? (buyNowItem ? [buyNowItem] : []) : items;
+  const checkoutSubtotal = isBuyNowMode ? (buyNowItem ? buyNowItem.price : 0) : subtotal;
+  const checkoutTotal = checkoutSubtotal + (orderBumpAdded ? ORDER_BUMP.discountPrice : 0);
 
   // 3 minimal customer fields
   const [fullName, setFullName] = useState('');
@@ -93,7 +102,7 @@ export default function CheckoutPage() {
                 email: email.trim() || 'Entering email...',
                 phone: phone.trim(),
               },
-              items: items.map((i) => ({
+              items: checkoutItems.map((i) => ({
                 id: i.product.id,
                 title: i.product.title,
                 license: i.license,
@@ -105,7 +114,7 @@ export default function CheckoutPage() {
                     price: ORDER_BUMP.discountPrice,
                   }
                 : null,
-              totalAmount: total,
+              totalAmount: checkoutTotal,
             },
           }),
         }).catch(() => {});
@@ -113,14 +122,14 @@ export default function CheckoutPage() {
     }, 1500);
 
     return () => clearTimeout(leadTimer);
-  }, [phone, fullName, email, items, orderBumpAdded, total]);
+  }, [phone, fullName, email, checkoutItems, orderBumpAdded, checkoutTotal]);
 
   const handlePlaceOrder = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrorMessage(null);
 
-    if (items.length === 0 && !orderBumpAdded) {
-      alert('Your cart is empty. Please select a bundle first.');
+    if (checkoutItems.length === 0 && !orderBumpAdded) {
+      alert('Your checkout is empty. Please select a bundle first.');
       return;
     }
 
@@ -139,7 +148,7 @@ export default function CheckoutPage() {
         email: email.trim().toLowerCase(),
         phone: phone.trim(),
       },
-      items: items.map((i) => ({
+      items: checkoutItems.map((i) => ({
         id: i.product.id,
         title: i.product.title,
         license: i.license,
@@ -153,7 +162,7 @@ export default function CheckoutPage() {
             price: ORDER_BUMP.discountPrice,
           }
         : null,
-      totalAmount: total,
+      totalAmount: checkoutTotal,
     };
 
     try {
@@ -222,7 +231,7 @@ export default function CheckoutPage() {
     }
   };
 
-  if (items.length === 0 && !orderBumpAdded) {
+  if (checkoutItems.length === 0 && !orderBumpAdded) {
     return (
       <div className="max-w-2xl mx-auto px-4 py-20 text-center space-y-4">
         <div className="w-16 h-16 rounded-full bg-purple-100 text-rb-purple flex items-center justify-center mx-auto text-2xl">
@@ -256,7 +265,7 @@ export default function CheckoutPage() {
           <div className="flex items-center justify-between pb-6 mb-8 border-b border-purple-100">
             <div>
               <h1 className="text-2xl sm:text-3xl font-black text-[#182247] tracking-tight">
-                Express Checkout
+                {isBuyNowMode ? 'Instant Buy Now Checkout' : 'Express Checkout'}
               </h1>
               <p className="text-xs sm:text-sm text-[#6e7696] font-medium mt-1">
                 Zero hassle: Fill your details, pay securely via Cashfree, and get instant Google Drive access.
@@ -487,12 +496,12 @@ export default function CheckoutPage() {
             <div className="lg:col-span-5 sticky top-28 space-y-4">
               <div className="rounded-3xl p-6 bg-white border border-[#eae2fa] shadow-lg space-y-5">
                 <h2 className="text-base font-extrabold text-[#182247] pb-3 border-b border-slate-100">
-                  Order Summary ({items.length + (orderBumpAdded ? 1 : 0)} items)
+                  Order Summary ({checkoutItems.length + (orderBumpAdded ? 1 : 0)} {checkoutItems.length + (orderBumpAdded ? 1 : 0) === 1 ? 'item' : 'items'})
                 </h2>
 
                 {/* Items List */}
                 <div className="space-y-3 max-h-72 overflow-y-auto pr-1">
-                  {items.map((item) => (
+                  {checkoutItems.map((item) => (
                     <div
                       key={`${item.product.id}-${item.license}`}
                       className="flex gap-3 items-center justify-between p-2.5 rounded-xl bg-slate-50 border border-slate-100"
@@ -516,7 +525,11 @@ export default function CheckoutPage() {
                         </div>
                         <button
                           type="button"
-                          onClick={() => removeFromCart(item.product.id, item.license)}
+                          onClick={() =>
+                            isBuyNowMode
+                              ? clearBuyNowItem()
+                              : removeFromCart(item.product.id, item.license)
+                          }
                           className="text-slate-400 hover:text-red-500 text-xs p-1"
                         >
                           <Trash2 className="w-3.5 h-3.5" />
@@ -560,7 +573,7 @@ export default function CheckoutPage() {
                 <div className="space-y-2 pt-3 border-t border-slate-100 text-xs font-semibold">
                   <div className="flex justify-between text-slate-500">
                     <span>Subtotal</span>
-                    <span className="text-slate-800">₹{subtotal}.00</span>
+                    <span className="text-slate-800">₹{checkoutSubtotal}.00</span>
                   </div>
                   {orderBumpAdded && (
                     <div className="flex justify-between text-green-600">
@@ -570,7 +583,7 @@ export default function CheckoutPage() {
                   )}
                   <div className="flex justify-between text-base font-black text-[#182247] pt-2 border-t border-slate-200">
                     <span>Final Total</span>
-                    <span className="text-2xl text-rb-purple">₹{total}.00</span>
+                    <span className="text-2xl text-rb-purple">₹{checkoutTotal}.00</span>
                   </div>
                 </div>
 
@@ -588,7 +601,7 @@ export default function CheckoutPage() {
                   ) : (
                     <>
                       <Lock className="w-4 h-4" />
-                      <span>Pay ₹{total}.00 via Cashfree (Instant Access)</span>
+                      <span>Pay ₹{checkoutTotal}.00 via Cashfree (Instant Access)</span>
                     </>
                   )}
                 </button>
@@ -608,5 +621,13 @@ export default function CheckoutPage() {
         </div>
       </div>
     </>
+  );
+}
+
+export default function CheckoutPage() {
+  return (
+    <Suspense fallback={<div className="py-20 text-center text-sm font-bold text-slate-500">Loading Checkout...</div>}>
+      <CheckoutContent />
+    </Suspense>
   );
 }
