@@ -31,6 +31,8 @@ import {
   Shield,
   Clock,
   Eye,
+  ArrowDownToLine,
+  Check,
 } from 'lucide-react';
 import { BUNDLE_PRODUCTS } from '@/data/bundles';
 import { useCart } from '@/context/CartContext';
@@ -104,6 +106,12 @@ export default function ProductDetailPage() {
   const activePrice = selectedLicense === 'reseller' ? product.resellerPrice : product.personalPrice;
   const originalPrice = selectedLicense === 'reseller' ? product.resellerOriginalPrice : product.personalOriginalPrice;
   const discountPercent = Math.round(((originalPrice - activePrice) / originalPrice) * 100);
+  const personalDiscountPercent = Math.round(
+    ((product.personalOriginalPrice - product.personalPrice) / product.personalOriginalPrice) * 100
+  );
+  const resellerDiscountPercent = Math.round(
+    ((product.resellerOriginalPrice - product.resellerPrice) / product.resellerOriginalPrice) * 100
+  );
   const currentImage = selectedImage || product.thumbnail || '';
 
   const details = getBundleContentDetails(product);
@@ -309,8 +317,6 @@ export default function ProductDetailPage() {
                   </div>
                   <span className="text-slate-700 font-extrabold">{product.rating}</span>
                   <span className="text-[#8b8594] font-normal">({product.reviewCount} customer reviews)</span>
-                  <span className="text-slate-300">•</span>
-                  <span className="text-[#8b8594] font-semibold">1.2k+ sold</span>
                 </div>
               </div>
 
@@ -318,150 +324,151 @@ export default function ProductDetailPage() {
                 {product.title}
               </h1>
 
-              <p className="text-sm sm:text-base text-[#716d7b] font-normal mt-2.5 leading-relaxed">
-                {product.shortDescription}
-              </p>
+              {/* 1+ sold badge & description matching screenshot */}
+              <div className="mt-3 space-y-2">
+                <div className="text-xs font-semibold text-gray-500">
+                  1+ sold
+                </div>
+                <p className="text-sm sm:text-base text-[#4b5563] font-normal leading-relaxed">
+                  {product.shortDescription}
+                </p>
+              </div>
             </div>
 
-            {/* Top Price Bar */}
-            <div className="flex items-baseline gap-3 py-1">
-              <span className="text-3xl sm:text-4xl font-black text-[#17151f]">
-                ₹{activePrice}.00
-              </span>
-              <span className="text-base sm:text-lg text-[#9b96a3] line-through font-semibold">
+            {/* Top Price Bar matching competitor screenshot */}
+            <div className="flex items-baseline gap-3 pt-1 pb-1">
+              <span className="text-sm sm:text-base text-gray-400 line-through font-semibold">
                 ₹{originalPrice}.00
               </span>
-              <span className="bg-[#ffe6ef] text-[#e52c72] rounded-full px-3 py-1 text-xs font-black uppercase tracking-wider">
+              <span className="text-3xl sm:text-4xl font-extrabold text-[#111827] tracking-tight">
+                ₹{activePrice}.00
+              </span>
+              <span className="bg-[#fce7f3] text-[#db2777] rounded-full px-2.5 py-0.5 text-xs font-black uppercase tracking-wider">
                 {discountPercent}% OFF
               </span>
             </div>
 
-            {/* INTERACTIVE LICENSE SELECTOR (rbp-license-box matching competitor) */}
-            <div id="purchase-card" className="border-2 border-[#e8e1ff] bg-gradient-to-br from-[#ffffff] to-[#faf8ff] rounded-2xl p-4 sm:p-5 shadow-sm space-y-3.5">
-              <div className="flex items-center justify-between">
-                <div>
-                  <span className="text-[10px] font-black uppercase tracking-wider text-rb-purple block">
-                    SELECT YOUR LICENSE
-                  </span>
-                  <h3 className="text-sm sm:text-base font-extrabold text-[#17151f]">
-                    Get the right access for your use
-                  </h3>
-                </div>
-                <span className="text-[11px] font-medium text-slate-400 hidden sm:inline">
+            {/* INTERACTIVE LICENSE SELECTOR matching competitor screenshot */}
+            <div id="purchase-card" className="relative rounded-2xl sm:rounded-3xl border border-[#e5e7eb] bg-white p-5 sm:p-6 shadow-[0_4px_24px_rgba(0,0,0,0.03)] overflow-hidden space-y-4">
+              {/* Top colorful gradient accent line */}
+              <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-[#6366f1] via-[#a855f7] to-[#ec4899]" />
+
+              {/* Badge */}
+              <div className="inline-block px-2.5 py-1 rounded-md text-[10px] sm:text-[11px] font-black uppercase tracking-wider bg-[#f3e8ff] text-[#7e22ce]">
+                SELECT YOUR LICENSE
+              </div>
+
+              {/* Heading & Switch info */}
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1 sm:gap-2">
+                <h3 className="text-base sm:text-lg font-black text-[#111827]">
+                  Get the right access for your use
+                </h3>
+                <span className="text-xs text-gray-500 font-medium shrink-0">
                   Switch anytime before purchase
                 </span>
               </div>
 
-              {/* License Radio Options */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                {/* Personal Use Card */}
-                <label
+              {/* Segmented Switch container */}
+              <div className="p-1.5 rounded-2xl bg-[#f8fafc] border border-gray-200 grid grid-cols-2 gap-2">
+                {/* Personal Use Tab */}
+                <button
+                  type="button"
                   onClick={() => setSelectedLicense('personal')}
-                  className={`p-3.5 rounded-xl border-2 cursor-pointer transition-all flex flex-col justify-between ${
+                  className={`py-2.5 px-3 rounded-xl flex items-center justify-center gap-2 text-xs sm:text-sm font-bold transition-all ${
                     selectedLicense === 'personal'
-                      ? 'border-rb-purple bg-[#faf8ff] shadow-sm'
-                      : 'border-[#e9e5f0] bg-white hover:border-[#c9bced]'
+                      ? 'bg-white text-[#581c87] shadow-xs border border-purple-200/80 font-black'
+                      : 'text-gray-600 hover:text-gray-900 font-semibold'
                   }`}
                 >
-                  <div className="flex items-center justify-between mb-1.5">
-                    <div className="flex items-center gap-2">
-                      <span className={`w-4 h-4 rounded-full border-2 flex items-center justify-center ${
-                        selectedLicense === 'personal' ? 'border-rb-purple' : 'border-slate-300'
-                      }`}>
-                        {selectedLicense === 'personal' && (
-                          <span className="w-2 h-2 rounded-full bg-rb-purple" />
-                        )}
-                      </span>
-                      <span className="font-extrabold text-xs sm:text-sm text-[#17151f]">Personal Use</span>
-                    </div>
-                    <span className="text-[10px] font-black px-2 py-0.5 rounded-full bg-purple-100 text-rb-purple">
-                      50% OFF
+                  <span>Personal Use</span>
+                  <span className="bg-[#fce7f3] text-[#db2777] text-[10px] font-black px-1.5 py-0.5 rounded-full">
+                    {personalDiscountPercent}% OFF
+                  </span>
+                  {selectedLicense === 'personal' && (
+                    <span className="w-4 h-4 rounded-full bg-[#7e22ce] text-white flex items-center justify-center shrink-0">
+                      <Check className="w-2.5 h-2.5 stroke-[3]" />
                     </span>
-                  </div>
-                  <p className="text-[11px] text-[#716d7b] leading-tight my-1">
-                    For your own social accounts & channels.
-                  </p>
-                  <div className="text-base sm:text-lg font-black text-rb-purple mt-1">
-                    ₹{product.personalPrice}.00
-                    <span className="text-xs text-slate-400 line-through font-normal ml-1.5">
-                      ₹{product.personalOriginalPrice}.00
-                    </span>
-                  </div>
-                </label>
+                  )}
+                </button>
 
-                {/* Reseller Rights Card */}
-                <label
+                {/* Reseller Rights Tab */}
+                <button
+                  type="button"
                   onClick={() => setSelectedLicense('reseller')}
-                  className={`p-3.5 rounded-xl border-2 cursor-pointer transition-all flex flex-col justify-between ${
+                  className={`py-2.5 px-3 rounded-xl flex items-center justify-center gap-2 text-xs sm:text-sm font-bold transition-all ${
                     selectedLicense === 'reseller'
-                      ? 'border-rb-purple bg-[#faf8ff] shadow-sm'
-                      : 'border-[#e9e5f0] bg-white hover:border-[#c9bced]'
+                      ? 'bg-white text-[#581c87] shadow-xs border border-purple-200/80 font-black'
+                      : 'text-gray-600 hover:text-gray-900 font-semibold'
                   }`}
                 >
-                  <div className="flex items-center justify-between mb-1.5">
-                    <div className="flex items-center gap-2">
-                      <span className={`w-4 h-4 rounded-full border-2 flex items-center justify-center ${
-                        selectedLicense === 'reseller' ? 'border-rb-purple' : 'border-slate-300'
-                      }`}>
-                        {selectedLicense === 'reseller' && (
-                          <span className="w-2 h-2 rounded-full bg-rb-purple" />
-                        )}
-                      </span>
-                      <span className="font-extrabold text-xs sm:text-sm text-[#17151f]">Reseller Rights</span>
-                    </div>
-                    <span className="text-[10px] font-black px-2 py-0.5 rounded-full bg-pink-100 text-[#e52c72]">
-                      74% OFF
+                  <span>Reseller Rights</span>
+                  <span className="bg-[#fce7f3] text-[#db2777] text-[10px] font-black px-1.5 py-0.5 rounded-full">
+                    {resellerDiscountPercent}% OFF
+                  </span>
+                  {selectedLicense === 'reseller' && (
+                    <span className="w-4 h-4 rounded-full bg-[#7e22ce] text-white flex items-center justify-center shrink-0">
+                      <Check className="w-2.5 h-2.5 stroke-[3]" />
                     </span>
-                  </div>
-                  <p className="text-[11px] text-[#716d7b] leading-tight my-1">
-                    Resell & keep 100% of profits forever.
-                  </p>
-                  <div className="text-base sm:text-lg font-black text-rb-purple mt-1">
-                    ₹{product.resellerPrice}.00
-                    <span className="text-xs text-slate-400 line-through font-normal ml-1.5">
-                      ₹{product.resellerOriginalPrice}.00
-                    </span>
-                  </div>
-                </label>
-              </div>
-
-              {/* Action Buttons: Add to Cart & Buy Now */}
-              <div className="grid grid-cols-2 gap-3 pt-2">
-                <button
-                  type="button"
-                  onClick={handleAddToCart}
-                  className="min-h-[48px] px-4 rounded-xl border-2 border-[#bbaaf1] bg-white hover:bg-purple-50 text-[#4f26c8] font-extrabold text-xs sm:text-sm flex items-center justify-center gap-2 transition-all shadow-sm active:scale-95"
-                >
-                  <ShoppingCart className="w-4 h-4" />
-                  <span>Add to Cart</span>
-                </button>
-
-                <button
-                  type="button"
-                  onClick={() => buyNow(product, selectedLicense)}
-                  className="min-h-[48px] px-4 rounded-xl btn-gradient-primary text-white font-black text-xs sm:text-sm flex items-center justify-center gap-2 transition-all shadow-lg hover:shadow-xl hover:-translate-y-0.5 active:scale-95"
-                >
-                  <Zap className="w-4 h-4 fill-white" />
-                  <span>Buy Now</span>
+                  )}
                 </button>
               </div>
 
-              {/* Centered Trust Strip */}
-              <div className="flex items-center justify-center gap-4 sm:gap-6 pt-2 text-[11px] sm:text-xs font-bold text-[#7b7684]">
-                <span className="inline-flex items-center gap-1.5">
-                  <Zap className="w-3.5 h-3.5 text-rb-purple" />
-                  <span>Instant Access</span>
-                </span>
-                <span className="inline-flex items-center gap-1.5">
-                  <ShieldCheck className="w-3.5 h-3.5 text-rb-purple" />
-                  <span>Secure Payment</span>
-                </span>
-                <span className="inline-flex items-center gap-1.5">
-                  <Sparkles className="w-3.5 h-3.5 text-rb-purple" />
-                  <span>Digital Delivery</span>
-                </span>
+              {/* Selected License Card Details */}
+              <div className="rounded-xl border border-gray-200 bg-white p-4 sm:p-5">
+                <h4 className="text-sm sm:text-base font-bold text-gray-900">
+                  {selectedLicense === 'personal' ? 'Personal Use License' : 'Reseller Rights License'}
+                </h4>
+                <p className="text-xs sm:text-sm text-gray-500 font-medium leading-relaxed mt-1">
+                  {selectedLicense === 'personal'
+                    ? 'For personal or managed-page use according to the rights supplied with the source files.'
+                    : 'Full commercial resell rights included. Rebrand, resell to clients or customers and keep 100% of profits.'}
+                </p>
+                <div className="pt-3 border-t border-gray-100 flex items-baseline gap-2 mt-3">
+                  <span className="text-sm text-gray-400 line-through font-medium">
+                    ₹{originalPrice}.00
+                  </span>
+                  <span className="text-2xl font-black text-[#581c87]">
+                    ₹{activePrice}.00
+                  </span>
+                </div>
               </div>
+            </div>
 
+            {/* Action Buttons: Add to Cart & Buy Now */}
+            <div className="grid grid-cols-2 gap-3 pt-1">
+              <button
+                type="button"
+                onClick={handleAddToCart}
+                className="min-h-[50px] px-4 rounded-2xl border border-[#818cf8] bg-white hover:bg-purple-50/60 text-[#4f46e5] font-bold text-xs sm:text-sm flex items-center justify-center gap-2 transition-all shadow-xs active:scale-[0.98]"
+              >
+                <ShoppingCart className="w-4 h-4 text-[#4f46e5]" />
+                <span>Add to Cart</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => buyNow(product, selectedLicense)}
+                className="min-h-[50px] px-4 rounded-2xl bg-[#4f46e5] hover:bg-[#4338ca] text-white font-bold text-xs sm:text-sm flex items-center justify-center gap-2 transition-all shadow-md hover:shadow-lg active:scale-[0.98]"
+              >
+                <Sparkles className="w-4 h-4 fill-white" />
+                <span>Buy Now</span>
+              </button>
+            </div>
+
+            {/* 3 Trust Badges Matching Competitor Screenshot */}
+            <div className="grid grid-cols-3 gap-2 sm:gap-2.5 pt-1 text-center">
+              <div className="bg-[#f5f3ff] border border-[#ede9fe] text-[#7c3aed] py-2.5 px-1.5 sm:px-2 rounded-2xl flex items-center justify-center gap-1.5 text-[11px] sm:text-xs font-bold">
+                <ArrowDownToLine className="w-3.5 h-3.5 shrink-0" />
+                <span>Instant Access</span>
+              </div>
+              <div className="bg-[#f0f9ff] border border-[#e0f2fe] text-[#0284c7] py-2.5 px-1.5 sm:px-2 rounded-2xl flex items-center justify-center gap-1.5 text-[11px] sm:text-xs font-bold">
+                <ShieldCheck className="w-3.5 h-3.5 shrink-0" />
+                <span>Secure Payment</span>
+              </div>
+              <div className="bg-[#f0fdf4] border border-[#dcfce7] text-[#16a34a] py-2.5 px-1.5 sm:px-2 rounded-2xl flex items-center justify-center gap-1.5 text-[11px] sm:text-xs font-bold">
+                <Check className="w-3.5 h-3.5 shrink-0 stroke-[3]" />
+                <span>Digital Delivery</span>
+              </div>
             </div>
 
           </div>
