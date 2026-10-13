@@ -7,7 +7,7 @@ import { useCart } from '@/context/CartContext';
 
 export default function MobileBottomNav() {
   const pathname = usePathname();
-  const { cartCount, setIsCartOpen } = useCart();
+  const { cartCount, total } = useCart();
 
   // Hide on checkout or thankyou pages
   if (pathname.includes('/checkout') || pathname.includes('/order-success')) {
@@ -15,6 +15,7 @@ export default function MobileBottomNav() {
   }
 
   const isReelsPage = pathname.startsWith('/reels');
+  const isCartPage = pathname === '/cart';
 
   const navItems = [
     {
@@ -77,12 +78,20 @@ export default function MobileBottomNav() {
         );
       })}
 
-      {/* Cart Button */}
-      <button
-        onClick={() => setIsCartOpen(true)}
-        className="relative flex flex-col items-center justify-center py-1 px-1 rounded-[14px] text-[#777189] hover:text-[#5c32d5] font-bold transition-all"
+      {/* Cart Button linking to /cart matching competitor screenshot */}
+      <Link
+        href="/cart"
+        prefetch={false}
+        className={`relative flex flex-col items-center justify-center py-1 px-1 rounded-[14px] transition-all ${
+          isCartPage
+            ? 'bg-gradient-to-br from-[#f1ecff] to-[#fff1f8] text-[#5c32d5] font-extrabold'
+            : 'text-[#777189] hover:text-[#5c32d5] font-bold'
+        }`}
         aria-label="Cart"
       >
+        {isCartPage && (
+          <span className="absolute -top-[5px] left-1/2 -translate-x-1/2 w-6 h-[3px] rounded-full bg-gradient-to-r from-[#6d3fe8] to-[#e74a9d]" />
+        )}
         <span className="relative flex items-center justify-center w-[26px] h-[26px]">
           <svg className="w-[22px] h-[22px]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round">
             <path d="M3 4h2l2.1 10.2a2 2 0 0 0 2 1.6h7.8a2 2 0 0 0 2-1.6L20 8H6.2M9 20h.01M17 20h.01" />
@@ -96,7 +105,12 @@ export default function MobileBottomNav() {
         <span className="text-[10px] mt-0.5 tracking-tight font-extrabold leading-tight">
           Cart
         </span>
-      </button>
+        {cartCount > 0 && (
+          <span className="text-[7.5px] font-black text-[#5c32d5] leading-none mt-0.5">
+            ₹{total}.00
+          </span>
+        )}
+      </Link>
     </nav>
   );
 }

@@ -107,8 +107,9 @@ export default function Header() {
             </form>
 
             {/* Cart Button Pill matching Image 1 */}
-            <button
-              onClick={() => setIsCartOpen(true)}
+            <Link
+              href="/cart"
+              prefetch={false}
               className="flex items-center gap-2 px-4 py-2 rounded-full bg-[#f4f1fa] hover:bg-[#eae4f7] border border-[#e2d8f5] text-[#162048] font-bold text-sm transition-all group"
               aria-label="Cart"
             >
@@ -121,7 +122,7 @@ export default function Header() {
                 )}
               </div>
               <span>Cart</span>
-            </button>
+            </Link>
 
             {/* Mobile menu toggle */}
             <button
