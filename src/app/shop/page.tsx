@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useMemo, Suspense } from 'react';
+import React, { useState, useEffect, useMemo, Suspense } from 'react';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import {
@@ -39,16 +39,25 @@ function ShopContent() {
       if (res && res.length > 0) {
         setCustomProducts(res);
       }
-    });
+    }).catch(() => {});
   }, []);
 
   const allBundles = useMemo(() => {
-    if (customProducts.length === 0) return BUNDLE_PRODUCTS;
-    const customSlugs = new Set(customProducts.map((p) => p.slug.toLowerCase()));
-    const filteredInitial = BUNDLE_PRODUCTS.filter(
-      (b) => !customSlugs.has(b.slug.toLowerCase())
+    const validCustom = (customProducts || []).filter(
+      (p): p is BundleProduct => Boolean(p && typeof p.slug === 'string')
     );
-    return [...customProducts, ...filteredInitial];
+    const validInitial = (BUNDLE_PRODUCTS || []).filter(
+      (b): b is BundleProduct => Boolean(b && typeof b.slug === 'string')
+    );
+    if (validCustom.length === 0) return validInitial;
+
+    const customSlugs = new Set(
+      validCustom.map((p) => String(p.slug || '').toLowerCase())
+    );
+    const filteredInitial = validInitial.filter(
+      (b) => !customSlugs.has(String(b.slug || '').toLowerCase())
+    );
+    return [...validCustom, ...filteredInitial];
   }, [customProducts]);
 
   const categoryCounts = useMemo(() => {
@@ -56,24 +65,28 @@ function ShopContent() {
   }, [allBundles]);
 
   const filteredBundles = useMemo(() => {
-    return allBundles.filter((b) => {
-      const matchesCategory = productMatchesCategory(b, selectedCategory);
-      const q = searchTerm.toLowerCase().trim();
-      const matchesSearch =
-        !q ||
-        b.title.toLowerCase().includes(q) ||
-        b.category.toLowerCase().includes(q) ||
-        b.shortDescription.toLowerCase().includes(q) ||
-        (b.tags && b.tags.some((t) => t.toLowerCase().includes(q)));
-      const matchesPrice =
-        b.personalPrice >= minPrice && b.personalPrice <= maxPrice;
-      return matchesCategory && matchesSearch && matchesPrice;
-    }).sort((a, b) => {
-      if (sortBy === 'price-low') return a.personalPrice - b.personalPrice;
-      if (sortBy === 'price-high') return b.personalPrice - a.personalPrice;
-      if (sortBy === 'reels') return b.reelCount - a.reelCount;
-      return (b.isHot ? 1 : 0) - (a.isHot ? 1 : 0);
-    });
+    return allBundles
+      .filter((b) => {
+        if (!b) return false;
+        const matchesCategory = productMatchesCategory(b, selectedCategory);
+        const q = String(searchTerm || '').toLowerCase().trim();
+        const matchesSearch =
+          !q ||
+          (b.title && b.title.toLowerCase().includes(q)) ||
+          (b.category && b.category.toLowerCase().includes(q)) ||
+          (b.shortDescription && b.shortDescription.toLowerCase().includes(q)) ||
+          (Array.isArray(b.tags) &&
+            b.tags.some((t) => typeof t === 'string' && t.toLowerCase().includes(q)));
+        const price = typeof b.personalPrice === 'number' ? b.personalPrice : 0;
+        const matchesPrice = price >= minPrice && price <= maxPrice;
+        return matchesCategory && matchesSearch && matchesPrice;
+      })
+      .sort((a, b) => {
+        if (sortBy === 'price-low') return (a.personalPrice || 0) - (b.personalPrice || 0);
+        if (sortBy === 'price-high') return (b.personalPrice || 0) - (a.personalPrice || 0);
+        if (sortBy === 'reels') return (b.reelCount || 0) - (a.reelCount || 0);
+        return (b.isHot ? 1 : 0) - (a.isHot ? 1 : 0);
+      });
   }, [allBundles, selectedCategory, searchTerm, minPrice, maxPrice, sortBy]);
 
   const clearFilters = () => {
@@ -279,7 +292,7 @@ function ShopContent() {
             {/* Top Toolbar: Showing count + Sort by dropdown */}
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white p-3.5 sm:px-5 rounded-2xl border border-[#eee8fa] shadow-2xs">
               <span className="text-xs sm:text-[13px] font-bold text-gray-700">
-                Showing 1–{filteredBundles.length} of 159 bundles
+                Showing 1–{filteredBundles.length} of {allBundles.length} bundles
               </span>
 
               <div className="flex items-center gap-2">
@@ -300,15 +313,18 @@ function ShopContent() {
             {/* 3-Column Product Cards Grid matching Image 1 */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
               {filteredBundles.map((bundle) => {
-                const discount = Math.round(
-                  ((bundle.personalOriginalPrice - bundle.personalPrice) /
-                    bundle.personalOriginalPrice) *
-                    100
-                );
+                const origPrice = bundle.personalOriginalPrice || 499;
+                const currPrice = bundle.personalPrice || 99;
+                const discount =
+                  origPrice > currPrice
+                    ? Math.round(((origPrice - currPrice) / origPrice) * 100)
+                    : 80;
 
                 const isBestSelling =
-                  bundle.tags?.includes('BEST SELLING') || bundle.id === 'rb-premanand-1000';
-                const hasDriveTag = bundle.tags?.includes('Google Drive');
+                  (Array.isArray(bundle.tags) && bundle.tags.includes('BEST SELLING')) ||
+                  bundle.id === 'rb-premanand-1000';
+                const hasDriveTag =
+                  Array.isArray(bundle.tags) && bundle.tags.includes('Google Drive');
 
                 return (
                   <div
@@ -347,7 +363,7 @@ function ShopContent() {
 
                       {/* HD / 1080P Badge in Bottom Right matching Image 1 */}
                       <span className="absolute bottom-2.5 right-2.5 px-2 py-0.5 rounded-md text-[10px] font-black bg-black/75 text-white backdrop-blur-md border border-white/20">
-                        {bundle.resolution.includes('1080') ? '1080P' : 'HD'}
+                        {String(bundle.resolution || '').includes('1080') ? '1080P' : 'HD'}
                       </span>
                     </Link>
 

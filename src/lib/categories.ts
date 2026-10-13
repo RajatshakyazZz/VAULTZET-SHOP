@@ -401,80 +401,97 @@ export const COMPETITOR_CATEGORIES: CategoryItem[] = [
  * Checks if a given product belongs to a specific category slug.
  */
 export function productMatchesCategory(
-  product: BundleProduct,
+  product: BundleProduct | any,
   targetCategorySlug: string
 ): boolean {
   if (!targetCategorySlug || targetCategorySlug === 'all') return true;
+  if (!product) return false;
 
-  const targetClean = targetCategorySlug.trim().toLowerCase();
+  const targetClean = String(targetCategorySlug).trim().toLowerCase();
 
   // 1. Direct slug or category match
-  if (product.categorySlug && product.categorySlug.toLowerCase() === targetClean) {
+  const catSlug = String(product.categorySlug || '').toLowerCase();
+  if (catSlug && catSlug === targetClean) {
     return true;
   }
-  if (product.category && product.category.toLowerCase().replace(/[^a-z0-9]+/g, '-') === targetClean) {
+
+  const catName = String(product.category || '').toLowerCase();
+  if (catName && catName.replace(/[^a-z0-9]+/g, '-') === targetClean) {
     return true;
   }
 
   // 2. Extra category lists
-  if (product.categorySlugs && product.categorySlugs.some((s) => s.toLowerCase() === targetClean)) {
-    return true;
+  if (Array.isArray(product.categorySlugs)) {
+    if (product.categorySlugs.some((s: any) => typeof s === 'string' && s.toLowerCase() === targetClean)) {
+      return true;
+    }
   }
-  if (
-    product.categories &&
-    product.categories.some(
-      (c) =>
-        c.toLowerCase() === targetClean ||
-        c.toLowerCase().replace(/[^a-z0-9]+/g, '-') === targetClean
-    )
-  ) {
-    return true;
+
+  if (Array.isArray(product.categories)) {
+    if (
+      product.categories.some(
+        (c: any) =>
+          typeof c === 'string' &&
+          (c.toLowerCase() === targetClean ||
+            c.toLowerCase().replace(/[^a-z0-9]+/g, '-') === targetClean)
+      )
+    ) {
+      return true;
+    }
   }
 
   // 3. Find Category Definition
   const catDef = COMPETITOR_CATEGORIES.find(
     (c) =>
       c.slug.toLowerCase() === targetClean ||
-      (c.aliases && c.aliases.includes(targetClean))
+      (Array.isArray(c.aliases) && c.aliases.includes(targetClean))
   );
 
   if (!catDef) return false;
 
   // 4. Keyword and text match
+  const tagsList = Array.isArray(product.tags) ? product.tags : [];
+  const extraCategoriesList = Array.isArray(product.categories) ? product.categories : [];
   const textCorpus = [
-    product.title,
-    product.slug,
-    product.category,
-    product.shortDescription,
-    ...(product.tags || []),
-    ...(product.categories || []),
+    String(product.title || ''),
+    String(product.slug || ''),
+    catName,
+    String(product.shortDescription || ''),
+    ...tagsList.map(String),
+    ...extraCategoriesList.map(String),
   ]
     .filter(Boolean)
     .join(' ')
     .toLowerCase();
 
-  return catDef.keywords.some((kw) => textCorpus.includes(kw));
+  return (catDef.keywords || []).some((kw) => textCorpus.includes(kw.toLowerCase()));
 }
 
 /**
  * Computes live product counts for each of the 61 categories.
  */
 export function calculateCategoryCounts(
-  products: BundleProduct[]
+  products: (BundleProduct | any)[]
 ): Record<string, number> {
+  const safeProducts = Array.isArray(products) ? products.filter(Boolean) : [];
   const counts: Record<string, number> = {
-    all: products.length,
+    all: safeProducts.length,
   };
 
-  for (const cat of COMPETITOR_CATEGORIES) {
-    let matchCount = 0;
-    for (const prod of products) {
-      if (productMatchesCategory(prod, cat.slug)) {
-        matchCount++;
+  try {
+    for (const cat of COMPETITOR_CATEGORIES) {
+      let matchCount = 0;
+      for (const prod of safeProducts) {
+        if (productMatchesCategory(prod, cat.slug)) {
+          matchCount++;
+        }
       }
+      counts[cat.slug] = matchCount;
     }
-    counts[cat.slug] = matchCount;
+  } catch (err) {
+    console.error('Error calculating category counts:', err);
   }
 
   return counts;
 }
+

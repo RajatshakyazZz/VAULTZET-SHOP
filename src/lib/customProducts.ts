@@ -3,21 +3,42 @@ import { db } from '@/lib/firebase';
 import { collection, getDocs, doc, getDoc } from 'firebase/firestore';
 
 export function mapFirestoreDocToBundleProduct(data: any): BundleProduct {
-  const name = data.name || 'Reels Bundle';
-  const slug =
+  if (!data) data = {};
+  const name = String(data.name || 'Reels Bundle');
+  const slug = String(
     data.slug ||
-    name
-      .toLowerCase()
-      .replace(/[^a-z0-9]+/g, '-')
-      .replace(/(^-|-$)+/g, '');
+      name
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, '-')
+        .replace(/(^-|-$)+/g, '') ||
+      'reels-bundle'
+  );
 
   const price = Number(data.price || data.sale_price || 99);
   const regularPrice = Number(data.regular_price || price * 5);
   const resellerPrice = Number(data.reseller_price || price * 2);
   const resellerRegularPrice = Number(data.reseller_regular_price || price * 10);
 
-  const category = (data.categories && data.categories[0]) || 'Trending Reels';
+  let category = 'Trending Reels';
+  if (Array.isArray(data.categories) && data.categories.length > 0) {
+    category = String(data.categories[0] || 'Trending Reels');
+  } else if (typeof data.categories === 'string' && data.categories.trim()) {
+    category = data.categories.trim();
+  } else if (typeof data.category === 'string' && data.category.trim()) {
+    category = data.category.trim();
+  }
   const categorySlug = category.toLowerCase().replace(/[^a-z0-9]+/g, '-');
+
+  let tags: string[] = [];
+  if (Array.isArray(data.tags)) {
+    tags = data.tags.filter((t: any) => typeof t === 'string');
+  } else if (typeof data.tags === 'string') {
+    tags = data.tags.split(',').map((t: string) => t.trim()).filter(Boolean);
+  }
+
+  const galleryImages = Array.isArray(data.gallery_images)
+    ? data.gallery_images.filter((img: any) => typeof img === 'string')
+    : [];
 
   const defaultFeatures = [
     'Direct Google Drive Instant Access',
@@ -46,13 +67,21 @@ export function mapFirestoreDocToBundleProduct(data: any): BundleProduct {
     },
   ];
 
+  const features = Array.isArray(data.features) && data.features.length > 0
+    ? data.features.filter((f: any) => typeof f === 'string')
+    : defaultFeatures;
+
+  const faqs = Array.isArray(data.faqs) && data.faqs.length > 0
+    ? data.faqs.filter((faq: any) => faq && typeof faq === 'object')
+    : defaultFaqs;
+
   return {
     id: String(data.id || slug),
     slug,
     title: name,
     shortDescription:
-      data.short_description ||
-      data.description?.slice(0, 160) ||
+      String(data.short_description || '') ||
+      (typeof data.description === 'string' ? data.description.slice(0, 160) : '') ||
       `Get instant access to ${data.reel_count || 1000}+ viral reels ready to publish.`,
     category,
     categorySlug,
@@ -62,22 +91,22 @@ export function mapFirestoreDocToBundleProduct(data: any): BundleProduct {
     resellerPrice,
     resellerOriginalPrice: resellerRegularPrice,
     thumbnail:
-      data.featured_image ||
+      String(data.featured_image || '') ||
       'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=600',
-    galleryImages: data.gallery_images && data.gallery_images.length > 0 ? data.gallery_images : [],
-    previewVideoUrl: data.preview_video_url || '',
-    tags: data.tags || [],
+    galleryImages,
+    previewVideoUrl: String(data.preview_video_url || ''),
+    tags,
     isHot: Boolean(data.is_hot),
     isTrending: Boolean(data.is_trending),
     rating: Number(data.rating || 5),
     reviewCount: Number(data.review_count || 443),
-    resolution: data.resolution || '1080P Full HD (9:16)',
+    resolution: String(data.resolution || '1080P Full HD (9:16)'),
     aspectRatio: '9:16 (Vertical Reel)',
-    format: data.format || 'MP4',
+    format: String(data.format || 'MP4'),
     audioIncluded: true,
     googleDriveLink: '', // Never expose real drive link in public client state
-    features: data.features && data.features.length > 0 ? data.features : defaultFeatures,
-    faqs: data.faqs && data.faqs.length > 0 ? data.faqs : defaultFaqs,
+    features,
+    faqs,
   };
 }
 
