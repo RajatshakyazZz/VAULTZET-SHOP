@@ -131,6 +131,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <head>
+        <meta httpEquiv="Content-Security-Policy" content="upgrade-insecure-requests" />
         <meta name="google-site-verification" content="googlef90de30240e3b03b" />
         <meta name="google-site-verification" content="googlef90de30240e3b03b.html" />
         <script

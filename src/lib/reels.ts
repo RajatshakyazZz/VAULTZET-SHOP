@@ -141,7 +141,7 @@ export const initialStoreReels: ReelItem[] = [
   {
     "id": "reel-8",
     "title": "AI 3D Cartoon Reels Bundle \u2013 Viral 3D Cartoon Story Videos",
-    "videoUrl": "http://digitstore.xyz/wp-content/uploads/2025/07/3d-Cartoon-78.mp4",
+    "videoUrl": "https://digitstore.xyz/wp-content/uploads/2025/07/3d-Cartoon-78.mp4",
     "videoType": "direct",
     "category": "AI Reels",
     "bundleId": "rb-bundle-8",
@@ -192,7 +192,7 @@ export const initialStoreReels: ReelItem[] = [
   {
     "id": "reel-11",
     "title": "AI 3D Cartoon Reels Bundle \u2013 Viral 3D Cartoon Story Videos",
-    "videoUrl": "http://digitstore.xyz/wp-content/uploads/2025/07/3d-Cartoon-4.mp4",
+    "videoUrl": "https://digitstore.xyz/wp-content/uploads/2025/07/3d-Cartoon-4.mp4",
     "videoType": "direct",
     "category": "AI Reels",
     "bundleId": "rb-bundle-11",
@@ -260,7 +260,7 @@ export const initialStoreReels: ReelItem[] = [
   {
     "id": "reel-15",
     "title": "AI Hindi Story Reels Bundle \u2013 1-Minute Hindi Kahani & Story Videos",
-    "videoUrl": "http://digitstore.xyz/wp-content/uploads/2025/06/Story-1-Min-1.mp4",
+    "videoUrl": "https://digitstore.xyz/wp-content/uploads/2025/06/Story-1-Min-1.mp4",
     "videoType": "direct",
     "category": "AI Reels",
     "bundleId": "rb-bundle-15",
@@ -702,7 +702,7 @@ export const initialStoreReels: ReelItem[] = [
   {
     "id": "reel-41",
     "title": "AI 3D Cartoon Reels Bundle \u2013 Viral 3D Cartoon Story Videos",
-    "videoUrl": "http://digitstore.xyz/wp-content/uploads/2025/07/3d-Cartoon-54.mp4",
+    "videoUrl": "https://digitstore.xyz/wp-content/uploads/2025/07/3d-Cartoon-54.mp4",
     "videoType": "direct",
     "category": "AI Reels",
     "bundleId": "rb-bundle-41",
@@ -804,7 +804,7 @@ export const initialStoreReels: ReelItem[] = [
   {
     "id": "reel-47",
     "title": "AI 3D Cartoon Reels Bundle \u2013 Viral 3D Cartoon Story Videos",
-    "videoUrl": "http://digitstore.xyz/wp-content/uploads/2025/07/3d-Cartoon-2.mp4",
+    "videoUrl": "https://digitstore.xyz/wp-content/uploads/2025/07/3d-Cartoon-2.mp4",
     "videoType": "direct",
     "category": "AI Reels",
     "bundleId": "rb-bundle-47",
@@ -1110,7 +1110,7 @@ export const initialStoreReels: ReelItem[] = [
   {
     "id": "reel-65",
     "title": "AI Hindi Story Reels Bundle \u2013 1-Minute Hindi Kahani & Story Videos",
-    "videoUrl": "http://digitstore.xyz/wp-content/uploads/2025/06/Story-1-Min-5.mp4",
+    "videoUrl": "https://digitstore.xyz/wp-content/uploads/2025/06/Story-1-Min-5.mp4",
     "videoType": "direct",
     "category": "AI Reels",
     "bundleId": "rb-bundle-65",
@@ -1185,10 +1185,10 @@ export async function getStoreReels(): Promise<ReelItem[]> {
       fetched.push({
         id: docSnap.id,
         title: data.title || '',
-        videoUrl: data.videoUrl || '',
+        videoUrl: (data.videoUrl || '').replace(/^http:\/\//i, 'https://'),
         videoType: data.videoType || 'direct',
         youtubeId: data.youtubeId,
-        poster: data.poster,
+        poster: data.poster ? String(data.poster).replace(/^http:\/\//i, 'https://') : undefined,
         category: data.category || 'Reels',
         bundleId: data.bundleId,
         bundleSlug: data.bundleSlug,
