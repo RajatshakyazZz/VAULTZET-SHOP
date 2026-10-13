@@ -7,7 +7,7 @@ import { BUNDLE_PRODUCTS } from '@/data/bundles';
 import { useCart } from '@/context/CartContext';
 import { ReelItem, BundleProduct } from '@/types';
 import { getStoreReels, initialStoreReels, parseVideoUrl } from '@/lib/reels';
-import { optimizeImageUrl } from '@/lib/imageOptimized';
+import { resolveBundleSlug, getProductUrlForReel } from '@/lib/bundleResolver';
 
 export default function ReelsVideoPreview() {
   const { buyNow } = useCart();
@@ -61,9 +61,7 @@ export default function ReelsVideoPreview() {
   };
 
   const handleBuy = (reel: ReelItem) => {
-    const matched = BUNDLE_PRODUCTS.find(
-      (b) => b.slug === reel.bundleSlug || b.id === reel.bundleId
-    );
+    const matched = resolveBundleSlug(reel.bundleSlug || reel.title || '');
 
     if (matched) {
       buyNow(matched, 'personal');
@@ -233,15 +231,20 @@ export default function ReelsVideoPreview() {
                   )}
 
                   {/* Bottom Bar: Title & Buy Now */}
-                  <div className="relative z-20 flex items-center justify-between gap-1 pt-2 bg-gradient-to-t from-black/95 via-black/70 to-transparent p-2 rounded-xl">
-                    <span className="text-xs font-bold text-white truncate max-w-[95px]">
-                      {item.title}
-                    </span>
+                  <div className="relative z-20 flex items-center justify-between gap-1 pt-2 bg-gradient-to-t from-black/95 via-black/75 to-transparent p-2 rounded-xl">
+                    <Link
+                      href={getProductUrlForReel(item)}
+                      prefetch={false}
+                      className="text-xs font-bold text-white hover:text-[#fca5a5] hover:underline truncate max-w-[95px] transition-colors"
+                      title={item.bundleTitle || item.title}
+                    >
+                      {item.bundleTitle || item.title}
+                    </Link>
 
                     <button
                       type="button"
                       onClick={() => handleBuy(item)}
-                      className="px-2.5 py-1 rounded-full bg-[#c23000] hover:bg-[#a32600] text-white text-[11px] font-black shrink-0 flex items-center gap-0.5 shadow-md"
+                      className="px-2.5 py-1 rounded-full bg-[#c23000] hover:bg-[#a32600] text-white text-[11px] font-black shrink-0 flex items-center gap-0.5 shadow-md active:scale-95 transition-transform"
                     >
                       <span>Buy Now</span>
                       <span>›</span>

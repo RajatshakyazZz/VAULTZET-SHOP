@@ -26,6 +26,7 @@ export const BUNDLE_PRODUCTS: BundleProduct[] = [
   {
     id: 'rb-baby-food-250',
     slug: '250-baby-food-eating-reels-bundle',
+    aliases: ['250-baby-food-eating-reels-bundle-cute-baby-food-eating-videos','baby-food','chini','dudh-dahi-freezer','pani-puri','maa-ki-ladli-pani-puri'],
     title: '250+ Baby Food Eating Reels Bundle – Cute Baby Food & Eating Videos',
     shortDescription: 'Super adorable, viral cute AI baby food eating short videos designed for maximum engagement, saves, and shares.',
     category: 'Baby Reels',
@@ -54,6 +55,7 @@ export const BUNDLE_PRODUCTS: BundleProduct[] = [
   {
     id: 'rb-premanand-1000',
     slug: '1000-premanand-ji-maharaj-reels-bundle',
+    aliases: ['premanand-ji-maharaj-reels-bundle','premanand-ji-maharaj-reel-bundle','premanand-reels'],
     title: '1000+ Premanand Ji Maharaj Reels Bundle – Spiritual & Devotional Short Videos',
     shortDescription: 'Spiritual wisdom, divine inspiration, and peaceful devotional reels from revered spiritual guru Premanand Ji Maharaj.',
     category: 'AI Reels',
@@ -67,7 +69,7 @@ export const BUNDLE_PRODUCTS: BundleProduct[] = [
     galleryImages: [
       'https://reelsbundles.in/wp-content/uploads/2026/10/premanand-ji-maharaj-reels-bundle-4-2-768x768.png',
     ],
-    previewVideoUrl: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4',
+    previewVideoUrl: 'https://reelsbundles.in/wp-content/uploads/2026/09/nanha_sitara__1786042855_3957936752362456535_16711909525.mp4',
     tags: ['BEST SELLING', 'HD', 'Google Drive'],
     isHot: true,
     isTrending: true,
@@ -87,7 +89,7 @@ export const BUNDLE_PRODUCTS: BundleProduct[] = [
   {
     id: 'rb-ulti-1000',
     slug: '1000-ulti-pulti-duniya-reverse-world-ai-reels-bundle',
-    aliases: ['1000-ulti-pulti-duniya-ulti-duniya-reverse-world-ai-reels-bundle'],
+    aliases: ['1000-ulti-pulti-duniya-ulti-duniya-reverse-world-ai-reels-bundle','ulti-pulti-duniya','reverse-world'],
     title: '1000+ Ulti Pulti Duniya / Ulti Duniya / Reverse World AI Reels Bundle',
     shortDescription: 'Viral reverse-world surreal AI videos that generate massive retention, shares, and watch time on Instagram & YouTube Shorts.',
     category: 'AI Reels',
@@ -101,7 +103,7 @@ export const BUNDLE_PRODUCTS: BundleProduct[] = [
     galleryImages: [
       'https://reelsbundles.in/wp-content/uploads/2026/10/1000-ulti-pulti-duniya-ulti-duniya-reverse-world-ai-reels-bundle-2-768x576.png',
     ],
-    previewVideoUrl: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4',
+    previewVideoUrl: 'https://reelsbundles.in/wp-content/uploads/2026/09/nanha_sitara__1786042855_3957936752362456535_16711909525.mp4',
     tags: ['HOT', '1080P'],
     isHot: true,
     isTrending: true,
@@ -118,6 +120,7 @@ export const BUNDLE_PRODUCTS: BundleProduct[] = [
   {
     id: 'rb-funny-kids-1500',
     slug: '1500-ai-funny-kids-reels-bundle',
+    aliases: ['1500-ai-funny-kids-reels-bundle-funny-kids-baby-videos-for-reels','ai-funny-kids'],
     title: '1500+ AI Funny Kids Reels Bundle – Funny Kids & Baby Videos for Reels',
     shortDescription: 'Hilarious AI baby comedy moments, playful pranks, and viral family comedy shorts that explode on Instagram Explore.',
     category: 'Comedy Reels',
@@ -131,7 +134,7 @@ export const BUNDLE_PRODUCTS: BundleProduct[] = [
     galleryImages: [
       'https://reelsbundles.in/wp-content/uploads/2026/10/1500-ai-funny-kids-reels-bundle-4-2-768x576.jpg',
     ],
-    previewVideoUrl: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerJoyBlazes.mp4',
+    previewVideoUrl: 'https://reelsbundles.in/wp-content/uploads/2026/09/ai_animal_jokes_1789030266_3982995980797999061_24509764410.mp4',
     tags: ['HOT', '1080P', 'Google Drive'],
     isHot: true,
     isTrending: true,
@@ -148,6 +151,7 @@ export const BUNDLE_PRODUCTS: BundleProduct[] = [
   {
     id: 'rb-dr-skeleton-500',
     slug: '500-dr-skeleton-health-reels-bundle',
+    aliases: ['500-dr-skeleton-health-reels-bundle-health-awareness-medical-story-videos','dr-skeleton'],
     title: '500+ Dr Skeleton Health Reels Bundle – Health Awareness & Medical Story Videos',
     shortDescription: 'Educational health advice, medical story shorts, and viral 3D skeleton animation reels that hook viewers from the first second.',
     category: 'AI Reels',
@@ -161,7 +165,7 @@ export const BUNDLE_PRODUCTS: BundleProduct[] = [
     galleryImages: [
       'https://reelsbundles.in/wp-content/uploads/2026/10/500-dr-skeleton-health-reels-bundle-1-2-768x576.png',
     ],
-    previewVideoUrl: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4',
+    previewVideoUrl: 'https://bundles.digitalceoempire.com/wp-content/uploads/2026/03/DR-SKELETON.mp4',
     tags: ['HOT', '1080P'],
     isHot: true,
     isTrending: true,
@@ -180,6 +184,7 @@ export const BUNDLE_PRODUCTS: BundleProduct[] = [
   {
     id: 'rb-baby-dance-500',
     slug: '500-ai-baby-dancing-reels-bundle',
+    aliases: ['mile-to-dil---baby-dancing','ai-baby-dancing'],
     title: '500+ AI Baby Dancing Reels Bundle – Cute Viral Baby Dance Videos',
     shortDescription: 'Super cute AI dancing baby reels packed with viral moves, trending music, and unmatched engagement retention.',
     category: 'Entertainment Reels',
@@ -193,7 +198,7 @@ export const BUNDLE_PRODUCTS: BundleProduct[] = [
     galleryImages: [
       'https://reelsbundles.in/wp-content/uploads/2026/10/500-ai-baby-dancing-reels-bundle-4-2-768x576.png',
     ],
-    previewVideoUrl: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerJoyBlazes.mp4',
+    previewVideoUrl: 'https://reelsbundlepro.com/wp-content/uploads/2026/04/250-Baby-Food-Eating-Food-Ai-Reels-3.mp4',
     tags: ['HOT', '1080P'],
     isHot: true,
     isTrending: true,
@@ -210,6 +215,7 @@ export const BUNDLE_PRODUCTS: BundleProduct[] = [
   {
     id: 'rb-health-awareness-450',
     slug: '450-ai-health-awareness-reels-bundle',
+    aliases: ['450-ai-health-awareness-reels-bundle-health-wellness-nutrition-videos','health-awareness'],
     title: '450+ AI Health Awareness Reels Bundle – Health, Wellness & Nutrition Videos',
     shortDescription: 'Engaging, colorful animated vegetables and characters teaching health tips, vitamins, and wellness habits.',
     category: 'AI Reels',
@@ -223,7 +229,7 @@ export const BUNDLE_PRODUCTS: BundleProduct[] = [
     galleryImages: [
       'https://reelsbundles.in/wp-content/uploads/2026/10/450-ai-health-awareness-reels-bundle-4-2-768x576.jpg',
     ],
-    previewVideoUrl: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerEscapes.mp4',
+    previewVideoUrl: 'https://shop.worklinc.com/wp-content/uploads/2026/02/450-Health-Awareness-Ai-Reels-Bundle1.mp4',
     tags: ['HOT', '1080P'],
     isHot: true,
     isTrending: true,
@@ -240,6 +246,7 @@ export const BUNDLE_PRODUCTS: BundleProduct[] = [
   {
     id: 'rb-influencer-girls-500',
     slug: '500-ai-influencer-girls-reels-bundle',
+    aliases: ['500-ai-influencer-girls-reels-bundle-virtual-influencer-ai-girl-videos','2000-viral-ai-influencer-reel-bundle-trending-ai-influencer-style-content','viral-influencer'],
     title: '500+ AI Influencer Girls Reels Bundle – Virtual Influencer & AI Girl Videos',
     shortDescription: 'Hyper-realistic virtual influencer fashion, aesthetic lifestyle, and trending social media shorts.',
     category: 'AI Reels',
@@ -253,7 +260,7 @@ export const BUNDLE_PRODUCTS: BundleProduct[] = [
     galleryImages: [
       'https://reelsbundles.in/wp-content/uploads/2026/10/500-ai-influencer-girls-reels-bundle-4-2-768x576.jpg',
     ],
-    previewVideoUrl: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerFun.mp4',
+    previewVideoUrl: 'https://bundles.digitalceoempire.com/wp-content/uploads/2026/03/instagram_1772870533472720p.mp4',
     tags: ['HOT', '1080P'],
     isHot: true,
     isTrending: true,
@@ -270,6 +277,7 @@ export const BUNDLE_PRODUCTS: BundleProduct[] = [
   {
     id: 'rb-glamour-500',
     slug: '500-ai-glamour-model-reels-bundle',
+    aliases: ['glamour-model','ai-glamour'],
     title: '500+ AI Indian Glamour Model Reels Bundle – Stylish AI Indian Glamour Videos',
     shortDescription: 'Virtual model glamour and aesthetic lifestyle videos with high production value.',
     category: 'AI Reels',
@@ -283,7 +291,7 @@ export const BUNDLE_PRODUCTS: BundleProduct[] = [
     galleryImages: [
       'https://reelsbundles.in/wp-content/uploads/2026/09/500-ai-indian-glamour-model-reels-bundle-1-2-1-1024x768.png',
     ],
-    previewVideoUrl: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerEscapes.mp4',
+    previewVideoUrl: 'https://videobundlehub.com/wp-content/uploads/2026/07/6bafe9724fea4f12942f2b372e0a7b5b.mp4',
     tags: ['HOT PREVIEW', '1080P'],
     isHot: true,
     rating: 4.9,
@@ -299,6 +307,7 @@ export const BUNDLE_PRODUCTS: BundleProduct[] = [
   {
     id: 'rb-stickman-2500',
     slug: '2500-stickman-animation-reels-bundle',
+    aliases: ['stickman-animation-reels-bundle','stickman','500-mini-car-unboxing-reels-bundle','ai-3d-cartoon-reels-bundle-viral-3d-cartoon-story-videos'],
     title: '2500+ Stickman Animation Reels Bundle – Funny Viral Stick Figure Videos',
     shortDescription: 'Hilarious stick figure funny videos with sound effects and meme pacing.',
     category: 'Animation Reels',
@@ -312,7 +321,7 @@ export const BUNDLE_PRODUCTS: BundleProduct[] = [
     galleryImages: [
       'https://reelsbundles.in/wp-content/uploads/2026/10/2500-stickman-animation-reels-bundle-2-1024x768.png',
     ],
-    previewVideoUrl: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerJoyBlazes.mp4',
+    previewVideoUrl: 'https://reelsbundles.in/wp-content/uploads/2026/09/gigglee_toons_1787416995_3969463571233179389_28226841059.mp4',
     tags: ['TRENDING PREVIEW', '1080P'],
     isTrending: true,
     rating: 4.8,
@@ -328,6 +337,7 @@ export const BUNDLE_PRODUCTS: BundleProduct[] = [
   {
     id: 'rb-glass-asmr-1200',
     slug: '1200-ai-glass-cutting-asmr-reels-bundle',
+    aliases: ['1200-ai-glass-cutting-asmr-reels-bundle-satisfying-asmr-videos-for-reels-shorts','glass-cutting-asmr'],
     title: '1200+ AI Glass Cutting ASMR Reels Bundle – Satisfying ASMR Videos',
     shortDescription: 'Satisfying glass slicing and ASMR sounds that hold viewers in a trance.',
     category: 'Aesthetic Reels',
@@ -341,7 +351,7 @@ export const BUNDLE_PRODUCTS: BundleProduct[] = [
     galleryImages: [
       'https://reelsbundles.in/wp-content/uploads/2026/10/1200-glass-cutting-asmr-reels-bundle-4-2-1024x768.jpg',
     ],
-    previewVideoUrl: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4',
+    previewVideoUrl: 'https://betterbundle.in/wp-content/uploads/2026/01/BetterBundle.in-Food-with-Faces-Eating-Each-Other-Weirdly-Satisfying-ASMR-Snack-Show_1080p.mp4',
     tags: ['TRENDING PREVIEW', '1080P'],
     isTrending: true,
     rating: 5.0,
@@ -357,6 +367,8 @@ export const BUNDLE_PRODUCTS: BundleProduct[] = [
   {
     id: 'rb-hot-girls-10000',
     slug: '10000-hot-girls-reels-bundle',
+    aliases: ['hot-girls-reels'],
+    previewVideoUrl: 'https://bundles.digitalceoempire.com/wp-content/uploads/2026/03/instagram_1772842939930720p.mp4',
     title: '10000+ Hot Girls Reels Bundle – Glamour, Fashion & Aesthetic Videos',
     shortDescription: 'Massive mega pack of trending fashion, glamour, and aesthetic female lifestyle videos.',
     category: 'Aesthetic Reels',
@@ -385,6 +397,8 @@ export const BUNDLE_PRODUCTS: BundleProduct[] = [
   {
     id: 'rb-upcoming-mad-scientist',
     slug: '1500-mad-scientist-reels-bundle',
+    aliases: ['mad-scientist','mad-scientist-lab-experiments'],
+    previewVideoUrl: 'https://digitstore.xyz/wp-content/uploads/2025/07/3d-Cartoon-78.mp4',
     title: '1500+ Mad Scientist Reels Bundle – AI Story & Pookie Voice Videos',
     shortDescription: 'Crazy AI inventions, laboratory experiments, and story voiceovers.',
     category: 'Story Reels',
@@ -411,6 +425,8 @@ export const BUNDLE_PRODUCTS: BundleProduct[] = [
   {
     id: 'rb-upcoming-gym-animated',
     slug: '1000-animated-gym-workout-reels-bundle',
+    aliases: ['animated-gym-workout','gym-workout'],
+    previewVideoUrl: 'https://shop.worklinc.com/wp-content/uploads/2026/02/450-Health-Awareness-Ai-Reels-Bundle3.mp4',
     title: '1000+ Animated Gym Workout Reels Bundle – Animated Fitness Videos',
     shortDescription: '3D animated workout guides and muscle exercise breakdown shorts.',
     category: 'Fitness Reels',
@@ -437,6 +453,8 @@ export const BUNDLE_PRODUCTS: BundleProduct[] = [
   {
     id: 'rb-ai-funny-5000',
     slug: 'ai-funny-reels-bundle',
+    aliases: ['5000-ai-funny-story-reels-bundle','ai-funny-story'],
+    previewVideoUrl: 'https://betterbundle.in/wp-content/uploads/2026/01/BetterBundle.in-Four-fruits-four-faces-one-weirdly-satisfying-moment_480p.mp4',
     title: '5000+ AI Funny Reels Bundle – Viral AI Comedy & Funny Videos',
     shortDescription: 'AI-generated comedy, hilarious situational memes, and viral comedy clips with massive watch-time hooks.',
     category: 'Comedy Reels',
@@ -466,6 +484,8 @@ export const BUNDLE_PRODUCTS: BundleProduct[] = [
   {
     id: 'rb-snake-ulti-500',
     slug: '500-snake-ulti-duniya-ai-reels-bundle',
+    aliases: ['snake-ulti-duniya','saamp-ki-ulti-duniya'],
+    previewVideoUrl: 'https://reelsbundles.in/wp-content/uploads/2026/09/nanha_sitara__1786042855_3957936752362456535_16711909525.mp4',
     title: '500+ Snake Ulti Duniya AI Reels Bundle – Saamp Ki Ulti Duniya / Reverse World Videos',
     shortDescription: 'Surreal snake reverse-world AI fantasy reels with ultra-high retention and viral curiosity loops.',
     category: 'AI Reels',
@@ -494,6 +514,8 @@ export const BUNDLE_PRODUCTS: BundleProduct[] = [
   {
     id: 'rb-twisted-3200',
     slug: '3200-ultimate-twisted-world-reel-bundle',
+    aliases: ['3200-ultimate-twisted-world-reel-bundle-fantasy-creature-twisted-world-stories','twisted-world','500-ai-hulk-story-reels-bundle-ai-action-superhero-story-videos'],
+    previewVideoUrl: 'https://betterbundle.in/wp-content/uploads/2026/01/BetterBundle.in-Cupcake-eats-cake%E2%80%A6-and-enjoys-it-a-little-too-much-%F0%9F%A7%81%F0%9F%98%85-ASMR-AI-Animation_1080p.mp4',
     title: '3200+ Ultimate Twisted World Reel Bundle – Fantasy Creature & Twisted World Stories',
     shortDescription: 'Epic fantasy creatures, twisted alternate reality stories, and imaginative animated scenes that mesmerize viewers.',
     category: 'Fantasy Reels',
@@ -523,6 +545,8 @@ export const BUNDLE_PRODUCTS: BundleProduct[] = [
   {
     id: 'rb-hindi-mot-1400',
     slug: 'hindi-motivational-reels-bundle',
+    aliases: ['ai-hindi-story-reels-bundle-1-minute-hindi-kahani-story-videos','hindi-motivational'],
+    previewVideoUrl: 'https://digitstore.xyz/wp-content/uploads/2025/06/Story-1-Min-1.mp4',
     title: '1,400+ Hindi Motivational Reels Bundle – Premium 720p Videos',
     shortDescription: 'Powerful Hindi motivational speeches, life wisdom quotes, and mindset shift reels designed for daily virality.',
     category: 'Motivation Reels',
@@ -550,6 +574,8 @@ export const BUNDLE_PRODUCTS: BundleProduct[] = [
   {
     id: 'rb-talks-3500',
     slug: 'adult-talks-reels-bundle',
+    aliases: ['adult-talks'],
+    previewVideoUrl: 'https://digityl.shop/wp-content/uploads/2026/03/Video-682.mp4',
     title: '3500+ Adult Talks Reels Bundle – Conversation, Life & Relationship Videos',
     shortDescription: 'Relatable relationship advice, deep podcasts, conversation snippets, and thought-provoking life talks.',
     category: 'Relationship Reels',
@@ -578,6 +604,8 @@ export const BUNDLE_PRODUCTS: BundleProduct[] = [
   {
     id: 'rb-couple-2500',
     slug: 'aesthetic-couple-reels-bundle',
+    aliases: ['aesthetic-couple'],
+    previewVideoUrl: 'https://videobundlehub.com/wp-content/uploads/2026/07/6bafe9724fea4f12942f2b372e0a7b5b.mp4',
     title: '2500+ Aesthetic Couple Reels Bundle – Romantic Love & Couple Videos',
     shortDescription: 'Emotional love moments, aesthetic romantic edits, relationship goals, and trending viral couple clips.',
     category: 'Aesthetic Reels',
@@ -606,6 +634,8 @@ export const BUNDLE_PRODUCTS: BundleProduct[] = [
   {
     id: 'rb-god-1000',
     slug: 'god-reels-bundle',
+    aliases: ['god-reels','bhakti-reels'],
+    previewVideoUrl: 'https://reelsbundles.in/wp-content/uploads/2026/09/nanha_sitara__1786042855_3957936752362456535_16711909525.mp4',
     title: '1000+ God Reels Bundle – Devotional & Spiritual Videos',
     shortDescription: 'Divine Hindu deity animations, peaceful mantras, bhakti status videos, and spiritual celebration reels.',
     category: 'Devotional Reels',

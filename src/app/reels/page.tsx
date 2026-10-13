@@ -14,6 +14,7 @@ import { BUNDLE_PRODUCTS } from '@/data/bundles';
 import { useCart } from '@/context/CartContext';
 import { ReelItem, BundleProduct } from '@/types';
 import { getStoreReels, initialStoreReels, parseVideoUrl } from '@/lib/reels';
+import { resolveBundleSlug, getProductUrlForReel } from '@/lib/bundleResolver';
 
 interface FeedReelItem extends ReelItem {
   feedKey: string;
@@ -191,9 +192,7 @@ export default function ReelsFeedPage() {
 
   // Helper to resolve bundle product
   const getBundleForReel = (reel: FeedReelItem): BundleProduct => {
-    const matched = BUNDLE_PRODUCTS.find(
-      (b) => b.slug === reel.bundleSlug || b.id === reel.bundleId
-    );
+    const matched = resolveBundleSlug(reel.bundleSlug || reel.title || '');
 
     if (matched) return matched;
 
@@ -511,7 +510,7 @@ export default function ReelsFeedPage() {
                 {/* 2. Bundle Title with external arrow */}
                 <h2 className="max-w-[84%] text-[15px] sm:text-[17px] font-extrabold leading-snug tracking-tight text-white drop-shadow-md">
                   <Link
-                    href={reel.bundleSlug ? `/product/${reel.bundleSlug}` : '/shop'}
+                    href={getProductUrlForReel(reel)}
                     className="hover:text-purple-300 transition-colors inline"
                   >
                     <span>{reel.bundleTitle || reel.title}</span>

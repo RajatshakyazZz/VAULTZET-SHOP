@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { useParams } from 'next/navigation';
 import Link from 'next/link';
 import {
@@ -26,6 +26,7 @@ import {
   Smartphone,
   Monitor,
   Volume2,
+  VolumeX,
   ArrowRight,
   Shield,
   Clock,
@@ -36,20 +37,16 @@ import { useCart } from '@/context/CartContext';
 import { LicenseType, BundleProduct } from '@/types';
 import { optimizeImageUrl } from '@/lib/imageOptimized';
 import { getBundleContentDetails } from '@/lib/bundleContent';
+import { resolveBundleSlug } from '@/lib/bundleResolver';
+import { parseVideoUrl } from '@/lib/reels';
 
 export default function ProductDetailPage() {
   const params = useParams();
   const rawSlug = (params?.slug as string) || '';
-  const cleanSlug = decodeURIComponent(rawSlug).toLowerCase().replace(/\/$/, '');
   const { addToCart, buyNow } = useCart();
 
-  // Find product by slug, id, or aliases
-  const product: BundleProduct | undefined = BUNDLE_PRODUCTS.find(
-    (p) =>
-      p.slug.toLowerCase() === cleanSlug ||
-      p.id.toLowerCase() === cleanSlug ||
-      (p.aliases && p.aliases.some((a) => a.toLowerCase() === cleanSlug))
-  );
+  // Find product by slug, id, aliases, or keyword/reels match
+  const product: BundleProduct | undefined = resolveBundleSlug(rawSlug);
 
   const [selectedLicense, setSelectedLicense] = useState<LicenseType>('personal');
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
@@ -57,6 +54,31 @@ export default function ProductDetailPage() {
   const [openFaqIndex, setOpenFaqIndex] = useState<number | null>(0);
   const [isPreviewOpen, setIsPreviewOpen] = useState(false);
   const [showAddedToast, setShowAddedToast] = useState(false);
+  const [isVideoMuted, setIsVideoMuted] = useState(false);
+  const videoRef = useRef<HTMLVideoElement | null>(null);
+
+  const previewUrl =
+    product?.previewVideoUrl ||
+    'https://reelsbundles.in/wp-content/uploads/2026/09/gigglee_toons_1787416995_3969463571233179389_28226841059.mp4';
+  const parsedVideo = parseVideoUrl(previewUrl);
+  const isYouTube = parsedVideo.videoType === 'youtube' && Boolean(parsedVideo.youtubeId);
+
+  useEffect(() => {
+    if (isPreviewOpen && !isYouTube && videoRef.current) {
+      const v = videoRef.current;
+      v.currentTime = 0;
+      v.muted = false;
+      const playPromise = v.play();
+      if (playPromise !== undefined) {
+        playPromise.catch(() => {
+          // Browser prevented unmuted autoplay, gracefully play muted
+          v.muted = true;
+          setIsVideoMuted(true);
+          v.play().catch(() => {});
+        });
+      }
+    }
+  }, [isPreviewOpen, isYouTube]);
 
   if (!product) {
     return (
@@ -214,18 +236,16 @@ export default function ProductDetailPage() {
               </div>
 
               {/* Watch Video Preview Overlay (Bottom-Left) */}
-              {product.previewVideoUrl && (
-                <div className="absolute bottom-3.5 left-3.5">
-                  <button
-                    type="button"
-                    onClick={() => setIsPreviewOpen(true)}
-                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-black bg-white text-rb-purple hover:bg-purple-50 shadow-lg border border-purple-100 transition-transform hover:scale-105"
-                  >
-                    <Play className="w-3.5 h-3.5 fill-rb-purple" />
-                    <span>Watch Preview</span>
-                  </button>
-                </div>
-              )}
+              <div className="absolute bottom-3.5 left-3.5 z-20">
+                <button
+                  type="button"
+                  onClick={() => setIsPreviewOpen(true)}
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-black bg-white text-rb-purple hover:bg-purple-50 shadow-lg border border-purple-100 transition-transform hover:scale-105 active:scale-95"
+                >
+                  <Play className="w-3.5 h-3.5 fill-rb-purple" />
+                  <span>Watch Preview</span>
+                </button>
+              </div>
             </div>
 
             {/* Gallery Thumbnails Strip */}
@@ -767,25 +787,61 @@ export default function ProductDetailPage() {
       </div>
 
       {/* VIDEO PREVIEW MODAL */}
-      {isPreviewOpen && product.previewVideoUrl && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-sm animate-in fade-in duration-200">
-          <div className="relative w-full max-w-[340px] aspect-[9/16] bg-black rounded-3xl overflow-hidden shadow-2xl border border-white/20">
+      {isPreviewOpen && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-md animate-in fade-in duration-200"
+          onClick={() => setIsPreviewOpen(false)}
+        >
+          <div
+            className="relative w-full max-w-[340px] aspect-[9/16] bg-black rounded-3xl overflow-hidden shadow-2xl border border-white/20"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Close Button */}
             <button
               type="button"
               onClick={() => setIsPreviewOpen(false)}
-              className="absolute top-3 right-3 z-20 w-8 h-8 rounded-full bg-white/90 text-black flex items-center justify-center hover:bg-white shadow-lg"
+              className="absolute top-3.5 right-3.5 z-30 w-8 h-8 rounded-full bg-black/70 hover:bg-black/90 text-white flex items-center justify-center shadow-lg transition-transform hover:scale-105 border border-white/20"
               aria-label="Close Preview"
             >
-              <X className="w-4 h-4" />
+              <X className="w-4 h-4 stroke-[2.5]" />
             </button>
-            <video
-              src={product.previewVideoUrl}
-              autoPlay
-              controls
-              playsInline
-              loop
-              className="w-full h-full object-cover"
-            />
+
+            {/* Tap to Unmute overlay if browser autoplayed muted */}
+            {isVideoMuted && !isYouTube && (
+              <button
+                type="button"
+                onClick={() => {
+                  if (videoRef.current) {
+                    videoRef.current.muted = false;
+                    setIsVideoMuted(false);
+                  }
+                }}
+                className="absolute top-3.5 left-3.5 z-30 px-3 py-1.5 rounded-full bg-black/75 hover:bg-black text-white text-[11px] font-bold flex items-center gap-1.5 border border-white/20 shadow-lg backdrop-blur-sm"
+              >
+                <Volume2 className="w-3.5 h-3.5" />
+                <span>Tap to Unmute</span>
+              </button>
+            )}
+
+            {isYouTube ? (
+              <iframe
+                src={`https://www.youtube.com/embed/${parsedVideo.youtubeId}?autoplay=1&mute=0&rel=0&playsinline=1`}
+                title={product?.title || 'Reels Preview'}
+                className="w-full h-full border-0"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                allowFullScreen
+              />
+            ) : (
+              <video
+                ref={videoRef}
+                src={previewUrl}
+                autoPlay
+                controls
+                playsInline
+                loop
+                className="w-full h-full object-cover"
+              />
+            )}
           </div>
         </div>
       )}
