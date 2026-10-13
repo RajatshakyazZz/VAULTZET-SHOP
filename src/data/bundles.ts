@@ -428,20 +428,21 @@ export const ALL_ACCESS_PLANS = [
   {
     id: 'plan-reseller',
     name: 'All Bundles + Reseller Rights',
-    subtitle: 'Full resell rights included. Keep 100% of profits from every client sale.',
+    subtitle: 'Built for resellers, agencies and creators who need broader commercial rights.',
     price: 899,
     originalPrice: 4499,
     discountPercentage: 80,
     licenseType: 'reseller' as const,
     isPopular: true,
-    badge: 'POPULAR · RESELLER RIGHTS',
+    badge: 'RESELLER ACCESS',
     features: [
       'Access to 129 published reels bundles',
-      'Reseller rights included (MRR / PLR)',
-      'Unlimited access to all bundles',
-      'High-quality ready-to-post reels',
-      'Instant Google Drive access',
-      'Priority VIP Support',
+      'Import all bundles in one click',
+      'Everything in Personal Plan',
+      'Reseller rights included',
+      'Priority support',
+      'Best for agencies & resellers',
     ],
   },
 ];
+
