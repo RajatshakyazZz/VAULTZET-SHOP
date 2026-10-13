@@ -51,9 +51,100 @@ function CheckoutContent() {
   const [fullName, setFullName] = useState('');
   const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
+  const [touched, setTouched] = useState<{ name?: boolean; email?: boolean; phone?: boolean }>({});
   const [isProcessing, setIsProcessing] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [sdkLoaded, setSdkLoaded] = useState(false);
+
+  // Normalize phone input: strip +91 / leading 0 on autofill, allow digits only, max 10 digits
+  const normalizePhoneInput = (raw: string): string => {
+    let digits = raw.replace(/\D/g, '');
+    if (digits.length > 10 && digits.startsWith('91')) {
+      digits = digits.slice(2);
+    } else if (digits.length > 10 && digits.startsWith('0')) {
+      digits = digits.slice(1);
+    }
+    return digits.slice(0, 10);
+  };
+
+  const validateFullName = (val: string): string | null => {
+    const clean = val.trim().replace(/\s+/g, ' ');
+    if (!clean) return 'Full Name is required.';
+    if (clean.length < 3) return 'Please enter your real full name (at least 3 letters).';
+    if (!/^[a-zA-Z\s.]+$/.test(clean)) return 'Name can only contain letters and spaces.';
+    const lower = clean.toLowerCase();
+    const fakeNames = new Set([
+      'test', 'testing', 'abc', 'abcd', 'abcde', 'xyz', 'fake', 'demo',
+      'user', 'admin', 'asdf', 'asdfg', 'qwerty', 'none', 'null', 'hello',
+      'sample', 'example',
+    ]);
+    if (fakeNames.has(lower)) return 'Fake name detected! Please enter your real name.';
+    if (/([a-zA-Z])\1{3,}/.test(clean)) return 'Invalid name! Please enter your real full name.';
+    if (!/[aeiouyAEIOUY]/.test(clean)) return 'Please enter a valid real name.';
+    return null;
+  };
+
+  const validateGmail = (val: string): string | null => {
+    const clean = val.trim().toLowerCase();
+    if (!clean) return 'Gmail address is required.';
+    if (!clean.endsWith('@gmail.com')) {
+      return 'Invalid Email! Only a valid @gmail.com address is accepted for Google Drive access.';
+    }
+    const localPart = clean.slice(0, -10);
+    if (!localPart || localPart.includes('@')) {
+      return 'Invalid @gmail.com address format.';
+    }
+    if (!/^[a-z0-9.+_-]{3,40}$/.test(localPart)) {
+      return 'Gmail username must be at least 3 characters before @gmail.com.';
+    }
+    if (/^\d+$/.test(localPart)) {
+      return 'Fake Gmail detected! Gmail username cannot be only numbers.';
+    }
+    if (/^(.)\1{2,}$/.test(localPart)) {
+      return 'Fake Gmail detected! Please enter your real @gmail.com address.';
+    }
+    const fakeEmails = new Set([
+      'test', 'testing', 'abc', 'abcd', 'abcde', 'xyz', 'fake', 'demo',
+      'admin', 'user', 'guest', 'null', 'none', 'asdf', 'asdfg', 'qwerty',
+      'hello', 'sample', 'example', '123', '1234', '12345', '123456',
+    ]);
+    if (fakeEmails.has(localPart)) {
+      return 'Fake Gmail address not allowed! Please enter your real @gmail.com email.';
+    }
+    return null;
+  };
+
+  const validatePhone = (val: string): string | null => {
+    const clean = val.trim();
+    if (!clean) return '10-digit WhatsApp / Phone number is required.';
+    if (!/^\d+$/.test(clean)) return 'Phone number can only contain digits.';
+    if (clean.length < 10) {
+      return `Phone number must be exactly 10 digits (${clean.length}/10 entered).`;
+    }
+    if (clean.length > 10) {
+      return 'Phone number cannot be more than 10 digits.';
+    }
+    if (!/^[6-9]\d{9}$/.test(clean)) {
+      return 'Invalid Indian mobile number! Must start with 6, 7, 8, or 9.';
+    }
+    const fakePhones = new Set([
+      '9876543210', '9123456789', '8765432109', '7654321098', '6543210987',
+      '9000000000', '8000000000', '7000000000', '6000000000',
+    ]);
+    if (
+      fakePhones.has(clean) ||
+      /^(\d)\1{9}$/.test(clean) ||
+      /(\d)\1{5,}/.test(clean) ||
+      /^(..)\1{4}$/.test(clean)
+    ) {
+      return 'Fake phone number detected! Please enter your real 10-digit WhatsApp number.';
+    }
+    return null;
+  };
+
+  const nameError = validateFullName(fullName);
+  const emailError = validateGmail(email);
+  const phoneError = validatePhone(phone);
 
   // 10-Minute Countdown Timer for Order Bump matching reelsbundles.in
   const [secondsRemaining, setSecondsRemaining] = useState(585); // 9 mins 45 secs
@@ -75,12 +166,12 @@ function CheckoutContent() {
   const seconds = secondsRemaining % 60;
   const timeFormatted = `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
 
-  // High-Intent Lead Capture Alert: notify Telegram as soon as buyer enters a valid 10-digit WhatsApp number
+  // High-Intent Lead Capture Alert: notify Telegram ONLY when phone (and email if typed) pass strict anti-fake validation
   useEffect(() => {
-    const cleanDigits = phone.replace(/[^0-9]/g, '');
-    if (cleanDigits.length < 10) return;
+    if (phoneError !== null) return;
+    if (email.trim() && emailError !== null) return;
 
-    const sessionKey = `vaultzet_lead_notified_${cleanDigits.slice(-10)}`;
+    const sessionKey = `vaultzet_lead_notified_${phone}`;
     if (typeof window !== 'undefined' && sessionStorage.getItem(sessionKey)) {
       return;
     }
@@ -99,8 +190,8 @@ function CheckoutContent() {
               orderNumber: 'LIVE-LEAD',
               customer: {
                 fullName: fullName.trim() || 'Checkout Visitor',
-                email: email.trim() || 'Entering email...',
-                phone: phone.trim(),
+                email: email.trim().toLowerCase() || 'Entering email...',
+                phone,
               },
               items: checkoutItems.map((i) => ({
                 id: i.product.id,
@@ -122,19 +213,28 @@ function CheckoutContent() {
     }, 1500);
 
     return () => clearTimeout(leadTimer);
-  }, [phone, fullName, email, checkoutItems, orderBumpAdded, checkoutTotal]);
+  }, [phone, phoneError, fullName, email, emailError, checkoutItems, orderBumpAdded, checkoutTotal]);
 
   const handlePlaceOrder = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrorMessage(null);
+    setTouched({ name: true, email: true, phone: true });
 
     if (checkoutItems.length === 0 && !orderBumpAdded) {
       alert('Your checkout is empty. Please select a bundle first.');
       return;
     }
 
-    if (!fullName.trim() || !email.trim() || !phone.trim()) {
-      setErrorMessage('Please fill in your Name, Email, and Phone number.');
+    if (nameError) {
+      setErrorMessage(nameError);
+      return;
+    }
+    if (emailError) {
+      setErrorMessage(emailError);
+      return;
+    }
+    if (phoneError) {
+      setErrorMessage(phoneError);
       return;
     }
 
@@ -144,7 +244,7 @@ function CheckoutContent() {
     const orderPayload = {
       orderNumber,
       customer: {
-        fullName: fullName.trim(),
+        fullName: fullName.trim().replace(/\s+/g, ' '),
         email: email.trim().toLowerCase(),
         phone: phone.trim(),
       },
@@ -300,18 +400,24 @@ function CheckoutContent() {
             {/* Left Column: Customer Info, Order Bump & Payment */}
             <div className="lg:col-span-7 space-y-6">
               
-              {/* 1. Customer Details (Minimal 3 Fields) */}
+              {/* 1. Customer Details (Minimal 3 Fields with Strict Anti-Fake Validation) */}
               <div className="rounded-3xl p-5 sm:p-6 bg-white border border-[#eae2fa] shadow-sm space-y-4">
-                <div className="flex items-center gap-2">
-                  <span className="w-6 h-6 rounded-full bg-rb-purple text-white text-xs font-black flex items-center justify-center">
-                    1
+                <div className="flex items-center justify-between gap-2">
+                  <div className="flex items-center gap-2">
+                    <span className="w-6 h-6 rounded-full bg-rb-purple text-white text-xs font-black flex items-center justify-center">
+                      1
+                    </span>
+                    <h2 className="text-base font-extrabold text-[#182247]">
+                      Delivery Information
+                    </h2>
+                  </div>
+                  <span className="text-[10px] font-bold text-slate-400">
+                    Strict Verification Active
                   </span>
-                  <h2 className="text-base font-extrabold text-[#182247]">
-                    Delivery Information
-                  </h2>
                 </div>
 
-                <div className="space-y-3">
+                <div className="space-y-3.5">
+                  {/* Full Name */}
                   <div>
                     <label className="block text-xs font-bold text-slate-700 mb-1">
                       Your Full Name <span className="text-red-500">*</span>
@@ -319,46 +425,127 @@ function CheckoutContent() {
                     <input
                       type="text"
                       required
+                      maxLength={50}
                       autoComplete="name"
-                      placeholder="Enter your name"
+                      placeholder="Enter your real full name"
                       value={fullName}
-                      onChange={(e) => setFullName(e.target.value)}
-                      className="w-full px-4 py-3 rounded-xl border border-slate-200 text-base sm:text-sm focus:outline-none focus:ring-2 focus:ring-rb-purple"
+                      onBlur={() => setTouched((prev) => ({ ...prev, name: true }))}
+                      onChange={(e) => {
+                        const cleaned = e.target.value.replace(/[^a-zA-Z\s.]/g, '').slice(0, 50);
+                        setFullName(cleaned);
+                      }}
+                      className={`w-full px-4 py-3 rounded-xl border text-base sm:text-sm focus:outline-none focus:ring-2 transition-colors ${
+                        (touched.name || fullName.length > 0) && nameError
+                          ? 'border-red-400 bg-red-50/30 focus:ring-red-400'
+                          : fullName.length > 0 && !nameError
+                          ? 'border-emerald-400 bg-emerald-50/20 focus:ring-emerald-400'
+                          : 'border-slate-200 focus:ring-rb-purple'
+                      }`}
                     />
+                    {(touched.name || fullName.length > 0) && nameError && (
+                      <p className="text-[11px] font-bold text-red-600 mt-1 flex items-center gap-1">
+                        <AlertCircle className="w-3.5 h-3.5 shrink-0" />
+                        <span>{nameError}</span>
+                      </p>
+                    )}
                   </div>
 
+                  {/* Strict @gmail.com Email */}
                   <div>
-                    <label className="block text-xs font-bold text-slate-700 mb-1">
-                      Email Address (For Google Drive Access) <span className="text-red-500">*</span>
-                    </label>
+                    <div className="flex items-center justify-between mb-1">
+                      <label className="block text-xs font-bold text-slate-700">
+                        Gmail Address (For Google Drive Access) <span className="text-red-500">*</span>
+                      </label>
+                      <span className="text-[10px] font-extrabold text-rb-purple bg-purple-50 px-2 py-0.5 rounded">
+                        Only @gmail.com
+                      </span>
+                    </div>
                     <input
                       type="email"
                       required
                       autoComplete="email"
-                      placeholder="you@gmail.com"
+                      placeholder="yourname@gmail.com"
                       value={email}
-                      onChange={(e) => setEmail(e.target.value)}
-                      className="w-full px-4 py-3 rounded-xl border border-slate-200 text-base sm:text-sm focus:outline-none focus:ring-2 focus:ring-rb-purple"
+                      onBlur={() => setTouched((prev) => ({ ...prev, email: true }))}
+                      onChange={(e) => setEmail(e.target.value.replace(/\s/g, ''))}
+                      className={`w-full px-4 py-3 rounded-xl border text-base sm:text-sm focus:outline-none focus:ring-2 transition-colors ${
+                        (touched.email || email.length > 0) && emailError
+                          ? 'border-red-400 bg-red-50/30 focus:ring-red-400'
+                          : email.length > 0 && !emailError
+                          ? 'border-emerald-400 bg-emerald-50/20 focus:ring-emerald-400'
+                          : 'border-slate-200 focus:ring-rb-purple'
+                      }`}
                     />
-                    <span className="text-[11px] text-slate-400 mt-1 block">
-                      We will send the private Google Drive download folder to this email.
-                    </span>
+                    {(touched.email || email.length > 0) && emailError ? (
+                      <p className="text-[11px] font-bold text-red-600 mt-1 flex items-center gap-1">
+                        <AlertCircle className="w-3.5 h-3.5 shrink-0" />
+                        <span>{emailError}</span>
+                      </p>
+                    ) : email.length > 0 && !emailError ? (
+                      <p className="text-[11px] font-bold text-emerald-600 mt-1 flex items-center gap-1">
+                        <CheckCircle2 className="w-3.5 h-3.5 shrink-0" />
+                        <span>Valid @gmail.com address verified for Google Drive delivery.</span>
+                      </p>
+                    ) : (
+                      <span className="text-[11px] text-slate-400 mt-1 block">
+                        Must be a valid <strong>@gmail.com</strong> email to receive Google Drive bundle access.
+                      </span>
+                    )}
                   </div>
 
+                  {/* Strict 10-Digit Phone Number */}
                   <div>
-                    <label className="block text-xs font-bold text-slate-700 mb-1">
-                      WhatsApp / Phone Number <span className="text-red-500">*</span>
-                    </label>
-                    <input
-                      type="tel"
-                      required
-                      inputMode="tel"
-                      autoComplete="tel"
-                      placeholder="+91 98765 43210"
-                      value={phone}
-                      onChange={(e) => setPhone(e.target.value)}
-                      className="w-full px-4 py-3 rounded-xl border border-slate-200 text-base sm:text-sm focus:outline-none focus:ring-2 focus:ring-rb-purple"
-                    />
+                    <div className="flex items-center justify-between mb-1">
+                      <label className="block text-xs font-bold text-slate-700">
+                        WhatsApp / Phone Number (10 Digits) <span className="text-red-500">*</span>
+                      </label>
+                      <span
+                        className={`text-[10px] font-extrabold px-2 py-0.5 rounded ${
+                          phone.length === 10 && !phoneError
+                            ? 'bg-emerald-100 text-emerald-800'
+                            : 'bg-slate-100 text-slate-600'
+                        }`}
+                      >
+                        {phone.length}/10 Digits
+                      </span>
+                    </div>
+                    <div
+                      className={`flex items-center rounded-xl border overflow-hidden transition-colors focus-within:ring-2 ${
+                        (touched.phone || phone.length > 0) && phoneError
+                          ? 'border-red-400 bg-red-50/30 focus-within:ring-red-400'
+                          : phone.length === 10 && !phoneError
+                          ? 'border-emerald-400 bg-emerald-50/20 focus-within:ring-emerald-400'
+                          : 'border-slate-200 bg-white focus-within:ring-rb-purple'
+                      }`}
+                    >
+                      <span className="px-3.5 py-3 bg-slate-100 border-r border-slate-200 text-xs sm:text-sm font-extrabold text-slate-700 select-none shrink-0">
+                        +91
+                      </span>
+                      <input
+                        type="tel"
+                        required
+                        inputMode="numeric"
+                        maxLength={10}
+                        pattern="[6-9][0-9]{9}"
+                        autoComplete="tel-national"
+                        placeholder="9876543210 (10 digits only)"
+                        value={phone}
+                        onBlur={() => setTouched((prev) => ({ ...prev, phone: true }))}
+                        onChange={(e) => setPhone(normalizePhoneInput(e.target.value))}
+                        className="w-full px-3.5 py-3 bg-transparent text-base sm:text-sm font-bold text-[#182247] tracking-wide focus:outline-none"
+                      />
+                    </div>
+                    {(touched.phone || phone.length > 0) && phoneError ? (
+                      <p className="text-[11px] font-bold text-red-600 mt-1 flex items-center gap-1">
+                        <AlertCircle className="w-3.5 h-3.5 shrink-0" />
+                        <span>{phoneError}</span>
+                      </p>
+                    ) : phone.length === 10 && !phoneError ? (
+                      <p className="text-[11px] font-bold text-emerald-600 mt-1 flex items-center gap-1">
+                        <CheckCircle2 className="w-3.5 h-3.5 shrink-0" />
+                        <span>Valid 10-digit WhatsApp number verified (+91 {phone}).</span>
+                      </p>
+                    ) : null}
                   </div>
                 </div>
               </div>

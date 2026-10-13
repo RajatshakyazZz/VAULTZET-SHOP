@@ -9,9 +9,34 @@ export async function POST(request: Request) {
     const body = await request.json();
     const { orderNumber, customer, items, orderBump, totalAmount } = body;
 
-    if (!orderNumber || !customer?.email || !totalAmount) {
+    const cleanEmail = String(customer?.email || '').trim().toLowerCase();
+    const cleanPhone = String(customer?.phone || '').replace(/\D/g, '');
+    const cleanName = String(customer?.fullName || '').trim();
+
+    if (!orderNumber || !cleanEmail || !totalAmount) {
       return NextResponse.json(
         { success: false, error: 'Missing required order details' },
+        { status: 400 }
+      );
+    }
+
+    if (!cleanEmail.endsWith('@gmail.com') || cleanEmail.slice(0, -10).length < 3) {
+      return NextResponse.json(
+        { success: false, error: 'Invalid Email! Only a valid @gmail.com address is accepted for Google Drive access.' },
+        { status: 400 }
+      );
+    }
+
+    if (!/^[6-9]\d{9}$/.test(cleanPhone) || /^(\d)\1{9}$/.test(cleanPhone) || cleanPhone === '9876543210') {
+      return NextResponse.json(
+        { success: false, error: 'Invalid Phone! Please enter a valid 10-digit WhatsApp / mobile number.' },
+        { status: 400 }
+      );
+    }
+
+    if (cleanName.length < 3 || !/^[a-zA-Z\s.]+$/.test(cleanName)) {
+      return NextResponse.json(
+        { success: false, error: 'Please enter a valid full name (minimum 3 letters).' },
         { status: 400 }
       );
     }
