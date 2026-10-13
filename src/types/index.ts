@@ -28,6 +28,7 @@ export interface BundleProduct {
   googleDriveLink: string;
   features: string[];
   faqs: { question: string; answer: string }[];
+  aliases?: string[];
 }
 
 export interface CartItem {
