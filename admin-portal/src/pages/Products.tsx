@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import {
   Package,
@@ -16,9 +16,19 @@ import {
   FolderOpen,
   Upload,
   Image as ImageIcon,
+  Sparkles,
+  Tag,
+  Layers,
+  Search,
+  Star,
+  Flame,
+  ShieldCheck,
+  HelpCircle,
+  Video,
+  Copy,
 } from 'lucide-react';
 import { portalApi } from '../api/client';
-import { Product } from '../api/types';
+import { Product, CategoryItem } from '../api/types';
 import { formatCurrency } from '../lib/utils';
 import { useToast } from '../context/ToastContext';
 import DataTable, { Column } from '../components/common/DataTable';
@@ -26,34 +36,123 @@ import DataTable, { Column } from '../components/common/DataTable';
 export default function Products() {
   const queryClient = useQueryClient();
   const { success, error } = useToast();
-  const [activeTab, setActiveTab] = useState<'all' | 'digital'>('all');
-  const [editingId, setEditingId] = useState<string | number | null>(null);
-  const [editPrice, setEditPrice] = useState<number>(0);
-  const [editStock, setEditStock] = useState<Product['stock_status']>('instock');
-  const [generatedTokens, setGeneratedTokens] = useState<Record<string, string>>({});
 
-  // Create Product Modal State
+  const [activeTab, setActiveTab] = useState<'all' | 'digital' | 'categories'>('all');
+  const [generatedTokens, setGeneratedTokens] = useState<Record<string, string>>({});
+  const [copiedLink, setCopiedLink] = useState<string | null>(null);
+
+  // Filter states
+  const [selectedCategoryFilter, setSelectedCategoryFilter] = useState<string>('all');
+  const [categorySearch, setCategorySearch] = useState<string>('');
+
+  // ==========================================
+  // 1. DATA QUERIES
+  // ==========================================
+  const { data: products = [], isLoading: isProductsLoading } = useQuery({
+    queryKey: ['products'],
+    queryFn: () => portalApi.getProducts(),
+  });
+
+  const { data: categories = [], isLoading: isCategoriesLoading } = useQuery({
+    queryKey: ['categories'],
+    queryFn: () => portalApi.getCategories(),
+  });
+
+  // ==========================================
+  // 2. CREATE PRODUCT MODAL STATE
+  // ==========================================
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [createForm, setCreateForm] = useState({
     name: '',
     slug: '',
     price: 99,
     regular_price: 999,
+    reseller_price: 199,
+    reseller_regular_price: 1999,
     reel_count: 1000,
-    category: 'AI Viral Reels',
+    category: 'Trending Reels',
     format: 'MP4',
     resolution: '1080P Full HD (9:16)',
     googleDriveLink: '',
     featured_image: '',
+    preview_video_url: '',
+    short_description: '',
     description: '',
     status: 'publish' as Product['status'],
   });
 
-  const { data: products = [], isLoading } = useQuery({
-    queryKey: ['products'],
-    queryFn: () => portalApi.getProducts(),
+  // ==========================================
+  // 3. FULL PRODUCT EDIT MODAL STATE
+  // ==========================================
+  const [editingProduct, setEditingProduct] = useState<Product | null>(null);
+  const [editTab, setEditTab] = useState<'basic' | 'media' | 'details' | 'files'>('basic');
+  const [editForm, setEditForm] = useState<{
+    name: string;
+    slug: string;
+    price: number;
+    regular_price: number;
+    reseller_price: number;
+    reseller_regular_price: number;
+    status: Product['status'];
+    stock_status: Product['stock_status'];
+    category: string;
+    reel_count: number;
+    format: string;
+    resolution: string;
+    featured_image: string;
+    preview_video_url: string;
+    gallery_images_text: string;
+    short_description: string;
+    description: string;
+    features_text: string;
+    google_drive_link: string;
+    file_name: string;
+    is_hot: boolean;
+    is_trending: boolean;
+    rating: number;
+    review_count: number;
+  }>({
+    name: '',
+    slug: '',
+    price: 99,
+    regular_price: 999,
+    reseller_price: 199,
+    reseller_regular_price: 1999,
+    status: 'publish',
+    stock_status: 'instock',
+    category: 'Trending Reels',
+    reel_count: 1000,
+    format: 'MP4',
+    resolution: '1080P Full HD',
+    featured_image: '',
+    preview_video_url: '',
+    gallery_images_text: '',
+    short_description: '',
+    description: '',
+    features_text: '',
+    google_drive_link: '',
+    file_name: '',
+    is_hot: false,
+    is_trending: false,
+    rating: 4.9,
+    review_count: 350,
   });
 
+  // ==========================================
+  // 4. CATEGORY MODALS STATE
+  // ==========================================
+  const [isCategoryModalOpen, setIsCategoryModalOpen] = useState(false);
+  const [editingCategory, setEditingCategory] = useState<CategoryItem | null>(null);
+  const [categoryForm, setCategoryForm] = useState({
+    name: '',
+    slug: '',
+    description: '',
+    count: 0,
+  });
+
+  // ==========================================
+  // 5. MUTATIONS
+  // ==========================================
   const createMutation = useMutation({
     mutationFn: (newProd: Partial<Product>) => portalApi.createProduct(newProd),
     onSuccess: (created) => {
@@ -65,12 +164,16 @@ export default function Products() {
         slug: '',
         price: 99,
         regular_price: 999,
+        reseller_price: 199,
+        reseller_regular_price: 1999,
         reel_count: 1000,
-        category: 'AI Viral Reels',
+        category: 'Trending Reels',
         format: 'MP4',
         resolution: '1080P Full HD (9:16)',
         googleDriveLink: '',
         featured_image: '',
+        preview_video_url: '',
+        short_description: '',
         description: '',
         status: 'publish',
       });
@@ -78,16 +181,160 @@ export default function Products() {
     onError: (err: any) => error('Creation Failed', err.message || 'Could not save product.'),
   });
 
+  const updateMutation = useMutation({
+    mutationFn: (updated: Partial<Product> & { id: string | number }) =>
+      portalApi.updateProduct(updated),
+    onSuccess: (updated) => {
+      queryClient.setQueryData(['products'], (old: Product[] = []) =>
+        old.map((p) => (String(p.id) === String(updated.id) ? { ...p, ...updated } : p))
+      );
+      success('Product Updated', `All details saved successfully for "${updated.name || updated.id}"`);
+      setEditingProduct(null);
+    },
+    onError: (err: any) => {
+      error('Update Failed', err.message || 'Could not update product details.');
+    },
+  });
+
   const deleteProductMutation = useMutation({
     mutationFn: (id: string | number) => portalApi.deleteProduct(id),
     onSuccess: (_, deletedId) => {
       queryClient.setQueryData(['products'], (old: Product[] = []) =>
-        old.filter((p) => p.id !== deletedId)
+        old.filter((p) => String(p.id) !== String(deletedId))
       );
       success('Product Deleted', 'Bundle removed from catalog.');
     },
     onError: (err: any) => error('Delete Failed', err.message || 'Could not delete product.'),
   });
+
+  const createCategoryMutation = useMutation({
+    mutationFn: (newCat: Partial<CategoryItem>) => portalApi.createCategory(newCat),
+    onSuccess: (created) => {
+      queryClient.setQueryData(['categories'], (old: CategoryItem[] = []) => [created, ...old]);
+      success('Category Created', `"${created.name}" is now available for bundles.`);
+      setIsCategoryModalOpen(false);
+      setCategoryForm({ name: '', slug: '', description: '', count: 0 });
+    },
+    onError: (err: any) => error('Category Failed', err.message || 'Could not save category.'),
+  });
+
+  const updateCategoryMutation = useMutation({
+    mutationFn: (cat: Partial<CategoryItem> & { id?: string; slug?: string }) =>
+      portalApi.updateCategory(cat),
+    onSuccess: (updated) => {
+      queryClient.setQueryData(['categories'], (old: CategoryItem[] = []) =>
+        old.map((c) => (c.slug === updated.slug || c.id === updated.id ? { ...c, ...updated } : c))
+      );
+      success('Category Updated', `Updated details for "${updated.name || updated.slug}".`);
+      setIsCategoryModalOpen(false);
+      setEditingCategory(null);
+    },
+    onError: (err: any) => error('Update Failed', err.message || 'Could not update category.'),
+  });
+
+  const deleteCategoryMutation = useMutation({
+    mutationFn: (slugOrId: string) => portalApi.deleteCategory(slugOrId),
+    onSuccess: (_, deletedKey) => {
+      queryClient.setQueryData(['categories'], (old: CategoryItem[] = []) =>
+        old.filter((c) => c.slug !== deletedKey && c.id !== deletedKey)
+      );
+      success('Category Deleted', 'Category removed from store.');
+    },
+    onError: (err: any) => error('Delete Failed', err.message || 'Could not delete category.'),
+  });
+
+  // ==========================================
+  // 6. HANDLERS
+  // ==========================================
+  const handleOpenEditProduct = (prod: Product) => {
+    setEditingProduct(prod);
+    setEditTab('basic');
+
+    const primaryFile = prod.files?.[0];
+    const driveLink = prod.google_drive_link || primaryFile?.file_url || '';
+    const fileName = primaryFile?.name || `${prod.name} Google Drive Access`;
+
+    setEditForm({
+      name: prod.name || '',
+      slug: prod.slug || '',
+      price: prod.price || 99,
+      regular_price: prod.regular_price || 999,
+      reseller_price: prod.reseller_price || 199,
+      reseller_regular_price: prod.reseller_regular_price || 1999,
+      status: prod.status || 'publish',
+      stock_status: prod.stock_status || 'instock',
+      category: prod.categories?.[0] || 'Trending Reels',
+      reel_count: prod.reel_count || 1000,
+      format: prod.format || 'MP4',
+      resolution: prod.resolution || '1080P Full HD (9:16)',
+      featured_image: prod.featured_image || '',
+      preview_video_url: prod.preview_video_url || '',
+      gallery_images_text: (prod.gallery_images || []).join('\n'),
+      short_description: prod.short_description || '',
+      description: prod.description || '',
+      features_text: (prod.features || []).join('\n'),
+      google_drive_link: driveLink,
+      file_name: fileName,
+      is_hot: Boolean(prod.is_hot),
+      is_trending: Boolean(prod.is_trending),
+      rating: prod.rating || 4.9,
+      review_count: prod.review_count || 350,
+    });
+  };
+
+  const handleSaveProductEdit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingProduct) return;
+
+    const galleryImages = editForm.gallery_images_text
+      .split('\n')
+      .map((s) => s.trim())
+      .filter(Boolean);
+
+    const features = editForm.features_text
+      .split('\n')
+      .map((s) => s.trim())
+      .filter(Boolean);
+
+    const files = editForm.google_drive_link
+      ? [
+          {
+            id: editingProduct.files?.[0]?.id || `file-${Date.now()}`,
+            name: editForm.file_name.trim() || `${editForm.name} Google Drive Access`,
+            file_url: editForm.google_drive_link.trim(),
+          },
+        ]
+      : editingProduct.files || [];
+
+    updateMutation.mutate({
+      id: editingProduct.id,
+      name: editForm.name.trim(),
+      slug: editForm.slug.trim(),
+      price: Number(editForm.price),
+      regular_price: Number(editForm.regular_price),
+      reseller_price: Number(editForm.reseller_price),
+      reseller_regular_price: Number(editForm.reseller_regular_price),
+      sale_price: Number(editForm.price),
+      status: editForm.status,
+      stock_status: editForm.stock_status,
+      categories: [editForm.category.trim()],
+      reel_count: Number(editForm.reel_count),
+      format: editForm.format.trim(),
+      resolution: editForm.resolution.trim(),
+      featured_image: editForm.featured_image.trim(),
+      preview_video_url: editForm.preview_video_url.trim(),
+      gallery_images: galleryImages,
+      short_description: editForm.short_description.trim(),
+      description: editForm.description.trim(),
+      features: features.length > 0 ? features : undefined,
+      google_drive_link: editForm.google_drive_link.trim(),
+      files,
+      is_hot: editForm.is_hot,
+      is_trending: editForm.is_trending,
+      rating: Number(editForm.rating),
+      review_count: Number(editForm.review_count),
+    });
+  };
 
   const handleDeleteProduct = (prod: Product) => {
     if (confirm(`Permanently delete bundle "${prod.name}"? This cannot be undone.`)) {
@@ -95,16 +342,81 @@ export default function Products() {
     }
   };
 
-  const handleNameChange = (name: string) => {
+  const handleGenerateToken = async (fileId: string) => {
+    try {
+      const res = await portalApi.generateFileToken(fileId);
+      setGeneratedTokens((prev) => ({ ...prev, [fileId]: res.download_url }));
+      success('Stream Token Issued', 'Valid for 60 minutes for high-speed streaming.');
+    } catch {
+      error('Token Failed', 'Unable to generate secure download token.');
+    }
+  };
+
+  const handleCopy = (text: string) => {
+    navigator.clipboard.writeText(text);
+    setCopiedLink(text);
+    success('Copied!', 'Link copied to clipboard.');
+    setTimeout(() => setCopiedLink(null), 2500);
+  };
+
+  const handleOpenAddCategory = () => {
+    setEditingCategory(null);
+    setCategoryForm({ name: '', slug: '', description: '', count: 0 });
+    setIsCategoryModalOpen(true);
+  };
+
+  const handleOpenEditCategory = (cat: CategoryItem) => {
+    setEditingCategory(cat);
+    setCategoryForm({
+      name: cat.name,
+      slug: cat.slug,
+      description: cat.description || '',
+      count: cat.count || 0,
+    });
+    setIsCategoryModalOpen(true);
+  };
+
+  const handleCategoryNameChange = (name: string) => {
     const autoSlug = name
       .toLowerCase()
       .replace(/[^a-z0-9]+/g, '-')
       .replace(/(^-|-$)+/g, '');
-    setCreateForm((prev) => ({
+    setCategoryForm((prev) => ({
       ...prev,
       name,
-      slug: autoSlug,
+      slug: editingCategory ? prev.slug : autoSlug,
     }));
+  };
+
+  const handleCategorySubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!categoryForm.name.trim()) {
+      error('Missing Name', 'Category name is required.');
+      return;
+    }
+
+    if (editingCategory) {
+      updateCategoryMutation.mutate({
+        id: editingCategory.id || editingCategory.slug,
+        slug: categoryForm.slug.trim(),
+        name: categoryForm.name.trim(),
+        description: categoryForm.description.trim(),
+        count: Number(categoryForm.count || 0),
+      });
+    } else {
+      createCategoryMutation.mutate({
+        name: categoryForm.name.trim(),
+        slug: categoryForm.slug.trim(),
+        description: categoryForm.description.trim(),
+        count: Number(categoryForm.count || 0),
+      });
+    }
+  };
+
+  const handleDeleteCategory = (cat: CategoryItem) => {
+    if (confirm(`Delete category "${cat.name}" (${cat.slug})?`)) {
+      deleteCategoryMutation.mutate(cat.id || cat.slug);
+    }
   };
 
   const handleCreateSubmit = (e: React.FormEvent) => {
@@ -119,17 +431,23 @@ export default function Products() {
       slug: createForm.slug.trim(),
       price: Number(createForm.price),
       regular_price: Number(createForm.regular_price || createForm.price * 5),
+      reseller_price: Number(createForm.reseller_price || createForm.price * 2),
+      reseller_regular_price: Number(createForm.reseller_regular_price || createForm.price * 10),
       sale_price: Number(createForm.price),
       reel_count: Number(createForm.reel_count || 1000),
-      categories: [createForm.category.trim() || 'AI Viral Reels'],
+      categories: [createForm.category.trim() || 'Trending Reels'],
       format: createForm.format,
       resolution: createForm.resolution,
       featured_image:
         createForm.featured_image.trim() ||
         'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=600',
+      preview_video_url: createForm.preview_video_url.trim(),
+      short_description: createForm.short_description.trim(),
+      description: createForm.description.trim(),
       status: createForm.status,
       stock_status: 'instock',
       downloadable: true,
+      google_drive_link: createForm.googleDriveLink.trim(),
       files: createForm.googleDriveLink
         ? [
             {
@@ -142,45 +460,26 @@ export default function Products() {
     });
   };
 
-  const updateMutation = useMutation({
-    mutationFn: (updated: Partial<Product> & { id: string | number }) =>
-      portalApi.updateProduct(updated),
-    onSuccess: (updated) => {
-      queryClient.setQueryData(['products'], (old: Product[] = []) =>
-        old.map((p) => (p.id === updated.id ? { ...p, ...updated } : p))
-      );
-      success('Product Updated', `Price & stock status saved for #${updated.id}`);
-      setEditingId(null);
-    },
-    onError: () => {
-      error('Update Failed', 'Could not update product on WordPress connector.');
-    },
-  });
+  // Filtered Products for Table
+  const filteredProducts = useMemo(() => {
+    if (selectedCategoryFilter === 'all') return products;
+    return products.filter((p) =>
+      p.categories?.some((c) => c.toLowerCase() === selectedCategoryFilter.toLowerCase())
+    );
+  }, [products, selectedCategoryFilter]);
 
-  const handleStartEdit = (prod: Product) => {
-    setEditingId(prod.id);
-    setEditPrice(prod.price);
-    setEditStock(prod.stock_status);
-  };
+  // Filtered Categories
+  const filteredCategories = useMemo(() => {
+    if (!categorySearch.trim()) return categories;
+    const q = categorySearch.toLowerCase();
+    return categories.filter(
+      (c) => c.name.toLowerCase().includes(q) || c.slug.toLowerCase().includes(q)
+    );
+  }, [categories, categorySearch]);
 
-  const handleSaveEdit = (id: string | number) => {
-    updateMutation.mutate({
-      id,
-      price: editPrice,
-      stock_status: editStock,
-    });
-  };
-
-  const handleGenerateToken = async (fileId: string) => {
-    try {
-      const res = await portalApi.generateFileToken(fileId);
-      setGeneratedTokens((prev) => ({ ...prev, [fileId]: res.download_url }));
-      success('Stream Token Issued', 'Valid for 60 minutes for high-speed streaming.');
-    } catch {
-      error('Token Failed', 'Unable to generate secure download token.');
-    }
-  };
-
+  // ==========================================
+  // 7. TABLE COLUMNS
+  // ==========================================
   const columns: Column<Product>[] = [
     {
       header: 'Bundle / Product',
@@ -189,64 +488,74 @@ export default function Products() {
           <img
             src={p.featured_image || 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=100'}
             alt={p.name}
-            className="w-11 h-11 rounded-xl object-cover border border-slate-800 shrink-0"
+            className="w-12 h-12 rounded-xl object-cover border border-slate-800 shrink-0 shadow-md"
+            onError={(e) => {
+              (e.target as HTMLImageElement).src =
+                'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=100';
+            }}
           />
           <div className="min-w-0">
-            <h4 className="font-bold text-white text-xs truncate max-w-[280px]">{p.name}</h4>
-            <div className="flex items-center gap-2 mt-0.5">
-              <span className="text-[10px] text-purple-400 font-semibold">{p.categories.join(', ')}</span>
+            <div className="flex items-center gap-1.5 flex-wrap">
+              <h4 className="font-bold text-white text-xs truncate max-w-[260px]">{p.name}</h4>
+              {p.is_hot && (
+                <span className="px-1.5 py-0.2 rounded text-[9px] font-black uppercase tracking-wider bg-rose-500/20 text-rose-400 border border-rose-500/30 flex items-center gap-0.5">
+                  <Flame className="w-2.5 h-2.5" /> HOT
+                </span>
+              )}
+              {p.is_trending && (
+                <span className="px-1.5 py-0.2 rounded text-[9px] font-black uppercase tracking-wider bg-amber-500/20 text-amber-400 border border-amber-500/30">
+                  TRENDING
+                </span>
+              )}
+            </div>
+            <div className="flex items-center gap-2 mt-1 flex-wrap">
+              <span className="text-[10px] text-purple-400 font-semibold bg-purple-500/10 px-1.5 py-0.5 rounded">
+                {p.categories?.join(', ') || 'Bundle'}
+              </span>
               <span className="text-[10px] text-slate-500">•</span>
-              <span className="text-[10px] text-slate-400">{p.reel_count}+ Reels ({p.resolution})</span>
+              <span className="text-[10px] text-slate-400 font-mono">
+                {p.reel_count || 1000}+ Reels
+              </span>
+              <span className="text-[10px] text-slate-500">•</span>
+              <span className="text-[10px] text-emerald-400 font-semibold">{p.resolution || '1080P'}</span>
             </div>
           </div>
         </div>
       ),
     },
     {
-      header: 'Price (INR)',
-      cell: (p) => {
-        const isEditing = editingId === p.id;
-        if (isEditing) {
-          return (
-            <input
-              type="number"
-              value={editPrice}
-              onChange={(e) => setEditPrice(Number(e.target.value))}
-              className="w-24 px-2 py-1 rounded-lg bg-slate-950 border border-purple-500 text-xs font-bold text-white focus:outline-none"
-            />
-          );
-        }
-        return (
-          <div>
-            <div className="font-black text-white text-xs">{formatCurrency(p.price)}</div>
+      header: 'Pricing (Personal / Reseller)',
+      cell: (p) => (
+        <div className="space-y-0.5">
+          <div className="flex items-baseline gap-1.5">
+            <span className="font-black text-white text-xs">{formatCurrency(p.price)}</span>
             {p.regular_price > p.price && (
-              <div className="text-[10px] text-slate-500 line-through">
+              <span className="text-[10px] text-slate-500 line-through">
                 {formatCurrency(p.regular_price)}
-              </div>
+              </span>
             )}
+            <span className="text-[9px] text-purple-400 font-semibold uppercase">Personal</span>
           </div>
-        );
-      },
+          {p.reseller_price ? (
+            <div className="flex items-baseline gap-1.5 text-[11px] text-amber-400">
+              <span className="font-bold">{formatCurrency(p.reseller_price)}</span>
+              {p.reseller_regular_price && (
+                <span className="text-[9px] text-slate-600 line-through">
+                  {formatCurrency(p.reseller_regular_price)}
+                </span>
+              )}
+              <span className="text-[9px] text-amber-400/80 font-semibold uppercase">Reseller</span>
+            </div>
+          ) : null}
+        </div>
+      ),
     },
     {
-      header: 'Stock Status',
-      cell: (p) => {
-        const isEditing = editingId === p.id;
-        if (isEditing) {
-          return (
-            <select
-              value={editStock}
-              onChange={(e) => setEditStock(e.target.value as any)}
-              className="px-2 py-1 rounded-lg bg-slate-950 border border-purple-500 text-xs text-white focus:outline-none"
-            >
-              <option value="instock">In Stock</option>
-              <option value="outofstock">Out of Stock</option>
-            </select>
-          );
-        }
-        return (
+      header: 'Status',
+      cell: (p) => (
+        <div className="flex flex-col gap-1">
           <span
-            className={`px-2 py-0.5 rounded-md text-[10px] font-black uppercase tracking-wider ${
+            className={`px-2 py-0.5 rounded-md text-[9px] font-black uppercase tracking-wider w-fit ${
               p.stock_status === 'instock'
                 ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20'
                 : 'bg-rose-500/10 text-rose-400 border border-rose-500/20'
@@ -254,199 +563,1099 @@ export default function Products() {
           >
             {p.stock_status === 'instock' ? 'In Stock' : 'Out of Stock'}
           </span>
-        );
-      },
-    },
-    {
-      header: 'Digital Downloads',
-      cell: (p) => (
-        <div className="flex items-center gap-1.5 text-xs text-slate-300">
-          <HardDrive className="w-3.5 h-3.5 text-purple-400" />
-          <span>{p.downloads_count} downloads</span>
+          <span
+            className={`px-2 py-0.2 rounded text-[9px] font-bold w-fit ${
+              p.status === 'publish'
+                ? 'text-slate-400'
+                : 'bg-amber-500/10 text-amber-400 border border-amber-500/20'
+            }`}
+          >
+            {p.status === 'publish' ? '● Live' : '○ Draft'}
+          </span>
         </div>
       ),
     },
     {
-      header: 'Actions',
+      header: 'Drive Download File',
       cell: (p) => {
-        const isEditing = editingId === p.id;
-        if (isEditing) {
-          return (
-            <div className="flex items-center gap-1.5">
-              <button
-                onClick={() => handleSaveEdit(p.id)}
-                className="p-1.5 rounded-lg bg-emerald-500 text-white hover:bg-emerald-600 transition-colors"
-                title="Save Changes"
-              >
-                <Check className="w-3.5 h-3.5" />
-              </button>
-              <button
-                onClick={() => setEditingId(null)}
-                className="p-1.5 rounded-lg bg-slate-800 text-slate-300 hover:bg-slate-700 transition-colors"
-                title="Cancel"
-              >
-                <X className="w-3.5 h-3.5" />
-              </button>
-            </div>
-          );
-        }
-
-        return (
-          <div className="flex items-center gap-1.5">
-            <button
-              onClick={() => handleStartEdit(p)}
-              className="p-1.5 rounded-lg bg-slate-800 text-slate-300 hover:text-white hover:bg-slate-700 transition-colors"
-              title="Inline Edit"
-            >
-              <Edit2 className="w-3.5 h-3.5" />
-            </button>
-            <a
-              href={`https://vaultzet.shop/product/${p.slug}`}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="p-1.5 rounded-lg bg-slate-800 text-slate-300 hover:text-white hover:bg-slate-700 transition-colors"
-              title="View on Store"
-            >
-              <ExternalLink className="w-3.5 h-3.5" />
-            </a>
-            <button
-              onClick={() => handleDeleteProduct(p)}
-              disabled={deleteProductMutation.isPending}
-              className="p-1.5 rounded-lg bg-rose-500/10 text-rose-400 hover:bg-rose-500/20 hover:text-rose-300 transition-colors disabled:opacity-50"
-              title="Delete Bundle"
-            >
-              <Trash2 className="w-3.5 h-3.5" />
-            </button>
+        const driveLink = p.google_drive_link || p.files?.[0]?.file_url;
+        return driveLink ? (
+          <div className="flex items-center gap-1.5 text-xs text-emerald-400">
+            <Check className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
+            <span className="text-[11px] font-medium truncate max-w-[130px]" title={driveLink}>
+              Google Drive Ready
+            </span>
+          </div>
+        ) : (
+          <div className="flex items-center gap-1.5 text-xs text-amber-400">
+            <FolderOpen className="w-3.5 h-3.5 text-amber-400 shrink-0" />
+            <span className="text-[11px] text-amber-400/80">No Link Set</span>
           </div>
         );
       },
+    },
+    {
+      header: 'Actions',
+      cell: (p) => (
+        <div className="flex items-center gap-1.5">
+          <button
+            onClick={() => handleOpenEditProduct(p)}
+            className="px-2.5 py-1.5 rounded-lg bg-purple-600/20 hover:bg-purple-600 text-purple-300 hover:text-white border border-purple-500/30 transition-all font-bold text-xs flex items-center gap-1.5"
+            title="Edit Full Product Page"
+          >
+            <Edit2 className="w-3.5 h-3.5" />
+            <span>Edit Full Page</span>
+          </button>
+          <a
+            href={`https://vaultzet.shop/product/${p.slug}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="p-1.5 rounded-lg bg-slate-800 text-slate-300 hover:text-white hover:bg-slate-700 transition-colors"
+            title="View Live on Store"
+          >
+            <ExternalLink className="w-3.5 h-3.5" />
+          </a>
+          <button
+            onClick={() => handleDeleteProduct(p)}
+            disabled={deleteProductMutation.isPending}
+            className="p-1.5 rounded-lg bg-rose-500/10 text-rose-400 hover:bg-rose-500/20 hover:text-rose-300 transition-colors disabled:opacity-50"
+            title="Delete Bundle"
+          >
+            <Trash2 className="w-3.5 h-3.5" />
+          </button>
+        </div>
+      ),
     },
   ];
 
   return (
     <div className="space-y-6">
-      
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3.5">
+      {/* Page Header */}
+      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
         <div>
-          <h1 className="text-xl sm:text-3xl font-black text-white tracking-tight">
-            Products & Digital Files
-          </h1>
-          <p className="text-xs sm:text-sm text-slate-400 font-medium mt-0.5">
-            Manage reel bundles, pricing, stock levels, upload new bundles, and generate secure stream tokens.
+          <div className="flex items-center gap-2">
+            <h1 className="text-xl sm:text-3xl font-black text-white tracking-tight">
+              Products, Files & Categories
+            </h1>
+            <span className="px-2.5 py-0.5 rounded-full text-xs font-black bg-purple-600/30 text-purple-300 border border-purple-500/30">
+              {products.length} Bundles Active
+            </span>
+          </div>
+          <p className="text-xs sm:text-sm text-slate-400 font-medium mt-1">
+            Complete store catalog management. Edit full product pages, Google Drive delivery files, and all 62 competitor categories.
           </p>
         </div>
 
-        <div className="flex flex-wrap items-center gap-2.5 w-full sm:w-auto">
+        <div className="flex flex-wrap items-center gap-2.5">
           <button
             onClick={() => setIsCreateModalOpen(true)}
-            className="w-full sm:w-auto justify-center px-4 py-2.5 rounded-xl bg-gradient-to-r from-purple-600 via-indigo-600 to-purple-700 hover:from-purple-500 hover:to-indigo-500 text-white font-bold text-xs flex items-center gap-2 shadow-lg shadow-purple-600/25 transition-all hover:scale-[1.02] active:scale-[0.98]"
+            className="px-4 py-2.5 rounded-xl bg-gradient-to-r from-purple-600 via-indigo-600 to-purple-700 hover:from-purple-500 hover:to-indigo-500 text-white font-bold text-xs flex items-center gap-2 shadow-lg shadow-purple-600/25 transition-all hover:scale-[1.02] active:scale-[0.98]"
           >
             <Plus className="w-4 h-4 shrink-0" />
             <span>Upload New Bundle</span>
           </button>
 
-          {/* Tabs Switcher */}
-          <div className="w-full sm:w-auto p-1 rounded-xl bg-slate-900 border border-slate-800 grid grid-cols-2 sm:flex items-center text-xs font-bold">
+          <button
+            onClick={handleOpenAddCategory}
+            className="px-3.5 py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-purple-300 hover:text-white border border-purple-500/30 font-bold text-xs flex items-center gap-2 transition-all"
+          >
+            <Tag className="w-4 h-4 text-purple-400 shrink-0" />
+            <span>+ Add Category</span>
+          </button>
+
+          {/* Main Tab Switcher */}
+          <div className="p-1 rounded-xl bg-slate-900 border border-slate-800 flex items-center text-xs font-bold">
             <button
               onClick={() => setActiveTab('all')}
-              className={`px-3 py-1.5 rounded-lg transition-all text-center ${
-                activeTab === 'all' ? 'bg-purple-600 text-white shadow-sm' : 'text-slate-400 hover:text-white'
+              className={`px-3 py-1.5 rounded-lg transition-all ${
+                activeTab === 'all'
+                  ? 'bg-purple-600 text-white shadow-sm'
+                  : 'text-slate-400 hover:text-white'
               }`}
             >
               All Bundles ({products.length})
             </button>
             <button
               onClick={() => setActiveTab('digital')}
-              className={`px-3 py-1.5 rounded-lg transition-all text-center ${
-                activeTab === 'digital' ? 'bg-purple-600 text-white shadow-sm' : 'text-slate-400 hover:text-white'
+              className={`px-3 py-1.5 rounded-lg transition-all ${
+                activeTab === 'digital'
+                  ? 'bg-purple-600 text-white shadow-sm'
+                  : 'text-slate-400 hover:text-white'
               }`}
             >
-              Cloud Tokens
+              Digital Files & Drive ({products.length})
+            </button>
+            <button
+              onClick={() => setActiveTab('categories')}
+              className={`px-3 py-1.5 rounded-lg transition-all ${
+                activeTab === 'categories'
+                  ? 'bg-purple-600 text-white shadow-sm'
+                  : 'text-slate-400 hover:text-white'
+              }`}
+            >
+              Categories ({categories.length})
             </button>
           </div>
         </div>
       </div>
 
-      {activeTab === 'all' ? (
-        /* Standard Products Table */
-        <DataTable
-          columns={columns}
-          data={products}
-          searchKey="name"
-          searchPlaceholder="Search bundles by name..."
-          isLoading={isLoading}
-        />
-      ) : (
-        /* Digital Download Tokens Management */
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-          {products.map((prod) => (
-            <div
-              key={prod.id}
-              className="p-5 rounded-2xl bg-slate-900/80 border border-slate-800 space-y-4 shadow-sm"
+      {/* ========================================================= */}
+      {/* TAB 1: ALL PRODUCTS TABLE */}
+      {/* ========================================================= */}
+      {activeTab === 'all' && (
+        <div className="space-y-4">
+          {/* Category Filter Pills Toolbar */}
+          <div className="flex items-center gap-2 overflow-x-auto pb-2 scrollbar-none">
+            <button
+              onClick={() => setSelectedCategoryFilter('all')}
+              className={`px-3 py-1 rounded-lg text-xs font-bold whitespace-nowrap transition-all ${
+                selectedCategoryFilter === 'all'
+                  ? 'bg-purple-600 text-white'
+                  : 'bg-slate-900 text-slate-400 hover:text-white border border-slate-800'
+              }`}
             >
-              <div className="flex items-start justify-between gap-3">
-                <div>
-                  <span className="text-[10px] font-bold uppercase tracking-wider text-purple-400 bg-purple-500/10 px-2 py-0.5 rounded">
-                    Digital Bundle Asset
-                  </span>
-                  <h3 className="font-bold text-sm text-white mt-1 leading-snug">{prod.name}</h3>
-                </div>
-                <span className="text-xs font-black text-emerald-400 shrink-0">
-                  {formatCurrency(prod.price)}
-                </span>
+              All Categories ({products.length})
+            </button>
+            {categories.slice(0, 15).map((cat) => (
+              <button
+                key={cat.slug}
+                onClick={() => setSelectedCategoryFilter(cat.name)}
+                className={`px-3 py-1 rounded-lg text-xs font-semibold whitespace-nowrap transition-all ${
+                  selectedCategoryFilter.toLowerCase() === cat.name.toLowerCase()
+                    ? 'bg-purple-600 text-white'
+                    : 'bg-slate-900 text-slate-400 hover:text-white border border-slate-800'
+                }`}
+              >
+                {cat.name} ({cat.count || 0})
+              </button>
+            ))}
+          </div>
+
+          <DataTable
+            columns={columns}
+            data={filteredProducts}
+            searchKey="name"
+            searchPlaceholder="Search all 131 bundles by title, category, format..."
+            isLoading={isProductsLoading}
+            pageSize={25}
+          />
+        </div>
+      )}
+
+      {/* ========================================================= */}
+      {/* TAB 2: DIGITAL FILES & GOOGLE DRIVE ACCESS */}
+      {/* ========================================================= */}
+      {activeTab === 'digital' && (
+        <div className="space-y-4">
+          <div className="p-4 rounded-2xl bg-gradient-to-r from-purple-950/40 via-indigo-950/30 to-slate-900 border border-purple-500/20 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-purple-600/20 text-purple-400 flex items-center justify-center shrink-0 border border-purple-500/30">
+                <FolderOpen className="w-5 h-5 text-amber-400" />
               </div>
+              <div>
+                <h4 className="text-xs font-bold text-white">Google Drive Digital Delivery System</h4>
+                <p className="text-[11px] text-slate-400">
+                  All 131 products include high-speed Google Drive download access links delivered to buyers upon Cashfree payment.
+                </p>
+              </div>
+            </div>
+            <div className="text-xs font-bold text-emerald-400 bg-emerald-500/10 px-3 py-1.5 rounded-xl border border-emerald-500/20 shrink-0">
+              {products.filter((p) => p.google_drive_link || p.files?.length).length} / {products.length} Bundles Configured
+            </div>
+          </div>
 
-              {/* Files Attached */}
-              <div className="space-y-2">
-                <div className="text-[11px] font-bold text-slate-400">Attached Media Packages:</div>
-                {(prod.files || []).map((file) => {
-                  const tokenUrl = generatedTokens[file.id];
-                  return (
-                    <div
-                      key={file.id}
-                      className="p-3 rounded-xl bg-slate-950/80 border border-slate-800/80 space-y-2"
-                    >
-                      <div className="flex items-center justify-between gap-2">
-                        <div className="flex items-center gap-2 min-w-0">
-                          <Film className="w-4 h-4 text-purple-400 shrink-0" />
-                          <span className="text-xs text-slate-200 font-mono truncate">{file.name}</span>
-                        </div>
-                        <button
-                          onClick={() => handleGenerateToken(file.id)}
-                          className="px-2.5 py-1 rounded-lg bg-purple-600 hover:bg-purple-500 text-white text-[11px] font-bold transition-all shrink-0 flex items-center gap-1"
-                        >
-                          <Key className="w-3 h-3" />
-                          <span>Generate Token</span>
-                        </button>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {products.map((prod) => {
+              const driveLink = prod.google_drive_link || prod.files?.[0]?.file_url;
+              const primaryFile = prod.files?.[0];
+
+              return (
+                <div
+                  key={prod.id}
+                  className="p-5 rounded-2xl bg-slate-900/90 border border-slate-800 hover:border-slate-700 transition-all space-y-4 shadow-sm"
+                >
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="flex items-center gap-3 min-w-0">
+                      <img
+                        src={prod.featured_image || 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=100'}
+                        alt={prod.name}
+                        className="w-12 h-12 rounded-xl object-cover border border-slate-800 shrink-0"
+                      />
+                      <div className="min-w-0">
+                        <span className="text-[10px] font-bold uppercase tracking-wider text-purple-400 bg-purple-500/10 px-2 py-0.5 rounded">
+                          {prod.categories?.[0] || 'Bundle'}
+                        </span>
+                        <h3 className="font-bold text-sm text-white mt-1 leading-snug truncate">
+                          {prod.name}
+                        </h3>
                       </div>
+                    </div>
+                    <span className="text-xs font-black text-emerald-400 shrink-0">
+                      {formatCurrency(prod.price)}
+                    </span>
+                  </div>
 
-                      {tokenUrl && (
-                        <div className="pt-2 border-t border-slate-800/80 flex items-center justify-between text-[11px]">
-                          <span className="font-mono text-purple-300 truncate max-w-[240px]">
-                            {tokenUrl}
-                          </span>
+                  {/* Google Drive Link Box */}
+                  <div className="p-3.5 rounded-xl bg-slate-950 border border-slate-800/80 space-y-2.5">
+                    <div className="flex items-center justify-between text-xs">
+                      <span className="font-bold text-slate-300 flex items-center gap-1.5">
+                        <FolderOpen className="w-3.5 h-3.5 text-amber-400" />
+                        <span>Google Drive Link:</span>
+                      </span>
+                      {driveLink && (
+                        <div className="flex items-center gap-2">
+                          <button
+                            onClick={() => handleCopy(driveLink)}
+                            className="text-[11px] text-purple-400 hover:text-purple-300 font-bold flex items-center gap-1"
+                          >
+                            <Copy className="w-3 h-3" />
+                            <span>{copiedLink === driveLink ? 'Copied!' : 'Copy'}</span>
+                          </button>
                           <a
-                            href={tokenUrl}
+                            href={driveLink}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="text-emerald-400 hover:underline font-bold flex items-center gap-0.5"
+                            className="text-[11px] text-emerald-400 hover:underline font-bold flex items-center gap-1"
                           >
-                            <span>Test Stream</span>
                             <ExternalLink className="w-3 h-3" />
+                            <span>Open Drive</span>
                           </a>
                         </div>
                       )}
                     </div>
-                  );
-                })}
-              </div>
-            </div>
-          ))}
+
+                    {driveLink ? (
+                      <div className="font-mono text-[11px] text-slate-400 bg-slate-900/60 p-2 rounded-lg truncate border border-slate-800">
+                        {driveLink}
+                      </div>
+                    ) : (
+                      <div className="text-xs text-amber-400/80 italic bg-amber-500/5 p-2 rounded-lg border border-amber-500/20">
+                        No Google Drive link configured yet. Click "Edit Full Page" to add one.
+                      </div>
+                    )}
+
+                    {/* Quick Token Generator for Streaming */}
+                    {primaryFile && (
+                      <div className="pt-2 border-t border-slate-800/60 flex items-center justify-between">
+                        <button
+                          onClick={() => handleGenerateToken(primaryFile.id)}
+                          className="px-2.5 py-1 rounded-lg bg-purple-600/20 hover:bg-purple-600 text-purple-300 hover:text-white border border-purple-500/30 text-[11px] font-bold transition-all flex items-center gap-1"
+                        >
+                          <Key className="w-3 h-3" />
+                          <span>Generate Cloud Token</span>
+                        </button>
+
+                        <button
+                          onClick={() => handleOpenEditProduct(prod)}
+                          className="text-[11px] text-slate-400 hover:text-white font-semibold flex items-center gap-1"
+                        >
+                          <Edit2 className="w-3 h-3" />
+                          <span>Edit File Link</span>
+                        </button>
+                      </div>
+                    )}
+
+                    {primaryFile && generatedTokens[primaryFile.id] && (
+                      <div className="pt-2 border-t border-slate-800/60 text-[11px] space-y-1">
+                        <div className="text-slate-400">Expiring 60-Min Stream URL:</div>
+                        <div className="font-mono text-purple-300 bg-purple-950/40 p-2 rounded truncate border border-purple-800/40">
+                          {generatedTokens[primaryFile.id]}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
         </div>
       )}
 
-      {/* Upload New Bundle Modal */}
+      {/* ========================================================= */}
+      {/* TAB 3: CATEGORIES MANAGEMENT (All 62 Competitor Categories) */}
+      {/* ========================================================= */}
+      {activeTab === 'categories' && (
+        <div className="space-y-5">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-4 rounded-2xl bg-gradient-to-r from-purple-950/40 via-indigo-950/30 to-slate-900 border border-purple-500/20">
+            <div>
+              <h3 className="text-sm font-black text-white flex items-center gap-2">
+                <span>All Store Categories ({categories.length})</span>
+                <span className="text-[10px] font-bold text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded border border-emerald-500/20">
+                  Mirrored from Competitor (ReelsBundles.in)
+                </span>
+              </h3>
+              <p className="text-xs text-slate-400 mt-0.5">
+                Manage all 62 categories or add new custom categories. Any category added here immediately appears in product filters and edit modals.
+              </p>
+            </div>
+
+            <button
+              onClick={handleOpenAddCategory}
+              className="px-4 py-2 rounded-xl bg-purple-600 hover:bg-purple-500 text-white font-bold text-xs flex items-center gap-1.5 shrink-0 shadow-lg shadow-purple-600/30"
+            >
+              <Plus className="w-4 h-4" />
+              <span>Create New Category</span>
+            </button>
+          </div>
+
+          {/* Search Categories */}
+          <div className="flex items-center gap-3">
+            <div className="relative flex-1 max-w-md">
+              <Search className="w-4 h-4 text-slate-500 absolute left-3.5 top-3" />
+              <input
+                type="text"
+                placeholder="Search categories by name or slug..."
+                value={categorySearch}
+                onChange={(e) => setCategorySearch(e.target.value)}
+                className="w-full pl-10 pr-4 py-2 rounded-xl bg-slate-900 border border-slate-800 focus:border-purple-500 text-xs text-white placeholder-slate-500 focus:outline-none"
+              />
+            </div>
+            <span className="text-xs text-slate-400 font-semibold">
+              Showing {filteredCategories.length} categories
+            </span>
+          </div>
+
+          {/* Categories Grid */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+            {filteredCategories.map((cat) => (
+              <div
+                key={cat.slug}
+                className="p-4 rounded-2xl bg-slate-900/90 border border-slate-800 hover:border-purple-500/40 transition-all flex flex-col justify-between group"
+              >
+                <div>
+                  <div className="flex items-start justify-between gap-2">
+                    <span className="w-8 h-8 rounded-lg bg-purple-600/20 text-purple-400 border border-purple-500/30 flex items-center justify-center font-bold text-xs">
+                      <Tag className="w-4 h-4" />
+                    </span>
+                    <span className="text-[11px] font-black text-purple-300 bg-purple-500/10 px-2 py-0.5 rounded-full border border-purple-500/20">
+                      {cat.count || 0} Bundles
+                    </span>
+                  </div>
+
+                  <h4 className="font-bold text-sm text-white mt-2 group-hover:text-purple-300 transition-colors">
+                    {cat.name}
+                  </h4>
+                  <div className="font-mono text-[10px] text-slate-500 mt-0.5 truncate">
+                    /{cat.slug}
+                  </div>
+                  {cat.description && (
+                    <p className="text-[11px] text-slate-400 mt-2 line-clamp-2 leading-relaxed">
+                      {cat.description}
+                    </p>
+                  )}
+                </div>
+
+                <div className="pt-3 mt-3 border-t border-slate-800/80 flex items-center justify-between">
+                  <a
+                    href={`https://vaultzet.shop/category/${cat.slug}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-[11px] text-slate-400 hover:text-white font-semibold flex items-center gap-1"
+                  >
+                    <span>View Store</span>
+                    <ExternalLink className="w-3 h-3" />
+                  </a>
+
+                  <div className="flex items-center gap-1">
+                    <button
+                      onClick={() => handleOpenEditCategory(cat)}
+                      className="p-1.5 rounded-lg bg-slate-800 text-slate-300 hover:text-white hover:bg-slate-700 transition-colors"
+                      title="Edit Category"
+                    >
+                      <Edit2 className="w-3 h-3" />
+                    </button>
+                    <button
+                      onClick={() => handleDeleteCategory(cat)}
+                      className="p-1.5 rounded-lg bg-rose-500/10 text-rose-400 hover:bg-rose-500/20 hover:text-rose-300 transition-colors"
+                      title="Delete Category"
+                    >
+                      <Trash2 className="w-3 h-3" />
+                    </button>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* ========================================================= */}
+      {/* MODAL 1: FULL PRODUCT EDIT MODAL */}
+      {/* ========================================================= */}
+      {editingProduct && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 bg-black/85 backdrop-blur-md overflow-y-auto">
+          <div className="relative w-full max-w-4xl bg-slate-900 border border-slate-800 rounded-3xl p-6 sm:p-8 shadow-2xl shadow-purple-900/40 my-8 max-h-[92vh] flex flex-col">
+            {/* Modal Header */}
+            <div className="flex items-start justify-between gap-4 pb-4 border-b border-slate-800 shrink-0">
+              <div className="flex items-center gap-3">
+                <img
+                  src={editForm.featured_image || 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=100'}
+                  alt={editForm.name}
+                  className="w-12 h-12 rounded-xl object-cover border border-slate-700 shrink-0"
+                />
+                <div>
+                  <div className="flex items-center gap-2">
+                    <h2 className="text-lg sm:text-xl font-black text-white">
+                      Edit Product Page
+                    </h2>
+                    <span className="text-[10px] font-mono text-purple-400 bg-purple-500/10 px-2 py-0.5 rounded">
+                      #{editingProduct.id}
+                    </span>
+                  </div>
+                  <p className="text-xs text-slate-400">
+                    Live store URL: <code className="text-purple-300">/product/{editForm.slug}</code>
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-2">
+                <a
+                  href={`https://vaultzet.shop/product/${editForm.slug}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-bold flex items-center gap-1.5"
+                >
+                  <span>Preview Live</span>
+                  <ExternalLink className="w-3.5 h-3.5" />
+                </a>
+                <button
+                  onClick={() => setEditingProduct(null)}
+                  className="p-2 rounded-xl text-slate-400 hover:text-white hover:bg-slate-800 transition-colors"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+            </div>
+
+            {/* Modal Nav Tabs */}
+            <div className="flex items-center gap-2 py-3 border-b border-slate-800 overflow-x-auto shrink-0 scrollbar-none">
+              <button
+                type="button"
+                onClick={() => setEditTab('basic')}
+                className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all ${
+                  editTab === 'basic'
+                    ? 'bg-purple-600 text-white shadow-sm'
+                    : 'text-slate-400 hover:text-white bg-slate-950/60'
+                }`}
+              >
+                1. Overview & Pricing
+              </button>
+              <button
+                type="button"
+                onClick={() => setEditTab('media')}
+                className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all ${
+                  editTab === 'media'
+                    ? 'bg-purple-600 text-white shadow-sm'
+                    : 'text-slate-400 hover:text-white bg-slate-950/60'
+                }`}
+              >
+                2. Media & Preview Video
+              </button>
+              <button
+                type="button"
+                onClick={() => setEditTab('details')}
+                className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all ${
+                  editTab === 'details'
+                    ? 'bg-purple-600 text-white shadow-sm'
+                    : 'text-slate-400 hover:text-white bg-slate-950/60'
+                }`}
+              >
+                3. Content & Descriptions
+              </button>
+              <button
+                type="button"
+                onClick={() => setEditTab('files')}
+                className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all ${
+                  editTab === 'files'
+                    ? 'bg-purple-600 text-white shadow-sm'
+                    : 'text-slate-400 hover:text-white bg-slate-950/60'
+                }`}
+              >
+                4. Google Drive Download Link
+              </button>
+            </div>
+
+            {/* Modal Form Body */}
+            <form onSubmit={handleSaveProductEdit} className="overflow-y-auto py-5 pr-1 space-y-5 flex-1">
+              {/* TAB A: OVERVIEW & PRICING */}
+              {editTab === 'basic' && (
+                <div className="space-y-4">
+                  {/* Name and Slug */}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-xs font-bold text-slate-300 mb-1.5">
+                        Bundle Name *
+                      </label>
+                      <input
+                        type="text"
+                        required
+                        value={editForm.name}
+                        onChange={(e) => setEditForm((prev) => ({ ...prev, name: e.target.value }))}
+                        className="w-full px-3.5 py-2.5 rounded-xl bg-slate-950 border border-slate-800 focus:border-purple-500 text-sm font-semibold text-white focus:outline-none"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-xs font-bold text-slate-300 mb-1.5">
+                        URL Slug *
+                      </label>
+                      <div className="flex items-center rounded-xl bg-slate-950 border border-slate-800 focus-within:border-purple-500 px-3 py-2.5">
+                        <span className="text-xs text-slate-500 font-mono">/product/</span>
+                        <input
+                          type="text"
+                          required
+                          value={editForm.slug}
+                          onChange={(e) => setEditForm((prev) => ({ ...prev, slug: e.target.value }))}
+                          className="w-full bg-transparent text-xs font-mono font-semibold text-purple-300 focus:outline-none pl-1"
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Category & Status */}
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                    <div>
+                      <label className="block text-xs font-bold text-slate-300 mb-1.5">
+                        Primary Category *
+                      </label>
+                      <select
+                        value={editForm.category}
+                        onChange={(e) => setEditForm((prev) => ({ ...prev, category: e.target.value }))}
+                        className="w-full px-3 py-2.5 rounded-xl bg-slate-950 border border-slate-800 focus:border-purple-500 text-xs font-semibold text-white focus:outline-none"
+                      >
+                        {categories.map((c) => (
+                          <option key={c.slug} value={c.name}>
+                            {c.name}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+
+                    <div>
+                      <label className="block text-xs font-bold text-slate-300 mb-1.5">
+                        Visibility Status
+                      </label>
+                      <select
+                        value={editForm.status}
+                        onChange={(e) => setEditForm((prev) => ({ ...prev, status: e.target.value as any }))}
+                        className="w-full px-3 py-2.5 rounded-xl bg-slate-950 border border-slate-800 focus:border-purple-500 text-xs font-semibold text-white focus:outline-none"
+                      >
+                        <option value="publish">Publish (Visible to Buyers)</option>
+                        <option value="draft">Draft (Hidden)</option>
+                      </select>
+                    </div>
+
+                    <div>
+                      <label className="block text-xs font-bold text-slate-300 mb-1.5">
+                        Stock Status
+                      </label>
+                      <select
+                        value={editForm.stock_status}
+                        onChange={(e) => setEditForm((prev) => ({ ...prev, stock_status: e.target.value as any }))}
+                        className="w-full px-3 py-2.5 rounded-xl bg-slate-950 border border-slate-800 focus:border-purple-500 text-xs font-semibold text-white focus:outline-none"
+                      >
+                        <option value="instock">In Stock</option>
+                        <option value="outofstock">Out of Stock</option>
+                      </select>
+                    </div>
+                  </div>
+
+                  {/* Pricing Cards */}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
+                    {/* Personal License */}
+                    <div className="p-4 rounded-2xl bg-slate-950 border border-slate-800/80 space-y-3">
+                      <div className="flex items-center justify-between">
+                        <span className="text-xs font-black text-purple-400 uppercase tracking-wider">
+                          Personal License
+                        </span>
+                        <span className="text-[10px] text-slate-500">For personal use</span>
+                      </div>
+
+                      <div className="grid grid-cols-2 gap-3">
+                        <div>
+                          <label className="block text-[11px] font-bold text-slate-400 mb-1">
+                            Sale Price (₹) *
+                          </label>
+                          <input
+                            type="number"
+                            required
+                            min="1"
+                            value={editForm.price}
+                            onChange={(e) => setEditForm((prev) => ({ ...prev, price: Number(e.target.value) }))}
+                            className="w-full px-3 py-2 rounded-xl bg-slate-900 border border-slate-800 focus:border-purple-500 text-sm font-black text-emerald-400 focus:outline-none"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-[11px] font-bold text-slate-400 mb-1">
+                            Regular MRP (₹)
+                          </label>
+                          <input
+                            type="number"
+                            min="1"
+                            value={editForm.regular_price}
+                            onChange={(e) => setEditForm((prev) => ({ ...prev, regular_price: Number(e.target.value) }))}
+                            className="w-full px-3 py-2 rounded-xl bg-slate-900 border border-slate-800 focus:border-purple-500 text-sm font-semibold text-slate-400 focus:outline-none"
+                          />
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Reseller License */}
+                    <div className="p-4 rounded-2xl bg-slate-950 border border-slate-800/80 space-y-3">
+                      <div className="flex items-center justify-between">
+                        <span className="text-xs font-black text-amber-400 uppercase tracking-wider">
+                          Reseller Commercial License
+                        </span>
+                        <span className="text-[10px] text-slate-500">With resale rights</span>
+                      </div>
+
+                      <div className="grid grid-cols-2 gap-3">
+                        <div>
+                          <label className="block text-[11px] font-bold text-slate-400 mb-1">
+                            Reseller Price (₹)
+                          </label>
+                          <input
+                            type="number"
+                            min="1"
+                            value={editForm.reseller_price}
+                            onChange={(e) => setEditForm((prev) => ({ ...prev, reseller_price: Number(e.target.value) }))}
+                            className="w-full px-3 py-2 rounded-xl bg-slate-900 border border-slate-800 focus:border-purple-500 text-sm font-black text-amber-400 focus:outline-none"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-[11px] font-bold text-slate-400 mb-1">
+                            Reseller MRP (₹)
+                          </label>
+                          <input
+                            type="number"
+                            min="1"
+                            value={editForm.reseller_regular_price}
+                            onChange={(e) => setEditForm((prev) => ({ ...prev, reseller_regular_price: Number(e.target.value) }))}
+                            className="w-full px-3 py-2 rounded-xl bg-slate-900 border border-slate-800 focus:border-purple-500 text-sm font-semibold text-slate-400 focus:outline-none"
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Badges Toggles */}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
+                    <label className="flex items-center gap-3 p-3 rounded-xl bg-slate-950 border border-slate-800 cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={editForm.is_hot}
+                        onChange={(e) => setEditForm((prev) => ({ ...prev, is_hot: e.target.checked }))}
+                        className="w-4 h-4 rounded text-rose-500 bg-slate-900 border-slate-700"
+                      />
+                      <div>
+                        <div className="text-xs font-bold text-white flex items-center gap-1">
+                          <Flame className="w-3.5 h-3.5 text-rose-400" />
+                          <span>Show "HOT / Best Seller" Badge</span>
+                        </div>
+                        <div className="text-[11px] text-slate-400">Highlights this bundle on shop page</div>
+                      </div>
+                    </label>
+
+                    <label className="flex items-center gap-3 p-3 rounded-xl bg-slate-950 border border-slate-800 cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={editForm.is_trending}
+                        onChange={(e) => setEditForm((prev) => ({ ...prev, is_trending: e.target.checked }))}
+                        className="w-4 h-4 rounded text-amber-500 bg-slate-900 border-slate-700"
+                      />
+                      <div>
+                        <div className="text-xs font-bold text-white flex items-center gap-1">
+                          <Sparkles className="w-3.5 h-3.5 text-amber-400" />
+                          <span>Show "Trending" Badge</span>
+                        </div>
+                        <div className="text-[11px] text-slate-400">Adds trending tag on thumbnail</div>
+                      </div>
+                    </label>
+                  </div>
+                </div>
+              )}
+
+              {/* TAB B: MEDIA & PREVIEW VIDEO */}
+              {editTab === 'media' && (
+                <div className="space-y-4">
+                  {/* Featured Image */}
+                  <div>
+                    <label className="block text-xs font-bold text-slate-300 mb-1.5">
+                      Cover Thumbnail Image URL *
+                    </label>
+                    <div className="flex items-center gap-3">
+                      <div className="flex-1 flex items-center rounded-xl bg-slate-950 border border-slate-800 focus-within:border-purple-500 px-3 py-2.5">
+                        <ImageIcon className="w-4 h-4 text-purple-400 mr-2 shrink-0" />
+                        <input
+                          type="url"
+                          required
+                          value={editForm.featured_image}
+                          onChange={(e) => setEditForm((prev) => ({ ...prev, featured_image: e.target.value }))}
+                          placeholder="https://images.unsplash.com/... or https://..."
+                          className="w-full bg-transparent text-xs text-white placeholder-slate-600 focus:outline-none"
+                        />
+                      </div>
+                      {editForm.featured_image && (
+                        <img
+                          src={editForm.featured_image}
+                          alt="Cover Preview"
+                          className="w-12 h-12 rounded-xl object-cover border border-slate-700 shrink-0"
+                          onError={(e) => {
+                            (e.target as HTMLElement).style.display = 'none';
+                          }}
+                        />
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Preview Video URL */}
+                  <div>
+                    <label className="block text-xs font-bold text-slate-300 mb-1.5 flex items-center justify-between">
+                      <span>Video Preview URL (YouTube Shorts, YouTube Video, or Direct MP4)</span>
+                      <span className="text-[10px] text-purple-400">Plays when buyer clicks "View Preview"</span>
+                    </label>
+                    <div className="flex items-center rounded-xl bg-slate-950 border border-slate-800 focus-within:border-purple-500 px-3 py-2.5">
+                      <Video className="w-4 h-4 text-rose-400 mr-2 shrink-0" />
+                      <input
+                        type="url"
+                        value={editForm.preview_video_url}
+                        onChange={(e) => setEditForm((prev) => ({ ...prev, preview_video_url: e.target.value }))}
+                        placeholder="https://www.youtube.com/shorts/... or https://domain.com/video.mp4"
+                        className="w-full bg-transparent text-xs text-white placeholder-slate-600 focus:outline-none"
+                      />
+                    </div>
+                  </div>
+
+                  {/* Gallery Images (One per line) */}
+                  <div>
+                    <label className="block text-xs font-bold text-slate-300 mb-1.5 flex items-center justify-between">
+                      <span>Gallery Images (One URL per line)</span>
+                      <span className="text-[10px] text-slate-500">Additional preview screenshots</span>
+                    </label>
+                    <textarea
+                      rows={3}
+                      value={editForm.gallery_images_text}
+                      onChange={(e) => setEditForm((prev) => ({ ...prev, gallery_images_text: e.target.value }))}
+                      placeholder="https://images.unsplash.com/...&#10;https://images.unsplash.com/..."
+                      className="w-full px-3.5 py-2.5 rounded-xl bg-slate-950 border border-slate-800 focus:border-purple-500 text-xs font-mono text-slate-200 focus:outline-none"
+                    />
+                  </div>
+                </div>
+              )}
+
+              {/* TAB C: CONTENT & DESCRIPTIONS */}
+              {editTab === 'details' && (
+                <div className="space-y-4">
+                  {/* Reel Count, Resolution, Format */}
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                    <div>
+                      <label className="block text-xs font-bold text-slate-300 mb-1.5">
+                        Total Reels Count
+                      </label>
+                      <input
+                        type="number"
+                        min="1"
+                        value={editForm.reel_count}
+                        onChange={(e) => setEditForm((prev) => ({ ...prev, reel_count: Number(e.target.value) }))}
+                        className="w-full px-3.5 py-2 rounded-xl bg-slate-950 border border-slate-800 focus:border-purple-500 text-xs font-bold text-purple-300 focus:outline-none"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-xs font-bold text-slate-300 mb-1.5">
+                        Resolution
+                      </label>
+                      <input
+                        type="text"
+                        value={editForm.resolution}
+                        onChange={(e) => setEditForm((prev) => ({ ...prev, resolution: e.target.value }))}
+                        className="w-full px-3.5 py-2 rounded-xl bg-slate-950 border border-slate-800 focus:border-purple-500 text-xs font-semibold text-white focus:outline-none"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-xs font-bold text-slate-300 mb-1.5">
+                        Video Format
+                      </label>
+                      <input
+                        type="text"
+                        value={editForm.format}
+                        onChange={(e) => setEditForm((prev) => ({ ...prev, format: e.target.value }))}
+                        className="w-full px-3.5 py-2 rounded-xl bg-slate-950 border border-slate-800 focus:border-purple-500 text-xs font-semibold text-white focus:outline-none"
+                      />
+                    </div>
+                  </div>
+
+                  {/* Rating & Reviews */}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-xs font-bold text-slate-300 mb-1.5 flex items-center gap-1">
+                        <Star className="w-3.5 h-3.5 text-amber-400 fill-amber-400" />
+                        <span>Rating (e.g. 4.9)</span>
+                      </label>
+                      <input
+                        type="number"
+                        step="0.1"
+                        min="1"
+                        max="5"
+                        value={editForm.rating}
+                        onChange={(e) => setEditForm((prev) => ({ ...prev, rating: Number(e.target.value) }))}
+                        className="w-full px-3.5 py-2 rounded-xl bg-slate-950 border border-slate-800 focus:border-purple-500 text-xs font-bold text-amber-400 focus:outline-none"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-xs font-bold text-slate-300 mb-1.5">
+                        Total Reviews Count
+                      </label>
+                      <input
+                        type="number"
+                        min="1"
+                        value={editForm.review_count}
+                        onChange={(e) => setEditForm((prev) => ({ ...prev, review_count: Number(e.target.value) }))}
+                        className="w-full px-3.5 py-2 rounded-xl bg-slate-950 border border-slate-800 focus:border-purple-500 text-xs font-bold text-white focus:outline-none"
+                      />
+                    </div>
+                  </div>
+
+                  {/* Short Description */}
+                  <div>
+                    <label className="block text-xs font-bold text-slate-300 mb-1.5">
+                      Short Description (Summary near buy button)
+                    </label>
+                    <textarea
+                      rows={2}
+                      value={editForm.short_description}
+                      onChange={(e) => setEditForm((prev) => ({ ...prev, short_description: e.target.value }))}
+                      placeholder="High quality viral reels bundle ready to upload on Instagram, YouTube Shorts, and Facebook..."
+                      className="w-full px-3.5 py-2.5 rounded-xl bg-slate-950 border border-slate-800 focus:border-purple-500 text-xs text-slate-200 focus:outline-none"
+                    />
+                  </div>
+
+                  {/* Detailed Description */}
+                  <div>
+                    <label className="block text-xs font-bold text-slate-300 mb-1.5">
+                      Full Detailed Description / HTML Content
+                    </label>
+                    <textarea
+                      rows={4}
+                      value={editForm.description}
+                      onChange={(e) => setEditForm((prev) => ({ ...prev, description: e.target.value }))}
+                      placeholder="Write full product overview, what's included, how to use..."
+                      className="w-full px-3.5 py-2.5 rounded-xl bg-slate-950 border border-slate-800 focus:border-purple-500 text-xs text-slate-200 focus:outline-none"
+                    />
+                  </div>
+
+                  {/* Features Bullet Points */}
+                  <div>
+                    <label className="block text-xs font-bold text-slate-300 mb-1.5 flex items-center justify-between">
+                      <span>Feature Bullet Points (One per line)</span>
+                      <span className="text-[10px] text-slate-500">Rendered with checkmarks</span>
+                    </label>
+                    <textarea
+                      rows={3}
+                      value={editForm.features_text}
+                      onChange={(e) => setEditForm((prev) => ({ ...prev, features_text: e.target.value }))}
+                      placeholder="100% Ready to Post&#10;No Watermark or Logos&#10;Full HD 1080P Resolution&#10;Instant Lifetime Access"
+                      className="w-full px-3.5 py-2.5 rounded-xl bg-slate-950 border border-slate-800 focus:border-purple-500 text-xs text-slate-200 focus:outline-none"
+                    />
+                  </div>
+                </div>
+              )}
+
+              {/* TAB D: GOOGLE DRIVE & DIGITAL FILE DELIVERY */}
+              {editTab === 'files' && (
+                <div className="space-y-4">
+                  <div className="p-4 rounded-2xl bg-amber-500/10 border border-amber-500/20 text-xs text-amber-300 space-y-1">
+                    <div className="font-bold flex items-center gap-1.5">
+                      <FolderOpen className="w-4 h-4 text-amber-400" />
+                      <span>Customer Download Delivery Link</span>
+                    </div>
+                    <p className="text-[11px] text-slate-400">
+                      When a customer completes purchase via Cashfree on your store, this exact Google Drive / Mega link is automatically unlocked on the confirmation page and sent via email/Telegram!
+                    </p>
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-bold text-slate-300 mb-1.5">
+                      Google Drive Folder / Download URL *
+                    </label>
+                    <div className="flex items-center rounded-xl bg-slate-950 border border-slate-800 focus-within:border-purple-500 px-3 py-2.5">
+                      <FolderOpen className="w-4 h-4 text-amber-400 mr-2 shrink-0" />
+                      <input
+                        type="url"
+                        value={editForm.google_drive_link}
+                        onChange={(e) => setEditForm((prev) => ({ ...prev, google_drive_link: e.target.value }))}
+                        placeholder="https://drive.google.com/drive/folders/... or https://mega.nz/..."
+                        className="w-full bg-transparent text-xs text-white placeholder-slate-600 focus:outline-none font-mono"
+                      />
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-bold text-slate-300 mb-1.5">
+                      File Display Name
+                    </label>
+                    <input
+                      type="text"
+                      value={editForm.file_name}
+                      onChange={(e) => setEditForm((prev) => ({ ...prev, file_name: e.target.value }))}
+                      placeholder="e.g. 2500+ AI Reels Google Drive High-Speed Access"
+                      className="w-full px-3.5 py-2.5 rounded-xl bg-slate-950 border border-slate-800 focus:border-purple-500 text-xs text-white focus:outline-none"
+                    />
+                  </div>
+
+                  {editForm.google_drive_link && (
+                    <div className="p-3.5 rounded-xl bg-slate-950 border border-slate-800 flex items-center justify-between text-xs">
+                      <div className="flex items-center gap-2 truncate pr-2">
+                        <Check className="w-4 h-4 text-emerald-400 shrink-0" />
+                        <span className="font-mono text-purple-300 truncate">
+                          {editForm.google_drive_link}
+                        </span>
+                      </div>
+                      <a
+                        href={editForm.google_drive_link}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="px-3 py-1 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs shrink-0 flex items-center gap-1"
+                      >
+                        <ExternalLink className="w-3 h-3" />
+                        <span>Test Link</span>
+                      </a>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* Modal Action Buttons */}
+              <div className="flex items-center justify-between pt-4 border-t border-slate-800 shrink-0">
+                <button
+                  type="button"
+                  onClick={() => setEditingProduct(null)}
+                  className="px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold text-xs transition-colors"
+                >
+                  Cancel
+                </button>
+
+                <button
+                  type="submit"
+                  disabled={updateMutation.isPending}
+                  className="px-6 py-2.5 rounded-xl bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white font-bold text-xs flex items-center gap-2 shadow-lg shadow-purple-600/30 transition-all disabled:opacity-50"
+                >
+                  {updateMutation.isPending ? (
+                    <span>Saving Changes...</span>
+                  ) : (
+                    <>
+                      <Check className="w-4 h-4" />
+                      <span>Save All Product Changes</span>
+                    </>
+                  )}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* ========================================================= */}
+      {/* MODAL 2: ADD / EDIT CATEGORY MODAL */}
+      {/* ========================================================= */}
+      {isCategoryModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md">
+          <div className="relative w-full max-w-lg bg-slate-900 border border-slate-800 rounded-3xl p-6 sm:p-7 shadow-2xl shadow-purple-900/40">
+            <button
+              onClick={() => setIsCategoryModalOpen(false)}
+              className="absolute top-5 right-5 p-2 rounded-xl text-slate-400 hover:text-white hover:bg-slate-800 transition-colors"
+            >
+              <X className="w-5 h-5" />
+            </button>
+
+            <div className="flex items-center gap-3 mb-5">
+              <div className="w-10 h-10 rounded-xl bg-purple-600/20 text-purple-400 flex items-center justify-center border border-purple-500/30">
+                <Tag className="w-5 h-5" />
+              </div>
+              <div>
+                <h3 className="text-lg font-black text-white">
+                  {editingCategory ? 'Edit Category' : 'Create New Category'}
+                </h3>
+                <p className="text-xs text-slate-400">
+                  {editingCategory
+                    ? `Updating "${editingCategory.name}"`
+                    : 'Add a new niche category for your bundles'}
+                </p>
+              </div>
+            </div>
+
+            <form onSubmit={handleCategorySubmit} className="space-y-4">
+              <div>
+                <label className="block text-xs font-bold text-slate-300 mb-1.5">
+                  Category Name *
+                </label>
+                <input
+                  type="text"
+                  required
+                  placeholder="e.g. Anime Reels, Crypto & Web3"
+                  value={categoryForm.name}
+                  onChange={(e) => handleCategoryNameChange(e.target.value)}
+                  className="w-full px-3.5 py-2.5 rounded-xl bg-slate-950 border border-slate-800 focus:border-purple-500 text-xs font-semibold text-white focus:outline-none"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-slate-300 mb-1.5">
+                  URL Slug *
+                </label>
+                <div className="flex items-center rounded-xl bg-slate-950 border border-slate-800 focus-within:border-purple-500 px-3 py-2">
+                  <span className="text-xs text-slate-500 font-mono">/category/</span>
+                  <input
+                    type="text"
+                    required
+                    placeholder="anime-reels"
+                    value={categoryForm.slug}
+                    onChange={(e) => setCategoryForm((prev) => ({ ...prev, slug: e.target.value }))}
+                    className="w-full bg-transparent text-xs font-mono font-semibold text-purple-300 focus:outline-none pl-1"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-slate-300 mb-1.5">
+                  Description
+                </label>
+                <textarea
+                  rows={2}
+                  placeholder="Browse high-converting viral reels in this collection..."
+                  value={categoryForm.description}
+                  onChange={(e) => setCategoryForm((prev) => ({ ...prev, description: e.target.value }))}
+                  className="w-full px-3.5 py-2 rounded-xl bg-slate-950 border border-slate-800 focus:border-purple-500 text-xs text-slate-200 focus:outline-none"
+                />
+              </div>
+
+              <div className="flex items-center justify-end gap-3 pt-3 border-t border-slate-800">
+                <button
+                  type="button"
+                  onClick={() => setIsCategoryModalOpen(false)}
+                  className="px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold text-xs transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={createCategoryMutation.isPending || updateCategoryMutation.isPending}
+                  className="px-5 py-2 rounded-xl bg-purple-600 hover:bg-purple-500 text-white font-bold text-xs flex items-center gap-1.5 shadow-lg shadow-purple-600/30 transition-all disabled:opacity-50"
+                >
+                  <Check className="w-4 h-4" />
+                  <span>{editingCategory ? 'Update Category' : 'Create Category'}</span>
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* ========================================================= */}
+      {/* MODAL 3: UPLOAD NEW BUNDLE MODAL */}
+      {/* ========================================================= */}
       {isCreateModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md overflow-y-auto">
           <div className="relative w-full max-w-2xl bg-slate-900 border border-slate-800 rounded-3xl p-6 sm:p-8 shadow-2xl shadow-purple-900/30 my-8">
@@ -467,8 +1676,7 @@ export default function Products() {
               </div>
             </div>
 
-            <form onSubmit={handleCreateSubmit} className="space-y-5">
-              {/* Name & Slug */}
+            <form onSubmit={handleCreateSubmit} className="space-y-4">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-xs font-bold text-slate-300 mb-1.5">
@@ -479,7 +1687,14 @@ export default function Products() {
                     required
                     placeholder="e.g. 2000+ AI Luxury & Hustle Reels"
                     value={createForm.name}
-                    onChange={(e) => handleNameChange(e.target.value)}
+                    onChange={(e) => {
+                      const name = e.target.value;
+                      const autoSlug = name
+                        .toLowerCase()
+                        .replace(/[^a-z0-9]+/g, '-')
+                        .replace(/(^-|-$)+/g, '');
+                      setCreateForm((prev) => ({ ...prev, name, slug: autoSlug }));
+                    }}
                     className="w-full px-3.5 py-2.5 rounded-xl bg-slate-950 border border-slate-800 focus:border-purple-500 text-sm font-semibold text-white focus:outline-none"
                   />
                 </div>
@@ -502,57 +1717,49 @@ export default function Products() {
                 </div>
               </div>
 
-              {/* Pricing & Reels Count */}
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                 <div>
                   <label className="block text-xs font-bold text-slate-300 mb-1.5">
                     Selling Price (₹) *
                   </label>
-                  <div className="relative">
-                    <span className="absolute left-3.5 top-2.5 text-sm font-bold text-slate-500">₹</span>
-                    <input
-                      type="number"
-                      required
-                      min="1"
-                      value={createForm.price}
-                      onChange={(e) => setCreateForm((prev) => ({ ...prev, price: Number(e.target.value) }))}
-                      className="w-full pl-8 pr-3 py-2 rounded-xl bg-slate-950 border border-slate-800 focus:border-purple-500 text-sm font-black text-emerald-400 focus:outline-none"
-                    />
-                  </div>
+                  <input
+                    type="number"
+                    required
+                    min="1"
+                    value={createForm.price}
+                    onChange={(e) => setCreateForm((prev) => ({ ...prev, price: Number(e.target.value) }))}
+                    className="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-800 focus:border-purple-500 text-sm font-black text-emerald-400 focus:outline-none"
+                  />
                 </div>
 
                 <div>
                   <label className="block text-xs font-bold text-slate-300 mb-1.5">
-                    Regular Price (₹)
+                    Regular MRP (₹)
                   </label>
-                  <div className="relative">
-                    <span className="absolute left-3.5 top-2.5 text-sm font-bold text-slate-500">₹</span>
-                    <input
-                      type="number"
-                      min="1"
-                      value={createForm.regular_price}
-                      onChange={(e) => setCreateForm((prev) => ({ ...prev, regular_price: Number(e.target.value) }))}
-                      className="w-full pl-8 pr-3 py-2 rounded-xl bg-slate-950 border border-slate-800 focus:border-purple-500 text-sm font-semibold text-slate-400 focus:outline-none"
-                    />
-                  </div>
+                  <input
+                    type="number"
+                    min="1"
+                    value={createForm.regular_price}
+                    onChange={(e) => setCreateForm((prev) => ({ ...prev, regular_price: Number(e.target.value) }))}
+                    className="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-800 focus:border-purple-500 text-sm font-semibold text-slate-400 focus:outline-none"
+                  />
                 </div>
 
                 <div>
                   <label className="block text-xs font-bold text-slate-300 mb-1.5">
-                    Total Reels Count
+                    Reels Count
                   </label>
                   <input
                     type="number"
                     min="1"
                     value={createForm.reel_count}
                     onChange={(e) => setCreateForm((prev) => ({ ...prev, reel_count: Number(e.target.value) }))}
-                    className="w-full px-3.5 py-2 rounded-xl bg-slate-950 border border-slate-800 focus:border-purple-500 text-sm font-bold text-purple-300 focus:outline-none"
+                    className="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-800 focus:border-purple-500 text-sm font-bold text-purple-300 focus:outline-none"
                   />
                 </div>
               </div>
 
-              {/* Category, Format & Resolution */}
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-xs font-bold text-slate-300 mb-1.5">
                     Category
@@ -562,106 +1769,41 @@ export default function Products() {
                     onChange={(e) => setCreateForm((prev) => ({ ...prev, category: e.target.value }))}
                     className="w-full px-3 py-2.5 rounded-xl bg-slate-950 border border-slate-800 focus:border-purple-500 text-xs font-semibold text-white focus:outline-none"
                   >
-                    <option value="AI Viral Reels">AI Viral Reels</option>
-                    <option value="Luxury & Motivation">Luxury & Motivation</option>
-                    <option value="Fitness & Gym">Fitness & Gym</option>
-                    <option value="Trading & Finance">Trading & Finance</option>
-                    <option value="Anime & Edits">Anime & Edits</option>
-                    <option value="Sanatan & Spiritual">Sanatan & Spiritual</option>
-                    <option value="Islamic & Moral">Islamic & Moral</option>
-                    <option value="Mega All-In-One Bundle">Mega All-In-One Bundle</option>
+                    {categories.map((c) => (
+                      <option key={c.slug} value={c.name}>
+                        {c.name}
+                      </option>
+                    ))}
                   </select>
                 </div>
 
                 <div>
                   <label className="block text-xs font-bold text-slate-300 mb-1.5">
-                    Format
+                    Google Drive Access Link
                   </label>
-                  <input
-                    type="text"
-                    value={createForm.format}
-                    onChange={(e) => setCreateForm((prev) => ({ ...prev, format: e.target.value }))}
-                    className="w-full px-3 py-2.5 rounded-xl bg-slate-950 border border-slate-800 focus:border-purple-500 text-xs font-semibold text-white focus:outline-none"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-xs font-bold text-slate-300 mb-1.5">
-                    Resolution
-                  </label>
-                  <input
-                    type="text"
-                    value={createForm.resolution}
-                    onChange={(e) => setCreateForm((prev) => ({ ...prev, resolution: e.target.value }))}
-                    className="w-full px-3 py-2.5 rounded-xl bg-slate-950 border border-slate-800 focus:border-purple-500 text-xs font-semibold text-white focus:outline-none"
-                  />
-                </div>
-              </div>
-
-              {/* Google Drive Link for Customer Download Access */}
-              <div>
-                <label className="block text-xs font-bold text-slate-300 mb-1.5 flex items-center justify-between">
-                  <span>Google Drive Folder Link (Customer Download Access)</span>
-                  <span className="text-[10px] text-purple-400 font-normal">Delivered to customer after Cashfree payment</span>
-                </label>
-                <div className="flex items-center rounded-xl bg-slate-950 border border-slate-800 focus-within:border-purple-500 px-3 py-2.5">
-                  <FolderOpen className="w-4 h-4 text-amber-400 mr-2 shrink-0" />
                   <input
                     type="url"
                     placeholder="https://drive.google.com/drive/folders/..."
                     value={createForm.googleDriveLink}
                     onChange={(e) => setCreateForm((prev) => ({ ...prev, googleDriveLink: e.target.value }))}
-                    className="w-full bg-transparent text-xs text-white placeholder-slate-600 focus:outline-none"
+                    className="w-full px-3 py-2.5 rounded-xl bg-slate-950 border border-slate-800 focus:border-purple-500 text-xs text-white placeholder-slate-600 focus:outline-none"
                   />
                 </div>
               </div>
 
-              {/* Cover Image URL with preview */}
               <div>
                 <label className="block text-xs font-bold text-slate-300 mb-1.5">
-                  Cover Image / Thumbnail URL
+                  Cover Image URL
                 </label>
-                <div className="flex items-center gap-3">
-                  <div className="flex-1 flex items-center rounded-xl bg-slate-950 border border-slate-800 focus-within:border-purple-500 px-3 py-2.5">
-                    <ImageIcon className="w-4 h-4 text-purple-400 mr-2 shrink-0" />
-                    <input
-                      type="url"
-                      placeholder="https://images.unsplash.com/... or https://..."
-                      value={createForm.featured_image}
-                      onChange={(e) => setCreateForm((prev) => ({ ...prev, featured_image: e.target.value }))}
-                      className="w-full bg-transparent text-xs text-white placeholder-slate-600 focus:outline-none"
-                    />
-                  </div>
-                  {createForm.featured_image && (
-                    <img
-                      src={createForm.featured_image}
-                      alt="Preview"
-                      className="w-11 h-11 rounded-xl object-cover border border-slate-700 shrink-0"
-                      onError={(e) => {
-                        (e.target as HTMLElement).style.display = 'none';
-                      }}
-                    />
-                  )}
-                </div>
+                <input
+                  type="url"
+                  placeholder="https://images.unsplash.com/... or https://..."
+                  value={createForm.featured_image}
+                  onChange={(e) => setCreateForm((prev) => ({ ...prev, featured_image: e.target.value }))}
+                  className="w-full px-3 py-2.5 rounded-xl bg-slate-950 border border-slate-800 focus:border-purple-500 text-xs text-white placeholder-slate-600 focus:outline-none"
+                />
               </div>
 
-              {/* Status */}
-              <div className="flex items-center justify-between p-3.5 rounded-xl bg-slate-950 border border-slate-800">
-                <div>
-                  <h4 className="text-xs font-bold text-white">Store Visibility Status</h4>
-                  <p className="text-[11px] text-slate-400">Publish immediately to make it live for buyers</p>
-                </div>
-                <select
-                  value={createForm.status}
-                  onChange={(e) => setCreateForm((prev) => ({ ...prev, status: e.target.value as any }))}
-                  className="px-3 py-1.5 rounded-lg bg-slate-900 border border-slate-700 text-xs font-bold text-white focus:outline-none"
-                >
-                  <option value="publish">Publish (Live)</option>
-                  <option value="draft">Draft (Hidden)</option>
-                </select>
-              </div>
-
-              {/* Action Buttons */}
               <div className="flex items-center justify-end gap-3 pt-3 border-t border-slate-800">
                 <button
                   type="button"
@@ -673,23 +1815,15 @@ export default function Products() {
                 <button
                   type="submit"
                   disabled={createMutation.isPending}
-                  className="px-5 py-2 rounded-xl bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white font-bold text-xs flex items-center gap-2 shadow-lg shadow-purple-600/30 transition-all disabled:opacity-50"
+                  className="px-5 py-2 rounded-xl bg-purple-600 hover:bg-purple-500 text-white font-bold text-xs flex items-center gap-2 shadow-lg shadow-purple-600/30 transition-all disabled:opacity-50"
                 >
-                  {createMutation.isPending ? (
-                    <span>Publishing Bundle...</span>
-                  ) : (
-                    <>
-                      <Check className="w-4 h-4" />
-                      <span>Publish Bundle to Store</span>
-                    </>
-                  )}
+                  {createMutation.isPending ? 'Publishing...' : 'Publish Bundle to Store'}
                 </button>
               </div>
             </form>
           </div>
         </div>
       )}
-
     </div>
   );
 }

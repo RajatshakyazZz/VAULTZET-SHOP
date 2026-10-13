@@ -70,8 +70,43 @@ export const ProductSchema = z.object({
     )
     .optional(),
   created_at: z.string().optional(),
+  short_description: z.string().optional(),
+  description: z.string().optional(),
+  reseller_price: z.number().optional(),
+  reseller_regular_price: z.number().optional(),
+  preview_video_url: z.string().optional(),
+  gallery_images: z.array(z.string()).optional(),
+  google_drive_link: z.string().optional(),
+  tags: z.array(z.string()).optional(),
+  is_hot: z.boolean().optional(),
+  is_trending: z.boolean().optional(),
+  rating: z.number().optional(),
+  review_count: z.number().optional(),
+  features: z.array(z.string()).optional(),
+  faqs: z
+    .array(
+      z.object({
+        question: z.string(),
+        answer: z.string(),
+      })
+    )
+    .optional(),
 });
 export type Product = z.infer<typeof ProductSchema>;
+
+export const CategoryItemSchema = z.object({
+  id: z.string().optional(),
+  name: z.string(),
+  slug: z.string(),
+  count: z.number().default(0),
+  icon: z.string().optional(),
+  bg: z.string().optional(),
+  border: z.string().optional(),
+  iconColor: z.string().optional(),
+  description: z.string().optional(),
+  created_at: z.string().optional(),
+});
+export type CategoryItem = z.infer<typeof CategoryItemSchema>;
 
 export interface DownloadableFileTokenResponse {
   token: string;

@@ -20,10 +20,13 @@ import {
   initialMmc,
   initialRankMath,
   initialLiteSpeed,
+  initialCategories,
+  initialReels,
 } from './mockData';
 import {
   DailySummary,
   Product,
+  CategoryItem,
   Order,
   Customer,
   Coupon,
@@ -60,104 +63,7 @@ import {
   orderBy,
 } from 'firebase/firestore';
 
-export const initialReels: ReelItem[] = [
-  {
-    id: 'reel-1',
-    title: 'Pani Puri Viral Street Food',
-    videoUrl: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4',
-    videoType: 'direct',
-    poster: 'https://images.unsplash.com/photo-1601050690597-df0568f70950?auto=format&fit=crop&w=600&q=80',
-    category: 'Street Food',
-    bundleId: 'rb-premanand-1000',
-    bundleSlug: '1000-premanand-ji-maharaj-reels-bundle',
-    bundleTitle: '1000+ Premanand Ji Maharaj Reels Bundle',
-    bundlePrice: 49,
-    likes: 1420,
-    isActive: true,
-    order: 1,
-    createdAt: new Date().toISOString(),
-  },
-  {
-    id: 'reel-2',
-    title: 'Ulti Dunia Twisted World AI',
-    videoUrl: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerEscapes.mp4',
-    videoType: 'direct',
-    poster: 'https://reelsbundles.in/wp-content/uploads/2026/10/1000-ulti-pulti-duniya-ulti-duniya-reverse-world-ai-reels-bundle-2-768x576.png',
-    category: 'AI Reels',
-    bundleId: 'rb-ulti-1000',
-    bundleSlug: '1000-ulti-pulti-duniya-ulti-duniya-reverse-world-ai-reels-bundle',
-    bundleTitle: '1000+ Ulti Pulti Duniya AI Reels Bundle',
-    bundlePrice: 49,
-    likes: 2850,
-    isActive: true,
-    order: 2,
-    createdAt: new Date().toISOString(),
-  },
-  {
-    id: 'reel-3',
-    title: 'AI Influencer Girls High Quality',
-    videoUrl: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerFun.mp4',
-    videoType: 'direct',
-    poster: 'https://reelsbundles.in/wp-content/uploads/2026/10/500-ai-influencer-girls-reels-bundle-4-2-768x576.jpg',
-    category: 'AI Reels',
-    bundleId: 'rb-influencer-500',
-    bundleSlug: '500-ai-influencer-girls-reels-bundle',
-    bundleTitle: '500+ AI Influencer Girls Reels Bundle',
-    bundlePrice: 99,
-    likes: 3120,
-    isActive: true,
-    order: 3,
-    createdAt: new Date().toISOString(),
-  },
-  {
-    id: 'reel-4',
-    title: 'AI Funny Kids 3D Animation',
-    videoUrl: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerJoyBlazes.mp4',
-    videoType: 'direct',
-    poster: 'https://reelsbundles.in/wp-content/uploads/2026/10/1500-ai-funny-kids-reels-bundle-4-2-768x576.jpg',
-    category: 'Comedy Reels',
-    bundleId: 'rb-funny-kids-1500',
-    bundleSlug: '1500-ai-funny-kids-reels-bundle',
-    bundleTitle: '1500+ AI Funny Kids Reels Bundle',
-    bundlePrice: 49,
-    likes: 1980,
-    isActive: true,
-    order: 4,
-    createdAt: new Date().toISOString(),
-  },
-  {
-    id: 'reel-5',
-    title: 'Street Food & Cafe Blogging',
-    videoUrl: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4',
-    videoType: 'direct',
-    poster: 'https://images.unsplash.com/photo-1555396273-367ea4eb4db5?auto=format&fit=crop&w=600&q=80',
-    category: 'Food Blogs',
-    bundleId: 'rb-food-blogs-500',
-    bundleSlug: '500-street-food-reels-bundle',
-    bundleTitle: '500+ Food Blogs Reels Bundle',
-    bundlePrice: 49,
-    likes: 890,
-    isActive: true,
-    order: 5,
-    createdAt: new Date().toISOString(),
-  },
-  {
-    id: 'reel-6',
-    title: 'Dr Skeleton Health & Fitness',
-    videoUrl: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerEscapes.mp4',
-    videoType: 'direct',
-    poster: 'https://reelsbundles.in/wp-content/uploads/2026/10/500-dr-skeleton-health-reels-bundle-1-2-768x576.png',
-    category: 'Fitness & Health',
-    bundleId: 'rb-skeleton-500',
-    bundleSlug: '500-dr-skeleton-health-reels-bundle',
-    bundleTitle: '500+ Dr Skeleton Health Reels Bundle',
-    bundlePrice: 49,
-    likes: 2450,
-    isActive: true,
-    order: 6,
-    createdAt: new Date().toISOString(),
-  },
-];
+
 
 class PortalApiClient {
   private apiKey: string | null = null;
@@ -268,7 +174,13 @@ class PortalApiClient {
       try {
         const snap = await getDocs(collection(db, 'products'));
         if (!snap.empty) {
-          return snap.docs.map((d) => ({ id: d.id, ...d.data() } as Product));
+          const dbProds = snap.docs.map((d) => ({ id: d.id, ...d.data() } as Product));
+          const dbIdSet = new Set(dbProds.map((p) => String(p.id)));
+          const dbSlugSet = new Set(dbProds.map((p) => p.slug).filter(Boolean));
+          const missing = initialProducts.filter(
+            (p) => !dbIdSet.has(String(p.id)) && (!p.slug || !dbSlugSet.has(p.slug))
+          );
+          return [...dbProds, ...missing];
         } else {
           // Auto-seed initial clean products into Firestore
           for (const prod of initialProducts) {
@@ -450,11 +362,16 @@ class PortalApiClient {
       }
     }
 
+    const idx = initialProducts.findIndex((p) => String(p.id) === prodId);
+    if (idx !== -1) {
+      initialProducts[idx] = { ...initialProducts[idx], ...product };
+    }
+
     await logAdminAction({
       adminEmail: 'admin@vaultzet.com',
       action: 'UPDATE_PRODUCT',
       module: 'Products',
-      details: `Updated bundle #${prodId} price: ₹${product.price}`,
+      details: `Updated bundle #${prodId}: ${product.name || 'bundle'} (₹${product.price})`,
     });
 
     return product as Product;
@@ -851,8 +768,149 @@ class PortalApiClient {
     return initialContent;
   }
 
-  async getCategories(): Promise<string[]> {
-    return ['AI Reels', 'Story Reels', 'Aesthetic Reels', 'Comedy Reels', 'Animals Reels', 'Luxury & Motivation', 'Fitness & Health', 'Street Food'];
+  async getCategories(): Promise<CategoryItem[]> {
+    if (db) {
+      try {
+        const snap = await getDocs(collection(db, 'categories'));
+        if (!snap.empty) {
+          const dbCats = snap.docs.map((d) => ({ id: d.id, ...d.data() } as CategoryItem));
+          const dbSlugSet = new Set(dbCats.map((c) => c.slug?.toLowerCase()));
+          const missing = initialCategories.filter((c) => !dbSlugSet.has(c.slug.toLowerCase()));
+          return [...dbCats, ...missing];
+        } else {
+          return initialCategories;
+        }
+      } catch (e) {
+        console.warn('Firestore categories fetch error:', e);
+      }
+    }
+
+    if (typeof window !== 'undefined') {
+      try {
+        const stored = JSON.parse(localStorage.getItem('vaultzet_custom_categories') || '[]');
+        if (stored.length) {
+          const slugs = new Set(initialCategories.map((c) => c.slug));
+          return [...stored, ...initialCategories.filter((c) => !slugs.has(c.slug))];
+        }
+      } catch (e) {
+        // ignore
+      }
+    }
+
+    return initialCategories;
+  }
+
+  async createCategory(catData: Partial<CategoryItem>): Promise<CategoryItem> {
+    const name = catData.name?.trim() || 'New Category';
+    const slug =
+      catData.slug?.trim() ||
+      name
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, '-')
+        .replace(/(^-|-$)+/g, '');
+    const catId = catData.id || slug;
+
+    const newCat: CategoryItem = {
+      id: catId,
+      name,
+      slug,
+      count: Number(catData.count || 0),
+      icon: catData.icon || 'Sparkles',
+      bg: catData.bg || 'from-indigo-600/20 to-purple-600/20',
+      border: catData.border || 'border-indigo-500/30',
+      iconColor: catData.iconColor || 'text-indigo-400',
+      description: catData.description || `Browse high quality ${name} for viral social media growth.`,
+      created_at: new Date().toISOString(),
+    };
+
+    if (db) {
+      try {
+        await setDoc(doc(db, 'categories', catId), newCat);
+      } catch (e) {
+        console.warn('Firestore category creation error:', e);
+      }
+    }
+
+    initialCategories.unshift(newCat);
+
+    if (typeof window !== 'undefined') {
+      try {
+        const stored = JSON.parse(localStorage.getItem('vaultzet_custom_categories') || '[]');
+        stored.unshift(newCat);
+        localStorage.setItem('vaultzet_custom_categories', JSON.stringify(stored));
+      } catch (e) {
+        // ignore
+      }
+    }
+
+    await logAdminAction({
+      adminEmail: 'admin@vaultzet.com',
+      action: 'CREATE_CATEGORY',
+      module: 'Products',
+      details: `Created new category: ${newCat.name} (${newCat.slug})`,
+    });
+
+    return newCat;
+  }
+
+  async updateCategory(catData: Partial<CategoryItem> & { id?: string; slug?: string }): Promise<CategoryItem> {
+    const key = catData.id || catData.slug || '';
+    if (db && key) {
+      try {
+        await setDoc(doc(db, 'categories', key), catData, { merge: true });
+      } catch (e) {
+        console.warn('Firestore category update error:', e);
+      }
+    }
+
+    const idx = initialCategories.findIndex((c) => c.id === key || c.slug === key);
+    if (idx !== -1) {
+      initialCategories[idx] = { ...initialCategories[idx], ...catData };
+    }
+
+    await logAdminAction({
+      adminEmail: 'admin@vaultzet.com',
+      action: 'UPDATE_CATEGORY',
+      module: 'Products',
+      details: `Updated category: ${catData.name || key}`,
+    });
+
+    return catData as CategoryItem;
+  }
+
+  async deleteCategory(categoryIdOrSlug: string): Promise<boolean> {
+    const key = categoryIdOrSlug;
+    if (db) {
+      try {
+        await deleteDoc(doc(db, 'categories', key));
+      } catch (e) {
+        console.warn('Firestore category delete error:', e);
+      }
+    }
+
+    const idx = initialCategories.findIndex((c) => c.id === key || c.slug === key);
+    if (idx !== -1) {
+      initialCategories.splice(idx, 1);
+    }
+
+    if (typeof window !== 'undefined') {
+      try {
+        const stored = JSON.parse(localStorage.getItem('vaultzet_custom_categories') || '[]');
+        const filtered = stored.filter((c: any) => c.id !== key && c.slug !== key);
+        localStorage.setItem('vaultzet_custom_categories', JSON.stringify(filtered));
+      } catch (e) {
+        // ignore
+      }
+    }
+
+    await logAdminAction({
+      adminEmail: 'admin@vaultzet.com',
+      action: 'DELETE_CATEGORY',
+      module: 'Products',
+      details: `Deleted category: ${key}`,
+    });
+
+    return true;
   }
 
   async uploadMedia(file: File): Promise<{ url: string; id: string }> {
@@ -885,11 +943,11 @@ class PortalApiClient {
       try {
         const snap = await getDocs(collection(db, 'reels'));
         if (!snap.empty) {
-          return snap.docs.map((d) => ({ id: d.id, ...d.data() } as ReelItem));
+          const dbReels = snap.docs.map((d) => ({ id: d.id, ...d.data() } as ReelItem));
+          const dbIdSet = new Set(dbReels.map((r) => String(r.id)));
+          const missing = initialReels.filter((r) => !dbIdSet.has(String(r.id)));
+          return [...dbReels, ...missing];
         } else {
-          for (const reel of initialReels) {
-            await setDoc(doc(db, 'reels', reel.id), reel);
-          }
           return initialReels;
         }
       } catch (e) {

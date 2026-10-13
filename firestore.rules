@@ -28,7 +28,19 @@ rules_version = '2';
 //    - price: number (required, >= 0, <= 1,000,000)
 //    - slug: string (optional, <= 150 chars)
 //    - status: string (optional, in ['publish', 'draft', 'pending', 'private'])
-//    - Protection: Deletion strictly denied to protect catalog integrity.
+//    - reseller_price: number (optional, 0..1,000,000)
+//    - reseller_regular_price: number (optional, 0..1,000,000)
+//    - preview_video_url: string (optional, <= 1000 chars)
+//    - short_description: string (optional, <= 2000 chars)
+//    - gallery_images: list (optional, <= 20 items)
+//    - tags: list (optional, <= 20 items)
+//    - features: list (optional, <= 20 items)
+//    - faqs: list (optional, <= 30 items)
+//    - rating: number (optional, 0..5)
+//    - review_count: number (optional, 0..10,000,000)
+//    - is_hot: bool (optional)
+//    - is_trending: bool (optional)
+//    - Protection: Storefront & Admin read; schema validated on write; deletion permitted.
 //
 // 3. store_settings:
 //    - IDs: 'general', 'branding', 'site_mode', 'meta_pixel', 'whatsapp'
@@ -66,6 +78,19 @@ rules_version = '2';
 //    - isActive: bool (optional)
 //    - Protection: Storefront & Admin read; schema validated on write; deletion permitted.
 //
+// 7. categories:
+//    - name: string (required, 1..100 chars)
+//    - slug: string (required, 1..100 chars)
+//    - id: string (optional, <= 100 chars)
+//    - count: number (optional, 0..100,000)
+//    - icon: string (optional, <= 50 chars)
+//    - bg: string (optional, <= 50 chars)
+//    - border: string (optional, <= 50 chars)
+//    - iconColor: string (optional, <= 50 chars)
+//    - description: string (optional, <= 500 chars)
+//    - createdAt: string (optional, <= 100 chars)
+//    - Protection: Storefront & Admin read; schema validated on write; deletion permitted.
+//
 // ===============================================================
 
 service cloud.firestore {
@@ -96,6 +121,18 @@ service cloud.firestore {
       return !(field in data) ||
         data[field] == null ||
         (data[field] is number && data[field] >= minVal && data[field] <= maxVal);
+    }
+
+    function isValidOptionalList(data, field, maxSize) {
+      return !(field in data) ||
+        data[field] == null ||
+        (data[field] is list && data[field].size() <= maxSize);
+    }
+
+    function isValidOptionalBool(data, field) {
+      return !(field in data) ||
+        data[field] == null ||
+        data[field] is bool;
     }
 
     // ===============================================================
@@ -149,6 +186,7 @@ service cloud.firestore {
         isValidOptionalString(data, 'featured_image', 1000) &&
         isValidOptionalString(data, 'created_at', 50) &&
         isValidOptionalString(data, 'googleDriveLink', 1000) &&
+        isValidOptionalString(data, 'google_drive_link', 1000) &&
         isValidOptionalNumber(data, 'regular_price', 0, 1000000) &&
         isValidOptionalNumber(data, 'sale_price', 0, 1000000) &&
         isValidOptionalNumber(data, 'reel_count', 0, 1000000) &&
@@ -157,7 +195,19 @@ service cloud.firestore {
         (!('stock_status' in data) || data.stock_status in ['instock', 'outofstock', 'onbackorder']) &&
         (!('downloadable' in data) || data.downloadable is bool) &&
         (!('categories' in data) || (data.categories is list && data.categories.size() <= 30)) &&
-        (!('files' in data) || (data.files is list && data.files.size() <= 50));
+        (!('files' in data) || (data.files is list && data.files.size() <= 50)) &&
+        isValidOptionalNumber(data, 'reseller_price', 0, 1000000) &&
+        isValidOptionalNumber(data, 'reseller_regular_price', 0, 1000000) &&
+        isValidOptionalString(data, 'preview_video_url', 1000) &&
+        isValidOptionalString(data, 'short_description', 2000) &&
+        isValidOptionalList(data, 'gallery_images', 20) &&
+        isValidOptionalList(data, 'tags', 20) &&
+        isValidOptionalList(data, 'features', 20) &&
+        isValidOptionalList(data, 'faqs', 30) &&
+        isValidOptionalNumber(data, 'rating', 0, 5) &&
+        isValidOptionalNumber(data, 'review_count', 0, 10000000) &&
+        isValidOptionalBool(data, 'is_hot') &&
+        isValidOptionalBool(data, 'is_trending');
     }
 
     function isValidStoreSetting(data) {
@@ -231,6 +281,21 @@ service cloud.firestore {
         isValidOptionalNumber(data, 'likes', 0, 10000000) &&
         isValidOptionalString(data, 'createdAt', 100) &&
         (!('isActive' in data) || data.isActive == null || data.isActive is bool);
+    }
+
+    function isValidCategory(data) {
+      return data.keys().hasAll(['name', 'slug']) &&
+        isValidString(data.name, 1, 100) &&
+        isValidString(data.slug, 1, 100) &&
+        isValidOptionalString(data, 'id', 100) &&
+        isValidOptionalNumber(data, 'count', 0, 100000) &&
+        isValidOptionalString(data, 'icon', 50) &&
+        isValidOptionalString(data, 'bg', 50) &&
+        isValidOptionalString(data, 'border', 50) &&
+        isValidOptionalString(data, 'iconColor', 50) &&
+        isValidOptionalString(data, 'description', 500) &&
+        isValidOptionalString(data, 'createdAt', 100) &&
+        isValidOptionalString(data, 'created_at', 100);
     }
 
     // ===============================================================
@@ -310,6 +375,18 @@ service cloud.firestore {
       allow create, update: if isValidReel(request.resource.data);
 
       // Admin can remove reels
+      allow delete: if true;
+    }
+
+    // 7. Categories
+    match /categories/{categoryId} {
+      // Storefront & Admin read categories
+      allow read: if true;
+
+      // Admin creates or updates categories with validation
+      allow create, update: if isValidCategory(request.resource.data);
+
+      // Admin can remove categories
       allow delete: if true;
     }
 
