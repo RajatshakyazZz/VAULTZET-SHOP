@@ -1,16 +1,16 @@
 /**
- * Routes external image URLs through Next.js's built-in /_next/image optimizer
- * so raw PNG/JPG assets (e.g. from reelsbundles.in or Unsplash) are served as
- * compressed WebP/AVIF from the same origin with a 1-year immutable Cache-Control header.
+ * Returns full-resolution HD image URLs directly without destructive compression.
+ * Eliminates Vercel /_next/image 400 Bad Request errors and ensures crystal-clear HD rendering.
  */
 export function optimizeImageUrl(
   url: string | undefined | null,
-  width: 64 | 96 | 128 | 256 | 384 | 640 | 750 | 828 | 1080 = 384,
-  quality = 75
+  _width?: number,
+  _quality?: number
 ): string {
   if (!url) return '';
-  if (!url.startsWith('http://') && !url.startsWith('https://')) {
-    return url;
+  // Ensure HTTPS for external URLs
+  if (url.startsWith('http://')) {
+    return url.replace(/^http:\/\//i, 'https://');
   }
-  return `/_next/image?url=${encodeURIComponent(url)}&w=${width}&q=${quality}`;
+  return url;
 }

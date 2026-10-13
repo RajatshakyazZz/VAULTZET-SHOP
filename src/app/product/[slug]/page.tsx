@@ -52,7 +52,7 @@ export default function ProductDetailPage() {
   );
 
   const [selectedLicense, setSelectedLicense] = useState<LicenseType>('personal');
-  const [activeImage, setActiveImage] = useState<string>(product?.thumbnail || '');
+  const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const [isDescExpanded, setIsDescExpanded] = useState(false);
   const [openFaqIndex, setOpenFaqIndex] = useState<number | null>(0);
   const [isPreviewOpen, setIsPreviewOpen] = useState(false);
@@ -82,6 +82,7 @@ export default function ProductDetailPage() {
   const activePrice = selectedLicense === 'reseller' ? product.resellerPrice : product.personalPrice;
   const originalPrice = selectedLicense === 'reseller' ? product.resellerOriginalPrice : product.personalOriginalPrice;
   const discountPercent = Math.round(((originalPrice - activePrice) / originalPrice) * 100);
+  const currentImage = selectedImage || product.thumbnail || '';
 
   const details = getBundleContentDetails(product);
   const relatedBundles = BUNDLE_PRODUCTS.filter((b) => b.id !== product.id && !b.isUpcoming).slice(0, 4);
@@ -181,10 +182,10 @@ export default function ProductDetailPage() {
             {/* Main Visual Wrapper (4:3 ratio) */}
             <div className="relative aspect-[4/3] rounded-2xl sm:rounded-3xl overflow-hidden bg-[#f7f5fb] border border-[#e9e5f0] shadow-[0_8px_24px_rgba(48,32,85,0.055)] group">
               <img
-                src={optimizeImageUrl(activeImage || product.thumbnail, 800, 80)}
+                src={currentImage}
                 alt={product.title}
-                width={800}
-                height={600}
+                width={1024}
+                height={768}
                 fetchPriority="high"
                 decoding="async"
                 className="w-full h-full object-cover"
@@ -234,18 +235,18 @@ export default function ProductDetailPage() {
                   <button
                     key={idx}
                     type="button"
-                    onClick={() => setActiveImage(img)}
+                    onClick={() => setSelectedImage(img)}
                     className={`w-16 h-16 rounded-xl overflow-hidden border-2 transition-all shrink-0 bg-slate-50 ${
-                      activeImage === img
+                      currentImage === img
                         ? 'border-rb-purple ring-2 ring-purple-200 scale-105 shadow-sm'
                         : 'border-slate-200 opacity-70 hover:opacity-100'
                     }`}
                   >
                     <img
-                      src={optimizeImageUrl(img, 128, 70)}
+                      src={img}
                       alt={`Thumbnail ${idx + 1}`}
-                      width={64}
-                      height={64}
+                      width={80}
+                      height={80}
                       loading="lazy"
                       className="w-full h-full object-cover"
                     />
@@ -716,10 +717,10 @@ export default function ProductDetailPage() {
                   className="block aspect-[4/3] rounded-xl overflow-hidden bg-[#f7f5fb] relative"
                 >
                   <img
-                    src={optimizeImageUrl(rel.thumbnail, 400, 75)}
+                    src={rel.thumbnail}
                     alt={rel.title}
-                    width={400}
-                    height={300}
+                    width={600}
+                    height={450}
                     loading="lazy"
                     className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                   />
