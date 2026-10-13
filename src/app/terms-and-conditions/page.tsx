@@ -31,7 +31,7 @@ export default function TermsPage() {
 
           <h2 className="text-lg font-bold text-[#182247]">3. Contact</h2>
           <p>
-            For any queries, please reach out to <strong className="text-slate-800">support@vaultzet.shop</strong>.
+            For any queries, please reach out to <strong className="text-slate-800">Rajat Shakya</strong> at <strong className="text-slate-800">rajattracozegaming@gmail.com</strong> or <strong className="text-slate-800">+91 7895317940</strong>.
           </p>
         </div>
       </div>

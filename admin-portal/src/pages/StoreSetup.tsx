@@ -16,8 +16,8 @@ export default function StoreSetup() {
 
   const [form, setForm] = useState<StoreSetupConfig>({
     store_name: 'Vaultzet Store',
-    contact_email: 'support@vaultzet.shop',
-    support_whatsapp: '+919876543210',
+    contact_email: 'rajattracozegaming@gmail.com',
+    support_whatsapp: '+91 7895317940',
     currency: 'INR',
     currency_symbol: '₹',
     price_format: '₹%s',

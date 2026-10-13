@@ -221,8 +221,8 @@ export const initialSiteMode: SiteModeConfig = {
 
 export const initialStoreSetup: StoreSetupConfig = {
   store_name: 'Vaultzet Store',
-  contact_email: 'support@vaultzet.shop',
-  support_whatsapp: '+91 98765 43210',
+  contact_email: 'rajattracozegaming@gmail.com',
+  support_whatsapp: '+91 7895317940',
   currency: 'INR',
   currency_symbol: '₹',
   price_format: '₹%s',
@@ -247,8 +247,8 @@ export const initialMetaPixel: MetaPixelConfig = {
 
 export const initialWhatsappButton: WhatsappButtonConfig = {
   enabled: true,
-  phone_number: '919876543210',
-  default_message: 'Hi Vaultzet Store Team! I need quick help regarding my order.',
+  phone_number: '917895317940',
+  default_message: 'Hi Rajat Shakya! I need quick help regarding my Vaultzet Store order.',
   position: 'bottom-right',
   show_popup_badge: true,
   popup_text: 'Need help? Chat on WhatsApp',

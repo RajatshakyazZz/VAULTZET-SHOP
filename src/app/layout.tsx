@@ -114,7 +114,8 @@ export default function RootLayout({
         url: 'https://vaultzet.shop',
         contactPoint: {
           '@type': 'ContactPoint',
-          email: 'support@vaultzet.shop',
+          email: 'rajattracozegaming@gmail.com',
+          telephone: '+91-7895317940',
           contactType: 'customer support',
           areaServed: 'IN',
           availableLanguage: ['English', 'Hindi'],

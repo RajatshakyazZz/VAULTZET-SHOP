@@ -27,7 +27,7 @@ export default function RefundPolicyPage() {
 
           <h2 className="text-lg font-bold text-[#182247]">3. How to Request Assistance</h2>
           <p>
-            If you encounter any issues accessing your bundle, please email our support desk at <strong className="text-slate-800">support@vaultzet.shop</strong> with your Order ID.
+            If you encounter any issues accessing your bundle, please email our support desk (<strong className="text-slate-800">Rajat Shakya</strong>) at <strong className="text-slate-800">rajattracozegaming@gmail.com</strong> or WhatsApp <strong className="text-slate-800">+91 7895317940</strong> with your Order ID.
           </p>
         </div>
       </div>

@@ -6,6 +6,7 @@ import { db } from '@/lib/firebase';
 
 export interface StoreSettings {
   storeName: string;
+  ownerName?: string;
   tagline: string;
   supportEmail: string;
   supportWhatsapp?: string;
@@ -17,9 +18,10 @@ export interface StoreSettings {
 
 const DEFAULT_SETTINGS: StoreSettings = {
   storeName: 'Vaultzet Store',
+  ownerName: 'Rajat Shakya',
   tagline: 'Premium Reels for Your Growth',
-  supportEmail: 'support@vaultzet.shop',
-  supportWhatsapp: '',
+  supportEmail: 'rajattracozegaming@gmail.com',
+  supportWhatsapp: '+91 7895317940',
   currency: 'INR',
   currencySymbol: '₹',
 };
@@ -32,12 +34,24 @@ function sanitizeStoreName(name?: string, fallback = 'Vaultzet Store'): string {
   return name.trim();
 }
 
-function sanitizeEmail(email?: string, fallback = 'support@vaultzet.shop'): string {
+function sanitizeEmail(email?: string, fallback = 'rajattracozegaming@gmail.com'): string {
   if (!email || !email.trim()) return fallback;
-  if (/reelsbundles/i.test(email) || /digonest/i.test(email)) {
-    return 'support@vaultzet.shop';
+  if (
+    /reelsbundles/i.test(email) ||
+    /digonest/i.test(email) ||
+    /support@vaultzet\.(com|shop)/i.test(email)
+  ) {
+    return 'rajattracozegaming@gmail.com';
   }
   return email.trim();
+}
+
+function sanitizePhone(phone?: string, fallback = '+91 7895317940'): string {
+  if (!phone || !phone.trim()) return fallback;
+  if (/98765\s*43210/.test(phone)) {
+    return '+91 7895317940';
+  }
+  return phone.trim();
 }
 
 const StoreSettingsContext = createContext<{
@@ -60,6 +74,8 @@ export function StoreSettingsProvider({ children }: { children: React.ReactNode 
             ...parsed,
             storeName: sanitizeStoreName(parsed.storeName),
             supportEmail: sanitizeEmail(parsed.supportEmail),
+            supportWhatsapp: sanitizePhone(parsed.supportWhatsapp),
+            ownerName: parsed.ownerName || 'Rajat Shakya',
           };
         }
       } catch {}
@@ -93,7 +109,7 @@ export function StoreSettingsProvider({ children }: { children: React.ReactNode 
                 ...prev,
                 storeName: sanitizeStoreName(data.store_name, prev.storeName),
                 supportEmail: sanitizeEmail(data.contact_email, prev.supportEmail),
-                supportWhatsapp: data.support_whatsapp || prev.supportWhatsapp,
+                supportWhatsapp: sanitizePhone(data.support_whatsapp, prev.supportWhatsapp),
                 currency: data.currency || prev.currency,
                 currencySymbol: data.currency_symbol || prev.currencySymbol,
               };
