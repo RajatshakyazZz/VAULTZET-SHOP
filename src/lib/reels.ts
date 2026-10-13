@@ -1,5 +1,3 @@
-import { db } from './firebase';
-import { collection, getDocs, query, orderBy } from 'firebase/firestore';
 import { ReelItem } from '@/types';
 
 export const initialStoreReels: ReelItem[] = [
@@ -128,17 +126,20 @@ export function parseVideoUrl(url: string): {
  * Fetch all active reels from Firestore (or fallback to initial cache)
  */
 export async function getStoreReels(): Promise<ReelItem[]> {
-  if (db) {
-    try {
+  try {
+    const [{ db }, { collection, getDocs }] = await Promise.all([
+      import('./firebase'),
+      import('firebase/firestore'),
+    ]);
+    if (db) {
       const snap = await getDocs(collection(db, 'reels'));
       if (!snap.empty) {
         const fetched = snap.docs.map((d) => ({ id: d.id, ...d.data() } as ReelItem));
-        // Sort active items
         return fetched.filter((r) => r.isActive !== false);
       }
-    } catch (e) {
-      console.warn('Error fetching reels from Firestore, fallback to local:', e);
     }
+  } catch (e) {
+    console.warn('Error fetching reels from Firestore, fallback to local:', e);
   }
 
   // Fallback to local storage custom reels merged with initial reels

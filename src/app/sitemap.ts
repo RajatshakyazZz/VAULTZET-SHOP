@@ -2,7 +2,7 @@ import { MetadataRoute } from 'next';
 import { BUNDLE_PRODUCTS, CATEGORIES } from '@/data/bundles';
 
 export default function sitemap(): MetadataRoute.Sitemap {
-  const baseUrl = 'https://vaultzet.shop';
+  const baseUrl = 'https://www.vaultzet.shop';
 
   const staticRoutes: MetadataRoute.Sitemap = [
     {

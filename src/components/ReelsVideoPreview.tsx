@@ -7,6 +7,7 @@ import { BUNDLE_PRODUCTS } from '@/data/bundles';
 import { useCart } from '@/context/CartContext';
 import { ReelItem, BundleProduct } from '@/types';
 import { getStoreReels, initialStoreReels, parseVideoUrl } from '@/lib/reels';
+import { optimizeImageUrl } from '@/lib/imageOptimized';
 
 export default function ReelsVideoPreview() {
   const { buyNow } = useCart();
@@ -17,13 +18,16 @@ export default function ReelsVideoPreview() {
 
   useEffect(() => {
     let isMounted = true;
-    getStoreReels().then((data) => {
-      if (isMounted && data && data.length > 0) {
-        setReels(data);
-      }
-    });
+    const timer = setTimeout(() => {
+      getStoreReels().then((data) => {
+        if (isMounted && data && data.length > 0) {
+          setReels(data);
+        }
+      });
+    }, 1500);
     return () => {
       isMounted = false;
+      clearTimeout(timer);
     };
   }, []);
 
@@ -36,9 +40,6 @@ export default function ReelsVideoPreview() {
     } else {
       if (activeVideoId && videoRefs.current[activeVideoId]) {
         videoRefs.current[activeVideoId]?.pause();
-      }
-      if (video) {
-        video.play().catch(() => {});
       }
       setActiveVideoId(id);
     }
@@ -126,7 +127,7 @@ export default function ReelsVideoPreview() {
                   key={item.id}
                   className="w-48 sm:w-52 aspect-[9/16] rounded-[26px] bg-[#101426] p-2.5 shadow-xl border-[3px] border-[#1c223c] relative flex flex-col justify-between overflow-hidden shrink-0 group select-none"
                 >
-                  {/* YouTube Iframe OR HTML5 Video */}
+                  {/* YouTube Iframe OR Lazy Poster / HTML5 Video on Play */}
                   {isYouTube && ytId ? (
                     isPlaying ? (
                       <iframe
@@ -139,25 +140,42 @@ export default function ReelsVideoPreview() {
                       />
                     ) : (
                       <img
-                        src={
-                          item.poster ||
-                          `https://img.youtube.com/vi/${ytId}/hqdefault.jpg`
-                        }
+                        src={optimizeImageUrl(
+                          item.poster || `https://img.youtube.com/vi/${ytId}/hqdefault.jpg`,
+                          384,
+                          72
+                        )}
                         alt={item.title}
+                        width={208}
+                        height={370}
+                        loading="lazy"
+                        decoding="async"
                         onClick={() => handleTogglePlay(item.id)}
                         className="absolute inset-0 w-full h-full object-cover cursor-pointer"
                       />
                     )
-                  ) : (
+                  ) : isPlaying ? (
                     <video
                       ref={(el) => {
                         videoRefs.current[item.id] = el;
                       }}
                       src={item.videoUrl}
-                      poster={item.poster}
+                      poster={optimizeImageUrl(item.poster, 384, 72)}
+                      autoPlay
                       loop
                       playsInline
                       muted={isMuted}
+                      onClick={() => handleTogglePlay(item.id)}
+                      className="absolute inset-0 w-full h-full object-cover cursor-pointer"
+                    />
+                  ) : (
+                    <img
+                      src={optimizeImageUrl(item.poster, 384, 72)}
+                      alt={item.title}
+                      width={208}
+                      height={370}
+                      loading="lazy"
+                      decoding="async"
                       onClick={() => handleTogglePlay(item.id)}
                       className="absolute inset-0 w-full h-full object-cover cursor-pointer"
                     />

@@ -9,7 +9,7 @@ export default function robots(): MetadataRoute.Robots {
         disallow: ['/api/', '/checkout', '/order-success'],
       },
     ],
-    sitemap: 'https://vaultzet.shop/sitemap.xml',
-    host: 'https://vaultzet.shop',
+    sitemap: 'https://www.vaultzet.shop/sitemap.xml',
+    host: 'https://www.vaultzet.shop',
   };
 }

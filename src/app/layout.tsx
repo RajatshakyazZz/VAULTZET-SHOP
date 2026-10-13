@@ -23,7 +23,7 @@ export const viewport: Viewport = {
 };
 
 export const metadata: Metadata = {
-  metadataBase: new URL('https://vaultzet.shop'),
+  metadataBase: new URL('https://www.vaultzet.shop'),
   title: {
     default: 'Vaultzet Store | Buy Viral Reels Bundles in India – 222,000+ Ready-to-Post Reels',
     template: '%s | Vaultzet Store',
@@ -44,11 +44,11 @@ export const metadata: Metadata = {
     'digital products resell india',
     'watermark free reels download',
   ],
-  authors: [{ name: 'Vaultzet Store', url: 'https://vaultzet.shop' }],
+  authors: [{ name: 'Vaultzet Store', url: 'https://www.vaultzet.shop' }],
   creator: 'Vaultzet Store',
   publisher: 'Vaultzet Store',
   alternates: {
-    canonical: 'https://vaultzet.shop',
+    canonical: 'https://www.vaultzet.shop',
   },
   robots: {
     index: true,
@@ -64,7 +64,7 @@ export const metadata: Metadata = {
   openGraph: {
     type: 'website',
     locale: 'en_IN',
-    url: 'https://vaultzet.shop',
+    url: 'https://www.vaultzet.shop',
     siteName: 'Vaultzet Store',
     title: 'Vaultzet Store | 222,000+ Viral Reels Bundles – Instant Download',
     description:
@@ -101,22 +101,22 @@ export default function RootLayout({
     '@graph': [
       {
         '@type': 'WebSite',
-        '@id': 'https://vaultzet.shop/#website',
-        url: 'https://vaultzet.shop',
+        '@id': 'https://www.vaultzet.shop/#website',
+        url: 'https://www.vaultzet.shop',
         name: 'Vaultzet Store',
         description:
           'India’s #1 marketplace for ready-to-post viral Instagram Reels & YouTube Shorts bundles with instant Google Drive delivery.',
         potentialAction: {
           '@type': 'SearchAction',
-          target: 'https://vaultzet.shop/shop?s={search_term_string}',
+          target: 'https://www.vaultzet.shop/shop?s={search_term_string}',
           'query-input': 'required name=search_term_string',
         },
       },
       {
         '@type': 'Organization',
-        '@id': 'https://vaultzet.shop/#organization',
+        '@id': 'https://www.vaultzet.shop/#organization',
         name: 'Vaultzet Store',
-        url: 'https://vaultzet.shop',
+        url: 'https://www.vaultzet.shop',
         contactPoint: {
           '@type': 'ContactPoint',
           email: 'rajattracozegaming@gmail.com',

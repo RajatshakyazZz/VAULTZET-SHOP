@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { X, Trash2, ArrowRight, ShieldCheck, Zap } from 'lucide-react';
 import { useCart } from '@/context/CartContext';
 import { ORDER_BUMP } from '@/data/bundles';
+import { optimizeImageUrl } from '@/lib/imageOptimized';
 
 export default function CartDrawer() {
   const {
@@ -76,8 +77,12 @@ export default function CartDrawer() {
                     className="p-3.5 rounded-2xl bg-slate-50/70 border border-slate-200/80 flex gap-3.5 relative group"
                   >
                     <img
-                      src={item.product.thumbnail}
+                      src={optimizeImageUrl(item.product.thumbnail, 128, 70)}
                       alt={item.product.title}
+                      width={64}
+                      height={80}
+                      loading="lazy"
+                      decoding="async"
                       className="w-16 h-20 object-cover rounded-xl shrink-0"
                     />
                     <div className="flex-1 min-w-0 flex flex-col justify-between">
@@ -125,8 +130,12 @@ export default function CartDrawer() {
                 </div>
                 <div className="flex gap-3 items-center">
                   <img
-                    src={ORDER_BUMP.thumbnail}
+                    src={optimizeImageUrl(ORDER_BUMP.thumbnail, 128, 70)}
                     alt={ORDER_BUMP.title}
+                    width={48}
+                    height={56}
+                    loading="lazy"
+                    decoding="async"
                     className="w-12 h-14 rounded-lg object-cover shrink-0"
                   />
                   <div className="flex-1 min-w-0">

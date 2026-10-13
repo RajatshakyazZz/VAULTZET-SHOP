@@ -4,11 +4,12 @@ import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { Play, ArrowRight, FolderKanban, Film, ShieldCheck } from 'lucide-react';
 import { BUNDLE_PRODUCTS } from '@/data/bundles';
+import { optimizeImageUrl } from '@/lib/imageOptimized';
 
 export default function Hero() {
   const phrases = ['Ready to Post.', 'Built to Engage.', 'Made to Grow.'];
   const [phraseIndex, setPhraseIndex] = useState(0);
-  const [displayText, setDisplayText] = useState('');
+  const [displayText, setDisplayText] = useState(phrases[0]);
   const [isDeleting, setIsDeleting] = useState(false);
 
   // Typewriter effect matching Image 1
@@ -24,7 +25,7 @@ export default function Hero() {
       } else {
         timeout = setTimeout(() => {
           setIsDeleting(true);
-        }, 1600);
+        }, 2000);
       }
     } else {
       if (displayText.length > 0) {
@@ -43,11 +44,6 @@ export default function Hero() {
   // Dynamic rotation state for the 3 hero preview cards
   const [activeOffset, setActiveOffset] = useState(0);
   const [isRotating, setIsRotating] = useState(true);
-
-  // Randomize initial cards on mount so every visit/refresh shows different bundles
-  useEffect(() => {
-    setActiveOffset(Math.floor(Math.random() * BUNDLE_PRODUCTS.length));
-  }, []);
 
   // Continuous auto-rotation every 5.5 seconds unless user hovers
   useEffect(() => {
@@ -203,8 +199,11 @@ export default function Hero() {
                     className="absolute left-1 sm:left-0 w-[150px] sm:w-[175px] aspect-[9/16] rounded-[24px] overflow-hidden shadow-[0_20px_45px_rgba(30,15,70,0.22)] border-[5px] border-white transform -rotate-[8deg] -translate-x-4 sm:-translate-x-6 translate-y-2 z-10 transition-all hover:scale-95 duration-500 block bg-slate-900 group"
                   >
                     <img
-                      src={leftCard.thumbnail}
+                      src={optimizeImageUrl(leftCard.thumbnail, 384, 75)}
                       alt={leftCard.title}
+                      width={175}
+                      height={311}
+                      decoding="async"
                       className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
                     />
                     <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/15 to-transparent flex flex-col justify-between p-3 text-white">
@@ -232,8 +231,11 @@ export default function Hero() {
                     className="absolute right-1 sm:right-0 w-[150px] sm:w-[175px] aspect-[9/16] rounded-[24px] overflow-hidden shadow-[0_20px_45px_rgba(30,15,70,0.22)] border-[5px] border-white transform rotate-[8deg] translate-x-4 sm:translate-x-6 translate-y-2 z-10 transition-all hover:scale-95 duration-500 block bg-slate-900 group"
                   >
                     <img
-                      src={rightCard.thumbnail}
+                      src={optimizeImageUrl(rightCard.thumbnail, 384, 75)}
                       alt={rightCard.title}
+                      width={175}
+                      height={311}
+                      decoding="async"
                       className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
                     />
                     <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/15 to-transparent flex flex-col justify-between p-3 text-white">
@@ -261,8 +263,12 @@ export default function Hero() {
                     className="relative w-[180px] sm:w-[210px] aspect-[9/16] rounded-[28px] overflow-hidden shadow-[0_26px_60px_rgba(25,12,65,0.34)] border-[6px] border-white -translate-y-2 z-20 transition-all hover:scale-[1.03] duration-500 block bg-slate-900 group"
                   >
                     <img
-                      src={centerCard.thumbnail}
+                      src={optimizeImageUrl(centerCard.thumbnail, 384, 75)}
                       alt={centerCard.title}
+                      width={210}
+                      height={373}
+                      fetchPriority="high"
+                      decoding="async"
                       className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
                     />
                     <div className="absolute inset-0 bg-gradient-to-t from-black/95 via-black/20 to-transparent flex flex-col justify-between p-4 text-white">

@@ -3,6 +3,7 @@
 import React, { useState, useRef } from 'react';
 import { Bell, Clock, Check, X, ChevronLeft, ChevronRight } from 'lucide-react';
 import { BUNDLE_PRODUCTS } from '@/data/bundles';
+import { optimizeImageUrl } from '@/lib/imageOptimized';
 
 export default function UpcomingBundles() {
   const upcoming = BUNDLE_PRODUCTS.filter((b) => b.isUpcoming);
@@ -93,8 +94,12 @@ export default function UpcomingBundles() {
               >
                 <div className="relative aspect-[4/3] bg-slate-900 overflow-hidden">
                   <img
-                    src={bundle.thumbnail}
+                    src={optimizeImageUrl(bundle.thumbnail, 384, 72)}
                     alt={bundle.title}
+                    width={290}
+                    height={218}
+                    loading="lazy"
+                    decoding="async"
                     className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 opacity-90"
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-slate-950/80 via-slate-950/20 to-transparent flex items-end p-3">

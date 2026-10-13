@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { ArrowRight, ShoppingCart, Film } from 'lucide-react';
 import { BUNDLE_PRODUCTS } from '@/data/bundles';
 import { useCart } from '@/context/CartContext';
+import { optimizeImageUrl } from '@/lib/imageOptimized';
 
 export default function TrendingMarquee() {
   const { addToCart, buyNow } = useCart();
@@ -63,8 +64,12 @@ export default function TrendingMarquee() {
                       className="relative aspect-[4/3] overflow-hidden bg-slate-900 block"
                     >
                       <img
-                        src={bundle.thumbnail}
+                        src={optimizeImageUrl(bundle.thumbnail, 384, 72)}
                         alt={bundle.title}
+                        width={305}
+                        height={229}
+                        loading="lazy"
+                        decoding="async"
                         className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                       />
                       

@@ -19,6 +19,7 @@ import {
 import { BUNDLE_PRODUCTS } from '@/data/bundles';
 import { useCart } from '@/context/CartContext';
 import { LicenseType } from '@/types';
+import { optimizeImageUrl } from '@/lib/imageOptimized';
 
 export default function ProductDetailPage() {
   const params = useParams();
@@ -71,8 +72,12 @@ export default function ProductDetailPage() {
           <div className="lg:col-span-6 space-y-4">
             <div className="relative aspect-[4/3] rounded-3xl overflow-hidden bg-slate-900 border border-[#e8dfff] shadow-[0_12px_40px_rgba(40,20,80,0.08)]">
               <img
-                src={activeImage || product.thumbnail}
+                src={optimizeImageUrl(activeImage || product.thumbnail, 640, 75)}
                 alt={product.title}
+                width={640}
+                height={480}
+                fetchPriority="high"
+                decoding="async"
                 className="w-full h-full object-cover"
               />
               <div className="absolute top-4 left-4 flex gap-2">
@@ -99,7 +104,7 @@ export default function ProductDetailPage() {
                       activeImage === img ? 'border-rb-purple scale-105 shadow-md' : 'border-slate-200 opacity-70 hover:opacity-100'
                     }`}
                   >
-                    <img src={img} alt="Thumbnail" className="w-full h-full object-cover" />
+                    <img src={optimizeImageUrl(img, 128, 70)} alt="Thumbnail" width={80} height={60} loading="lazy" decoding="async" className="w-full h-full object-cover" />
                   </button>
                 ))}
               </div>
@@ -345,7 +350,7 @@ export default function ProductDetailPage() {
                 className="bg-white rounded-3xl border border-slate-200 overflow-hidden shadow-sm hover:shadow-md transition-shadow flex flex-col justify-between p-4 space-y-3"
               >
                 <Link href={`/product/${rel.slug}`} className="block aspect-[4/3] rounded-2xl overflow-hidden bg-slate-100">
-                  <img src={rel.thumbnail} alt={rel.title} className="w-full h-full object-cover" />
+                  <img src={optimizeImageUrl(rel.thumbnail, 384, 72)} alt={rel.title} width={384} height={288} loading="lazy" decoding="async" className="w-full h-full object-cover" />
                 </Link>
                 <div>
                   <span className="text-[10px] font-bold text-rb-purple bg-rb-purple-soft px-2 py-0.5 rounded">

@@ -1,8 +1,6 @@
 'use client';
 
 import React, { createContext, useContext, useEffect, useState } from 'react';
-import { doc, onSnapshot, getDoc } from 'firebase/firestore';
-import { db } from '@/lib/firebase';
 
 export interface StoreSettings {
   storeName: string;
@@ -63,104 +61,108 @@ const StoreSettingsContext = createContext<{
 });
 
 export function StoreSettingsProvider({ children }: { children: React.ReactNode }) {
-  const [settings, setSettings] = useState<StoreSettings>(() => {
-    if (typeof window !== 'undefined') {
-      try {
-        const cached = localStorage.getItem('vaultzet_store_settings');
-        if (cached) {
-          const parsed = JSON.parse(cached);
-          return {
-            ...DEFAULT_SETTINGS,
-            ...parsed,
-            storeName: sanitizeStoreName(parsed.storeName),
-            supportEmail: sanitizeEmail(parsed.supportEmail),
-            supportWhatsapp: sanitizePhone(parsed.supportWhatsapp),
-            ownerName: parsed.ownerName || 'Rajat Shakya',
-          };
-        }
-      } catch {}
-    }
-    return DEFAULT_SETTINGS;
-  });
+  const [settings, setSettings] = useState<StoreSettings>(DEFAULT_SETTINGS);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    // Sync document title on client
-    if (typeof document !== 'undefined' && settings.storeName) {
-      document.title = `${settings.storeName} | Premium Reels for Your Growth – Instant Download`;
-    }
-  }, [settings.storeName]);
+    try {
+      const cached = localStorage.getItem('vaultzet_store_settings');
+      if (cached) {
+        const parsed = JSON.parse(cached);
+        setSettings({
+          ...DEFAULT_SETTINGS,
+          ...parsed,
+          storeName: sanitizeStoreName(parsed.storeName),
+          supportEmail: sanitizeEmail(parsed.supportEmail),
+          supportWhatsapp: sanitizePhone(parsed.supportWhatsapp),
+          ownerName: parsed.ownerName || 'Rajat Shakya',
+        });
+      }
+    } catch {}
+  }, []);
 
   useEffect(() => {
-    if (!db) {
-      setIsLoading(false);
-      return;
-    }
+    let unsubGeneral: (() => void) | undefined;
+    let unsubBranding: (() => void) | undefined;
+    let isCancelled = false;
 
-    try {
-      // 1. Listen to store_settings/general (configured in Admin Panel > Store Setup)
-      const unsubGeneral = onSnapshot(
-        doc(db, 'store_settings', 'general'),
-        (docSnap) => {
-          if (docSnap.exists()) {
-            const data = docSnap.data();
-            setSettings((prev) => {
-              const updated = {
-                ...prev,
-                storeName: sanitizeStoreName(data.store_name, prev.storeName),
-                supportEmail: sanitizeEmail(data.contact_email, prev.supportEmail),
-                supportWhatsapp: sanitizePhone(data.support_whatsapp, prev.supportWhatsapp),
-                currency: data.currency || prev.currency,
-                currencySymbol: data.currency_symbol || prev.currencySymbol,
-              };
-              try {
-                localStorage.setItem('vaultzet_store_settings', JSON.stringify(updated));
-              } catch {}
-              return updated;
-            });
-          }
+    const timer = setTimeout(async () => {
+      try {
+        const [{ db }, { doc, onSnapshot }] = await Promise.all([
+          import('@/lib/firebase'),
+          import('firebase/firestore'),
+        ]);
+        if (isCancelled || !db) {
           setIsLoading(false);
-        },
-        (err) => {
-          console.warn('Storefront store_settings/general sync:', err);
-          setIsLoading(false);
+          return;
         }
-      );
 
-      // 2. Listen to store_settings/branding (configured in Admin Panel > Branding)
-      const unsubBranding = onSnapshot(
-        doc(db, 'store_settings', 'branding'),
-        (docSnap) => {
-          if (docSnap.exists()) {
-            const data = docSnap.data();
-            setSettings((prev) => {
-              const updated = {
-                ...prev,
-                storeName: sanitizeStoreName(data.store_name, prev.storeName),
-                tagline: data.tagline || prev.tagline,
-                logoUrl: data.logo_url || prev.logoUrl,
-                primaryColor: data.primary_color || prev.primaryColor,
-              };
-              try {
-                localStorage.setItem('vaultzet_store_settings', JSON.stringify(updated));
-              } catch {}
-              return updated;
-            });
+        // 1. Listen to store_settings/general (configured in Admin Panel > Store Setup)
+        unsubGeneral = onSnapshot(
+          doc(db, 'store_settings', 'general'),
+          (docSnap) => {
+            if (docSnap.exists()) {
+              const data = docSnap.data();
+              setSettings((prev) => {
+                const updated = {
+                  ...prev,
+                  storeName: sanitizeStoreName(data.store_name, prev.storeName),
+                  supportEmail: sanitizeEmail(data.contact_email, prev.supportEmail),
+                  supportWhatsapp: sanitizePhone(data.support_whatsapp, prev.supportWhatsapp),
+                  currency: data.currency || prev.currency,
+                  currencySymbol: data.currency_symbol || prev.currencySymbol,
+                };
+                try {
+                  localStorage.setItem('vaultzet_store_settings', JSON.stringify(updated));
+                } catch {}
+                return updated;
+              });
+            }
+            setIsLoading(false);
+          },
+          (err) => {
+            console.warn('Storefront store_settings/general sync:', err);
+            setIsLoading(false);
           }
-        },
-        (err) => {
-          console.warn('Storefront store_settings/branding sync:', err);
-        }
-      );
+        );
 
-      return () => {
-        unsubGeneral();
-        unsubBranding();
-      };
-    } catch (e) {
-      console.warn('Storefront settings sync error:', e);
-      setIsLoading(false);
-    }
+        // 2. Listen to store_settings/branding (configured in Admin Panel > Branding)
+        unsubBranding = onSnapshot(
+          doc(db, 'store_settings', 'branding'),
+          (docSnap) => {
+            if (docSnap.exists()) {
+              const data = docSnap.data();
+              setSettings((prev) => {
+                const updated = {
+                  ...prev,
+                  storeName: sanitizeStoreName(data.store_name, prev.storeName),
+                  tagline: data.tagline || prev.tagline,
+                  logoUrl: data.logo_url || prev.logoUrl,
+                  primaryColor: data.primary_color || prev.primaryColor,
+                };
+                try {
+                  localStorage.setItem('vaultzet_store_settings', JSON.stringify(updated));
+                } catch {}
+                return updated;
+              });
+            }
+          },
+          (err) => {
+            console.warn('Storefront store_settings/branding sync:', err);
+          }
+        );
+      } catch (e) {
+        console.warn('Storefront settings sync error:', e);
+        setIsLoading(false);
+      }
+    }, 1500);
+
+    return () => {
+      isCancelled = true;
+      clearTimeout(timer);
+      if (unsubGeneral) unsubGeneral();
+      if (unsubBranding) unsubBranding();
+    };
   }, []);
 
   return (
