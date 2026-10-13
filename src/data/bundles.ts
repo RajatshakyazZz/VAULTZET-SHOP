@@ -1,17 +1,14 @@
 import { BundleProduct, OrderBumpItem } from '@/types';
 
 export const CATEGORIES = [
-  { name: 'AI Reels', slug: 'ai-reels', count: 59, icon: '🤖', bg: '#f4ebff', border: '#e6d3ff' },
-  { name: 'Story Reels', slug: 'story-reels', count: 20, icon: '✦', bg: '#ffedf5', border: '#ffd2e6' },
-  { name: 'Aesthetic Reels', slug: 'aesthetic-reels', count: 15, icon: '✦', bg: '#edf3ff', border: '#d5e4ff' },
-  { name: 'Entertainment Reels', slug: 'entertainment-reels', count: 14, icon: '🤖', bg: '#f4ebff', border: '#e6d3ff' },
-  { name: 'Comedy Reels', slug: 'comedy-reels', count: 11, icon: '🎭', bg: '#edfff5', border: '#cffce0' },
-  { name: 'Animals Reels', slug: 'animals-reels', count: 9, icon: '✦', bg: '#eefcf1', border: '#c7f8cf' },
-  { name: 'Animation Reels', slug: 'animation-reels', count: 9, icon: '✦', bg: '#fff7e8', border: '#ffe8b8' },
-  { name: 'Fitness Reels', slug: 'fitness-reels', count: 8, icon: '✦', bg: '#fff1f7', border: '#ffd8e8' },
-  { name: 'Sports & Fitness', slug: 'sports-fitness', count: 1, icon: '✦', bg: '#eefcf1', border: '#c7f8cf' },
-  { name: 'Trending Reels', slug: 'trending-reels', count: 1, icon: '🔥', bg: '#ffebee', border: '#ffcdd2' },
-  { name: 'Unboxing Reels', slug: 'unboxing-reels', count: 1, icon: '📦', bg: '#ede7f6', border: '#d1c4e9' },
+  { name: 'AI Reels', slug: 'ai-reels', count: 41, icon: '🤖', bg: '#f3ebff', border: '#e9d8fd', iconColor: '#6d36e8' },
+  { name: 'Story Reels', slug: 'story-reels', count: 13, icon: '✦', bg: '#ffedf5', border: '#ffd6e8', iconColor: '#ff2985' },
+  { name: 'Aesthetic Reels', slug: 'aesthetic-reels', count: 12, icon: '✦', bg: '#ebf3ff', border: '#d6e6ff', iconColor: '#2563eb' },
+  { name: 'Comedy Reels', slug: 'comedy-reels', count: 9, icon: '🎭', bg: '#e9fbf0', border: '#ccf5db', iconColor: '#16a34a' },
+  { name: 'Animals Reels', slug: 'animals-reels', count: 8, icon: '✦', bg: '#e9fbf0', border: '#ccf5db', iconColor: '#16a34a' },
+  { name: 'Fitness Reels', slug: 'fitness-reels', count: 8, icon: '✦', bg: '#ffedf5', border: '#ffd6e8', iconColor: '#ff2985' },
+  { name: 'Animation Reels', slug: 'animation-reels', count: 7, icon: '✦', bg: '#fff5e6', border: '#ffe4bf', iconColor: '#ea580c' },
+  { name: 'Entertainment Reels', slug: 'entertainment-reels', count: 7, icon: '🤖', bg: '#f3ebff', border: '#e9d8fd', iconColor: '#6d36e8' },
 ];
 
 export const ORDER_BUMP: OrderBumpItem = {

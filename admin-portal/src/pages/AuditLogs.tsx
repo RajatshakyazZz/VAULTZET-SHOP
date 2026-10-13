@@ -42,7 +42,7 @@ export default function AuditLogs() {
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `reelsbundles_audit_logs_${new Date().toISOString().slice(0, 10)}.json`;
+    a.download = `vaultzet_audit_logs_${new Date().toISOString().slice(0, 10)}.json`;
     a.click();
     URL.revokeObjectURL(url);
     addToast({

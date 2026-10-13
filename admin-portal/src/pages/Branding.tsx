@@ -15,10 +15,10 @@ export default function Branding() {
   });
 
   const [form, setForm] = useState<StoreBranding>({
-    store_name: 'Reels Bundle',
+    store_name: 'Vaultzet Store',
     tagline: 'Premium Reels for Your Growth',
-    logo_url: 'https://reelsbundles.in/wp-content/uploads/2026/10/logo.png',
-    favicon_url: 'https://reelsbundles.in/favicon.ico',
+    logo_url: 'https://vaultzet.shop/logo.png',
+    favicon_url: 'https://vaultzet.shop/favicon.ico',
     primary_color: '#6d36e8',
     secondary_color: '#fe5f9b',
     accent_color: '#10b981',

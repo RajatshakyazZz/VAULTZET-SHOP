@@ -17,7 +17,7 @@ export default function WhatsappButton() {
   const [form, setForm] = useState<WhatsappButtonConfig>({
     enabled: true,
     phone_number: '919876543210',
-    default_message: 'Hi Reels Bundle team! I have a question regarding the bundles.',
+    default_message: 'Hi Vaultzet team! I have a question regarding the bundles.',
     position: 'bottom-right',
     show_popup_badge: true,
     popup_text: 'Need help? Chat on WhatsApp',
@@ -147,7 +147,7 @@ export default function WhatsappButton() {
 
           <div className="h-80 rounded-2xl bg-slate-950 border border-slate-800 relative p-4 flex flex-col justify-end">
             <div className="absolute top-4 left-4 text-[11px] text-slate-500 font-mono">
-              reelsbundles.in (Mobile Viewport)
+              vaultzet.shop (Mobile Viewport)
             </div>
 
             {/* Floating button */}

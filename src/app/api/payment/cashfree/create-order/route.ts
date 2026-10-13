@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { createCashfreePgOrder } from '@/lib/cashfree';
 import { db } from '@/lib/firebase';
 import { doc, setDoc, serverTimestamp } from 'firebase/firestore';
+import { sendAbandonedOrPendingTelegramAlert } from '@/lib/telegram';
 
 export async function POST(request: Request) {
   try {
@@ -33,34 +34,48 @@ export async function POST(request: Request) {
       returnUrl: `${returnBaseUrl}/api/payment/cashfree/return?order_id={order_id}`,
     });
 
-    // 2. Persist Pending Order to Firestore
+    // 2. Persist Pending Order to Firestore (strictly matching firestore.rules schema)
     if (db) {
       try {
         const orderRef = doc(db, 'orders', orderNumber);
-        await setDoc(
-          orderRef,
-          {
-            orderNumber,
-            customer: {
-              fullName: customer.fullName || '',
-              email: customer.email.trim().toLowerCase(),
-              phone: customer.phone || '',
-            },
-            items: items || [],
-            orderBump: orderBump || null,
-            totalAmount: Number(totalAmount),
-            paymentMethod: 'Cashfree Gateway',
-            paymentSessionId: cashfreeOrder.payment_session_id,
-            status: 'pending',
-            createdAt: serverTimestamp(),
-            timestampIso: new Date().toISOString(),
+        await setDoc(orderRef, {
+          orderNumber,
+          customer: {
+            fullName: customer.fullName || 'Customer',
+            email: customer.email.trim().toLowerCase(),
+            phone: customer.phone || '',
           },
-          { merge: true }
-        );
+          items: items && items.length > 0 ? items : [{ id: 'bundle', title: 'Viral Reels Bundle', price: Number(totalAmount), license: 'personal' }],
+          orderBump: orderBump || null,
+          totalAmount: Number(totalAmount),
+          paymentMethod: 'Cashfree Gateway',
+          transactionId: String(cashfreeOrder.order_id || orderNumber).slice(0, 95),
+          status: 'pending',
+          createdAt: serverTimestamp(),
+          timestampIso: new Date().toISOString(),
+        });
       } catch (firestoreErr) {
         console.warn('Could not save pending order to Firestore:', firestoreErr);
       }
     }
+
+    // 3. Dispatch Instant Telegram Alert for Checkout Started
+    await sendAbandonedOrPendingTelegramAlert(
+      {
+        orderNumber,
+        customer: {
+          fullName: customer.fullName || 'Customer',
+          email: customer.email.trim().toLowerCase(),
+          phone: customer.phone || '',
+        },
+        items: items || [],
+        orderBump: orderBump || null,
+        totalAmount: Number(totalAmount),
+        paymentStatus: 'CHECKOUT_STARTED',
+        paymentMethod: 'Cashfree UPI / Card',
+      },
+      'checkout_initiated'
+    );
 
     return NextResponse.json({
       success: true,

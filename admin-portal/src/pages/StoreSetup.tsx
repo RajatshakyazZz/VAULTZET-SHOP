@@ -15,8 +15,8 @@ export default function StoreSetup() {
   });
 
   const [form, setForm] = useState<StoreSetupConfig>({
-    store_name: 'Reels Bundle India',
-    contact_email: 'support@reelsbundles.in',
+    store_name: 'Vaultzet Store',
+    contact_email: 'support@vaultzet.shop',
     support_whatsapp: '+919876543210',
     currency: 'INR',
     currency_symbol: '₹',

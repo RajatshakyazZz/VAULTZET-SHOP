@@ -1,10 +1,12 @@
 'use client';
 
-import React, { useState } from 'react';
-import { Mail, MessageSquare, Check, Phone } from 'lucide-react';
+import React from 'react';
+import Link from 'next/link';
+import { Mail, Clock, FolderOpen, ArrowRight } from 'lucide-react';
+import { useStoreSettings } from '@/context/StoreSettingsContext';
 
 export default function ContactUsPage() {
-  const [sent, setSent] = useState(false);
+  const { settings } = useStoreSettings();
 
   return (
     <div className="py-12 sm:py-20 bg-[#faf9ff]">
@@ -18,93 +20,56 @@ export default function ContactUsPage() {
             Contact Customer Support
           </h1>
           <p className="text-sm text-[#6e7696] font-medium max-w-md mx-auto">
-            Need help with your Google Drive access or have questions about our reseller rights? We respond within 2–4 hours.
+            Need help with your Google Drive access or have questions about our reseller rights? We respond within 2–4 hours via email.
           </p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <div className="p-6 rounded-3xl bg-white border border-purple-100 shadow-sm text-center space-y-2">
-            <Mail className="w-8 h-8 text-rb-purple mx-auto" />
-            <h3 className="font-extrabold text-sm text-[#182247]">Email Us</h3>
-            <p className="text-xs text-slate-500">support@vaultzet.com</p>
-          </div>
-          <div className="p-6 rounded-3xl bg-white border border-purple-100 shadow-sm text-center space-y-2">
-            <MessageSquare className="w-8 h-8 text-pink-600 mx-auto" />
-            <h3 className="font-extrabold text-sm text-[#182247]">WhatsApp Chat</h3>
-            <p className="text-xs text-slate-500">+91 98765 43210</p>
-          </div>
-          <div className="p-6 rounded-3xl bg-white border border-purple-100 shadow-sm text-center space-y-2">
-            <Phone className="w-8 h-8 text-emerald-600 mx-auto" />
-            <h3 className="font-extrabold text-sm text-[#182247]">Working Hours</h3>
-            <p className="text-xs text-slate-500">10:00 AM – 8:00 PM IST</p>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+          <a
+            href={`mailto:${settings.supportEmail || 'support@vaultzet.shop'}`}
+            className="p-7 rounded-3xl bg-white border border-purple-100 shadow-sm hover:shadow-md transition-all text-center space-y-2.5 block group"
+          >
+            <div className="w-12 h-12 rounded-2xl bg-purple-50 text-rb-purple flex items-center justify-center mx-auto group-hover:scale-105 transition-transform">
+              <Mail className="w-6 h-6" />
+            </div>
+            <h3 className="font-extrabold text-base text-[#182247]">Email Us</h3>
+            <p className="text-xs font-semibold text-rb-purple">
+              {settings.supportEmail || 'support@vaultzet.shop'}
+            </p>
+          </a>
+
+          <div className="p-7 rounded-3xl bg-white border border-purple-100 shadow-sm text-center space-y-2.5">
+            <div className="w-12 h-12 rounded-2xl bg-emerald-50 text-emerald-600 flex items-center justify-center mx-auto">
+              <Clock className="w-6 h-6" />
+            </div>
+            <h3 className="font-extrabold text-base text-[#182247]">Working Hours</h3>
+            <p className="text-xs font-semibold text-slate-500">10:00 AM – 8:00 PM IST (Mon – Sun)</p>
           </div>
         </div>
 
-        {/* Contact Form */}
-        <div className="bg-white rounded-3xl p-8 border border-purple-100 shadow-xl space-y-6">
-          <h2 className="text-xl font-black text-[#182247]">Send a Quick Message</h2>
-
-          {sent ? (
-            <div className="p-6 rounded-2xl bg-green-50 border border-green-200 text-green-800 text-center font-bold text-sm flex items-center justify-center gap-2">
-              <Check className="w-5 h-5 text-green-600" />
-              <span>Thank you! Your message has been sent. We will reply shortly.</span>
+        {/* Instant Self-Service Order Portal Card */}
+        <div className="rounded-3xl p-7 sm:p-8 bg-white border border-purple-100 shadow-sm flex flex-col sm:flex-row items-center justify-between gap-5">
+          <div className="flex items-start gap-4 text-center sm:text-left flex-col sm:flex-row items-center sm:items-start">
+            <div className="w-12 h-12 rounded-2xl bg-purple-100/80 text-rb-purple flex items-center justify-center shrink-0">
+              <FolderOpen className="w-6 h-6" />
             </div>
-          ) : (
-            <form
-              onSubmit={(e) => {
-                e.preventDefault();
-                setSent(true);
-              }}
-              className="space-y-4"
-            >
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-xs font-bold text-slate-700 mb-1">Your Name</label>
-                  <input
-                    type="text"
-                    required
-                    placeholder="e.g. Rahul"
-                    className="w-full px-4 py-3 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-rb-purple"
-                  />
-                </div>
-                <div>
-                  <label className="block text-xs font-bold text-slate-700 mb-1">Email Address</label>
-                  <input
-                    type="email"
-                    required
-                    placeholder="you@gmail.com"
-                    className="w-full px-4 py-3 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-rb-purple"
-                  />
-                </div>
-              </div>
+            <div>
+              <h2 className="text-base sm:text-lg font-black text-[#182247]">
+                Looking for Your Purchased Reels Download Link?
+              </h2>
+              <p className="text-xs sm:text-sm text-slate-500 mt-1 font-medium">
+                You can instantly access all your purchased Google Drive folders anytime using your checkout email.
+              </p>
+            </div>
+          </div>
 
-              <div>
-                <label className="block text-xs font-bold text-slate-700 mb-1">Order ID (if applicable)</label>
-                <input
-                  type="text"
-                  placeholder="e.g. VZ-123456"
-                  className="w-full px-4 py-3 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-rb-purple"
-                />
-              </div>
-
-              <div>
-                <label className="block text-xs font-bold text-slate-700 mb-1">Your Message</label>
-                <textarea
-                  rows={4}
-                  required
-                  placeholder="How can we help you?"
-                  className="w-full px-4 py-3 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-rb-purple"
-                />
-              </div>
-
-              <button
-                type="submit"
-                className="w-full py-3.5 px-6 rounded-xl btn-gradient-primary text-white font-black text-sm shadow-md"
-              >
-                Submit Message →
-              </button>
-            </form>
-          )}
+          <Link
+            href="/my-order"
+            className="px-5 py-3 rounded-xl btn-gradient-primary text-white text-xs font-extrabold flex items-center gap-2 shrink-0 shadow-md"
+          >
+            <span>My Orders</span>
+            <ArrowRight className="w-4 h-4" />
+          </Link>
         </div>
 
       </div>

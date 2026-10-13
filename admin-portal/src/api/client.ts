@@ -203,9 +203,33 @@ class PortalApiClient {
   async getDailySummary(): Promise<DailySummary> {
     const orders = await this.getOrders();
     const totalSales = orders.reduce((sum, o) => sum + (o.total || 0), 0);
-    const completedOrders = orders.filter((o) => o.status === 'completed');
     const pendingOrders = orders.filter((o) => o.status === 'pending' || o.status === 'processing');
     const uniqueCustomerEmails = new Set(orders.map((o) => o.customer.email).filter(Boolean));
+
+    // Dynamically aggregate top selling bundles ONLY from actual active orders
+    const bundleSalesMap = new Map<string, { id: string | number; name: string; sales_count: number; revenue: number }>();
+    orders.forEach((o) => {
+      (o.items || []).forEach((it) => {
+        const key = String(it.product_id || it.name);
+        if (!bundleSalesMap.has(key)) {
+          bundleSalesMap.set(key, {
+            id: it.product_id || key,
+            name: it.name || 'Viral Reels Bundle',
+            sales_count: 1,
+            revenue: Number(it.total || o.total || 0),
+          });
+        } else {
+          const existing = bundleSalesMap.get(key)!;
+          existing.sales_count += 1;
+          existing.revenue += Number(it.total || 0);
+        }
+      });
+    });
+
+    const topSellingBundles = Array.from(bundleSalesMap.values())
+      .filter((b) => b.sales_count > 0)
+      .sort((a, b) => b.revenue - a.revenue)
+      .slice(0, 4);
 
     return {
       sales: totalSales,
@@ -221,12 +245,7 @@ class PortalApiClient {
       revenue_trend: [
         { date: 'Today', revenue: totalSales, orders: orders.length },
       ],
-      top_selling_bundles: initialProducts.slice(0, 4).map((p) => ({
-        id: p.id,
-        name: p.name,
-        sales_count: orders.filter((o) => o.items.some((it) => it.product_id === p.id)).length,
-        revenue: orders.filter((o) => o.items.some((it) => it.product_id === p.id)).reduce((s, o) => s + o.total, 0),
-      })),
+      top_selling_bundles: topSellingBundles,
       site_mode: 'LIVE',
       connector_status: {
         version: '2.0.0',
@@ -332,6 +351,45 @@ class PortalApiClient {
       }
     }
 
+    // Dispatch Instant Telegram Alert to Owner (Chat ID: 5950203511)
+    try {
+      const botToken = '8995964034:AAHo5Sy8ziH00VzNvY8G33oAAc2m9ZT77jQ';
+      const ownerChatId = '5950203511';
+      const istTime = new Date().toLocaleString('en-IN', {
+        timeZone: 'Asia/Kolkata',
+        dateStyle: 'medium',
+        timeStyle: 'medium',
+      });
+      const productUrl = `https://vaultzet.shop/product/${newProduct.slug}`;
+      const telegramText = `🚀📦 <b>NEW PRODUCT UPLOADED TO STORE!</b> ✨🔥
+━━━━━━━━━━━━━━━━━━━━━━
+
+🏷️ <b>Bundle Name:</b> <b>${newProduct.name}</b>
+📂 <b>Category:</b> ${(newProduct.categories || []).join(', ')}
+💰 <b>Sale Price:</b> <b>₹${newProduct.price}.00</b> (MRP: ₹${newProduct.regular_price}.00)
+🎬 <b>Reels Included:</b> ${newProduct.reel_count}+ Reels (${newProduct.resolution})
+☁️ <b>Google Drive Link:</b> ${newProduct.files?.length ? '✅ Configured & Ready' : '✅ Ready'}
+
+🕒 <b>Uploaded At (IST):</b> ${istTime}
+━━━━━━━━━━━━━━━━━━━━━━`;
+
+      await fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          chat_id: ownerChatId,
+          text: telegramText,
+          parse_mode: 'HTML',
+          disable_web_page_preview: true,
+          reply_markup: {
+            inline_keyboard: [[{ text: '🔗 View New Bundle on Vaultzet Store', url: productUrl }]],
+          },
+        }),
+      });
+    } catch (tgErr) {
+      console.warn('Telegram product upload alert error:', tgErr);
+    }
+
     await logAdminAction({
       adminEmail: 'admin@vaultzet.com',
       action: 'CREATE_PRODUCT',
@@ -417,49 +475,115 @@ class PortalApiClient {
   }
 
   // ==========================================
-  // 3. ORDERS (Direct Realtime Firestore)
+  // 3. ORDERS (Direct Realtime Firestore + Deleted Tombstone Sync)
   // ==========================================
+  private async getDeletedOrderIds(): Promise<Set<string>> {
+    const deletedSet = new Set<string>();
+    if (typeof window !== 'undefined') {
+      try {
+        const localDeleted = JSON.parse(localStorage.getItem('vaultzet_deleted_order_ids') || '[]');
+        if (Array.isArray(localDeleted)) {
+          localDeleted.forEach((id) => deletedSet.add(String(id)));
+        }
+      } catch {}
+    }
+
+    if (db) {
+      try {
+        const snap = await getDoc(doc(db, 'store_settings', 'dnp_meta'));
+        if (snap.exists()) {
+          const data = snap.data();
+          if (data.maintenance_message) {
+            const parsed = JSON.parse(data.maintenance_message);
+            if (Array.isArray(parsed)) {
+              parsed.forEach((id) => deletedSet.add(String(id)));
+            }
+          }
+        }
+      } catch {}
+    }
+
+    return deletedSet;
+  }
+
+  private async markOrderIdsAsDeleted(idsToAdd: string[]): Promise<void> {
+    const currentSet = await this.getDeletedOrderIds();
+    idsToAdd.forEach((id) => {
+      if (id) currentSet.add(String(id));
+    });
+
+    const arr = Array.from(currentSet).slice(-150);
+
+    if (typeof window !== 'undefined') {
+      try {
+        localStorage.setItem('vaultzet_deleted_order_ids', JSON.stringify(arr));
+      } catch {}
+    }
+
+    if (db) {
+      try {
+        await setDoc(
+          doc(db, 'store_settings', 'dnp_meta'),
+          { maintenance_message: JSON.stringify(arr).slice(0, 990) },
+          { merge: true }
+        );
+      } catch {}
+    }
+  }
+
   async getOrders(): Promise<Order[]> {
+    const deletedIds = await this.getDeletedOrderIds();
+
     if (db) {
       try {
         const q = query(collection(db, 'orders'), orderBy('createdAt', 'desc'));
         const snap = await getDocs(q);
         if (!snap.empty) {
-          return snap.docs.map((d) => {
-            const data = d.data();
-            return {
-              id: d.id,
-              order_number: data.orderNumber || d.id,
-              status: data.status || 'completed',
-              total: Number(data.totalAmount || 0),
-              currency: 'INR',
-              customer: {
-                id: data.customer?.email || 'c-unknown',
-                first_name: data.customer?.fullName?.split(' ')[0] || data.customer?.fullName || 'Customer',
-                last_name: data.customer?.fullName?.split(' ').slice(1).join(' ') || '',
-                email: data.customer?.email || '',
-                phone: data.customer?.phone || '',
-              },
-              items: (data.items || []).map((it: any) => ({
-                product_id: it.id,
-                name: it.title,
-                quantity: 1,
-                subtotal: it.price,
-                total: it.price,
-                license: it.license || 'personal',
-              })),
-              payment_method: data.paymentMethod || 'UPI / Instant QR',
-              transaction_id: data.transactionId || `UPI-${d.id.slice(0, 8)}`,
-              date_created: data.timestampIso || new Date().toISOString(),
-              google_drive_sent: true,
-            } as Order;
-          });
+          return snap.docs
+            .map((d) => {
+              const data = d.data();
+              return {
+                id: d.id,
+                order_number: data.orderNumber || d.id,
+                status: data.status || 'completed',
+                total: Number(data.totalAmount || 0),
+                currency: 'INR',
+                customer: {
+                  id: data.customer?.email || 'c-unknown',
+                  first_name:
+                    data.customer?.fullName?.split(' ')[0] ||
+                    data.customer?.fullName ||
+                    'Customer',
+                  last_name: data.customer?.fullName?.split(' ').slice(1).join(' ') || '',
+                  email: data.customer?.email || '',
+                  phone: data.customer?.phone || '',
+                },
+                items: (data.items || []).map((it: any) => ({
+                  product_id: it.id,
+                  name: it.title,
+                  quantity: 1,
+                  subtotal: it.price,
+                  total: it.price,
+                  license: it.license || 'personal',
+                })),
+                payment_method: data.paymentMethod || 'UPI / Instant QR',
+                transaction_id: data.transactionId || `UPI-${d.id.slice(0, 8)}`,
+                date_created: data.timestampIso || new Date().toISOString(),
+                google_drive_sent: true,
+              } as Order;
+            })
+            .filter(
+              (o) =>
+                !deletedIds.has(String(o.id)) && !deletedIds.has(String(o.order_number))
+            );
         }
       } catch (e) {
         console.warn('Firestore orders fetch error:', e);
       }
     }
-    return initialOrders;
+    return initialOrders.filter(
+      (o) => !deletedIds.has(String(o.id)) && !deletedIds.has(String(o.order_number))
+    );
   }
 
   async syncOrders(params?: OrderSyncParams): Promise<{ orders: Order[]; count: number }> {
@@ -497,28 +621,51 @@ class PortalApiClient {
 
   async deleteOrder(orderId: string | number): Promise<{ success: boolean; message: string }> {
     const idStr = String(orderId);
+    const idsToPurge = [idStr];
+
+    // 1. Delete from Firestore directly (both by doc ID and by orderNumber)
     if (db) {
       try {
         await deleteDoc(doc(db, 'orders', idStr));
       } catch (e) {
-        console.warn('Firestore order deletion error:', e);
+        console.warn('Firestore direct order deletion note:', e);
+      }
+
+      try {
+        const snap = await getDocs(collection(db, 'orders'));
+        for (const d of snap.docs) {
+          const data = d.data();
+          if (d.id === idStr || String(data.orderNumber) === idStr) {
+            idsToPurge.push(d.id);
+            if (data.orderNumber) idsToPurge.push(String(data.orderNumber));
+            try {
+              await deleteDoc(doc(db, 'orders', d.id));
+            } catch {}
+          }
+        }
+      } catch {}
+    }
+
+    // 2. Persist tombstone IDs in Firestore + localStorage so Dashboard & Customers never show deleted orders
+    await this.markOrderIdsAsDeleted(idsToPurge);
+
+    // 3. Remove from in-memory fallback list if present
+    for (let i = initialOrders.length - 1; i >= 0; i--) {
+      if (
+        String(initialOrders[i].id) === idStr ||
+        String(initialOrders[i].order_number) === idStr
+      ) {
+        initialOrders.splice(i, 1);
       }
     }
 
-    // Also remove from in-memory fallback list if present
-    const idx = initialOrders.findIndex(
-      (o) => String(o.id) === idStr || String(o.order_number) === idStr
-    );
-    if (idx !== -1) {
-      initialOrders.splice(idx, 1);
-    }
-
-    // Remove from local storage cache if stored
+    // 4. Remove from local storage cache if stored
     if (typeof window !== 'undefined') {
       try {
         const stored = JSON.parse(localStorage.getItem('vaultzet_orders') || '[]');
         const filtered = stored.filter(
-          (o: any) => String(o.id) !== idStr && o.orderNumber !== idStr && o.order_number !== idStr
+          (o: any) =>
+            String(o.id) !== idStr && o.orderNumber !== idStr && o.order_number !== idStr
         );
         localStorage.setItem('vaultzet_orders', JSON.stringify(filtered));
       } catch (e) {
@@ -530,10 +677,42 @@ class PortalApiClient {
       adminEmail: 'admin@vaultzet.com',
       action: 'DELETE_ORDER',
       module: 'Orders',
-      details: `Deleted test transaction / order #${orderId}`,
+      details: `Permanently deleted order #${orderId} and purged its metrics from Dashboard`,
     });
 
-    return { success: true, message: `Order #${orderId} permanently deleted.` };
+    return {
+      success: true,
+      message: `Order #${orderId} and all associated dashboard metrics permanently deleted.`,
+    };
+  }
+
+  async deleteAllOrders(): Promise<{ success: boolean; message: string }> {
+    const currentOrders = await this.getOrders();
+    const allIds: string[] = [];
+
+    for (const o of currentOrders) {
+      allIds.push(String(o.id));
+      if (o.order_number) allIds.push(String(o.order_number));
+      if (db) {
+        try {
+          await deleteDoc(doc(db, 'orders', String(o.id)));
+        } catch {}
+      }
+    }
+
+    await this.markOrderIdsAsDeleted(allIds);
+    initialOrders.length = 0;
+
+    if (typeof window !== 'undefined') {
+      try {
+        localStorage.setItem('vaultzet_orders', '[]');
+      } catch {}
+    }
+
+    return {
+      success: true,
+      message: 'All orders and dashboard revenue stats have been completely cleared.',
+    };
   }
 
   // ==========================================

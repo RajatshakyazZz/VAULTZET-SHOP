@@ -1,7 +1,59 @@
 import { NextResponse } from 'next/server';
 import { verifyCashfreePgOrder } from '@/lib/cashfree';
 import { db } from '@/lib/firebase';
-import { doc, updateDoc } from 'firebase/firestore';
+import { doc, getDoc, updateDoc } from 'firebase/firestore';
+import {
+  sendSaleSuccessTelegramAlert,
+  sendAbandonedOrPendingTelegramAlert,
+} from '@/lib/telegram';
+
+async function handleVerify(orderId: string) {
+  const verification = await verifyCashfreePgOrder(orderId);
+
+  let storedOrder: any = null;
+  if (db) {
+    try {
+      const snap = await getDoc(doc(db, 'orders', orderId));
+      if (snap.exists()) {
+        storedOrder = snap.data();
+      }
+    } catch {}
+  }
+
+  const alertPayload = {
+    orderNumber: orderId,
+    customer: {
+      fullName: storedOrder?.customer?.fullName || 'Customer',
+      email: storedOrder?.customer?.email || '',
+      phone: storedOrder?.customer?.phone || '',
+    },
+    items: storedOrder?.items || [],
+    orderBump: storedOrder?.orderBump || null,
+    totalAmount: Number(storedOrder?.totalAmount || verification.order_amount || 0),
+    paymentStatus: verification.order_status || (verification.paid ? 'PAID' : 'INCOMPLETE'),
+    paymentMethod: 'Cashfree UPI / Card',
+  };
+
+  if (verification.paid) {
+    if (db) {
+      try {
+        const orderRef = doc(db, 'orders', orderId);
+        await updateDoc(orderRef, {
+          status: 'completed',
+        });
+      } catch (err) {
+        console.warn('Error updating Firestore order status:', err);
+      }
+    }
+    if (storedOrder?.status !== 'completed') {
+      await sendSaleSuccessTelegramAlert(alertPayload);
+    }
+  } else {
+    await sendAbandonedOrPendingTelegramAlert(alertPayload, 'payment_abandoned');
+  }
+
+  return verification;
+}
 
 export async function GET(request: Request) {
   try {
@@ -15,20 +67,7 @@ export async function GET(request: Request) {
       );
     }
 
-    const verification = await verifyCashfreePgOrder(orderId);
-
-    if (verification.paid && db) {
-      try {
-        const orderRef = doc(db, 'orders', orderId);
-        await updateDoc(orderRef, {
-          status: 'completed',
-          date_modified: new Date().toISOString(),
-          paymentStatus: 'PAID',
-        });
-      } catch (err) {
-        console.warn('Error updating Firestore order status:', err);
-      }
-    }
+    const verification = await handleVerify(orderId);
 
     return NextResponse.json({
       success: true,
@@ -60,20 +99,7 @@ export async function POST(request: Request) {
       );
     }
 
-    const verification = await verifyCashfreePgOrder(orderId);
-
-    if (verification.paid && db) {
-      try {
-        const orderRef = doc(db, 'orders', orderId);
-        await updateDoc(orderRef, {
-          status: 'completed',
-          date_modified: new Date().toISOString(),
-          paymentStatus: 'PAID',
-        });
-      } catch (err) {
-        console.warn('Error updating Firestore order status:', err);
-      }
-    }
+    const verification = await handleVerify(orderId);
 
     return NextResponse.json({
       success: true,

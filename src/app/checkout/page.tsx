@@ -138,10 +138,28 @@ export default function CheckoutPage() {
           mode: data.environment === 'SANDBOX' ? 'sandbox' : 'production',
         });
 
-        await cashfree.checkout({
+        const result = await cashfree.checkout({
           paymentSessionId: data.payment_session_id,
           redirectTarget: '_self',
         });
+
+        if (result?.error) {
+          fetch('/api/telegram/notify', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              type: 'payment_abandoned',
+              orderNumber,
+              customer: orderPayload.customer,
+              items: orderPayload.items,
+              orderBump: orderPayload.orderBump,
+              totalAmount: orderPayload.totalAmount,
+              reason: result.error.message || 'Customer closed payment modal before completing payment',
+            }),
+          }).catch(() => {});
+          setIsProcessing(false);
+          setErrorMessage(result.error.message || 'Payment was cancelled. You can retry anytime.');
+        }
       } else {
         // Fallback: If JS SDK is slow to load, direct redirect
         window.location.href = `/api/payment/cashfree/return?order_id=${encodeURIComponent(data.order_id)}`;
@@ -225,7 +243,7 @@ export default function CheckoutPage() {
             <div className="lg:col-span-7 space-y-6">
               
               {/* 1. Customer Details (Minimal 3 Fields) */}
-              <div className="rounded-3xl p-6 bg-white border border-[#eae2fa] shadow-sm space-y-4">
+              <div className="rounded-3xl p-5 sm:p-6 bg-white border border-[#eae2fa] shadow-sm space-y-4">
                 <div className="flex items-center gap-2">
                   <span className="w-6 h-6 rounded-full bg-rb-purple text-white text-xs font-black flex items-center justify-center">
                     1
@@ -243,10 +261,11 @@ export default function CheckoutPage() {
                     <input
                       type="text"
                       required
+                      autoComplete="name"
                       placeholder="Enter your name"
                       value={fullName}
                       onChange={(e) => setFullName(e.target.value)}
-                      className="w-full px-4 py-3 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-rb-purple"
+                      className="w-full px-4 py-3 rounded-xl border border-slate-200 text-base sm:text-sm focus:outline-none focus:ring-2 focus:ring-rb-purple"
                     />
                   </div>
 
@@ -257,10 +276,11 @@ export default function CheckoutPage() {
                     <input
                       type="email"
                       required
+                      autoComplete="email"
                       placeholder="you@gmail.com"
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
-                      className="w-full px-4 py-3 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-rb-purple"
+                      className="w-full px-4 py-3 rounded-xl border border-slate-200 text-base sm:text-sm focus:outline-none focus:ring-2 focus:ring-rb-purple"
                     />
                     <span className="text-[11px] text-slate-400 mt-1 block">
                       We will send the private Google Drive download folder to this email.
@@ -274,10 +294,12 @@ export default function CheckoutPage() {
                     <input
                       type="tel"
                       required
+                      inputMode="tel"
+                      autoComplete="tel"
                       placeholder="+91 98765 43210"
                       value={phone}
                       onChange={(e) => setPhone(e.target.value)}
-                      className="w-full px-4 py-3 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-rb-purple"
+                      className="w-full px-4 py-3 rounded-xl border border-slate-200 text-base sm:text-sm focus:outline-none focus:ring-2 focus:ring-rb-purple"
                     />
                   </div>
                 </div>

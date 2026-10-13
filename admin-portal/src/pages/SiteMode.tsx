@@ -36,7 +36,7 @@ export default function SiteMode() {
       if (data.mode === 'MAINTENANCE') {
         warning('Maintenance Mode Activated', 'Public access paused. Only whitelisted IPs can browse.');
       } else {
-        success('Store is LIVE', 'reelsbundles.in is now open to all global visitors.');
+        success('Store is LIVE', 'vaultzet.shop is now open to all global visitors.');
       }
     },
     onError: () => error('Action Failed', 'Could not update site mode state.'),

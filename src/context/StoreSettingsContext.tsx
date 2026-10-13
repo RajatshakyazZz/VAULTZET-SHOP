@@ -16,13 +16,29 @@ export interface StoreSettings {
 }
 
 const DEFAULT_SETTINGS: StoreSettings = {
-  storeName: 'Vaultzet',
+  storeName: 'Vaultzet Store',
   tagline: 'Premium Reels for Your Growth',
   supportEmail: 'support@vaultzet.shop',
-  supportWhatsapp: '+919876543210',
+  supportWhatsapp: '',
   currency: 'INR',
   currencySymbol: '₹',
 };
+
+function sanitizeStoreName(name?: string, fallback = 'Vaultzet Store'): string {
+  if (!name || !name.trim()) return fallback;
+  if (/reels\s*bundles?/i.test(name) || /digonest/i.test(name)) {
+    return 'Vaultzet Store';
+  }
+  return name.trim();
+}
+
+function sanitizeEmail(email?: string, fallback = 'support@vaultzet.shop'): string {
+  if (!email || !email.trim()) return fallback;
+  if (/reelsbundles/i.test(email) || /digonest/i.test(email)) {
+    return 'support@vaultzet.shop';
+  }
+  return email.trim();
+}
 
 const StoreSettingsContext = createContext<{
   settings: StoreSettings;
@@ -37,7 +53,15 @@ export function StoreSettingsProvider({ children }: { children: React.ReactNode 
     if (typeof window !== 'undefined') {
       try {
         const cached = localStorage.getItem('vaultzet_store_settings');
-        if (cached) return JSON.parse(cached);
+        if (cached) {
+          const parsed = JSON.parse(cached);
+          return {
+            ...DEFAULT_SETTINGS,
+            ...parsed,
+            storeName: sanitizeStoreName(parsed.storeName),
+            supportEmail: sanitizeEmail(parsed.supportEmail),
+          };
+        }
       } catch {}
     }
     return DEFAULT_SETTINGS;
@@ -67,8 +91,8 @@ export function StoreSettingsProvider({ children }: { children: React.ReactNode 
             setSettings((prev) => {
               const updated = {
                 ...prev,
-                storeName: data.store_name || prev.storeName,
-                supportEmail: data.contact_email || prev.supportEmail,
+                storeName: sanitizeStoreName(data.store_name, prev.storeName),
+                supportEmail: sanitizeEmail(data.contact_email, prev.supportEmail),
                 supportWhatsapp: data.support_whatsapp || prev.supportWhatsapp,
                 currency: data.currency || prev.currency,
                 currencySymbol: data.currency_symbol || prev.currencySymbol,
@@ -96,7 +120,7 @@ export function StoreSettingsProvider({ children }: { children: React.ReactNode 
             setSettings((prev) => {
               const updated = {
                 ...prev,
-                storeName: data.store_name || prev.storeName,
+                storeName: sanitizeStoreName(data.store_name, prev.storeName),
                 tagline: data.tagline || prev.tagline,
                 logoUrl: data.logo_url || prev.logoUrl,
                 primaryColor: data.primary_color || prev.primaryColor,

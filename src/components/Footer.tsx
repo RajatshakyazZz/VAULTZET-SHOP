@@ -103,15 +103,15 @@ export default function Footer() {
                 </div>
                 <div>
                   <span className="font-extrabold text-lg text-[#1d2250] tracking-tight block">
-                    Reels Bundle
+                    {settings.storeName || 'Vaultzet Store'}
                   </span>
                   <span className="text-[11px] font-semibold text-[#6e7696] block">
-                    Premium Reels for Your Growth
+                    {settings.tagline || 'Premium Reels for Your Growth'}
                   </span>
                 </div>
               </Link>
               <p className="text-xs sm:text-sm text-gray-500 font-normal leading-relaxed max-w-sm">
-                Premium ready-to-use reels bundles for creators, pages and digital businesses.
+                Premium ready-to-use reels bundles for creators, pages and digital businesses by {settings.storeName || 'Vaultzet'}.
               </p>
             </div>
 
@@ -163,12 +163,9 @@ export default function Footer() {
             </a>
           </div>
 
-          {/* Bottom Copyright Row matching Image 7 */}
-          <div className="pt-4 border-t border-gray-100 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-gray-500 font-medium">
-            <p>© {new Date().getFullYear()} {settings.storeName}.</p>
-            <div className="px-3 py-1 rounded-full bg-white border border-gray-200 text-gray-600 text-[11px] font-bold shadow-sm">
-              Designed by DigoNest
-            </div>
+          {/* Bottom Copyright Row */}
+          <div className="pt-4 border-t border-gray-100 flex flex-col sm:flex-row items-center justify-center gap-3 text-xs text-gray-500 font-medium">
+            <p>© {new Date().getFullYear()} {settings.storeName || 'Vaultzet Store'}. All rights reserved.</p>
           </div>
 
         </div>

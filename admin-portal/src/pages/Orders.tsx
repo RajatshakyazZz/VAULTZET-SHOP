@@ -60,25 +60,49 @@ export default function Orders() {
     mutationFn: (id: string | number) => portalApi.deleteOrder(id),
     onSuccess: (res, deletedId) => {
       queryClient.setQueryData(['orders'], (old: Order[] = []) =>
-        old.filter((o) => o.id !== deletedId && o.order_number !== deletedId)
+        old.filter((o) => String(o.id) !== String(deletedId) && String(o.order_number) !== String(deletedId))
       );
       if (
         selectedOrder &&
-        (selectedOrder.id === deletedId || selectedOrder.order_number === deletedId)
+        (String(selectedOrder.id) === String(deletedId) || String(selectedOrder.order_number) === String(deletedId))
       ) {
         setSelectedOrder(null);
       }
+      queryClient.invalidateQueries({ queryKey: ['orders'] });
       queryClient.invalidateQueries({ queryKey: ['daily-summary'] });
       queryClient.invalidateQueries({ queryKey: ['recent-orders'] });
+      queryClient.invalidateQueries({ queryKey: ['customers'] });
       success('Order Deleted', res.message);
     },
     onError: (err: any) =>
       error('Delete Failed', err.message || 'Could not delete order from database.'),
   });
 
+  const deleteAllMutation = useMutation({
+    mutationFn: () => portalApi.deleteAllOrders(),
+    onSuccess: (res) => {
+      queryClient.setQueryData(['orders'], []);
+      queryClient.setQueryData(['recent-orders'], []);
+      setSelectedOrder(null);
+      queryClient.invalidateQueries({ queryKey: ['orders'] });
+      queryClient.invalidateQueries({ queryKey: ['daily-summary'] });
+      queryClient.invalidateQueries({ queryKey: ['recent-orders'] });
+      queryClient.invalidateQueries({ queryKey: ['customers'] });
+      success('All Orders Cleared', res.message);
+    },
+    onError: (err: any) =>
+      error('Clear Failed', err.message || 'Could not clear orders.'),
+  });
+
   const handleDeleteOrder = (order: Order) => {
-    if (confirm(`Permanently delete order #${order.order_number}? This cannot be undone.`)) {
+    if (confirm(`Permanently delete order #${order.order_number} and remove all its metrics from the dashboard?`)) {
       deleteMutation.mutate(order.id);
+    }
+  };
+
+  const handleClearAllOrders = () => {
+    if (confirm('Permanently delete ALL orders and reset all dashboard revenue & customer metrics to zero?')) {
+      deleteAllMutation.mutate();
     }
   };
 
@@ -200,14 +224,26 @@ export default function Orders() {
           </p>
         </div>
 
-        <button
-          onClick={handleTriggerSync}
-          disabled={isSyncing}
-          className="px-4 py-2.5 rounded-xl bg-purple-600 hover:bg-purple-500 disabled:opacity-50 text-white text-xs font-bold transition-all shadow-md shadow-purple-600/20 flex items-center gap-2 self-start sm:self-auto"
-        >
-          <RefreshCw className={`w-3.5 h-3.5 ${isSyncing ? 'animate-spin' : ''}`} />
-          <span>Sync Orders (/sync/orders)</span>
-        </button>
+        <div className="flex items-center gap-2.5 self-start sm:self-auto">
+          {orders.length > 0 && (
+            <button
+              onClick={handleClearAllOrders}
+              disabled={deleteAllMutation.isPending}
+              className="px-4 py-2.5 rounded-xl bg-rose-500/15 hover:bg-rose-500/25 border border-rose-500/30 disabled:opacity-50 text-rose-300 text-xs font-bold transition-all flex items-center gap-2"
+            >
+              <Trash2 className="w-3.5 h-3.5" />
+              <span>{deleteAllMutation.isPending ? 'Clearing...' : 'Clear All Orders'}</span>
+            </button>
+          )}
+          <button
+            onClick={handleTriggerSync}
+            disabled={isSyncing}
+            className="px-4 py-2.5 rounded-xl bg-purple-600 hover:bg-purple-500 disabled:opacity-50 text-white text-xs font-bold transition-all shadow-md shadow-purple-600/20 flex items-center gap-2"
+          >
+            <RefreshCw className={`w-3.5 h-3.5 ${isSyncing ? 'animate-spin' : ''}`} />
+            <span>Sync Orders (/sync/orders)</span>
+          </button>
+        </div>
       </div>
 
       {/* Orders DataTable */}

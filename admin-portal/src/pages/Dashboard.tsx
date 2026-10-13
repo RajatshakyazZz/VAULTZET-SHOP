@@ -33,34 +33,95 @@ export default function Dashboard() {
   const queryClient = useQueryClient();
   const { success, error } = useToast();
 
-  const { data: summary, isLoading: isSummaryLoading, refetch } = useQuery({
+  const { data: summary, refetch: refetchSummary } = useQuery({
     queryKey: ['daily-summary'],
     queryFn: () => portalApi.getDailySummary(),
   });
 
-  const { data: orders = [] } = useQuery({
+  const { data: orders = [], refetch: refetchOrders } = useQuery({
     queryKey: ['recent-orders'],
     queryFn: () => portalApi.getOrders(),
   });
 
   const { status, errorMessage, openModal } = useBackendHealth();
 
+  // Compute live metrics directly from current active orders so any deletion updates Dashboard at 0ms
+  const liveNetRevenue = orders.reduce((sum: number, o: any) => sum + Number(o.total || 0), 0);
+  const liveTotalOrders = orders.length;
+  const liveActiveCustomers = new Set(orders.map((o: any) => o.customer?.email).filter(Boolean)).size;
+  const livePendingOrders = orders.filter(
+    (o: any) => o.status === 'pending' || o.status === 'processing'
+  ).length;
+  const liveAvgAov = liveTotalOrders > 0 ? Math.round(liveNetRevenue / liveTotalOrders) : 0;
+  const liveRevenueTrend = [{ date: 'Today', revenue: liveNetRevenue, orders: liveTotalOrders }];
+
+  const liveTopBundles = React.useMemo(() => {
+    const map = new Map<string, { id: string | number; name: string; sales_count: number; revenue: number }>();
+    orders.forEach((o: any) => {
+      (o.items || []).forEach((it: any) => {
+        const key = String(it.product_id || it.name);
+        if (!map.has(key)) {
+          map.set(key, {
+            id: it.product_id || key,
+            name: it.name || 'Viral Reels Bundle',
+            sales_count: 1,
+            revenue: Number(it.total || o.total || 0),
+          });
+        } else {
+          const existing = map.get(key)!;
+          existing.sales_count += 1;
+          existing.revenue += Number(it.total || 0);
+        }
+      });
+    });
+    return Array.from(map.values())
+      .filter((b) => b.sales_count > 0)
+      .sort((a, b) => b.revenue - a.revenue)
+      .slice(0, 4);
+  }, [orders]);
+
   const deleteMutation = useMutation({
     mutationFn: (id: string | number) => portalApi.deleteOrder(id),
     onSuccess: (res, deletedId) => {
       queryClient.setQueryData(['recent-orders'], (old: any[] = []) =>
-        old.filter((o) => o.id !== deletedId && o.order_number !== deletedId)
+        old.filter((o) => String(o.id) !== String(deletedId) && String(o.order_number) !== String(deletedId))
+      );
+      queryClient.setQueryData(['orders'], (old: any[] = []) =>
+        old.filter((o) => String(o.id) !== String(deletedId) && String(o.order_number) !== String(deletedId))
       );
       queryClient.invalidateQueries({ queryKey: ['orders'] });
+      queryClient.invalidateQueries({ queryKey: ['recent-orders'] });
       queryClient.invalidateQueries({ queryKey: ['daily-summary'] });
-      success('Order Deleted', res.message);
+      queryClient.invalidateQueries({ queryKey: ['customers'] });
+      success('Order & Data Deleted', res.message);
     },
     onError: (err: any) => error('Delete Failed', err.message || 'Could not delete order.'),
   });
 
+  const clearAllMutation = useMutation({
+    mutationFn: () => portalApi.deleteAllOrders(),
+    onSuccess: (res) => {
+      queryClient.setQueryData(['recent-orders'], []);
+      queryClient.setQueryData(['orders'], []);
+      queryClient.setQueryData(['customers'], []);
+      queryClient.invalidateQueries({ queryKey: ['orders'] });
+      queryClient.invalidateQueries({ queryKey: ['recent-orders'] });
+      queryClient.invalidateQueries({ queryKey: ['daily-summary'] });
+      queryClient.invalidateQueries({ queryKey: ['customers'] });
+      success('All Orders Cleared', res.message);
+    },
+    onError: (err: any) => error('Clear Failed', err.message || 'Could not clear orders.'),
+  });
+
   const handleDelete = (order: any) => {
-    if (confirm(`Permanently delete test order #${order.order_number}?`)) {
+    if (confirm(`Permanently delete order #${order.order_number} and remove all its revenue/customer data from Dashboard?`)) {
       deleteMutation.mutate(order.id);
+    }
+  };
+
+  const handleClearAll = () => {
+    if (confirm('Permanently delete ALL orders and reset Dashboard revenue & stats to ₹0?')) {
+      clearAllMutation.mutate();
     }
   };
 
@@ -116,41 +177,56 @@ export default function Dashboard() {
           </p>
         </div>
 
-        <button
-          onClick={() => refetch()}
-          className="px-4 py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 border border-slate-800 text-slate-200 text-xs font-bold transition-all flex items-center gap-2 self-start sm:self-auto"
-        >
-          <RefreshCw className="w-3.5 h-3.5" />
-          <span>Refresh Data</span>
-        </button>
+        <div className="flex items-center gap-2.5 self-start sm:self-auto">
+          {orders.length > 0 && (
+            <button
+              onClick={handleClearAll}
+              disabled={clearAllMutation.isPending}
+              className="px-3.5 py-2.5 rounded-xl bg-rose-500/15 hover:bg-rose-500/25 border border-rose-500/30 text-rose-300 text-xs font-bold transition-all flex items-center gap-1.5"
+            >
+              <Trash2 className="w-3.5 h-3.5" />
+              <span>Clear All Test Orders</span>
+            </button>
+          )}
+          <button
+            onClick={() => {
+              refetchSummary();
+              refetchOrders();
+            }}
+            className="px-4 py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 border border-slate-800 text-slate-200 text-xs font-bold transition-all flex items-center gap-2"
+          >
+            <RefreshCw className="w-3.5 h-3.5" />
+            <span>Refresh Data</span>
+          </button>
+        </div>
       </div>
 
-      {/* 4 KPI Cards */}
+      {/* 4 KPI Cards (Synced live with active orders) */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-5">
         <StatCard
           title="Net Revenue Today"
-          value={formatCurrency(summary?.net_revenue ?? 0)}
+          value={formatCurrency(liveNetRevenue)}
           subtitle="Real-time gross"
           icon={IndianRupee}
           color="emerald"
         />
         <StatCard
           title="Total Orders"
-          value={summary?.orders ?? 0}
+          value={liveTotalOrders}
           subtitle="Real checkout purchases"
           icon={ShoppingCart}
           color="purple"
         />
         <StatCard
           title="Active Customers"
-          value={summary?.customers ?? 0}
+          value={liveActiveCustomers}
           subtitle="Verified buyers"
           icon={Users}
           color="blue"
         />
         <StatCard
           title="Pending Fulfillment"
-          value={summary?.pending_orders ?? 0}
+          value={livePendingOrders}
           subtitle="Awaiting delivery"
           icon={Clock}
           color="amber"
@@ -168,13 +244,13 @@ export default function Dashboard() {
               <p className="text-xs text-slate-400 font-medium">Daily completed transaction total in INR</p>
             </div>
             <span className="text-xs font-extrabold text-emerald-400 bg-emerald-500/10 px-2.5 py-1 rounded-lg border border-emerald-500/20">
-              Avg AOV: ₹{summary?.average_order_value ?? 0}
+              Avg AOV: ₹{liveAvgAov}
             </span>
           </div>
 
           <div className="h-72 w-full pt-4">
             <ResponsiveContainer width="100%" height="100%">
-              <AreaChart data={summary?.revenue_trend || []}>
+              <AreaChart data={liveRevenueTrend}>
                 <defs>
                   <linearGradient id="revenueGrad" x1="0" y1="0" x2="0" y2="1">
                     <stop offset="5%" stopColor="#8b5cf6" stopOpacity={0.4} />
@@ -225,12 +301,12 @@ export default function Dashboard() {
             </div>
 
             <div className="space-y-2.5">
-              {(summary?.top_selling_bundles || []).length === 0 ? (
+              {liveTopBundles.length === 0 ? (
                 <div className="p-6 text-center text-xs text-slate-500 font-medium">
                   No bundle sales recorded yet.
                 </div>
               ) : (
-                (summary?.top_selling_bundles || []).map((b, i) => (
+                liveTopBundles.map((b, i) => (
                   <div
                     key={b.id}
                     className="p-3 rounded-xl bg-slate-950/60 border border-slate-800/80 flex items-center justify-between gap-2"

@@ -163,7 +163,7 @@ export default function CartDrawer() {
 
         {/* Footer */}
         {(items.length > 0 || orderBumpAdded) && (
-          <div className="p-5 border-t border-slate-100 bg-[#faf9ff] space-y-4">
+          <div className="p-5 pb-[calc(1.25rem+env(safe-area-inset-bottom,0px))] border-t border-slate-100 bg-[#faf9ff] space-y-4">
             <div className="space-y-1.5 text-sm">
               <div className="flex justify-between text-slate-500">
                 <span>Subtotal</span>

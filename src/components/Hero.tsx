@@ -64,88 +64,113 @@ export default function Hero() {
   const rightCard = BUNDLE_PRODUCTS[(activeOffset + 2) % totalBundles];
 
   return (
-    <section className="pt-4 pb-8 sm:pt-6 sm:pb-12">
+    <section className="pt-4 pb-4 sm:pt-6 sm:pb-6">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         
-        {/* Main Hero Card Container matching Image 1 */}
-        <div className="relative rounded-[32px] sm:rounded-[38px] bg-gradient-to-br from-[#ffffff] via-[#fdf9ff] to-[#fbf0f7] border border-[#f0e8fa] shadow-[0_16px_50px_rgba(80,40,150,0.06)] p-6 sm:p-10 lg:p-12 overflow-hidden">
-          
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 items-center">
+        {/* Main Hero Card Container matching Competitor Screenshot Exactly */}
+        <div
+          className="relative rounded-[30px] sm:rounded-[36px] bg-gradient-to-br from-[#ffffff] via-[#fdf9ff] to-[#fcecf8] border border-[#efe7fa] shadow-[0_16px_50px_rgba(80,40,150,0.05)] p-6 sm:p-10 lg:px-12 lg:py-11 overflow-hidden"
+          style={{
+            backgroundImage:
+              'linear-gradient(to right, rgba(125, 85, 225, 0.03) 1px, transparent 1px), linear-gradient(to bottom, rgba(125, 85, 225, 0.03) 1px, transparent 1px)',
+            backgroundSize: '26px 26px',
+          }}
+        >
+          {/* Ambient Pink & Lavender Glow on the Right Side (Behind the 3 Phones) */}
+          <div
+            className="pointer-events-none absolute -right-16 top-0 bottom-0 w-full lg:w-[58%] z-0"
+            style={{
+              background:
+                'radial-gradient(circle at 65% 48%, rgba(255, 178, 226, 0.52) 0%, rgba(215, 178, 255, 0.36) 38%, rgba(255, 232, 247, 0.2) 68%, transparent 100%)',
+            }}
+          />
+
+          {/* Subtle bottom-left lavender wave shape matching competitor */}
+          <div className="pointer-events-none absolute -left-12 -bottom-24 w-80 h-60 rounded-full bg-purple-200/25 blur-2xl z-0" />
+
+          <div className="relative z-10 grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-6 items-center">
             
             {/* Left Content */}
             <div className="lg:col-span-7 space-y-6">
               
-              {/* Heading matching Image 1 */}
+              {/* Exact Typography matching Competitor Screenshot */}
               <div>
-                <h1 className="text-4xl sm:text-5xl lg:text-6xl font-black text-[#141b3d] tracking-tight leading-[1.05]">
+                <h1 className="text-[42px] sm:text-[56px] lg:text-[62px] font-black text-[#0f1738] tracking-[-0.03em] leading-[1.06]">
                   Viral Reels.
                 </h1>
-                <div className="text-4xl sm:text-5xl lg:text-6xl font-black text-[#7a37f5] tracking-tight mt-1 flex items-center min-h-[50px] sm:min-h-[64px]">
-                  <span>{displayText}</span>
-                  <span className="w-[4px] h-[0.9em] bg-[#7a37f5] ml-1 inline-block animate-pulse" />
+                <div className="text-[42px] sm:text-[56px] lg:text-[62px] font-black tracking-[-0.03em] leading-[1.08] mt-0.5 flex items-center min-h-[52px] sm:min-h-[68px]">
+                  <span className="bg-gradient-to-r from-[#6c35ff] via-[#b429f9] to-[#ff1e8e] bg-clip-text text-transparent pb-1">
+                    {displayText}
+                  </span>
+                  <span className="w-[2.5px] h-[0.88em] bg-[#efb9d7] ml-1.5 inline-block animate-pulse shrink-0" />
                 </div>
               </div>
 
               {/* Subtitle */}
-              <p className="text-sm sm:text-base text-[#697294] font-medium max-w-lg leading-relaxed">
+              <p className="text-[14.5px] sm:text-[16px] text-[#5e688c] font-medium max-w-xl leading-[1.6]">
                 Download polished reels bundles for Instagram, YouTube Shorts and Facebook. Pick your niche, preview the content and get instant secure access after purchase.
               </p>
 
-              {/* Action Buttons matching Image 1 */}
+              {/* Action Buttons matching Competitor Screenshot */}
               <div className="flex flex-wrap items-center gap-3.5 pt-1">
                 <Link
                   href="/shop"
-                  className="px-6 py-3.5 rounded-full bg-gradient-to-r from-[#6b35f2] via-[#9e2bf4] to-[#f23298] text-white font-extrabold text-[14px] flex items-center gap-2 shadow-[0_10px_25px_rgba(150,40,240,0.3)] hover:scale-[1.02] transition-transform"
+                  className="px-6 py-3.5 rounded-2xl bg-gradient-to-r from-[#6734f7] via-[#a32bf6] to-[#f92893] text-white font-extrabold text-[14px] flex items-center gap-2.5 shadow-[0_12px_26px_rgba(163,43,246,0.28)] hover:scale-[1.02] active:scale-95 transition-transform"
                 >
-                  <span className="text-base leading-none">▣</span>
+                  <span className="w-6 h-6 rounded-lg bg-white/20 flex items-center justify-center text-xs leading-none">
+                    ▣
+                  </span>
                   <span>Browse Bundles</span>
                   <ArrowRight className="w-4 h-4 ml-0.5" />
                 </Link>
 
                 <a
                   href="#rbui-preview"
-                  className="px-6 py-3.5 rounded-full bg-white text-[#162048] border border-[#d8d0ee] font-extrabold text-[14px] flex items-center gap-2.5 shadow-sm hover:shadow-md transition-all hover:bg-slate-50"
+                  className="px-6 py-3.5 rounded-2xl bg-white text-[#141d42] border border-[#c8b9f6] font-extrabold text-[14px] flex items-center gap-2.5 shadow-xs hover:shadow-md transition-all hover:bg-purple-50/40 active:scale-95"
                 >
-                  <div className="w-6 h-6 rounded-full bg-[#18234c] flex items-center justify-center text-white">
-                    <Play className="w-3 h-3 fill-white ml-0.5" />
+                  <div className="w-6 h-6 rounded-full bg-[#111a3d] flex items-center justify-center text-white">
+                    <Play className="w-2.5 h-2.5 fill-white ml-0.5" />
                   </div>
                   <span>View Previews</span>
                 </a>
               </div>
 
-              {/* 3 Color Stat Cards matching Image 1 */}
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3.5 pt-4">
+              {/* 3 Glossy Color Stat Cards matching Competitor Screenshot */}
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3.5 pt-3 max-w-xl">
                 
                 {/* 129 Published Bundles (Purple Gradient) */}
-                <div className="p-3.5 rounded-2xl bg-gradient-to-r from-[#593de0] to-[#7f4ef5] text-white flex items-center gap-3 shadow-md shadow-purple-500/15">
-                  <div className="w-10 h-10 rounded-xl bg-white/20 backdrop-blur-sm flex items-center justify-center shrink-0">
-                    <FolderKanban className="w-5 h-5 text-white" />
+                <div className="relative overflow-hidden p-4 rounded-[20px] bg-gradient-to-br from-[#5d3be3] to-[#8353f5] text-white flex items-center gap-3 shadow-[0_10px_24px_rgba(93,59,227,0.2)]">
+                  <div className="absolute -right-5 -bottom-6 w-20 h-20 rounded-full bg-white/12 pointer-events-none" />
+                  <div className="w-10 h-10 rounded-2xl bg-white/15 border border-white/25 backdrop-blur-xs flex items-center justify-center shrink-0">
+                    <FolderKanban className="w-4 h-4 text-white" />
                   </div>
-                  <div className="leading-tight">
-                    <div className="text-xl font-black">129</div>
-                    <div className="text-[11px] font-semibold text-white/90">Published Bundles</div>
+                  <div className="leading-tight relative z-10">
+                    <div className="text-[22px] font-black tracking-tight">129</div>
+                    <div className="text-[11px] font-bold text-white/90 mt-0.5">Published Bundles</div>
                   </div>
                 </div>
 
                 {/* 222K+ Ready-to-Post Reels (Coral/Pink Gradient) */}
-                <div className="p-3.5 rounded-2xl bg-gradient-to-r from-[#f03b68] to-[#f85f67] text-white flex items-center gap-3 shadow-md shadow-pink-500/15">
-                  <div className="w-10 h-10 rounded-xl bg-white/20 backdrop-blur-sm flex items-center justify-center shrink-0">
-                    <Film className="w-5 h-5 text-white" />
+                <div className="relative overflow-hidden p-4 rounded-[20px] bg-gradient-to-br from-[#ef3966] to-[#f86669] text-white flex items-center gap-3 shadow-[0_10px_24px_rgba(239,57,102,0.2)]">
+                  <div className="absolute -right-5 -bottom-6 w-20 h-20 rounded-full bg-white/12 pointer-events-none" />
+                  <div className="w-10 h-10 rounded-2xl bg-white/15 border border-white/25 backdrop-blur-xs flex items-center justify-center shrink-0">
+                    <Film className="w-4 h-4 text-white" />
                   </div>
-                  <div className="leading-tight">
-                    <div className="text-xl font-black">222K+</div>
-                    <div className="text-[11px] font-semibold text-white/90">Ready-to-Post Reels</div>
+                  <div className="leading-tight relative z-10">
+                    <div className="text-[22px] font-black tracking-tight">222K+</div>
+                    <div className="text-[11px] font-bold text-white/90 mt-0.5">Ready-to-Post Reels</div>
                   </div>
                 </div>
 
                 {/* Up to 1080P Maximum Quality (Teal Gradient) */}
-                <div className="p-3.5 rounded-2xl bg-gradient-to-r from-[#07997f] to-[#0eb392] text-white flex items-center gap-3 shadow-md shadow-teal-500/15">
-                  <div className="w-10 h-10 rounded-xl bg-white/20 backdrop-blur-sm flex items-center justify-center shrink-0">
-                    <ShieldCheck className="w-5 h-5 text-white" />
+                <div className="relative overflow-hidden p-4 rounded-[20px] bg-gradient-to-br from-[#06967d] to-[#11b594] text-white flex items-center gap-3 shadow-[0_10px_24px_rgba(6,150,125,0.2)]">
+                  <div className="absolute -right-5 -bottom-6 w-20 h-20 rounded-full bg-white/12 pointer-events-none" />
+                  <div className="w-10 h-10 rounded-2xl bg-white/15 border border-white/25 backdrop-blur-xs flex items-center justify-center shrink-0">
+                    <ShieldCheck className="w-4 h-4 text-white" />
                   </div>
-                  <div className="leading-tight">
-                    <div className="text-base font-black">Up to 1080P</div>
-                    <div className="text-[11px] font-semibold text-white/90">Maximum Quality</div>
+                  <div className="leading-tight relative z-10">
+                    <div className="text-[18px] font-black tracking-tight leading-none">Up to 1080P</div>
+                    <div className="text-[11px] font-bold text-white/90 mt-1">Maximum Quality</div>
                   </div>
                 </div>
 
@@ -153,36 +178,45 @@ export default function Hero() {
 
             </div>
 
-            {/* Right: 3 Phone Stack matching Image 1 */}
+            {/* Right: 3 Phone Stack with Pink/Lavender Aura matching Competitor Screenshot */}
             <div
               className="lg:col-span-5 flex flex-col items-center justify-center relative"
               onMouseEnter={() => setIsRotating(false)}
               onMouseLeave={() => setIsRotating(true)}
             >
-              
-              <div className="relative w-full max-w-[340px] h-[360px] flex items-center justify-center">
+              {/* Extra Concentrated Pink/Violet Glow Directly Behind the 3 Phones */}
+              <div
+                className="pointer-events-none absolute inset-0 -m-6 rounded-full blur-2xl opacity-90 z-0"
+                style={{
+                  background:
+                    'radial-gradient(circle at 50% 50%, rgba(250, 168, 224, 0.65) 0%, rgba(196, 160, 255, 0.45) 45%, transparent 78%)',
+                }}
+              />
+
+              <div className="relative z-10 w-full max-w-[380px] h-[350px] sm:h-[380px] flex items-center justify-center">
                 
-                {/* Left Card (-8deg tilt) */}
+                {/* Left Card (-8deg tilt, thick white border) */}
                 {leftCard && (
                   <Link
                     href={`/product/${leftCard.slug}`}
                     key={`left-${leftCard.id}`}
-                    className="absolute left-0 w-44 aspect-[9/16] rounded-[22px] overflow-hidden shadow-xl border border-slate-200 transform -rotate-8 -translate-x-4 scale-90 z-10 transition-all hover:scale-95 duration-500 block bg-slate-900 group"
+                    className="absolute left-1 sm:left-0 w-[150px] sm:w-[175px] aspect-[9/16] rounded-[24px] overflow-hidden shadow-[0_20px_45px_rgba(30,15,70,0.22)] border-[5px] border-white transform -rotate-[8deg] -translate-x-4 sm:-translate-x-6 translate-y-2 z-10 transition-all hover:scale-95 duration-500 block bg-slate-900 group"
                   >
                     <img
                       src={leftCard.thumbnail}
                       alt={leftCard.title}
                       className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
                     />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/20 to-black/20 flex flex-col justify-between p-3 text-white">
-                      <div className="w-8 h-8 rounded-full bg-white/90 shadow-md flex items-center justify-center mx-auto my-auto text-[#6b35f2]">
-                        <Play className="w-3.5 h-3.5 fill-[#6b35f2] ml-0.5" />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/15 to-transparent flex flex-col justify-between p-3 text-white">
+                      <div />
+                      <div className="w-10 h-10 rounded-full bg-white/95 shadow-md flex items-center justify-center mx-auto text-[#5e2de0]">
+                        <Play className="w-3.5 h-3.5 fill-[#5e2de0] ml-0.5" />
                       </div>
                       <div>
-                        <span className="text-[9px] font-black uppercase text-amber-300 block">
-                          TRENDING PREVIEW
+                        <span className="text-[8.5px] font-extrabold uppercase tracking-[0.14em] text-white/80 block mb-0.5">
+                          HOT PREVIEW
                         </span>
-                        <p className="text-[11px] font-bold text-white line-clamp-1">
+                        <p className="text-[11px] font-extrabold text-white line-clamp-2 leading-tight">
                           {leftCard.title}
                         </p>
                       </div>
@@ -190,27 +224,28 @@ export default function Hero() {
                   </Link>
                 )}
 
-                {/* Right Card (+8deg tilt) */}
+                {/* Right Card (+8deg tilt, thick white border) */}
                 {rightCard && (
                   <Link
                     href={`/product/${rightCard.slug}`}
                     key={`right-${rightCard.id}`}
-                    className="absolute right-0 w-44 aspect-[9/16] rounded-[22px] overflow-hidden shadow-xl border border-slate-200 transform rotate-8 translate-x-4 scale-90 z-10 transition-all hover:scale-95 duration-500 block bg-slate-900 group"
+                    className="absolute right-1 sm:right-0 w-[150px] sm:w-[175px] aspect-[9/16] rounded-[24px] overflow-hidden shadow-[0_20px_45px_rgba(30,15,70,0.22)] border-[5px] border-white transform rotate-[8deg] translate-x-4 sm:translate-x-6 translate-y-2 z-10 transition-all hover:scale-95 duration-500 block bg-slate-900 group"
                   >
                     <img
                       src={rightCard.thumbnail}
                       alt={rightCard.title}
                       className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
                     />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/20 to-black/20 flex flex-col justify-between p-3 text-white">
-                      <div className="w-8 h-8 rounded-full bg-white/90 shadow-md flex items-center justify-center mx-auto my-auto text-[#6b35f2]">
-                        <Play className="w-3.5 h-3.5 fill-[#6b35f2] ml-0.5" />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/15 to-transparent flex flex-col justify-between p-3 text-white">
+                      <div />
+                      <div className="w-10 h-10 rounded-full bg-white/95 shadow-md flex items-center justify-center mx-auto text-[#5e2de0]">
+                        <Play className="w-3.5 h-3.5 fill-[#5e2de0] ml-0.5" />
                       </div>
                       <div>
-                        <span className="text-[9px] font-black uppercase text-amber-300 block">
-                          TRENDING PREVIEW
+                        <span className="text-[8.5px] font-extrabold uppercase tracking-[0.14em] text-white/80 block mb-0.5">
+                          PREVIEW
                         </span>
-                        <p className="text-[11px] font-bold text-white line-clamp-1">
+                        <p className="text-[11px] font-extrabold text-white line-clamp-2 leading-tight">
                           {rightCard.title}
                         </p>
                       </div>
@@ -218,32 +253,30 @@ export default function Hero() {
                   </Link>
                 )}
 
-                {/* Center Upright Card (Front) */}
+                {/* Center Upright Card (Front, thick white border, clean layout matching competitor) */}
                 {centerCard && (
                   <Link
                     href={`/product/${centerCard.slug}`}
                     key={`center-${centerCard.id}`}
-                    className="relative w-48 sm:w-52 aspect-[9/16] rounded-[26px] overflow-hidden shadow-[0_20px_50px_rgba(20,10,60,0.25)] border-[3px] border-white z-20 transition-all hover:scale-105 duration-500 block bg-slate-900 group"
+                    className="relative w-[180px] sm:w-[210px] aspect-[9/16] rounded-[28px] overflow-hidden shadow-[0_26px_60px_rgba(25,12,65,0.34)] border-[6px] border-white -translate-y-2 z-20 transition-all hover:scale-[1.03] duration-500 block bg-slate-900 group"
                   >
                     <img
                       src={centerCard.thumbnail}
                       alt={centerCard.title}
                       className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
                     />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-transparent to-black/30 flex flex-col justify-between p-3.5 text-white">
-                      <span className="self-start text-[9px] font-black uppercase px-2 py-0.5 rounded-full bg-white/20 backdrop-blur-md text-white border border-white/20">
-                        HOT PREVIEW
-                      </span>
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/95 via-black/20 to-transparent flex flex-col justify-between p-4 text-white">
+                      <div />
 
-                      <div className="w-10 h-10 rounded-full bg-white/90 shadow-lg flex items-center justify-center mx-auto text-[#6b35f2]">
-                        <Play className="w-4 h-4 fill-[#6b35f2] ml-0.5" />
+                      <div className="w-12 h-12 rounded-full bg-white/95 shadow-lg flex items-center justify-center mx-auto text-[#5e2de0]">
+                        <Play className="w-4 h-4 fill-[#5e2de0] ml-0.5" />
                       </div>
 
-                      <div className="bg-black/40 backdrop-blur-sm p-2 rounded-xl">
-                        <span className="text-[9px] font-black uppercase text-pink-400 block">
-                          HOT PREVIEW
+                      <div>
+                        <span className="text-[9.5px] font-extrabold uppercase tracking-[0.15em] text-white/85 block mb-1">
+                          TRENDING PREVIEW
                         </span>
-                        <p className="text-xs font-extrabold text-white line-clamp-2 leading-tight">
+                        <p className="text-[13px] font-black text-white line-clamp-2 leading-snug">
                           {centerCard.title}
                         </p>
                       </div>
@@ -253,26 +286,12 @@ export default function Hero() {
 
               </div>
 
-              {/* Dynamic Rotation Indicators */}
-              <div className="flex items-center gap-1.5 mt-2">
-                {Array.from({ length: 6 }).map((_, idx) => (
-                  <button
-                    key={idx}
-                    onClick={() => setActiveOffset(idx)}
-                    className={`h-1.5 rounded-full transition-all duration-300 ${
-                      (activeOffset % 6) === idx ? 'w-5 bg-purple-600' : 'w-1.5 bg-slate-300 hover:bg-purple-300'
-                    }`}
-                    aria-label={`Preview card group ${idx + 1}`}
-                  />
-                ))}
-              </div>
-
-              {/* Bottom Quality Badges matching Image 1 */}
-              <div className="flex items-center gap-2.5 mt-2">
-                <span className="px-3.5 py-1 rounded-full text-[11px] font-bold bg-white text-[#4f587d] border border-[#e4dcf7] shadow-sm">
+              {/* Bottom Quality Badges matching Competitor Screenshot */}
+              <div className="relative z-10 flex items-center gap-3 mt-1">
+                <span className="px-4 py-1.5 rounded-full text-[11px] font-extrabold bg-white/95 text-[#141d42] border border-white shadow-[0_6px_18px_rgba(30,15,70,0.08)]">
                   9:16 Vertical
                 </span>
-                <span className="px-3.5 py-1 rounded-full text-[11px] font-bold bg-white text-[#4f587d] border border-[#e4dcf7] shadow-sm">
+                <span className="px-4 py-1.5 rounded-full text-[11px] font-extrabold bg-white/95 text-[#141d42] border border-white shadow-[0_6px_18px_rgba(30,15,70,0.08)]">
                   1080P Available
                 </span>
               </div>

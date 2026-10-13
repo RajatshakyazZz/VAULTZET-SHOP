@@ -118,17 +118,41 @@ export default function Header() {
 
         {/* Mobile menu dropdown */}
         {isMobileMenuOpen && (
-          <div className="md:hidden border-t border-slate-100 bg-white px-4 py-4 space-y-2">
-            {navLinks.map((link) => (
-              <Link
-                key={link.name}
-                href={link.href}
-                onClick={() => setIsMobileMenuOpen(false)}
-                className="block px-3 py-2 rounded-xl text-sm font-bold text-[#182247] hover:bg-purple-50"
+          <div className="md:hidden border-t border-slate-100 bg-white px-4 py-4 space-y-3">
+            <form
+              onSubmit={(e) => {
+                handleSearchSubmit(e);
+                setIsMobileMenuOpen(false);
+              }}
+              className="relative flex items-center sm:hidden"
+            >
+              <input
+                type="text"
+                placeholder="Search viral reels bundles..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="w-full pl-4 pr-10 py-2.5 bg-[#fbf9ff] text-base font-medium text-[#182247] placeholder:text-[#9098b8] border border-[#e8dfff] rounded-full focus:outline-none focus:ring-2 focus:ring-[#7c3aed]/20 focus:border-[#7c3aed]"
+              />
+              <button
+                type="submit"
+                aria-label="Search"
+                className="absolute right-3.5 text-[#7c3aed]"
               >
-                {link.name}
-              </Link>
-            ))}
+                <Search className="w-4 h-4" />
+              </button>
+            </form>
+            <div className="space-y-1">
+              {navLinks.map((link) => (
+                <Link
+                  key={link.name}
+                  href={link.href}
+                  onClick={() => setIsMobileMenuOpen(false)}
+                  className="block px-3.5 py-2.5 rounded-xl text-[15px] font-bold text-[#182247] hover:bg-purple-50 active:bg-purple-100"
+                >
+                  {link.name}
+                </Link>
+              ))}
+            </div>
           </div>
         )}
       </div>
