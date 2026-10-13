@@ -216,6 +216,7 @@ export default function Hero() {
                       alt={leftCard.title}
                       width={175}
                       height={311}
+                      fetchPriority="high"
                       decoding="async"
                       className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
                     />
@@ -248,6 +249,7 @@ export default function Hero() {
                       alt={rightCard.title}
                       width={175}
                       height={311}
+                      fetchPriority="high"
                       decoding="async"
                       className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
                     />
