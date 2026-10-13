@@ -94,10 +94,10 @@ export default function UpcomingBundles() {
               >
                 <div className="relative aspect-[4/3] bg-slate-900 overflow-hidden">
                   <img
-                    src={optimizeImageUrl(bundle.thumbnail, 256, 55)}
+                    src={bundle.thumbnail}
                     alt={bundle.title}
-                    width={256}
-                    height={192}
+                    width={640}
+                    height={480}
                     loading="lazy"
                     decoding="async"
                     className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 opacity-90"

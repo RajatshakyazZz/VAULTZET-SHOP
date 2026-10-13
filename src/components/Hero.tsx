@@ -214,10 +214,10 @@ export default function Hero() {
                     className="absolute left-1 sm:left-0 w-[150px] sm:w-[175px] aspect-[9/16] rounded-[24px] overflow-hidden shadow-[0_20px_45px_rgba(30,15,70,0.22)] border-[5px] border-white transform -rotate-[8deg] -translate-x-4 sm:-translate-x-6 translate-y-2 z-10 transition-all hover:scale-95 duration-500 block bg-slate-900 group"
                   >
                     <img
-                      src={optimizeImageUrl(leftCard.thumbnail, 256, 55)}
+                      src={leftCard.thumbnail}
                       alt={leftCard.title}
-                      width={175}
-                      height={311}
+                      width={600}
+                      height={1067}
                       fetchPriority="high"
                       decoding="async"
                       className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
@@ -248,10 +248,10 @@ export default function Hero() {
                     className="absolute right-1 sm:right-0 w-[150px] sm:w-[175px] aspect-[9/16] rounded-[24px] overflow-hidden shadow-[0_20px_45px_rgba(30,15,70,0.22)] border-[5px] border-white transform rotate-[8deg] translate-x-4 sm:translate-x-6 translate-y-2 z-10 transition-all hover:scale-95 duration-500 block bg-slate-900 group"
                   >
                     <img
-                      src={optimizeImageUrl(rightCard.thumbnail, 256, 55)}
+                      src={rightCard.thumbnail}
                       alt={rightCard.title}
-                      width={175}
-                      height={311}
+                      width={600}
+                      height={1067}
                       fetchPriority="high"
                       decoding="async"
                       className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
@@ -282,10 +282,10 @@ export default function Hero() {
                     className="relative w-[180px] sm:w-[210px] aspect-[9/16] rounded-[28px] overflow-hidden shadow-[0_26px_60px_rgba(25,12,65,0.34)] border-[6px] border-white -translate-y-2 z-20 transition-all hover:scale-[1.03] duration-500 block bg-slate-900 group"
                   >
                     <img
-                      src={optimizeImageUrl(centerCard.thumbnail, 256, 55)}
+                      src={centerCard.thumbnail}
                       alt={centerCard.title}
-                      width={210}
-                      height={373}
+                      width={600}
+                      height={1067}
                       fetchPriority="high"
                       decoding="async"
                       className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"

@@ -156,14 +156,10 @@ export default function ReelsVideoPreview() {
                       />
                     ) : (
                       <img
-                        src={optimizeImageUrl(
-                          item.poster || `https://img.youtube.com/vi/${ytId}/hqdefault.jpg`,
-                          256,
-                          55
-                        )}
+                        src={item.poster || `https://img.youtube.com/vi/${ytId}/maxresdefault.jpg`}
                         alt={item.title}
-                        width={208}
-                        height={370}
+                        width={540}
+                        height={960}
                         loading="lazy"
                         decoding="async"
                         onClick={() => handleTogglePlay(item.id)}
@@ -176,7 +172,7 @@ export default function ReelsVideoPreview() {
                         videoRefs.current[item.id] = el;
                       }}
                       src={item.videoUrl}
-                      poster={optimizeImageUrl(item.poster, 256, 55)}
+                      poster={item.poster}
                       autoPlay
                       loop
                       playsInline
@@ -186,10 +182,10 @@ export default function ReelsVideoPreview() {
                     />
                   ) : (
                     <img
-                      src={optimizeImageUrl(item.poster, 256, 55)}
+                      src={item.poster}
                       alt={item.title}
-                      width={208}
-                      height={370}
+                      width={540}
+                      height={960}
                       loading="lazy"
                       decoding="async"
                       onClick={() => handleTogglePlay(item.id)}

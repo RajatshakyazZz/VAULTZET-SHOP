@@ -312,10 +312,10 @@ function ShopContent() {
                       className="relative aspect-[4/3] overflow-hidden bg-slate-900 block"
                     >
                       <img
-                        src={optimizeImageUrl(bundle.thumbnail, 384, 72)}
+                        src={bundle.thumbnail}
                         alt={bundle.title}
-                        width={384}
-                        height={288}
+                        width={640}
+                        height={480}
                         loading="lazy"
                         decoding="async"
                         className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
