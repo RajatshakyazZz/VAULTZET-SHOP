@@ -28,6 +28,11 @@ export default function Header() {
     { name: 'About Us', href: '/about-us' },
   ];
 
+  // Hide header on full-screen reels page
+  if (pathname?.startsWith('/reels')) {
+    return null;
+  }
+
   return (
     <header className="sticky top-0 z-50 bg-white border-b border-slate-100 shadow-[0_2px_10px_rgba(20,10,50,0.02)]">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">

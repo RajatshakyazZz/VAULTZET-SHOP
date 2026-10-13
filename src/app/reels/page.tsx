@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useCallback } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import {
@@ -15,11 +15,30 @@ import { useCart } from '@/context/CartContext';
 import { ReelItem, BundleProduct } from '@/types';
 import { getStoreReels, initialStoreReels, parseVideoUrl } from '@/lib/reels';
 
+interface FeedReelItem extends ReelItem {
+  feedKey: string;
+  originalId: string;
+}
+
 export default function ReelsFeedPage() {
   const router = useRouter();
   const { addToCart, buyNow, setIsCartOpen } = useCart();
-  const [reels, setReels] = useState<ReelItem[]>(initialStoreReels);
-  const [activeReelId, setActiveReelId] = useState<string>(initialStoreReels[0]?.id || '');
+  
+  // Base reels pool
+  const [baseReels, setBaseReels] = useState<ReelItem[]>(initialStoreReels);
+  
+  // Infinite feed list with unique feed keys
+  const [feedReels, setFeedReels] = useState<FeedReelItem[]>(() =>
+    initialStoreReels.map((r, i) => ({
+      ...r,
+      feedKey: `${r.id}-0-${i}`,
+      originalId: r.id,
+    }))
+  );
+
+  const [activeReelKey, setActiveReelKey] = useState<string>(
+    initialStoreReels[0] ? `${initialStoreReels[0].id}-0-0` : ''
+  );
   const [isMuted, setIsMuted] = useState(true);
   const [likes, setLikes] = useState<{ [key: string]: number }>({});
   const [likedReels, setLikedReels] = useState<{ [key: string]: boolean }>({});
@@ -29,14 +48,22 @@ export default function ReelsFeedPage() {
 
   const videoRefs = useRef<{ [key: string]: HTMLVideoElement | null }>({});
   const containerRefs = useRef<{ [key: string]: HTMLDivElement | null }>({});
+  const feedScrollRef = useRef<HTMLDivElement | null>(null);
+  const loopCountRef = useRef<number>(1);
 
   // 1. Fetch live reels from Firestore / Local storage
   useEffect(() => {
     let isMounted = true;
     getStoreReels().then((data) => {
       if (isMounted && data && data.length > 0) {
-        setReels(data);
-        setActiveReelId(data[0].id);
+        setBaseReels(data);
+        const mapped = data.map((r, i) => ({
+          ...r,
+          feedKey: `${r.id}-0-${i}`,
+          originalId: r.id,
+        }));
+        setFeedReels(mapped);
+        setActiveReelKey(mapped[0]?.feedKey || '');
 
         const initialLikes: { [key: string]: number } = {};
         data.forEach((r) => {
@@ -50,15 +77,42 @@ export default function ReelsFeedPage() {
     };
   }, []);
 
-  // 2. IntersectionObserver to auto-play active video on scroll / swipe
+  // 2. Infinite Loop Reel Appender (kabhi end na ho)
+  const appendMoreReels = useCallback(() => {
+    if (baseReels.length === 0) return;
+    const currentLoop = loopCountRef.current++;
+    setFeedReels((prev) => {
+      // Avoid excessive DOM nodes by keeping maximum 180 items
+      const trimmed = prev.length > 200 ? prev.slice(prev.length - 80) : prev;
+      const nextBatch: FeedReelItem[] = baseReels.map((r, idx) => ({
+        ...r,
+        feedKey: `${r.id}-${currentLoop}-${idx}`,
+        originalId: r.id,
+      }));
+      return [...trimmed, ...nextBatch];
+    });
+  }, [baseReels]);
+
+  // 3. Scroll handler for infinite looping
+  const handleScroll = (e: React.UIEvent<HTMLDivElement>) => {
+    const el = e.currentTarget;
+    const { scrollTop, scrollHeight, clientHeight } = el;
+
+    // Trigger next loop cycle when user reaches within last 3 reels
+    if (scrollTop + clientHeight >= scrollHeight - clientHeight * 2.5) {
+      appendMoreReels();
+    }
+  };
+
+  // 4. IntersectionObserver to detect active video on swipe
   useEffect(() => {
     const observer = new IntersectionObserver(
       (entries) => {
         entries.forEach((entry) => {
           if (entry.isIntersecting && entry.intersectionRatio >= 0.55) {
-            const targetId = entry.target.getAttribute('data-reel-id');
-            if (targetId) {
-              setActiveReelId(targetId);
+            const targetKey = entry.target.getAttribute('data-reel-key');
+            if (targetKey) {
+              setActiveReelKey(targetKey);
             }
           }
         });
@@ -75,54 +129,54 @@ export default function ReelsFeedPage() {
     return () => {
       observer.disconnect();
     };
-  }, [reels]);
+  }, [feedReels]);
 
-  // 3. Play active video and pause others
+  // 5. Auto-play active video and pause non-active videos
   useEffect(() => {
-    Object.entries(videoRefs.current).forEach(([id, video]) => {
+    Object.entries(videoRefs.current).forEach(([key, video]) => {
       if (!video) return;
-      if (id === activeReelId) {
+      if (key === activeReelKey) {
         video.muted = isMuted;
         video
           .play()
           .then(() => {
-            setIsPlayingMap((prev) => ({ ...prev, [id]: true }));
+            setIsPlayingMap((prev) => ({ ...prev, [key]: true }));
           })
           .catch(() => {
-            setIsPlayingMap((prev) => ({ ...prev, [id]: false }));
+            setIsPlayingMap((prev) => ({ ...prev, [key]: false }));
           });
       } else {
         video.pause();
-        setIsPlayingMap((prev) => ({ ...prev, [id]: false }));
+        setIsPlayingMap((prev) => ({ ...prev, [key]: false }));
       }
     });
-  }, [activeReelId, isMuted]);
+  }, [activeReelKey, isMuted]);
 
   // Toggle Play / Pause on direct tap
-  const handleTogglePlay = (id: string) => {
-    const video = videoRefs.current[id];
+  const handleTogglePlay = (key: string) => {
+    const video = videoRefs.current[key];
     if (video) {
       if (video.paused) {
         video.play().catch(() => {});
-        setIsPlayingMap((prev) => ({ ...prev, [id]: true }));
+        setIsPlayingMap((prev) => ({ ...prev, [key]: true }));
       } else {
         video.pause();
-        setIsPlayingMap((prev) => ({ ...prev, [id]: false }));
+        setIsPlayingMap((prev) => ({ ...prev, [key]: false }));
       }
     } else {
-      setIsPlayingMap((prev) => ({ ...prev, [id]: !prev[id] }));
+      setIsPlayingMap((prev) => ({ ...prev, [key]: !prev[key] }));
     }
   };
 
-  // Like button toggle
-  const handleLike = (id: string) => {
+  // Like button toggle (tracked by original bundle/reel ID)
+  const handleLike = (originalId: string) => {
     setLikedReels((prev) => {
-      const alreadyLiked = !!prev[id];
+      const alreadyLiked = !!prev[originalId];
       setLikes((currLikes) => ({
         ...currLikes,
-        [id]: (currLikes[id] || 0) + (alreadyLiked ? -1 : 1),
+        [originalId]: (currLikes[originalId] || 0) + (alreadyLiked ? -1 : 1),
       }));
-      return { ...prev, [id]: !alreadyLiked };
+      return { ...prev, [originalId]: !alreadyLiked };
     });
   };
 
@@ -136,7 +190,7 @@ export default function ReelsFeedPage() {
   };
 
   // Helper to resolve bundle product
-  const getBundleForReel = (reel: ReelItem): BundleProduct => {
+  const getBundleForReel = (reel: FeedReelItem): BundleProduct => {
     const matched = BUNDLE_PRODUCTS.find(
       (b) => b.slug === reel.bundleSlug || b.id === reel.bundleId
     );
@@ -144,7 +198,7 @@ export default function ReelsFeedPage() {
     if (matched) return matched;
 
     return {
-      id: reel.bundleId || `bundle-${reel.id}`,
+      id: reel.bundleId || `bundle-${reel.originalId}`,
       slug: reel.bundleSlug || 'viral-reels-bundle',
       title: reel.bundleTitle || reel.title,
       shortDescription: 'Viral ready-to-post vertical reels bundle with instant Google Drive access.',
@@ -171,24 +225,24 @@ export default function ReelsFeedPage() {
   };
 
   // Add to Cart handler
-  const handleAddToCart = (reel: ReelItem) => {
+  const handleAddToCart = (reel: FeedReelItem) => {
     const bundle = getBundleForReel(reel);
     addToCart(bundle, 'personal');
-    setAddedAnimation((prev) => ({ ...prev, [reel.id]: true }));
+    setAddedAnimation((prev) => ({ ...prev, [reel.feedKey]: true }));
     setTimeout(() => {
-      setAddedAnimation((prev) => ({ ...prev, [reel.id]: false }));
+      setAddedAnimation((prev) => ({ ...prev, [reel.feedKey]: false }));
       setIsCartOpen(true);
     }, 500);
   };
 
   // Buy Now handler
-  const handleBuyNow = (reel: ReelItem) => {
+  const handleBuyNow = (reel: FeedReelItem) => {
     const bundle = getBundleForReel(reel);
     buyNow(bundle, 'personal');
   };
 
   return (
-    <div className="min-h-screen bg-[#09080d] text-white select-none">
+    <div className="fixed inset-0 bg-[#09080d] text-white select-none overflow-hidden z-30">
       <style jsx global>{`
         @keyframes rbreels-shine {
           0% {
@@ -202,9 +256,9 @@ export default function ReelsFeedPage() {
       `}</style>
 
       {/* =========================================================================
-          DESKTOP HEADER (Clean floating top bar on large screens)
+          DESKTOP TOP BAR (Only visible on tablet & desktop screens >= 768px)
           ========================================================================= */}
-      <div className="hidden sm:flex max-w-lg mx-auto pt-6 pb-3 px-4 items-center justify-between z-30">
+      <div className="hidden md:flex max-w-lg mx-auto pt-4 pb-2 px-4 items-center justify-between z-30">
         <Link
           href="/"
           className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white/10 hover:bg-white/20 text-white font-bold text-xs border border-white/15 backdrop-blur-md transition-colors"
@@ -214,7 +268,7 @@ export default function ReelsFeedPage() {
         </Link>
 
         <span className="px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider bg-white/10 border border-white/20 text-white backdrop-blur-md">
-          REELS PREVIEW
+          INFINITE REELS PREVIEW
         </span>
 
         <button
@@ -227,18 +281,22 @@ export default function ReelsFeedPage() {
       </div>
 
       {/* =========================================================================
-          MAIN FULLSCREEN FEED CONTAINER
-          - Mobile: Height fits exactly above floating MobileBottomNav
-          - Desktop: Centered 9:16 vertical card with smooth scroll
+          MAIN FULLSCREEN INFINITE FEED CONTAINER
+          - Mobile: Fixed from top: 0 down to bottom: 74px (Clean space for MobileBottomNav)
+          - Desktop: Centered 9:16 vertical card with smooth scroll & infinite loop
           ========================================================================= */}
-      <div className="h-[calc(100svh-74px)] sm:h-[88vh] overflow-y-scroll snap-y snap-mandatory scrollbar-none sm:max-w-[420px] sm:mx-auto sm:my-auto sm:rounded-[28px] sm:overflow-hidden sm:shadow-2xl sm:border-[4px] sm:border-white/10 relative">
-        {reels.map((reel) => {
-          const isActive = activeReelId === reel.id;
+      <div
+        ref={feedScrollRef}
+        onScroll={handleScroll}
+        className="fixed inset-x-0 top-0 bottom-[74px] md:static md:h-[88vh] md:max-w-[420px] md:mx-auto md:my-auto md:rounded-[28px] md:border-[4px] md:border-white/10 overflow-y-scroll snap-y snap-mandatory scrollbar-none z-20"
+      >
+        {feedReels.map((reel) => {
+          const isActive = activeReelKey === reel.feedKey;
           const parsed = parseVideoUrl(reel.videoUrl);
           const isYouTube =
             reel.videoType === 'youtube' || parsed.videoType === 'youtube' || Boolean(reel.youtubeId);
           const ytId = reel.youtubeId || parsed.youtubeId;
-          const isPlaying = isPlayingMap[reel.id] ?? isActive;
+          const isPlaying = isPlayingMap[reel.feedKey] ?? isActive;
 
           const regularPrice =
             reel.bundleOriginalPrice || (reel.bundlePrice ? reel.bundlePrice * 6 : 399);
@@ -247,18 +305,18 @@ export default function ReelsFeedPage() {
 
           return (
             <div
-              key={reel.id}
+              key={reel.feedKey}
               ref={(el) => {
-                containerRefs.current[reel.id] = el;
+                containerRefs.current[reel.feedKey] = el;
               }}
-              data-reel-id={reel.id}
+              data-reel-key={reel.feedKey}
               className="h-full w-full snap-start snap-always relative overflow-hidden bg-[#09080d] flex flex-col justify-between"
             >
               {/* Progress bar at the top */}
               <div className="absolute top-2 left-2 right-2 z-20 h-[2.5px] rounded-full bg-white/20 overflow-hidden pointer-events-none">
                 <span
                   className="block h-full bg-white transition-[width] duration-150 rounded-full"
-                  style={{ width: `${progressMap[reel.id] || 0}%` }}
+                  style={{ width: `${progressMap[reel.feedKey] || 0}%` }}
                 />
               </div>
 
@@ -266,7 +324,7 @@ export default function ReelsFeedPage() {
                   VIDEO LAYER: Full-Bleed Video or YouTube Embed
                   ================================================================= */}
               <div
-                onClick={() => handleTogglePlay(reel.id)}
+                onClick={() => handleTogglePlay(reel.feedKey)}
                 className="absolute inset-0 w-full h-full cursor-pointer overflow-hidden bg-black"
               >
                 {isYouTube && ytId ? (
@@ -289,7 +347,7 @@ export default function ReelsFeedPage() {
                 ) : (
                   <video
                     ref={(el) => {
-                      videoRefs.current[reel.id] = el;
+                      videoRefs.current[reel.feedKey] = el;
                     }}
                     src={reel.videoUrl}
                     poster={reel.poster}
@@ -301,7 +359,7 @@ export default function ReelsFeedPage() {
                       if (v.duration) {
                         setProgressMap((prev) => ({
                           ...prev,
-                          [reel.id]: (v.currentTime / v.duration) * 100,
+                          [reel.feedKey]: (v.currentTime / v.duration) * 100,
                         }));
                       }
                     }}
@@ -314,7 +372,7 @@ export default function ReelsFeedPage() {
                   className="absolute inset-0 pointer-events-none"
                   style={{
                     background:
-                      'linear-gradient(180deg, rgba(0,0,0,0.12) 0%, rgba(0,0,0,0.15) 50%, rgba(0,0,0,0.88) 100%)',
+                      'linear-gradient(180deg, rgba(0,0,0,0.12) 0%, rgba(0,0,0,0.18) 50%, rgba(0,0,0,0.9) 100%)',
                   }}
                 />
 
@@ -329,7 +387,7 @@ export default function ReelsFeedPage() {
               </div>
 
               {/* =================================================================
-                  RIGHT VERTICAL ACTION ICONS (Exactly 3 Icons matching Competitor)
+                  RIGHT VERTICAL ENGAGEMENT ICONS
                   - Heart (Likes)
                   - Eye (Views)
                   - Sound (Mute/Unmute)
@@ -340,14 +398,14 @@ export default function ReelsFeedPage() {
                   type="button"
                   onClick={(e) => {
                     e.stopPropagation();
-                    handleLike(reel.id);
+                    handleLike(reel.originalId);
                   }}
                   className="flex flex-col items-center gap-1 group active:scale-90 transition-transform"
                   aria-label="Like this reel"
                 >
                   <div
                     className={`w-[42px] h-[42px] rounded-full flex items-center justify-center backdrop-blur-md shadow-[0_8px_22px_rgba(0,0,0,0.2)] transition-all ${
-                      likedReels[reel.id]
+                      likedReels[reel.originalId]
                         ? 'bg-gradient-to-br from-[#ff315f] to-[#ff4e91] text-white border-0 scale-105'
                         : 'bg-[#0c0a12]/45 border border-white/20 text-white'
                     }`}
@@ -355,7 +413,7 @@ export default function ReelsFeedPage() {
                     <svg
                       className="w-[21px] h-[21px]"
                       viewBox="0 0 24 24"
-                      fill={likedReels[reel.id] ? 'currentColor' : 'none'}
+                      fill={likedReels[reel.originalId] ? 'currentColor' : 'none'}
                       stroke="currentColor"
                       strokeWidth="1.9"
                       strokeLinecap="round"
@@ -365,7 +423,7 @@ export default function ReelsFeedPage() {
                     </svg>
                   </div>
                   <span className="text-[10px] font-extrabold text-white leading-none drop-shadow-[0_2px_8px_rgba(0,0,0,0.45)]">
-                    {likes[reel.id] ?? 0}
+                    {likes[reel.originalId] ?? 0}
                   </span>
                 </button>
 
@@ -503,13 +561,13 @@ export default function ReelsFeedPage() {
                   type="button"
                   onClick={() => handleAddToCart(reel)}
                   className={`relative flex items-center justify-center gap-2 min-h-[46px] px-2.5 rounded-[14px] text-white font-extrabold text-[11px] backdrop-blur-md shadow-[0_10px_26px_rgba(0,0,0,0.2)] active:scale-95 transition-all ${
-                    addedAnimation[reel.id]
+                    addedAnimation[reel.feedKey]
                       ? 'bg-emerald-600/85 border border-emerald-400/60'
                       : 'bg-[#14101c]/55 hover:bg-[#14101c]/75 border border-white/25'
                   }`}
                 >
                   <span className="flex items-center justify-center w-[20px] h-[20px]">
-                    {addedAnimation[reel.id] ? (
+                    {addedAnimation[reel.feedKey] ? (
                       <Check className="w-[18px] h-[18px] text-white" />
                     ) : (
                       <svg
@@ -526,7 +584,7 @@ export default function ReelsFeedPage() {
                     )}
                   </span>
                   <small className="text-[10px] font-extrabold whitespace-nowrap">
-                    {addedAnimation[reel.id] ? 'Added!' : 'Add to Cart'}
+                    {addedAnimation[reel.feedKey] ? 'Added!' : 'Add to Cart'}
                   </small>
                 </button>
 

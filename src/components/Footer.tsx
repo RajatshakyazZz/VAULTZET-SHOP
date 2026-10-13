@@ -2,6 +2,7 @@
 
 import React from 'react';
 import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 import {
   Zap,
   Sparkles,
@@ -15,8 +16,14 @@ import { useStoreSettings } from '@/context/StoreSettingsContext';
 import { useCart } from '@/context/CartContext';
 
 export default function Footer() {
+  const pathname = usePathname();
   const { settings } = useStoreSettings();
   const { setIsCartOpen } = useCart();
+
+  // Hide footer on reels page
+  if (pathname?.startsWith('/reels')) {
+    return null;
+  }
   const highlights = [
     {
       title: 'Instant Access',
