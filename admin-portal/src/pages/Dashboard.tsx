@@ -169,13 +169,13 @@ export default function Dashboard() {
       )}
 
       {/* Top Banner / Heading */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3.5">
         <div>
-          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-purple-500/10 border border-purple-500/20 text-purple-400 text-xs font-black uppercase tracking-wider mb-1.5">
+          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-purple-500/10 border border-purple-500/20 text-purple-400 text-[11px] sm:text-xs font-black uppercase tracking-wider mb-1.5">
             <Flame className="w-3.5 h-3.5 text-purple-400" />
             Live Commerce Analytics
           </div>
-          <h1 className="text-2xl sm:text-3xl font-black text-white tracking-tight">
+          <h1 className="text-xl sm:text-3xl font-black text-white tracking-tight">
             Store Performance Overview
           </h1>
           <p className="text-xs sm:text-sm text-slate-400 font-medium mt-0.5">
@@ -183,14 +183,14 @@ export default function Dashboard() {
           </p>
         </div>
 
-        <div className="flex items-center gap-2.5 self-start sm:self-auto">
+        <div className="flex flex-wrap items-center gap-2 self-start sm:self-auto w-full sm:w-auto">
           {orders.length > 0 && (
             <button
               onClick={handleClearAll}
               disabled={clearAllMutation.isPending}
-              className="px-3.5 py-2.5 rounded-xl bg-rose-500/15 hover:bg-rose-500/25 border border-rose-500/30 text-rose-300 text-xs font-bold transition-all flex items-center gap-1.5"
+              className="flex-1 sm:flex-initial justify-center px-3.5 py-2.5 rounded-xl bg-rose-500/15 hover:bg-rose-500/25 border border-rose-500/30 text-rose-300 text-xs font-bold transition-all flex items-center gap-1.5"
             >
-              <Trash2 className="w-3.5 h-3.5" />
+              <Trash2 className="w-3.5 h-3.5 shrink-0" />
               <span>Clear All Test Orders</span>
             </button>
           )}
@@ -199,16 +199,16 @@ export default function Dashboard() {
               refetchSummary();
               refetchOrders();
             }}
-            className="px-4 py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 border border-slate-800 text-slate-200 text-xs font-bold transition-all flex items-center gap-2"
+            className="flex-1 sm:flex-initial justify-center px-4 py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 border border-slate-800 text-slate-200 text-xs font-bold transition-all flex items-center gap-2"
           >
-            <RefreshCw className="w-3.5 h-3.5" />
+            <RefreshCw className="w-3.5 h-3.5 shrink-0" />
             <span>Refresh Data</span>
           </button>
         </div>
       </div>
 
-      {/* 4 KPI Cards (Synced live with active orders) */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-5">
+      {/* 4 KPI Cards (2-col on mobile so all 4 are visible at a glance, 4-col on desktop) */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-5">
         <StatCard
           title="Net Revenue Today"
           value={formatCurrency(liveNetRevenue)}
@@ -219,7 +219,7 @@ export default function Dashboard() {
         <StatCard
           title="Total Orders"
           value={liveTotalOrders}
-          subtitle="Real checkout purchases"
+          subtitle="Completed sales"
           icon={ShoppingCart}
           color="purple"
         />
@@ -233,18 +233,18 @@ export default function Dashboard() {
         <StatCard
           title="Pending Fulfillment"
           value={livePendingOrders}
-          subtitle="Awaiting delivery"
+          subtitle="Awaiting payment"
           icon={Clock}
           color="amber"
         />
       </div>
 
       {/* Revenue Trend Chart & Connector Widget */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 sm:gap-6">
         
         {/* Recharts Area Chart */}
-        <div className="lg:col-span-8 p-5 sm:p-6 rounded-2xl bg-slate-900/80 border border-slate-800 space-y-4">
-          <div className="flex items-center justify-between">
+        <div className="lg:col-span-8 p-4 sm:p-6 rounded-2xl bg-slate-900/80 border border-slate-800 space-y-4">
+          <div className="flex flex-wrap items-center justify-between gap-2">
             <div>
               <h3 className="text-sm font-bold text-white">7-Day Revenue & Volume Curve</h3>
               <p className="text-xs text-slate-400 font-medium">Daily completed transaction total in INR</p>
@@ -254,7 +254,7 @@ export default function Dashboard() {
             </span>
           </div>
 
-          <div className="h-72 w-full pt-4">
+          <div className="h-56 sm:h-72 w-full pt-2 sm:pt-4">
             <ResponsiveContainer width="100%" height="100%">
               <AreaChart data={liveRevenueTrend}>
                 <defs>
@@ -362,24 +362,24 @@ export default function Dashboard() {
       </div>
 
       {/* Recent Orders Table Snapshot */}
-      <div className="p-5 sm:p-6 rounded-2xl bg-slate-900/80 border border-slate-800 space-y-4">
-        <div className="flex items-center justify-between">
+      <div className="p-4 sm:p-6 rounded-2xl bg-slate-900/80 border border-slate-800 space-y-4">
+        <div className="flex flex-wrap items-center justify-between gap-2">
           <div>
             <h3 className="text-sm font-bold text-white">Recent Store Orders</h3>
             <p className="text-xs text-slate-400 font-medium">Real-time incoming orders from checkout</p>
           </div>
           <Link
             to="/orders"
-            className="px-3.5 py-1.5 rounded-xl bg-purple-600/20 hover:bg-purple-600/30 border border-purple-500/30 text-purple-300 text-xs font-bold transition-all"
+            className="px-3.5 py-1.5 rounded-xl bg-purple-600/20 hover:bg-purple-600/30 border border-purple-500/30 text-purple-300 text-xs font-bold transition-all shrink-0"
           >
             All Orders ({orders.length}) →
           </Link>
         </div>
 
-        <div className="overflow-x-auto">
-          <table className="w-full text-left border-collapse text-xs">
+        <div className="overflow-x-auto -mx-1 px-1">
+          <table className="w-full text-left border-collapse text-xs min-w-[640px]">
             <thead>
-              <tr className="border-b border-slate-800 text-slate-400 uppercase text-[10px] font-black">
+              <tr className="border-b border-slate-800 text-slate-400 uppercase text-[10px] font-black whitespace-nowrap">
                 <th className="py-2.5 px-3">Order</th>
                 <th className="py-2.5 px-3">Customer</th>
                 <th className="py-2.5 px-3">Items</th>
@@ -406,23 +406,23 @@ export default function Dashboard() {
               ) : (
                 orders.slice(0, 5).map((order) => (
                   <tr key={order.id} className="hover:bg-slate-800/30 transition-colors">
-                    <td className="py-3 px-3 font-mono font-bold text-purple-300">
+                    <td className="py-3 px-3 font-mono font-bold text-purple-300 whitespace-nowrap">
                       {order.order_number}
                     </td>
-                    <td className="py-3 px-3">
+                    <td className="py-3 px-3 whitespace-nowrap">
                       <div className="font-bold text-white">{order.customer.first_name} {order.customer.last_name || ''}</div>
                       <div className="text-[11px] text-slate-400">{order.customer.email}</div>
                     </td>
                     <td className="py-3 px-3 max-w-[200px] truncate">
                       {order.items.map((it) => it.name).join(', ')}
                     </td>
-                    <td className="py-3 px-3 font-bold text-white">
+                    <td className="py-3 px-3 font-bold text-white whitespace-nowrap">
                       {formatCurrency(order.total)}
                     </td>
-                    <td className="py-3 px-3 text-slate-400 font-medium">
+                    <td className="py-3 px-3 text-slate-400 font-medium whitespace-nowrap">
                       {order.payment_method}
                     </td>
-                    <td className="py-3 px-3">
+                    <td className="py-3 px-3 whitespace-nowrap">
                       <span
                         className={`px-2 py-0.5 rounded-md text-[10px] font-black uppercase tracking-wider ${
                           order.status === 'completed'
@@ -435,7 +435,7 @@ export default function Dashboard() {
                         {order.status}
                       </span>
                     </td>
-                    <td className="py-3 px-3">
+                    <td className="py-3 px-3 whitespace-nowrap">
                       {order.google_drive_sent ? (
                         <span className="inline-flex items-center gap-1 text-[11px] font-bold text-emerald-400">
                           <CheckCircle2 className="w-3.5 h-3.5" />
@@ -448,10 +448,10 @@ export default function Dashboard() {
                         </span>
                       )}
                     </td>
-                    <td className="py-3 px-3 text-right">
+                    <td className="py-3 px-3 text-right whitespace-nowrap">
                       <button
                         onClick={() => handleDelete(order)}
-                        className="p-1.5 rounded-lg bg-rose-500/10 hover:bg-rose-500/25 text-rose-400 border border-rose-500/20 hover:border-rose-500/40 transition-colors"
+                        className="p-2 rounded-lg bg-rose-500/10 hover:bg-rose-500/25 text-rose-400 border border-rose-500/20 hover:border-rose-500/40 transition-colors"
                         title="Delete this test order"
                       >
                         <Trash2 className="w-3.5 h-3.5" />

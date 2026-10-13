@@ -30,20 +30,22 @@ export default function StatCard({
   };
 
   return (
-    <div className="p-5 rounded-2xl bg-slate-900/80 border border-slate-800/80 shadow-sm flex flex-col justify-between space-y-4 hover:border-slate-700 transition-all">
-      <div className="flex items-center justify-between">
-        <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">{title}</span>
-        <div className={`p-2.5 rounded-xl border ${colorMap[color]}`}>
-          <Icon className="w-5 h-5" />
+    <div className="p-3.5 sm:p-5 rounded-2xl bg-slate-900/80 border border-slate-800/80 shadow-sm flex flex-col justify-between space-y-2.5 sm:space-y-4 hover:border-slate-700 transition-all">
+      <div className="flex items-center justify-between gap-2">
+        <span className="text-[10px] sm:text-xs font-bold text-slate-400 uppercase tracking-wider leading-tight">
+          {title}
+        </span>
+        <div className={`p-2 sm:p-2.5 rounded-xl border shrink-0 ${colorMap[color]}`}>
+          <Icon className="w-4 h-4 sm:w-5 sm:h-5" />
         </div>
       </div>
 
       <div className="space-y-1">
-        <div className="text-2xl sm:text-3xl font-black text-white tracking-tight">{value}</div>
-        <div className="flex items-center gap-2 pt-0.5">
+        <div className="text-xl sm:text-3xl font-black text-white tracking-tight truncate">{value}</div>
+        <div className="flex items-center gap-1.5 sm:gap-2 pt-0.5">
           {trend && (
             <span
-              className={`inline-flex items-center gap-0.5 text-xs font-bold ${
+              className={`inline-flex items-center gap-0.5 text-[11px] sm:text-xs font-bold ${
                 trend.isPositive ? 'text-emerald-400' : 'text-rose-400'
               }`}
             >
@@ -55,7 +57,7 @@ export default function StatCard({
               {trend.value}
             </span>
           )}
-          {subtitle && <span className="text-xs text-slate-400 font-medium">{subtitle}</span>}
+          {subtitle && <span className="text-[11px] sm:text-xs text-slate-400 font-medium truncate">{subtitle}</span>}
         </div>
       </div>
     </div>

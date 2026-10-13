@@ -217,9 +217,9 @@ export default function Orders() {
     <div className="space-y-6">
       
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3.5">
         <div>
-          <h1 className="text-2xl sm:text-3xl font-black text-white tracking-tight">
+          <h1 className="text-xl sm:text-3xl font-black text-white tracking-tight">
             Orders & Digital Delivery
           </h1>
           <p className="text-xs sm:text-sm text-slate-400 font-medium mt-0.5">
@@ -227,24 +227,24 @@ export default function Orders() {
           </p>
         </div>
 
-        <div className="flex items-center gap-2.5 self-start sm:self-auto">
+        <div className="flex flex-wrap items-center gap-2 self-start sm:self-auto w-full sm:w-auto">
           {orders.length > 0 && (
             <button
               onClick={handleClearAllOrders}
               disabled={deleteAllMutation.isPending}
-              className="px-4 py-2.5 rounded-xl bg-rose-500/15 hover:bg-rose-500/25 border border-rose-500/30 disabled:opacity-50 text-rose-300 text-xs font-bold transition-all flex items-center gap-2"
+              className="flex-1 sm:flex-initial justify-center px-3.5 py-2.5 rounded-xl bg-rose-500/15 hover:bg-rose-500/25 border border-rose-500/30 disabled:opacity-50 text-rose-300 text-xs font-bold transition-all flex items-center gap-2"
             >
-              <Trash2 className="w-3.5 h-3.5" />
+              <Trash2 className="w-3.5 h-3.5 shrink-0" />
               <span>{deleteAllMutation.isPending ? 'Clearing...' : 'Clear All Orders'}</span>
             </button>
           )}
           <button
             onClick={handleTriggerSync}
             disabled={isSyncing}
-            className="px-4 py-2.5 rounded-xl bg-purple-600 hover:bg-purple-500 disabled:opacity-50 text-white text-xs font-bold transition-all shadow-md shadow-purple-600/20 flex items-center gap-2"
+            className="flex-1 sm:flex-initial justify-center px-4 py-2.5 rounded-xl bg-purple-600 hover:bg-purple-500 disabled:opacity-50 text-white text-xs font-bold transition-all shadow-md shadow-purple-600/20 flex items-center gap-2"
           >
-            <RefreshCw className={`w-3.5 h-3.5 ${isSyncing ? 'animate-spin' : ''}`} />
-            <span>Sync Orders (/sync/orders)</span>
+            <RefreshCw className={`w-3.5 h-3.5 shrink-0 ${isSyncing ? 'animate-spin' : ''}`} />
+            <span>Sync Orders</span>
           </button>
         </div>
       </div>
@@ -261,8 +261,8 @@ export default function Orders() {
 
       {/* Slide-out Order Detail Drawer */}
       {selectedOrder && (
-        <div className="fixed inset-0 z-50 flex justify-end bg-slate-950/70 backdrop-blur-sm animate-in fade-in">
-          <div className="w-full max-w-lg bg-slate-900 border-l border-slate-800 h-full p-6 sm:p-8 flex flex-col justify-between overflow-y-auto space-y-6 shadow-2xl">
+        <div className="fixed inset-0 z-50 flex justify-end bg-slate-950/75 backdrop-blur-sm animate-in fade-in">
+          <div className="w-full max-w-lg bg-slate-900 border-l border-slate-800 h-full p-4 sm:p-8 pb-24 sm:pb-8 flex flex-col justify-between overflow-y-auto space-y-6 shadow-2xl">
             
             <div className="space-y-6">
               {/* Drawer Top */}

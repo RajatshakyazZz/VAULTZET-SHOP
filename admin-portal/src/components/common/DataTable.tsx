@@ -88,14 +88,14 @@ export default function DataTable<T extends Record<string, any>>({
         ) : paginatedData.length === 0 ? (
           <EmptyState title={emptyTitle} description={emptyDescription} />
         ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full text-left border-collapse">
+          <div className="overflow-x-auto -mx-0.5 sm:mx-0">
+            <table className="w-full text-left border-collapse min-w-[600px] sm:min-w-0">
               <thead>
                 <tr className="border-b border-slate-800 bg-slate-950/40">
                   {columns.map((col, idx) => (
                     <th
                       key={idx}
-                      className={`px-4 py-3 text-[11px] font-black uppercase tracking-wider text-slate-400 ${
+                      className={`px-3.5 sm:px-4 py-3 text-[11px] font-black uppercase tracking-wider text-slate-400 whitespace-nowrap ${
                         col.className || ''
                       }`}
                     >
@@ -114,7 +114,7 @@ export default function DataTable<T extends Record<string, any>>({
                     }`}
                   >
                     {columns.map((col, cIdx) => (
-                      <td key={cIdx} className={`px-4 py-3.5 ${col.className || ''}`}>
+                      <td key={cIdx} className={`px-3.5 sm:px-4 py-3.5 ${col.className || ''}`}>
                         {col.cell
                           ? col.cell(row)
                           : col.accessorKey
@@ -131,7 +131,7 @@ export default function DataTable<T extends Record<string, any>>({
 
         {/* Pagination Footer */}
         {filteredData.length > pageSize && (
-          <div className="px-4 py-3 border-t border-slate-800/80 bg-slate-950/40 flex items-center justify-between text-xs text-slate-400 font-medium">
+          <div className="px-4 py-3 border-t border-slate-800/80 bg-slate-950/40 flex flex-col sm:flex-row items-center justify-between gap-2.5 text-xs text-slate-400 font-medium">
             <span>
               Showing {(currentPage - 1) * pageSize + 1} to{' '}
               {Math.min(currentPage * pageSize, filteredData.length)} of {filteredData.length}{' '}
@@ -142,7 +142,7 @@ export default function DataTable<T extends Record<string, any>>({
               <button
                 onClick={() => setCurrentPage((p) => Math.max(p - 1, 1))}
                 disabled={currentPage === 1}
-                className="p-1.5 rounded-lg border border-slate-800 bg-slate-900 text-slate-300 disabled:opacity-40 disabled:cursor-not-allowed hover:bg-slate-800 transition-colors"
+                className="p-2 sm:p-1.5 rounded-lg border border-slate-800 bg-slate-900 text-slate-300 disabled:opacity-40 disabled:cursor-not-allowed hover:bg-slate-800 transition-colors"
               >
                 <ChevronLeft className="w-4 h-4" />
               </button>
@@ -154,7 +154,7 @@ export default function DataTable<T extends Record<string, any>>({
               <button
                 onClick={() => setCurrentPage((p) => Math.min(p + 1, totalPages))}
                 disabled={currentPage === totalPages}
-                className="p-1.5 rounded-lg border border-slate-800 bg-slate-900 text-slate-300 disabled:opacity-40 disabled:cursor-not-allowed hover:bg-slate-800 transition-colors"
+                className="p-2 sm:p-1.5 rounded-lg border border-slate-800 bg-slate-900 text-slate-300 disabled:opacity-40 disabled:cursor-not-allowed hover:bg-slate-800 transition-colors"
               >
                 <ChevronRight className="w-4 h-4" />
               </button>
