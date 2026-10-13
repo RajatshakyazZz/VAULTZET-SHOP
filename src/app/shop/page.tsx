@@ -19,6 +19,7 @@ import { useCart } from '@/context/CartContext';
 import { optimizeImageUrl } from '@/lib/imageOptimized';
 import { fetchCustomProducts } from '@/lib/customProducts';
 import { BundleProduct } from '@/types';
+import { calculateCategoryCounts, productMatchesCategory } from '@/lib/categories';
 
 function ShopContent() {
   const searchParams = useSearchParams();
@@ -51,19 +52,12 @@ function ShopContent() {
   }, [customProducts]);
 
   const categoryCounts = useMemo(() => {
-    const counts: Record<string, number> = {
-      all: allBundles.length,
-    };
-    for (const b of allBundles) {
-      counts[b.categorySlug] = (counts[b.categorySlug] || 0) + 1;
-    }
-    return counts;
+    return calculateCategoryCounts(allBundles);
   }, [allBundles]);
 
   const filteredBundles = useMemo(() => {
     return allBundles.filter((b) => {
-      const matchesCategory =
-        selectedCategory === 'all' || b.categorySlug === selectedCategory;
+      const matchesCategory = productMatchesCategory(b, selectedCategory);
       const q = searchTerm.toLowerCase().trim();
       const matchesSearch =
         !q ||
@@ -80,7 +74,7 @@ function ShopContent() {
       if (sortBy === 'reels') return b.reelCount - a.reelCount;
       return (b.isHot ? 1 : 0) - (a.isHot ? 1 : 0);
     });
-  }, [selectedCategory, searchTerm, minPrice, maxPrice, sortBy]);
+  }, [allBundles, selectedCategory, searchTerm, minPrice, maxPrice, sortBy]);
 
   const clearFilters = () => {
     setSelectedCategory('all');
