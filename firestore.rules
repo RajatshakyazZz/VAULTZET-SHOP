@@ -49,6 +49,7 @@ rules_version = '2';
 //    - is_trending: bool (optional)
 //    - downloadable: bool (optional)
 //    - is_deleted: bool (optional)
+//    - deleted_at: string (optional, <= 100 chars)
 //    - status: string (optional, in ['publish', 'draft', 'pending', 'private', 'trash'])
 //    - stock_status: string (optional, in ['instock', 'outofstock', 'onbackorder'])
 //    - categories: list (optional, <= 50 items)
@@ -60,7 +61,8 @@ rules_version = '2';
 //    - Protection: Storefront & Admin read; schema validated on write; deletion permitted.
 //
 // 3. store_settings:
-//    - IDs: 'general', 'branding', 'site_mode', 'meta_pixel', 'whatsapp'
+//    - IDs: 'general', 'branding', 'site_mode', 'meta_pixel', 'whatsapp', 'cashfree', 'rankmath_seo', 'dnp_meta', 'mmc_analytics', 'litespeed_cache'
+//    - Safely validates settings configurations including string bounds, boolean flags (enabled, track_pageviews, cache_enabled, auto_complete_digital_orders, etc.), nested maps (modules, endpoints), lists (bypass_ips), and numeric metrics (event_health_score, active_visitors_now).
 //    - String fields bounded to prevent resource exhaustion / DoS.
 //    - Protection: Deletion strictly denied.
 //
@@ -89,10 +91,15 @@ rules_version = '2';
 //    - bundleSlug: string (optional, <= 150 chars)
 //    - bundleTitle: string (optional, <= 250 chars)
 //    - bundlePrice: number (optional, 0..1,000,000)
+//    - bundleOriginalPrice: number (optional, 0..1,000,000)
+//    - reelCount: number (optional, 0..1,000,000)
+//    - views: number (optional, 0..10,000,000)
 //    - order: number (optional, -1000..10,000)
 //    - likes: number (optional, 0..10,000,000)
 //    - createdAt: string (optional, <= 100 chars)
 //    - isActive: bool (optional)
+//    - is_deleted: bool (optional)
+//    - deleted_at: string (optional, <= 100 chars)
 //    - Protection: Storefront & Admin read; schema validated on write; deletion permitted.
 //
 // 7. categories:
@@ -106,6 +113,11 @@ rules_version = '2';
 //    - iconColor: string (optional, <= 50 chars)
 //    - description: string (optional, <= 500 chars)
 //    - createdAt: string (optional, <= 100 chars)
+//    - created_at: string (optional, <= 100 chars)
+//    - is_deleted: bool (optional)
+//    - deleted_at: string (optional, <= 100 chars)
+//    - keywords: list (optional, <= 50 items)
+//    - aliases: list (optional, <= 50 items)
 //    - Protection: Storefront & Admin read; schema validated on write; deletion permitted.
 //
 // ===============================================================
@@ -150,6 +162,12 @@ service cloud.firestore {
       return !(field in data) ||
         data[field] == null ||
         data[field] is bool;
+    }
+
+    function isValidOptionalMap(data, field) {
+      return !(field in data) ||
+        data[field] == null ||
+        data[field] is map;
     }
 
     // ===============================================================
@@ -218,6 +236,7 @@ service cloud.firestore {
         isValidOptionalBool(data, 'is_trending') &&
         isValidOptionalBool(data, 'downloadable') &&
         isValidOptionalBool(data, 'is_deleted') &&
+        isValidOptionalString(data, 'deleted_at', 100) &&
         (!('status' in data) || data.status == null || data.status in ['publish', 'draft', 'pending', 'private', 'trash']) &&
         (!('stock_status' in data) || data.stock_status == null || data.stock_status in ['instock', 'outofstock', 'onbackorder']) &&
         isValidOptionalList(data, 'categories', 50) &&
@@ -230,11 +249,13 @@ service cloud.firestore {
 
     function isValidStoreSetting(data) {
       return data is map &&
+        // String fields bounded to prevent resource exhaustion / DoS
         isValidOptionalString(data, 'store_name', 120) &&
         isValidOptionalString(data, 'contact_email', 120) &&
         isValidOptionalString(data, 'support_whatsapp', 50) &&
         isValidOptionalString(data, 'currency', 20) &&
         isValidOptionalString(data, 'currency_symbol', 10) &&
+        isValidOptionalString(data, 'price_format', 30) &&
         isValidOptionalString(data, 'tagline', 200) &&
         isValidOptionalString(data, 'logo_url', 1000) &&
         isValidOptionalString(data, 'favicon_url', 1000) &&
@@ -243,16 +264,59 @@ service cloud.firestore {
         isValidOptionalString(data, 'accent_color', 30) &&
         isValidOptionalString(data, 'font_family', 50) &&
         isValidOptionalString(data, 'mode', 20) &&
-        isValidOptionalString(data, 'maintenance_message', 1000) &&
+        isValidOptionalString(data, 'maintenance_message', 50000) &&
+        isValidOptionalString(data, 'last_updated', 100) &&
         isValidOptionalString(data, 'pixel_id', 100) &&
+        isValidOptionalString(data, 'meta_pixel_id', 100) &&
+        isValidOptionalString(data, 'capi_token', 1000) &&
+        isValidOptionalString(data, 'test_event_code', 100) &&
+        isValidOptionalString(data, 'last_event_status', 100) &&
+        isValidOptionalString(data, 'last_event_time', 100) &&
+        isValidOptionalString(data, 'last_cart_event', 100) &&
+        isValidOptionalString(data, 'last_purchase_event', 100) &&
         isValidOptionalString(data, 'phone_number', 50) &&
+        isValidOptionalString(data, 'default_message', 500) &&
+        isValidOptionalString(data, 'position', 50) &&
+        isValidOptionalString(data, 'popup_text', 200) &&
+        isValidOptionalString(data, 'button_color', 30) &&
         isValidOptionalString(data, 'app_id', 200) &&
         isValidOptionalString(data, 'secret_key', 500) &&
         isValidOptionalString(data, 'environment', 30) &&
         isValidOptionalString(data, 'api_version', 50) &&
         isValidOptionalString(data, 'return_url', 500) &&
         isValidOptionalString(data, 'webhook_secret', 500) &&
-        isValidOptionalString(data, 'last_test_status', 100);
+        isValidOptionalString(data, 'last_test_status', 100) &&
+        isValidOptionalString(data, 'tracking_id', 100) &&
+        isValidOptionalString(data, 'bounce_rate', 50) &&
+        isValidOptionalString(data, 'avg_session_duration', 50) &&
+        isValidOptionalString(data, 'global_title_separator', 20) &&
+        isValidOptionalString(data, 'homepage_meta_title', 300) &&
+        isValidOptionalString(data, 'homepage_meta_description', 1000) &&
+        isValidOptionalString(data, 'cdn_status', 30) &&
+        isValidOptionalString(data, 'last_purge_time', 100) &&
+        // Boolean flags
+        isValidOptionalBool(data, 'enabled') &&
+        isValidOptionalBool(data, 'track_pageviews') &&
+        isValidOptionalBool(data, 'track_view_content') &&
+        isValidOptionalBool(data, 'track_add_to_cart') &&
+        isValidOptionalBool(data, 'track_initiate_checkout') &&
+        isValidOptionalBool(data, 'track_purchase') &&
+        isValidOptionalBool(data, 'cache_enabled') &&
+        isValidOptionalBool(data, 'css_minify') &&
+        isValidOptionalBool(data, 'js_minify') &&
+        isValidOptionalBool(data, 'image_optimization') &&
+        isValidOptionalBool(data, 'auto_complete_digital_orders') &&
+        isValidOptionalBool(data, 'enable_guest_checkout') &&
+        isValidOptionalBool(data, 'order_success_drive_redirect') &&
+        isValidOptionalBool(data, 'show_popup_badge') &&
+        // Numeric metrics & scores
+        isValidOptionalNumber(data, 'event_health_score', 0, 100) &&
+        isValidOptionalNumber(data, 'active_visitors_now', 0, 10000000) &&
+        // Lists
+        isValidOptionalList(data, 'bypass_ips', 100) &&
+        // Nested Maps
+        isValidOptionalMap(data, 'modules') &&
+        isValidOptionalMap(data, 'endpoints');
     }
 
     function isValidCoupon(data) {
@@ -295,10 +359,15 @@ service cloud.firestore {
         isValidOptionalString(data, 'bundleSlug', 150) &&
         isValidOptionalString(data, 'bundleTitle', 250) &&
         isValidOptionalNumber(data, 'bundlePrice', 0, 1000000) &&
+        isValidOptionalNumber(data, 'bundleOriginalPrice', 0, 1000000) &&
+        isValidOptionalNumber(data, 'reelCount', 0, 1000000) &&
+        isValidOptionalNumber(data, 'views', 0, 10000000) &&
         isValidOptionalNumber(data, 'order', -1000, 10000) &&
         isValidOptionalNumber(data, 'likes', 0, 10000000) &&
         isValidOptionalString(data, 'createdAt', 100) &&
-        (!('isActive' in data) || data.isActive == null || data.isActive is bool);
+        (!('isActive' in data) || data.isActive == null || data.isActive is bool) &&
+        isValidOptionalBool(data, 'is_deleted') &&
+        isValidOptionalString(data, 'deleted_at', 100);
     }
 
     function isValidCategory(data) {
@@ -313,7 +382,11 @@ service cloud.firestore {
         isValidOptionalString(data, 'iconColor', 50) &&
         isValidOptionalString(data, 'description', 500) &&
         isValidOptionalString(data, 'createdAt', 100) &&
-        isValidOptionalString(data, 'created_at', 100);
+        isValidOptionalString(data, 'created_at', 100) &&
+        isValidOptionalBool(data, 'is_deleted') &&
+        isValidOptionalString(data, 'deleted_at', 100) &&
+        isValidOptionalList(data, 'keywords', 50) &&
+        isValidOptionalList(data, 'aliases', 50);
     }
 
     // ===============================================================

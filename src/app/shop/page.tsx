@@ -36,8 +36,8 @@ function ShopContent() {
   const [categories, setCategories] = useState<CategoryItem[]>(() => getLocalCategoriesSync());
   const [selectedCategory, setSelectedCategory] = useState(initialCategory);
   const [searchTerm, setSearchTerm] = useState(initialSearch);
-  const [minPrice, setMinPrice] = useState(49);
-  const [maxPrice, setMaxPrice] = useState(199);
+  const [minPrice, setMinPrice] = useState(0);
+  const [maxPrice, setMaxPrice] = useState(999);
   const [sortBy, setSortBy] = useState<'popular' | 'price-low' | 'price-high' | 'reels'>('popular');
   const { addToCart, buyNow } = useCart();
 
@@ -91,8 +91,8 @@ function ShopContent() {
   const clearFilters = () => {
     setSelectedCategory('all');
     setSearchTerm('');
-    setMinPrice(49);
-    setMaxPrice(199);
+    setMinPrice(0);
+    setMaxPrice(999);
   };
 
   return (
@@ -252,8 +252,8 @@ function ShopContent() {
                   <div className="relative pt-1 pb-1">
                     <input
                       type="range"
-                      min="49"
-                      max="199"
+                      min="0"
+                      max="999"
                       value={maxPrice}
                       onChange={(e) => setMaxPrice(Number(e.target.value))}
                       className="w-full accent-[#6f33e8] cursor-pointer"
@@ -262,7 +262,7 @@ function ShopContent() {
 
                   <div className="flex items-center gap-2 text-xs font-semibold text-gray-600">
                     <div className="flex-1 p-2 bg-gray-50/80 border border-gray-200 rounded-xl text-center font-bold text-gray-700">
-                      ₹ 49
+                      ₹ {minPrice}
                     </div>
                     <span className="text-gray-400">—</span>
                     <div className="flex-1 p-2 bg-gray-50/80 border border-gray-200 rounded-xl text-center font-bold text-gray-700">

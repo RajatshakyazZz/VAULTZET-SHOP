@@ -5,6 +5,7 @@ export interface BundleProduct {
   slug: string;
   title: string;
   shortDescription: string;
+  description?: string;
   category: string;
   categorySlug: string;
   reelCount: number;

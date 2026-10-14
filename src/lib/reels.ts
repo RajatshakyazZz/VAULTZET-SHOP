@@ -1233,43 +1233,67 @@ export function parseVideoUrl(rawUrl?: string): {
 
 export async function getStoreReels(): Promise<ReelItem[]> {
   try {
+    const deletedSet = new Set<string>();
+    if (typeof window !== 'undefined') {
+      try {
+        const raw = localStorage.getItem('vaultzet_deleted_reels');
+        if (raw) {
+          const parsed = JSON.parse(raw);
+          if (Array.isArray(parsed)) {
+            parsed.forEach((k) => deletedSet.add(String(k).toLowerCase()));
+          }
+        }
+      } catch {}
+    }
+
     const { getFirebaseDb } = await import('@/lib/firebase');
     const { collection, getDocs, query, orderBy } = await import('firebase/firestore');
     const db = getFirebaseDb();
-    if (!db) return initialStoreReels;
+    if (!db) {
+      return initialStoreReels.filter((r) => !deletedSet.has(String(r.id).toLowerCase()));
+    }
 
     const q = query(collection(db, 'reels'), orderBy('order', 'asc'));
     const snap = await getDocs(q);
 
-    if (snap.empty) {
-      return initialStoreReels;
-    }
-
     const fetched: ReelItem[] = [];
+    const dbIdSet = new Set<string>();
+
     snap.forEach((docSnap) => {
       const data = docSnap.data();
-      fetched.push({
-        id: docSnap.id,
-        title: data.title || '',
-        videoUrl: (data.videoUrl || '').replace(/^http:\/\//i, 'https://'),
-        videoType: data.videoType || 'direct',
-        youtubeId: data.youtubeId,
-        poster: data.poster ? String(data.poster).replace(/^http:\/\//i, 'https://') : undefined,
-        category: data.category || 'Reels',
-        bundleId: data.bundleId,
-        bundleSlug: data.bundleSlug,
-        bundleTitle: data.bundleTitle,
-        bundlePrice: data.bundlePrice,
-        bundleOriginalPrice: data.bundleOriginalPrice,
-        reelCount: data.reelCount,
-        likes: data.likes ?? 0,
-        views: data.views ?? 0,
-        isActive: data.isActive !== false,
-        order: data.order ?? 0,
-      });
+      const id = String(docSnap.id).toLowerCase();
+      const isDel = Boolean(data.is_deleted || data.title === '[DELETED]');
+      if (isDel) {
+        deletedSet.add(id);
+      } else if (!deletedSet.has(id)) {
+        fetched.push({
+          id: docSnap.id,
+          title: data.title || '',
+          videoUrl: (data.videoUrl || '').replace(/^http:\/\//i, 'https://'),
+          videoType: data.videoType || 'direct',
+          youtubeId: data.youtubeId,
+          poster: data.poster ? String(data.poster).replace(/^http:\/\//i, 'https://') : undefined,
+          category: data.category || 'Reels',
+          bundleId: data.bundleId,
+          bundleSlug: data.bundleSlug,
+          bundleTitle: data.bundleTitle,
+          bundlePrice: data.bundlePrice,
+          bundleOriginalPrice: data.bundleOriginalPrice,
+          reelCount: data.reelCount,
+          likes: data.likes ?? 0,
+          views: data.views ?? 0,
+          isActive: data.isActive !== false,
+          order: data.order ?? 0,
+        });
+        dbIdSet.add(id);
+      }
     });
 
-    return fetched.filter((r) => r.isActive && r.videoUrl);
+    const missingInitial = initialStoreReels.filter(
+      (r) => !dbIdSet.has(String(r.id).toLowerCase()) && !deletedSet.has(String(r.id).toLowerCase())
+    );
+
+    return [...fetched, ...missingInitial].filter((r) => r.isActive && r.videoUrl && !deletedSet.has(String(r.id).toLowerCase()));
   } catch (err) {
     console.warn('Failed to load reels from Firestore, using initial:', err);
     return initialStoreReels;

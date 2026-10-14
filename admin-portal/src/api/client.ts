@@ -63,7 +63,30 @@ import {
   orderBy,
 } from 'firebase/firestore';
 
-
+/**
+ * Recursively strips undefined keys and normalizes payloads so Firestore setDoc/updateDoc
+ * never throws "Unsupported field value: undefined".
+ */
+export function sanitizePayload<T>(input: T): T {
+  if (input === null || input === undefined) {
+    return input;
+  }
+  if (Array.isArray(input)) {
+    return input
+      .filter((item) => item !== undefined)
+      .map((item) => (typeof item === 'object' && item !== null ? sanitizePayload(item) : item)) as unknown as T;
+  }
+  if (typeof input === 'object' && !(input instanceof Date)) {
+    const clean: any = {};
+    for (const [key, val] of Object.entries(input)) {
+      if (val !== undefined) {
+        clean[key] = typeof val === 'object' && val !== null ? sanitizePayload(val) : val;
+      }
+    }
+    return clean as T;
+  }
+  return input;
+}
 
 class PortalApiClient {
   private apiKey: string | null = null;
@@ -322,24 +345,36 @@ class PortalApiClient {
       files: productData.files || [],
     };
 
+    const cleanPayload = sanitizePayload(newProduct);
+
     if (db) {
       try {
-        await setDoc(doc(db, 'products', prodId), newProduct);
+        await setDoc(doc(db, 'products', prodId), cleanPayload);
+        if (slug && slug !== prodId) {
+          try {
+            await setDoc(doc(db, 'products', slug), cleanPayload);
+          } catch {}
+        }
       } catch (e) {
         console.warn('Firestore product creation error:', e);
       }
     }
 
     // Add to in-memory list
-    initialProducts.unshift(newProduct);
+    initialProducts.unshift(cleanPayload);
 
     // Save in localStorage cache so it survives reloads immediately
     if (typeof window !== 'undefined') {
       try {
         const stored = JSON.parse(localStorage.getItem('vaultzet_custom_products') || '[]');
         const filtered = stored.filter((p: any) => String(p.id) !== prodId && p.slug !== slug);
-        filtered.unshift(newProduct);
+        filtered.unshift(cleanPayload);
         localStorage.setItem('vaultzet_custom_products', JSON.stringify(filtered));
+
+        // Ensure it is removed from deleted slugs
+        const deletedSlugs = JSON.parse(localStorage.getItem('vaultzet_deleted_slugs') || '[]');
+        const updatedDel = deletedSlugs.filter((s: string) => s !== prodId && s !== slug);
+        localStorage.setItem('vaultzet_deleted_slugs', JSON.stringify(updatedDel));
       } catch (e) {
         // ignore
       }
@@ -431,6 +466,13 @@ class PortalApiClient {
             );
           } catch {}
         }
+
+        // If it's a newly created custom doc, also delete it
+        if (idStr.startsWith('prod-')) {
+          try {
+            await deleteDoc(docRef);
+          } catch {}
+        }
       } catch (e) {
         console.warn('Firestore product delete error:', e);
       }
@@ -473,10 +515,26 @@ class PortalApiClient {
 
   async updateProduct(product: Partial<Product> & { id: string | number }): Promise<Product> {
     const prodId = String(product.id);
+    const existing: Partial<Product> = initialProducts.find((p) => String(p.id) === prodId) || {};
+    const merged: Product = {
+      ...existing,
+      ...product,
+      id: prodId,
+      name: (product.name || existing.name || 'Reels Bundle').trim(),
+      price: Number(product.price ?? existing.price ?? 99),
+    } as Product;
+
+    const cleanPayload = sanitizePayload(merged);
+
     if (db) {
       try {
         const docRef = doc(db, 'products', prodId);
-        await setDoc(docRef, product, { merge: true });
+        await setDoc(docRef, cleanPayload, { merge: true });
+        if (merged.slug && merged.slug !== prodId) {
+          try {
+            await setDoc(doc(db, 'products', merged.slug), cleanPayload, { merge: true });
+          } catch {}
+        }
       } catch (e) {
         console.warn('Firestore product update error:', e);
       }
@@ -484,17 +542,19 @@ class PortalApiClient {
 
     const idx = initialProducts.findIndex((p) => String(p.id) === prodId);
     if (idx !== -1) {
-      initialProducts[idx] = { ...initialProducts[idx], ...product };
+      initialProducts[idx] = { ...initialProducts[idx], ...cleanPayload };
+    } else {
+      initialProducts.unshift(cleanPayload);
     }
 
     if (typeof window !== 'undefined') {
       try {
         const stored = JSON.parse(localStorage.getItem('vaultzet_custom_products') || '[]');
-        const existingIdx = stored.findIndex((p: any) => String(p.id) === prodId);
+        const existingIdx = stored.findIndex((p: any) => String(p.id) === prodId || (p.slug && p.slug === merged.slug));
         if (existingIdx !== -1) {
-          stored[existingIdx] = { ...stored[existingIdx], ...product };
+          stored[existingIdx] = { ...stored[existingIdx], ...cleanPayload };
         } else {
-          stored.unshift({ ...(idx !== -1 ? initialProducts[idx] : {}), ...product });
+          stored.unshift(cleanPayload);
         }
         localStorage.setItem('vaultzet_custom_products', JSON.stringify(stored));
       } catch (e) {
@@ -506,10 +566,10 @@ class PortalApiClient {
       adminEmail: 'admin@vaultzet.com',
       action: 'UPDATE_PRODUCT',
       module: 'Products',
-      details: `Updated bundle #${prodId}: ${product.name || 'bundle'} (₹${product.price})`,
+      details: `Updated bundle #${prodId}: ${cleanPayload.name} (₹${cleanPayload.price})`,
     });
 
-    return product as Product;
+    return cleanPayload;
   }
 
   async getDownloadableProducts(): Promise<Product[]> {
@@ -904,35 +964,77 @@ class PortalApiClient {
   }
 
   async getCategories(): Promise<CategoryItem[]> {
+    let localCustomCats: CategoryItem[] = [];
+    let localDeletedCats = new Set<string>();
+
+    if (typeof window !== 'undefined') {
+      try {
+        localCustomCats = JSON.parse(localStorage.getItem('vaultzet_custom_categories') || '[]');
+      } catch {}
+      try {
+        const raw = localStorage.getItem('vaultzet_deleted_categories');
+        if (raw) {
+          const parsed = JSON.parse(raw);
+          if (Array.isArray(parsed)) {
+            parsed.forEach((k) => localDeletedCats.add(String(k).toLowerCase()));
+          }
+        }
+      } catch {}
+    }
+
     if (db) {
       try {
         const snap = await getDocs(collection(db, 'categories'));
         if (!snap.empty) {
-          const dbCats = snap.docs.map((d) => ({ id: d.id, ...d.data() } as CategoryItem));
-          const dbSlugSet = new Set(dbCats.map((c) => c.slug?.toLowerCase()));
-          const missing = initialCategories.filter((c) => !dbSlugSet.has(c.slug.toLowerCase()));
-          return [...dbCats, ...missing];
-        } else {
-          return initialCategories;
+          const dbCats: CategoryItem[] = [];
+          const dbSlugSet = new Set<string>();
+
+          snap.docs.forEach((d) => {
+            const data = d.data();
+            const id = d.id.toLowerCase();
+            const slug = String(data.slug || id).toLowerCase();
+            const isDel = Boolean(data.is_deleted || data.name === '[DELETED]');
+            if (isDel) {
+              localDeletedCats.add(id);
+              localDeletedCats.add(slug);
+            } else {
+              dbCats.push({ id: d.id, ...data } as CategoryItem);
+              dbSlugSet.add(slug);
+            }
+          });
+
+          if (typeof window !== 'undefined') {
+            try {
+              localStorage.setItem('vaultzet_deleted_categories', JSON.stringify(Array.from(localDeletedCats)));
+            } catch {}
+          }
+
+          const combined = [...localCustomCats, ...dbCats].filter(
+            (c) =>
+              !c.is_deleted &&
+              c.name !== '[DELETED]' &&
+              !localDeletedCats.has(c.slug.toLowerCase()) &&
+              (!c.id || !localDeletedCats.has(c.id.toLowerCase()))
+          );
+          const combinedSlugs = new Set(combined.map((c) => c.slug.toLowerCase()));
+
+          const missingInitial = initialCategories.filter(
+            (c) => !combinedSlugs.has(c.slug.toLowerCase()) && !localDeletedCats.has(c.slug.toLowerCase())
+          );
+          return [...combined, ...missingInitial];
         }
       } catch (e) {
         console.warn('Firestore categories fetch error:', e);
       }
     }
 
-    if (typeof window !== 'undefined') {
-      try {
-        const stored = JSON.parse(localStorage.getItem('vaultzet_custom_categories') || '[]');
-        if (stored.length) {
-          const slugs = new Set(initialCategories.map((c) => c.slug));
-          return [...stored, ...initialCategories.filter((c) => !slugs.has(c.slug))];
-        }
-      } catch (e) {
-        // ignore
-      }
-    }
-
-    return initialCategories;
+    const catSlugs = new Set(initialCategories.map((c) => c.slug.toLowerCase()));
+    const uncommittedLocal = localCustomCats.filter(
+      (c) => !catSlugs.has(c.slug.toLowerCase()) && !localDeletedCats.has(c.slug.toLowerCase())
+    );
+    return [...uncommittedLocal, ...initialCategories].filter(
+      (c) => !localDeletedCats.has(c.slug.toLowerCase())
+    );
   }
 
   async createCategory(catData: Partial<CategoryItem>): Promise<CategoryItem> {
@@ -958,21 +1060,33 @@ class PortalApiClient {
       created_at: new Date().toISOString(),
     };
 
+    const cleanPayload = sanitizePayload(newCat);
+
     if (db) {
       try {
-        await setDoc(doc(db, 'categories', catId), newCat);
+        await setDoc(doc(db, 'categories', catId), cleanPayload);
+        if (slug && slug !== catId) {
+          try {
+            await setDoc(doc(db, 'categories', slug), cleanPayload);
+          } catch {}
+        }
       } catch (e) {
         console.warn('Firestore category creation error:', e);
       }
     }
 
-    initialCategories.unshift(newCat);
+    initialCategories.unshift(cleanPayload);
 
     if (typeof window !== 'undefined') {
       try {
         const stored = JSON.parse(localStorage.getItem('vaultzet_custom_categories') || '[]');
-        stored.unshift(newCat);
-        localStorage.setItem('vaultzet_custom_categories', JSON.stringify(stored));
+        const filtered = stored.filter((c: any) => c.slug !== slug && c.id !== catId);
+        filtered.unshift(cleanPayload);
+        localStorage.setItem('vaultzet_custom_categories', JSON.stringify(filtered));
+
+        const delCats = JSON.parse(localStorage.getItem('vaultzet_deleted_categories') || '[]');
+        const updatedDel = delCats.filter((k: string) => k !== slug && k !== catId);
+        localStorage.setItem('vaultzet_deleted_categories', JSON.stringify(updatedDel));
       } catch (e) {
         // ignore
       }
@@ -982,17 +1096,19 @@ class PortalApiClient {
       adminEmail: 'admin@vaultzet.com',
       action: 'CREATE_CATEGORY',
       module: 'Products',
-      details: `Created new category: ${newCat.name} (${newCat.slug})`,
+      details: `Created new category: ${cleanPayload.name} (${cleanPayload.slug})`,
     });
 
-    return newCat;
+    return cleanPayload;
   }
 
   async updateCategory(catData: Partial<CategoryItem> & { id?: string; slug?: string }): Promise<CategoryItem> {
     const key = catData.id || catData.slug || '';
+    const cleanPayload = sanitizePayload(catData);
+
     if (db && key) {
       try {
-        await setDoc(doc(db, 'categories', key), catData, { merge: true });
+        await setDoc(doc(db, 'categories', key), cleanPayload, { merge: true });
       } catch (e) {
         console.warn('Firestore category update error:', e);
       }
@@ -1000,7 +1116,20 @@ class PortalApiClient {
 
     const idx = initialCategories.findIndex((c) => c.id === key || c.slug === key);
     if (idx !== -1) {
-      initialCategories[idx] = { ...initialCategories[idx], ...catData };
+      initialCategories[idx] = { ...initialCategories[idx], ...cleanPayload };
+    }
+
+    if (typeof window !== 'undefined') {
+      try {
+        const stored = JSON.parse(localStorage.getItem('vaultzet_custom_categories') || '[]');
+        const exIdx = stored.findIndex((c: any) => c.slug === key || c.id === key);
+        if (exIdx !== -1) {
+          stored[exIdx] = { ...stored[exIdx], ...cleanPayload };
+        } else {
+          stored.unshift(cleanPayload);
+        }
+        localStorage.setItem('vaultzet_custom_categories', JSON.stringify(stored));
+      } catch {}
     }
 
     await logAdminAction({
@@ -1010,20 +1139,25 @@ class PortalApiClient {
       details: `Updated category: ${catData.name || key}`,
     });
 
-    return catData as CategoryItem;
+    return cleanPayload as CategoryItem;
   }
 
   async deleteCategory(categoryIdOrSlug: string): Promise<boolean> {
-    const key = categoryIdOrSlug;
+    const key = categoryIdOrSlug.toLowerCase();
     if (db) {
       try {
+        await setDoc(
+          doc(db, 'categories', key),
+          { id: key, slug: key, name: '[DELETED]', is_deleted: true, deleted_at: new Date().toISOString() },
+          { merge: true }
+        );
         await deleteDoc(doc(db, 'categories', key));
       } catch (e) {
         console.warn('Firestore category delete error:', e);
       }
     }
 
-    const idx = initialCategories.findIndex((c) => c.id === key || c.slug === key);
+    const idx = initialCategories.findIndex((c) => c.id?.toLowerCase() === key || c.slug.toLowerCase() === key);
     if (idx !== -1) {
       initialCategories.splice(idx, 1);
     }
@@ -1031,8 +1165,13 @@ class PortalApiClient {
     if (typeof window !== 'undefined') {
       try {
         const stored = JSON.parse(localStorage.getItem('vaultzet_custom_categories') || '[]');
-        const filtered = stored.filter((c: any) => c.id !== key && c.slug !== key);
+        const filtered = stored.filter((c: any) => c.id?.toLowerCase() !== key && c.slug?.toLowerCase() !== key);
         localStorage.setItem('vaultzet_custom_categories', JSON.stringify(filtered));
+
+        const delCats = JSON.parse(localStorage.getItem('vaultzet_deleted_categories') || '[]');
+        const set = new Set(delCats.map((k: string) => k.toLowerCase()));
+        set.add(key);
+        localStorage.setItem('vaultzet_deleted_categories', JSON.stringify(Array.from(set)));
       } catch (e) {
         // ignore
       }
@@ -1074,35 +1213,77 @@ class PortalApiClient {
   }
 
   async getReels(): Promise<ReelItem[]> {
+    let localCustomReels: ReelItem[] = [];
+    let localDeletedReels = new Set<string>();
+
+    if (typeof window !== 'undefined') {
+      try {
+        localCustomReels = JSON.parse(localStorage.getItem('vaultzet_custom_reels') || '[]');
+      } catch {}
+      try {
+        const raw = localStorage.getItem('vaultzet_deleted_reels');
+        if (raw) {
+          const parsed = JSON.parse(raw);
+          if (Array.isArray(parsed)) {
+            parsed.forEach((k) => localDeletedReels.add(String(k).toLowerCase()));
+          }
+        }
+      } catch {}
+    }
+
     if (db) {
       try {
         const snap = await getDocs(collection(db, 'reels'));
         if (!snap.empty) {
-          const dbReels = snap.docs.map((d) => ({ id: d.id, ...d.data() } as ReelItem));
-          const dbIdSet = new Set(dbReels.map((r) => String(r.id)));
-          const missing = initialReels.filter((r) => !dbIdSet.has(String(r.id)));
-          return [...dbReels, ...missing];
-        } else {
-          return initialReels;
+          const dbReels: ReelItem[] = [];
+          const dbIdSet = new Set<string>();
+
+          snap.docs.forEach((d) => {
+            const data = d.data();
+            const id = d.id.toLowerCase();
+            const isDel = Boolean(data.is_deleted || data.title === '[DELETED]');
+            if (isDel) {
+              localDeletedReels.add(id);
+            } else {
+              dbReels.push({ id: d.id, ...data } as ReelItem);
+              dbIdSet.add(d.id);
+            }
+          });
+
+          if (typeof window !== 'undefined') {
+            try {
+              localStorage.setItem('vaultzet_deleted_reels', JSON.stringify(Array.from(localDeletedReels)));
+            } catch {}
+          }
+
+          const combined = [...localCustomReels, ...dbReels].filter(
+            (r) =>
+              !r.is_deleted &&
+              r.title !== '[DELETED]' &&
+              !localDeletedReels.has(String(r.id).toLowerCase())
+          );
+          const combinedIds = new Set(combined.map((r) => String(r.id)));
+
+          const missing = initialReels.filter(
+            (r) =>
+              !combinedIds.has(String(r.id)) &&
+              !dbIdSet.has(String(r.id)) &&
+              !localDeletedReels.has(String(r.id).toLowerCase())
+          );
+          return [...combined, ...missing];
         }
       } catch (e) {
         console.warn('Firestore reels fetch error:', e);
       }
     }
 
-    if (typeof window !== 'undefined') {
-      try {
-        const stored = JSON.parse(localStorage.getItem('vaultzet_custom_reels') || '[]');
-        if (stored.length) {
-          const ids = new Set(initialReels.map((r) => r.id));
-          return [...stored, ...initialReels.filter((r) => !ids.has(r.id))];
-        }
-      } catch (e) {
-        // ignore
-      }
-    }
-
-    return initialReels;
+    const reelIdSet = new Set(initialReels.map((r) => String(r.id)));
+    const uncommittedLocal = localCustomReels.filter(
+      (r) => !reelIdSet.has(String(r.id)) && !localDeletedReels.has(String(r.id).toLowerCase())
+    );
+    return [...uncommittedLocal, ...initialReels].filter(
+      (r) => !localDeletedReels.has(String(r.id).toLowerCase())
+    );
   }
 
   async createReel(reelData: Partial<ReelItem>): Promise<ReelItem> {
@@ -1129,27 +1310,37 @@ class PortalApiClient {
       bundleSlug: reelData.bundleSlug,
       bundleTitle: reelData.bundleTitle,
       bundlePrice: reelData.bundlePrice,
+      bundleOriginalPrice: reelData.bundleOriginalPrice,
+      reelCount: reelData.reelCount,
       order: reelData.order ?? 0,
       likes: reelData.likes ?? Math.floor(Math.random() * 2000 + 500),
+      views: reelData.views ?? Math.floor(Math.random() * 10000 + 1200),
       isActive: reelData.isActive ?? true,
       createdAt: new Date().toISOString(),
     };
 
+    const cleanPayload = sanitizePayload(newReel);
+
     if (db) {
       try {
-        await setDoc(doc(db, 'reels', id), newReel);
+        await setDoc(doc(db, 'reels', id), cleanPayload);
       } catch (e) {
         console.warn('Firestore reel creation error:', e);
       }
     }
 
-    initialReels.unshift(newReel);
+    initialReels.unshift(cleanPayload);
 
     if (typeof window !== 'undefined') {
       try {
         const stored = JSON.parse(localStorage.getItem('vaultzet_custom_reels') || '[]');
-        stored.unshift(newReel);
-        localStorage.setItem('vaultzet_custom_reels', JSON.stringify(stored));
+        const filtered = stored.filter((r: any) => String(r.id) !== id);
+        filtered.unshift(cleanPayload);
+        localStorage.setItem('vaultzet_custom_reels', JSON.stringify(filtered));
+
+        const delReels = JSON.parse(localStorage.getItem('vaultzet_deleted_reels') || '[]');
+        const updatedDel = delReels.filter((k: string) => k !== id);
+        localStorage.setItem('vaultzet_deleted_reels', JSON.stringify(updatedDel));
       } catch (e) {
         // ignore
       }
@@ -1159,16 +1350,18 @@ class PortalApiClient {
       adminEmail: 'admin@vaultzet.com',
       action: 'CREATE_REEL',
       module: 'Content & Reels',
-      details: `Created new reel #${id}: ${newReel.title} (${newReel.videoType})`,
+      details: `Created new reel #${id}: ${cleanPayload.title} (${cleanPayload.videoType})`,
     });
 
-    return newReel;
+    return cleanPayload;
   }
 
   async updateReel(id: string, updates: Partial<ReelItem>): Promise<ReelItem> {
+    const cleanPayload = sanitizePayload(updates);
+
     if (db) {
       try {
-        await setDoc(doc(db, 'reels', id), updates, { merge: true });
+        await setDoc(doc(db, 'reels', id), cleanPayload, { merge: true });
       } catch (e) {
         console.warn('Firestore reel update error:', e);
       }
@@ -1176,13 +1369,13 @@ class PortalApiClient {
 
     const idx = initialReels.findIndex((r) => r.id === id);
     if (idx !== -1) {
-      initialReels[idx] = { ...initialReels[idx], ...updates };
+      initialReels[idx] = { ...initialReels[idx], ...cleanPayload };
     }
 
     if (typeof window !== 'undefined') {
       try {
         const stored = JSON.parse(localStorage.getItem('vaultzet_custom_reels') || '[]');
-        const updated = stored.map((r: ReelItem) => (r.id === id ? { ...r, ...updates } : r));
+        const updated = stored.map((r: ReelItem) => (r.id === id ? { ...r, ...cleanPayload } : r));
         localStorage.setItem('vaultzet_custom_reels', JSON.stringify(updated));
       } catch (e) {
         // ignore
@@ -1196,19 +1389,25 @@ class PortalApiClient {
       details: `Updated reel #${id}`,
     });
 
-    return { id, ...updates } as ReelItem;
+    return { id, ...cleanPayload } as ReelItem;
   }
 
   async deleteReel(id: string): Promise<boolean> {
+    const idKey = String(id).toLowerCase();
     if (db) {
       try {
+        await setDoc(
+          doc(db, 'reels', id),
+          { id, is_deleted: true, title: '[DELETED]', deleted_at: new Date().toISOString() },
+          { merge: true }
+        );
         await deleteDoc(doc(db, 'reels', id));
       } catch (e) {
         console.warn('Firestore reel delete error:', e);
       }
     }
 
-    const idx = initialReels.findIndex((r) => r.id === id);
+    const idx = initialReels.findIndex((r) => String(r.id).toLowerCase() === idKey);
     if (idx !== -1) {
       initialReels.splice(idx, 1);
     }
@@ -1216,8 +1415,13 @@ class PortalApiClient {
     if (typeof window !== 'undefined') {
       try {
         const stored = JSON.parse(localStorage.getItem('vaultzet_custom_reels') || '[]');
-        const filtered = stored.filter((r: ReelItem) => r.id !== id);
+        const filtered = stored.filter((r: ReelItem) => String(r.id).toLowerCase() !== idKey);
         localStorage.setItem('vaultzet_custom_reels', JSON.stringify(filtered));
+
+        const delReels = JSON.parse(localStorage.getItem('vaultzet_deleted_reels') || '[]');
+        const set = new Set(delReels.map((k: string) => String(k).toLowerCase()));
+        set.add(idKey);
+        localStorage.setItem('vaultzet_deleted_reels', JSON.stringify(Array.from(set)));
       } catch (e) {
         // ignore
       }
@@ -1284,12 +1488,13 @@ class PortalApiClient {
   }
 
   async updateBranding(branding: StoreBranding): Promise<StoreBranding> {
-    this.saveSettingLocally('branding', branding);
+    const clean = sanitizePayload(branding);
+    this.saveSettingLocally('branding', clean);
     if (db) {
       try {
-        await setDoc(doc(db, 'store_settings', 'branding'), branding, { merge: true });
-        if (branding.store_name) {
-          await setDoc(doc(db, 'store_settings', 'general'), { store_name: branding.store_name }, { merge: true });
+        await setDoc(doc(db, 'store_settings', 'branding'), clean, { merge: true });
+        if (clean.store_name) {
+          await setDoc(doc(db, 'store_settings', 'general'), { store_name: clean.store_name }, { merge: true });
         }
       } catch (e) {
         console.warn('Firestore updateBranding error:', e);
@@ -1299,9 +1504,9 @@ class PortalApiClient {
       adminEmail: 'admin@vaultzet.com',
       action: 'UPDATE_BRANDING',
       module: 'Branding',
-      details: `Updated store branding & name to "${branding.store_name}"`,
+      details: `Updated store branding & name to "${clean.store_name}"`,
     });
-    return branding;
+    return clean;
   }
 
   // ==========================================
@@ -1324,10 +1529,11 @@ class PortalApiClient {
   }
 
   async updateSiteMode(config: SiteModeConfig): Promise<SiteModeConfig> {
-    this.saveSettingLocally('site_mode', config);
+    const clean = sanitizePayload(config);
+    this.saveSettingLocally('site_mode', clean);
     if (db) {
       try {
-        await setDoc(doc(db, 'store_settings', 'site_mode'), config, { merge: true });
+        await setDoc(doc(db, 'store_settings', 'site_mode'), clean, { merge: true });
       } catch (e) {
         console.warn('Firestore updateSiteMode error:', e);
       }
@@ -1336,9 +1542,9 @@ class PortalApiClient {
       adminEmail: 'admin@vaultzet.com',
       action: 'UPDATE_SITE_MODE',
       module: 'Site Mode',
-      details: `Switched mode to ${config.mode}`,
+      details: `Switched mode to ${clean.mode}`,
     });
-    return config;
+    return clean;
   }
 
   async setSiteMode(config: SiteModeConfig): Promise<SiteModeConfig> {
@@ -1365,12 +1571,13 @@ class PortalApiClient {
   }
 
   async updateStoreSetup(config: StoreSetupConfig): Promise<StoreSetupConfig> {
-    this.saveSettingLocally('general', config);
+    const clean = sanitizePayload(config);
+    this.saveSettingLocally('general', clean);
     if (db) {
       try {
-        await setDoc(doc(db, 'store_settings', 'general'), config, { merge: true });
-        if (config.store_name) {
-          await setDoc(doc(db, 'store_settings', 'branding'), { store_name: config.store_name }, { merge: true });
+        await setDoc(doc(db, 'store_settings', 'general'), clean, { merge: true });
+        if (clean.store_name) {
+          await setDoc(doc(db, 'store_settings', 'branding'), { store_name: clean.store_name }, { merge: true });
         }
       } catch (e) {
         console.warn('Firestore updateStoreSetup error:', e);
@@ -1380,9 +1587,9 @@ class PortalApiClient {
       adminEmail: 'admin@vaultzet.com',
       action: 'UPDATE_STORE_SETUP',
       module: 'Store Setup',
-      details: `Updated store name to "${config.store_name}" and checkout parameters`,
+      details: `Updated store name to "${clean.store_name}" and checkout parameters`,
     });
-    return config;
+    return clean;
   }
 
   // ==========================================
@@ -1405,10 +1612,11 @@ class PortalApiClient {
   }
 
   async updateMetaPixel(config: MetaPixelConfig): Promise<MetaPixelConfig> {
-    this.saveSettingLocally('meta_pixel', config);
+    const clean = sanitizePayload(config);
+    this.saveSettingLocally('meta_pixel', clean);
     if (db) {
       try {
-        await setDoc(doc(db, 'store_settings', 'meta_pixel'), config, { merge: true });
+        await setDoc(doc(db, 'store_settings', 'meta_pixel'), clean, { merge: true });
       } catch (e) {
         console.warn('Firestore updateMetaPixel error:', e);
       }
@@ -1417,9 +1625,9 @@ class PortalApiClient {
       adminEmail: 'admin@vaultzet.com',
       action: 'UPDATE_META_PIXEL',
       module: 'Meta Pixel',
-      details: `Updated Pixel ID: ${config.pixel_id}`,
+      details: `Updated Pixel ID: ${clean.pixel_id}`,
     });
-    return config;
+    return clean;
   }
 
   // ==========================================
@@ -1442,10 +1650,11 @@ class PortalApiClient {
   }
 
   async updateWhatsappButton(config: WhatsappButtonConfig): Promise<WhatsappButtonConfig> {
-    this.saveSettingLocally('whatsapp', config);
+    const clean = sanitizePayload(config);
+    this.saveSettingLocally('whatsapp', clean);
     if (db) {
       try {
-        await setDoc(doc(db, 'store_settings', 'whatsapp'), config, { merge: true });
+        await setDoc(doc(db, 'store_settings', 'whatsapp'), clean, { merge: true });
       } catch (e) {
         console.warn('Firestore updateWhatsapp error:', e);
       }
@@ -1454,9 +1663,9 @@ class PortalApiClient {
       adminEmail: 'admin@vaultzet.com',
       action: 'UPDATE_WHATSAPP',
       module: 'WhatsApp Button',
-      details: `Updated support phone to ${config.phone_number}`,
+      details: `Updated support phone to ${clean.phone_number}`,
     });
-    return config;
+    return clean;
   }
 
   // ==========================================
@@ -1467,7 +1676,7 @@ class PortalApiClient {
   }
 
   async updateWebhookSettings(config: WebhookConfig): Promise<WebhookConfig> {
-    return config;
+    return sanitizePayload(config);
   }
 
   async getWebhookLogs(): Promise<WebhookLogEntry[]> {
@@ -1536,10 +1745,11 @@ class PortalApiClient {
   }
 
   async updateCashfreeConfig(config: PgBridgeConfig): Promise<PgBridgeConfig> {
-    this.saveSettingLocally('cashfree', config);
+    const clean = sanitizePayload(config);
+    this.saveSettingLocally('cashfree', clean);
     if (db) {
       try {
-        await setDoc(doc(db, 'store_settings', 'cashfree'), config, { merge: true });
+        await setDoc(doc(db, 'store_settings', 'cashfree'), clean, { merge: true });
       } catch (e) {
         console.warn('Firestore cashfree config update error:', e);
       }
@@ -1548,9 +1758,9 @@ class PortalApiClient {
       adminEmail: 'admin@vaultzet.com',
       action: 'UPDATE_CASHFREE_CONFIG',
       module: 'Payments',
-      details: `Updated Cashfree Gateway credentials (Env: ${config.environment || 'PRODUCTION'})`,
+      details: `Updated Cashfree Gateway credentials (Env: ${clean.environment || 'PRODUCTION'})`,
     });
-    return config;
+    return clean;
   }
 
   async getPgBridgeConfig(): Promise<PgBridgeConfig> {
@@ -1576,13 +1786,14 @@ class PortalApiClient {
   }
 
   async updateDnpMetaConfig(config: DnpMetaConfig): Promise<DnpMetaConfig> {
-    this.saveSettingLocally('dnp_meta', config);
+    const clean = sanitizePayload(config);
+    this.saveSettingLocally('dnp_meta', clean);
     if (db) {
       try {
-        await setDoc(doc(db, 'store_settings', 'dnp_meta'), config, { merge: true });
+        await setDoc(doc(db, 'store_settings', 'dnp_meta'), clean, { merge: true });
       } catch {}
     }
-    return config;
+    return clean;
   }
 
   async getMmcConfig(): Promise<MmcAnalyticsConfig> {
@@ -1600,13 +1811,14 @@ class PortalApiClient {
   }
 
   async updateMmcConfig(config: MmcAnalyticsConfig): Promise<MmcAnalyticsConfig> {
-    this.saveSettingLocally('mmc_analytics', config);
+    const clean = sanitizePayload(config);
+    this.saveSettingLocally('mmc_analytics', clean);
     if (db) {
       try {
-        await setDoc(doc(db, 'store_settings', 'mmc_analytics'), config, { merge: true });
+        await setDoc(doc(db, 'store_settings', 'mmc_analytics'), clean, { merge: true });
       } catch {}
     }
-    return config;
+    return clean;
   }
 
   async getRankMathConfig(): Promise<RankMathConfig> {
@@ -1624,13 +1836,14 @@ class PortalApiClient {
   }
 
   async updateRankMathConfig(config: RankMathConfig): Promise<RankMathConfig> {
-    this.saveSettingLocally('rankmath_seo', config);
+    const clean = sanitizePayload(config);
+    this.saveSettingLocally('rankmath_seo', clean);
     if (db) {
       try {
-        await setDoc(doc(db, 'store_settings', 'rankmath_seo'), config, { merge: true });
+        await setDoc(doc(db, 'store_settings', 'rankmath_seo'), clean, { merge: true });
       } catch {}
     }
-    return config;
+    return clean;
   }
 
   async getLiteSpeedConfig(): Promise<LiteSpeedConfig> {
@@ -1648,13 +1861,14 @@ class PortalApiClient {
   }
 
   async updateLiteSpeedConfig(config: LiteSpeedConfig): Promise<LiteSpeedConfig> {
-    this.saveSettingLocally('litespeed_cache', config);
+    const clean = sanitizePayload(config);
+    this.saveSettingLocally('litespeed_cache', clean);
     if (db) {
       try {
-        await setDoc(doc(db, 'store_settings', 'litespeed_cache'), config, { merge: true });
+        await setDoc(doc(db, 'store_settings', 'litespeed_cache'), clean, { merge: true });
       } catch {}
     }
-    return config;
+    return clean;
   }
 
   async purgeLiteSpeedCache(): Promise<{ success: boolean }> {

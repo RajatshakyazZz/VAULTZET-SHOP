@@ -510,19 +510,38 @@ export function calculateCategoryCounts(
 let cachedCustomCategories: CategoryItem[] | null = null;
 let lastCatFetchTime = 0;
 
+export function getDeletedCategoriesSync(): Set<string> {
+  const set = new Set<string>();
+  if (typeof window !== 'undefined') {
+    try {
+      const raw = localStorage.getItem('vaultzet_deleted_categories');
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        if (Array.isArray(parsed)) {
+          parsed.forEach((k) => set.add(String(k).toLowerCase()));
+        }
+      }
+    } catch {}
+  }
+  return set;
+}
+
 export function getLocalCategoriesSync(): CategoryItem[] {
-  if (typeof window === 'undefined') return COMPETITOR_CATEGORIES;
+  const deleted = getDeletedCategoriesSync();
+  const base = COMPETITOR_CATEGORIES.filter((c) => !deleted.has(c.slug.toLowerCase()));
+  if (typeof window === 'undefined') return base;
   try {
     const raw = localStorage.getItem('vaultzet_custom_categories');
-    if (!raw) return COMPETITOR_CATEGORIES;
+    if (!raw) return base;
     const custom = JSON.parse(raw);
     if (Array.isArray(custom) && custom.length > 0) {
-      const customSlugs = new Set(custom.map((c: any) => String(c.slug || '').toLowerCase()));
-      const initialFiltered = COMPETITOR_CATEGORIES.filter((c) => !customSlugs.has(c.slug.toLowerCase()));
-      return [...custom, ...initialFiltered];
+      const validCustom = custom.filter((c: any) => !deleted.has(String(c.slug || '').toLowerCase()));
+      const customSlugs = new Set(validCustom.map((c: any) => String(c.slug || '').toLowerCase()));
+      const initialFiltered = base.filter((c) => !customSlugs.has(c.slug.toLowerCase()));
+      return [...validCustom, ...initialFiltered];
     }
   } catch {}
-  return COMPETITOR_CATEGORIES;
+  return base;
 }
 
 export async function fetchCustomCategories(force = false): Promise<CategoryItem[]> {
@@ -531,6 +550,7 @@ export async function fetchCustomCategories(force = false): Promise<CategoryItem
     return cachedCustomCategories;
   }
 
+  const deletedSet = getDeletedCategoriesSync();
   const localCategories = getLocalCategoriesSync();
   const list: CategoryItem[] = [];
   const slugSet = new Set<string>();
@@ -540,23 +560,31 @@ export async function fetchCustomCategories(force = false): Promise<CategoryItem
       const snap = await getDocs(collection(db, 'categories'));
       snap.docs.forEach((d) => {
         const data = d.data();
+        const id = d.id.toLowerCase();
         const name = String(data.name || 'Category');
-        const slug = String(data.slug || name.toLowerCase().replace(/[^a-z0-9]+/g, '-'));
-        const cat: CategoryItem = {
-          id: d.id,
-          name,
-          slug,
-          count: Number(data.count || 0),
-          icon: data.icon || '✨',
-          bg: data.bg || '#f4ebff',
-          border: data.border || '#e9d5ff',
-          iconColor: data.iconColor || '#7c3aed',
-          description: data.description || '',
-          keywords: Array.isArray(data.keywords) && data.keywords.length > 0 ? data.keywords : name.toLowerCase().split(/\s+/),
-          created_at: data.created_at || data.createdAt || '',
-        };
-        list.push(cat);
-        slugSet.add(slug.toLowerCase());
+        const slug = String(data.slug || name.toLowerCase().replace(/[^a-z0-9]+/g, '-')).toLowerCase();
+        const isDeleted = Boolean(data.is_deleted || name === '[DELETED]');
+
+        if (isDeleted) {
+          deletedSet.add(id);
+          deletedSet.add(slug);
+        } else if (!deletedSet.has(id) && !deletedSet.has(slug)) {
+          const cat: CategoryItem = {
+            id: d.id,
+            name,
+            slug,
+            count: Number(data.count || 25),
+            icon: data.icon || '✨',
+            bg: data.bg || '#f4ebff',
+            border: data.border || '#e9d5ff',
+            iconColor: data.iconColor || '#7c3aed',
+            description: data.description || '',
+            keywords: Array.isArray(data.keywords) && data.keywords.length > 0 ? data.keywords : name.toLowerCase().split(/\s+/),
+            created_at: data.created_at || data.createdAt || '',
+          };
+          list.push(cat);
+          slugSet.add(slug);
+        }
       });
     } catch (e) {
       console.warn('Error fetching categories from Firestore:', e);
@@ -565,17 +593,19 @@ export async function fetchCustomCategories(force = false): Promise<CategoryItem
 
   // Merge any local categories not yet in Firestore
   for (const lc of localCategories) {
-    if (!slugSet.has(lc.slug.toLowerCase())) {
+    const slug = lc.slug.toLowerCase();
+    if (!slugSet.has(slug) && !deletedSet.has(slug)) {
       list.push(lc);
-      slugSet.add(lc.slug.toLowerCase());
+      slugSet.add(slug);
     }
   }
 
   // Merge with static COMPETITOR_CATEGORIES
   for (const cc of COMPETITOR_CATEGORIES) {
-    if (!slugSet.has(cc.slug.toLowerCase())) {
+    const slug = cc.slug.toLowerCase();
+    if (!slugSet.has(slug) && !deletedSet.has(slug)) {
       list.push(cc);
-      slugSet.add(cc.slug.toLowerCase());
+      slugSet.add(slug);
     }
   }
 

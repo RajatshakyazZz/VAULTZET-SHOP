@@ -55,7 +55,25 @@ function OrderSuccessContent() {
           setStatus('paid');
           try {
             localStorage.removeItem('vaultzet_latest_order');
-          } catch {}
+            const existingRaw = localStorage.getItem('vaultzet_purchased_orders');
+            const list = existingRaw ? JSON.parse(existingRaw) : [];
+            const orderNum = data.orderNumber || targetId;
+            const already = list.some((o: any) => (o.orderNumber || o.order_id || o.orderId) === orderNum);
+            if (!already) {
+              list.unshift({
+                orderNumber: orderNum,
+                order_id: targetId,
+                order_amount: data.order_amount,
+                date_created: new Date().toISOString(),
+                customer: data.customer,
+                items: data.items,
+                hasBump: data.hasBump,
+              });
+              localStorage.setItem('vaultzet_purchased_orders', JSON.stringify(list));
+            }
+          } catch (e) {
+            console.warn('Could not store order locally:', e);
+          }
         } else {
           setStatus('unpaid');
         }
@@ -258,10 +276,18 @@ function OrderSuccessContent() {
               </p>
             </div>
 
-            <div className="pt-4">
+            <div className="pt-4 flex flex-col sm:flex-row items-center justify-center gap-3">
+              <Link
+                href="/my-order"
+                className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-7 py-3.5 rounded-full btn-gradient-primary text-white text-xs sm:text-sm font-bold shadow-lg hover:shadow-xl transition-all"
+              >
+                <FolderOpen className="w-4 h-4" />
+                <span>View Purchased Orders</span>
+              </Link>
+
               <Link
                 href="/"
-                className="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-800 text-xs font-bold transition-colors"
+                className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 py-3.5 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-800 text-xs sm:text-sm font-bold transition-colors"
               >
                 <span>Back to Store Home</span>
                 <ArrowRight className="w-4 h-4" />

@@ -40,7 +40,7 @@ import { LicenseType, BundleProduct } from '@/types';
 import { optimizeImageUrl } from '@/lib/imageOptimized';
 import { getBundleContentDetails } from '@/lib/bundleContent';
 import { resolveBundleSlug } from '@/lib/bundleResolver';
-import { fetchCustomProductBySlug } from '@/lib/customProducts';
+import { fetchCustomProductBySlug, getLocalCustomProductsSync } from '@/lib/customProducts';
 import { parseVideoUrl } from '@/lib/reels';
 
 export default function ProductDetailPage() {
@@ -48,7 +48,14 @@ export default function ProductDetailPage() {
   const rawSlug = (params?.slug as string) || '';
   const { addToCart, buyNow } = useCart();
 
-  const [customProduct, setCustomProduct] = useState<BundleProduct | null>(null);
+  const [customProduct, setCustomProduct] = useState<BundleProduct | null>(() => {
+    if (typeof window === 'undefined' || !rawSlug) return null;
+    const clean = rawSlug.trim().toLowerCase();
+    const local = getLocalCustomProductsSync().find(
+      (p) => p.slug.toLowerCase() === clean || p.id.toLowerCase() === clean
+    );
+    return local || null;
+  });
 
   // Find product by slug, id, aliases, or keyword/reels match
   const product: BundleProduct | undefined = customProduct || resolveBundleSlug(rawSlug);
@@ -70,7 +77,8 @@ export default function ProductDetailPage() {
   const videoRef = useRef<HTMLVideoElement | null>(null);
 
   const previewUrl =
-    product?.previewVideoUrl ||
+    (customProduct?.previewVideoUrl && customProduct.previewVideoUrl.trim()) ||
+    (product?.previewVideoUrl && product.previewVideoUrl.trim()) ||
     'https://reelsbundles.in/wp-content/uploads/2026/09/gigglee_toons_1787416995_3969463571233179389_28226841059.mp4';
   const parsedVideo = parseVideoUrl(previewUrl);
   const isYouTube = parsedVideo.videoType === 'youtube' && Boolean(parsedVideo.youtubeId);
@@ -509,7 +517,13 @@ export default function ProductDetailPage() {
               {product.title}
             </h3>
 
-            <p>{details.overview}</p>
+            {product.description ? (
+              <div className="space-y-4 text-sm sm:text-base text-[#374151] font-normal leading-relaxed whitespace-pre-line">
+                {product.description}
+              </div>
+            ) : (
+              <p>{details.overview}</p>
+            )}
 
             {/* Bundle contents bullet specs */}
             <div className="space-y-2 pt-1">

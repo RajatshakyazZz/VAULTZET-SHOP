@@ -83,6 +83,7 @@ export function mapFirestoreDocToBundleProduct(data: any): BundleProduct {
       String(data.short_description || '') ||
       (typeof data.description === 'string' ? data.description.slice(0, 160) : '') ||
       `Get instant access to ${data.reel_count || 1000}+ viral reels ready to publish.`,
+    description: String(data.description || data.short_description || ''),
     category,
     categorySlug,
     reelCount: Number(data.reel_count || 1000),
@@ -94,7 +95,7 @@ export function mapFirestoreDocToBundleProduct(data: any): BundleProduct {
       String(data.featured_image || '') ||
       'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=600',
     galleryImages,
-    previewVideoUrl: String(data.preview_video_url || ''),
+    previewVideoUrl: String(data.preview_video_url || data.previewVideoUrl || '').trim(),
     tags,
     isHot: Boolean(data.is_hot),
     isTrending: Boolean(data.is_trending),
@@ -205,15 +206,23 @@ export function getAllCatalogBundles(
 ): BundleProduct[] {
   const validCustom = (customProds || []).filter(
     (p): p is BundleProduct =>
-      Boolean(p && typeof p.slug === 'string' && !deletedSlugs.has(p.slug.toLowerCase()) && !deletedSlugs.has(p.id.toLowerCase()))
+      Boolean(
+        p &&
+          typeof p.slug === 'string' &&
+          !deletedSlugs.has(p.slug.toLowerCase()) &&
+          !deletedSlugs.has(String(p.id || '').toLowerCase())
+      )
   );
   const customSlugs = new Set(validCustom.map((p) => p.slug.toLowerCase()));
+  const customIds = new Set(validCustom.map((p) => String(p.id || '').toLowerCase()));
+
   const filteredInitial = (initialBundles || []).filter(
     (b): b is BundleProduct =>
       Boolean(
         b &&
           typeof b.slug === 'string' &&
           !customSlugs.has(b.slug.toLowerCase()) &&
+          !customIds.has(String(b.id || '').toLowerCase()) &&
           !deletedSlugs.has(b.slug.toLowerCase()) &&
           !deletedSlugs.has(String(b.id || '').toLowerCase())
       )
@@ -230,25 +239,46 @@ export async function fetchCustomProductBySlug(slug: string): Promise<BundleProd
 
   // 1. Check local cache
   const local = getLocalCustomProductsSync().find(
-    (p) => (p.slug.toLowerCase() === clean || p.id.toLowerCase() === clean) && !deletedSet.has(p.slug.toLowerCase())
+    (p) =>
+      (p.slug.toLowerCase() === clean || p.id.toLowerCase() === clean) &&
+      !deletedSet.has(p.slug.toLowerCase()) &&
+      !deletedSet.has(p.id.toLowerCase())
   );
   if (local) return local;
 
-  // 2. Query Firestore directly
+  // 2. Query Firestore directly (fast direct doc lookup first, then fallback scan)
   if (db) {
+    try {
+      const directSnap = await getDoc(doc(db, 'products', clean));
+      if (directSnap.exists()) {
+        const data = directSnap.data();
+        if (!data.is_deleted && data.status !== 'trash') {
+          return mapFirestoreDocToBundleProduct({ id: directSnap.id, ...data });
+        }
+      }
+    } catch {}
+
     try {
       const snap = await getDocs(collection(db, 'products'));
       for (const d of snap.docs) {
         const data = d.data();
         if (data.status === 'draft' || data.status === 'trash' || data.is_deleted) continue;
-        if (
-          (data.slug && data.slug.toLowerCase() === clean) ||
-          d.id.toLowerCase() === clean ||
-          (data.name &&
-            data.name
+        const docId = d.id.toLowerCase();
+        const docSlug = String(data.slug || '').toLowerCase();
+        const docNameSlug = data.name
+          ? String(data.name)
               .toLowerCase()
               .replace(/[^a-z0-9]+/g, '-')
-              .replace(/(^-|-$)+/g, '') === clean)
+              .replace(/(^-|-$)+/g, '')
+          : '';
+
+        if (
+          docSlug === clean ||
+          docId === clean ||
+          docNameSlug === clean ||
+          (data.id && String(data.id).toLowerCase() === clean) ||
+          clean.includes(docSlug && docSlug.length > 5 ? docSlug : '___none___') ||
+          (docSlug && docSlug.includes(clean))
         ) {
           return mapFirestoreDocToBundleProduct({ id: d.id, ...data });
         }

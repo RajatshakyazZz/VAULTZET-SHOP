@@ -1,8 +1,8 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { Mail, KeyRound, FolderOpen, Download, ShieldCheck, CheckCircle2, ArrowRight } from 'lucide-react';
+import { Mail, KeyRound, FolderOpen, Download, ShieldCheck, CheckCircle2, ArrowRight, Sparkles } from 'lucide-react';
 
 import { getCustomerOrders } from '@/lib/firebase';
 
@@ -13,6 +13,44 @@ export default function MyOrdersPage() {
   const [mockGeneratedOtp, setMockGeneratedOtp] = useState('');
   const [orders, setOrders] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
+
+  // Auto-load purchased orders from local device storage without requiring Gmail or OTP
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    try {
+      const purchasedRaw = localStorage.getItem('vaultzet_purchased_orders');
+      const ordersRaw = localStorage.getItem('vaultzet_orders');
+      let combined: any[] = [];
+
+      if (purchasedRaw) {
+        const parsed = JSON.parse(purchasedRaw);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          combined = [...combined, ...parsed];
+        }
+      }
+
+      if (ordersRaw) {
+        const parsed = JSON.parse(ordersRaw);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          parsed.forEach((o: any) => {
+            const oNum = o.orderNumber || o.order_number || o.id;
+            if (!combined.some((c: any) => (c.orderNumber || c.order_id || c.id) === oNum)) {
+              combined.push(o);
+            }
+          });
+        }
+      }
+
+      if (combined.length > 0) {
+        setOrders(combined);
+        setStep('orders');
+        const firstEmail = combined[0]?.customer?.email || '';
+        if (firstEmail) setEmail(firstEmail);
+      }
+    } catch (e) {
+      console.warn('Error reading local orders:', e);
+    }
+  }, []);
 
   const handleSendOtp = (e: React.FormEvent) => {
     e.preventDefault();
@@ -32,7 +70,7 @@ export default function MyOrdersPage() {
         const firestoreOrders = await getCustomerOrders(email);
         setOrders(firestoreOrders);
       } catch {
-        const stored = JSON.parse(localStorage.getItem('vaultzet_orders') || '[]');
+        const stored = JSON.parse(localStorage.getItem('vaultzet_purchased_orders') || localStorage.getItem('vaultzet_orders') || '[]');
         setOrders(stored);
       } finally {
         setLoading(false);
@@ -51,17 +89,17 @@ export default function MyOrdersPage() {
         <div className="text-center space-y-3">
           <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-purple-100 text-rb-purple text-xs font-black uppercase tracking-wider">
             <KeyRound className="w-3.5 h-3.5" />
-            Passwordless Customer Portal
+            Customer Download Portal
           </div>
           <h1 className="text-3xl sm:text-4xl font-black text-[#182247] tracking-tight">
-            My Orders & Downloads
+            My Orders &amp; Downloads
           </h1>
           <p className="text-sm text-[#6e7696] font-medium max-w-md mx-auto">
             Access your purchased reels bundles anytime without creating or remembering passwords.
           </p>
 
           <div className="flex items-center justify-center gap-4 text-xs font-bold text-slate-500 pt-1">
-            <span>✓ Email OTP Verification</span>
+            <span>✓ Instant Local Access</span>
             <span>•</span>
             <span>✓ No Password Needed</span>
             <span>•</span>
@@ -79,7 +117,7 @@ export default function MyOrdersPage() {
             <div className="space-y-1">
               <h2 className="text-xl font-black text-[#182247]">Enter Purchase Email</h2>
               <p className="text-xs text-slate-500">
-                Enter the email address you entered during checkout to receive your one-time access code.
+                Enter the email address you entered during checkout to view your past purchases.
               </p>
             </div>
 
@@ -149,7 +187,7 @@ export default function MyOrdersPage() {
                 type="submit"
                 className="w-full py-3.5 px-4 rounded-xl btn-gradient-primary text-white font-black text-sm shadow-md"
               >
-                Verify & Access Downloads →
+                Verify &amp; Access Downloads →
               </button>
 
               <button
@@ -168,14 +206,16 @@ export default function MyOrdersPage() {
           <div className="bg-white rounded-3xl p-6 sm:p-10 border border-purple-100 shadow-xl space-y-6 animate-in fade-in">
             <div className="flex items-center justify-between pb-4 border-b border-slate-100 flex-wrap gap-2">
               <div>
-                <h2 className="text-xl font-black text-[#182247]">Welcome Back!</h2>
-                <p className="text-xs text-slate-500">Viewing orders for {email}</p>
+                <h2 className="text-xl font-black text-[#182247]">Your Purchased Bundles</h2>
+                <p className="text-xs text-slate-500">
+                  {email ? `Orders for ${email}` : 'Instant download access granted for your purchased bundles.'}
+                </p>
               </div>
               <button
                 onClick={() => setStep('email')}
                 className="text-xs font-bold text-rb-purple hover:underline"
               >
-                Sign Out
+                {email ? 'Search Other Email' : 'Enter Email to Restore'}
               </button>
             </div>
 
@@ -184,7 +224,7 @@ export default function MyOrdersPage() {
                 <FolderOpen className="w-12 h-12 text-slate-300 mx-auto" />
                 <h3 className="text-base font-bold text-slate-800">No Past Orders Found</h3>
                 <p className="text-xs text-slate-500 max-w-sm mx-auto">
-                  We could not locate past purchases under this email address. Make sure you entered the exact email used during checkout.
+                  We could not locate past purchases on this device. Click above to look up orders via your checkout email.
                 </p>
                 <Link
                   href="/shop"
@@ -195,49 +235,78 @@ export default function MyOrdersPage() {
               </div>
             ) : (
               <div className="space-y-6">
-                {orders.map((ord: any, idx: number) => (
-                  <div
-                    key={idx}
-                    className="p-5 rounded-2xl bg-[#faf9ff] border border-purple-100/90 space-y-4"
-                  >
-                    <div className="flex items-center justify-between text-xs font-bold pb-3 border-b border-purple-100/60">
-                      <div>
-                        Order: <span className="text-rb-purple font-black">{ord.orderId}</span>
-                      </div>
-                      <div className="text-slate-400 font-medium">
-                        {new Date(ord.date).toLocaleDateString()}
-                      </div>
-                    </div>
+                {orders.map((ord: any, idx: number) => {
+                  const orderId = ord.orderNumber || ord.orderId || ord.order_id || ord.id || 'Order';
+                  const dateStr = ord.date_created || ord.date || ord.createdAt || '';
+                  const formattedDate = dateStr ? new Date(dateStr).toLocaleDateString() : 'Recent';
 
-                    <div className="space-y-3">
-                      {ord.items?.map((item: any, i: number) => (
-                        <div
-                          key={i}
-                          className="flex items-center justify-between bg-white p-3.5 rounded-xl border border-slate-200/60 gap-3"
-                        >
-                          <div>
-                            <h4 className="font-bold text-xs sm:text-sm text-[#182247]">
-                              {item.title}
-                            </h4>
-                            <span className="text-[11px] text-slate-400 font-semibold">
-                              License: {item.license === 'reseller' ? 'Reseller Rights' : 'Personal Use'}
-                            </span>
-                          </div>
-
-                          <a
-                            href={item.googleDriveLink || 'https://drive.google.com'}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="px-4 py-2 rounded-xl btn-gradient-primary text-white text-xs font-bold flex items-center gap-1.5 shadow-sm shrink-0"
-                          >
-                            <Download className="w-3.5 h-3.5" />
-                            <span>Download</span>
-                          </a>
+                  return (
+                    <div
+                      key={idx}
+                      className="p-5 rounded-2xl bg-[#faf9ff] border border-purple-100/90 space-y-4"
+                    >
+                      <div className="flex items-center justify-between text-xs font-bold pb-3 border-b border-purple-100/60">
+                        <div>
+                          Order: <span className="text-rb-purple font-black">{orderId}</span>
                         </div>
-                      ))}
+                        <div className="text-slate-400 font-medium">
+                          {formattedDate}
+                        </div>
+                      </div>
+
+                      <div className="space-y-3">
+                        {ord.items?.map((item: any, i: number) => (
+                          <div
+                            key={i}
+                            className="flex items-center justify-between bg-white p-3.5 rounded-xl border border-slate-200/60 gap-3"
+                          >
+                            <div>
+                              <h4 className="font-bold text-xs sm:text-sm text-[#182247]">
+                                {item.title || item.name}
+                              </h4>
+                              <span className="text-[11px] text-slate-400 font-semibold">
+                                License: {item.license === 'reseller' ? 'Reseller Rights Included' : 'Personal Use'}
+                              </span>
+                            </div>
+
+                            <a
+                              href={item.googleDriveLink || item.driveLink || 'https://drive.google.com'}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="px-4 py-2 rounded-xl btn-gradient-primary text-white text-xs font-bold flex items-center gap-1.5 shadow-sm shrink-0"
+                            >
+                              <Download className="w-3.5 h-3.5" />
+                              <span>Download</span>
+                            </a>
+                          </div>
+                        ))}
+
+                        {ord.hasBump && (
+                          <div className="flex items-center justify-between bg-amber-50/80 p-3.5 rounded-xl border border-amber-200 gap-3">
+                            <div>
+                              <h4 className="font-bold text-xs sm:text-sm text-amber-950">
+                                ★ Bonus Pack: 1500+ Ultimate Twisted World &amp; Viral AI Reels
+                              </h4>
+                              <span className="text-[11px] text-amber-700 font-semibold">
+                                Order Bump Special Offer
+                              </span>
+                            </div>
+
+                            <a
+                              href="https://drive.google.com/drive/folders/bonus-pack-twisted-world"
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="px-4 py-2 rounded-xl bg-amber-500 hover:bg-amber-600 text-white text-xs font-bold flex items-center gap-1.5 shadow-sm shrink-0"
+                            >
+                              <Download className="w-3.5 h-3.5" />
+                              <span>Download</span>
+                            </a>
+                          </div>
+                        )}
+                      </div>
                     </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             )}
           </div>

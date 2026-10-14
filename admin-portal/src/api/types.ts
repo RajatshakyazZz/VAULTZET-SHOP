@@ -107,6 +107,8 @@ export const CategoryItemSchema = z.object({
   iconColor: z.string().optional(),
   description: z.string().optional(),
   created_at: z.string().optional(),
+  is_deleted: z.boolean().optional(),
+  deleted_at: z.string().optional(),
 });
 export type CategoryItem = z.infer<typeof CategoryItemSchema>;
 
@@ -233,6 +235,8 @@ export interface ReelItem {
   views?: number;
   isActive: boolean;
   createdAt?: string;
+  is_deleted?: boolean;
+  deleted_at?: string;
 }
 
 // ==========================================
