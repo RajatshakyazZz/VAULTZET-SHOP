@@ -120,11 +120,32 @@ async function handleVerify(orderId: string) {
     const verifiedItems = await Promise.all(
       rawItems.map(async (it: any) => {
         const link = await resolveDriveLinkForProduct(it);
+        const cleanId = String(it.id || '').trim();
+        const cleanTitle = String(it.title || '').trim().toLowerCase();
+        const matched = BUNDLE_PRODUCTS.find(
+          (b) =>
+            b.id === cleanId ||
+            b.slug === cleanId ||
+            b.title.toLowerCase() === cleanTitle ||
+            (cleanTitle && cleanTitle.includes(b.slug))
+        );
+        const isAllAccess = cleanId.includes('plan-') || cleanTitle.includes('all bundles');
         return {
           id: it.id,
           title: it.title,
-          license: it.license || 'personal',
+          license: it.license || (cleanTitle.includes('reseller') ? 'reseller' : 'personal'),
+          price: it.price || (isAllAccess ? (it.license === 'reseller' ? 899 : 699) : 59),
           googleDriveLink: link,
+          thumbnail:
+            it.thumbnail ||
+            matched?.thumbnail ||
+            (isAllAccess
+              ? 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&w=800&q=80'
+              : 'https://images.unsplash.com/photo-1579546929518-9e396f3cc809?auto=format&fit=crop&w=800&q=80'),
+          reelCount: it.reelCount || matched?.reelCount || (isAllAccess ? 222000 : 1000),
+          format: it.format || matched?.format || '1080p MP4',
+          resolution: it.resolution || matched?.resolution || '1080P Full HD',
+          isAllAccess,
         };
       })
     );
