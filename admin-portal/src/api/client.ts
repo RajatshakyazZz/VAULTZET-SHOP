@@ -963,7 +963,23 @@ class PortalApiClient {
     return initialContent;
   }
 
-  private async persistCategoriesRegistry(categories: CategoryItem[]): Promise<void> {
+  private getDeletedCategoriesFromStorage(): Set<string> {
+    const set = new Set<string>();
+    if (typeof window !== 'undefined') {
+      try {
+        const raw = localStorage.getItem('vaultzet_deleted_categories');
+        if (raw) {
+          const parsed = JSON.parse(raw);
+          if (Array.isArray(parsed)) {
+            parsed.forEach((k) => set.add(String(k).toLowerCase()));
+          }
+        }
+      } catch {}
+    }
+    return set;
+  }
+
+  private async persistCategoriesRegistry(categories: CategoryItem[], deletedSlugsList?: string[]): Promise<void> {
     if (!db) return;
     const cleanList = categories.map((c) => ({
       id: c.id || c.slug,
@@ -980,6 +996,18 @@ class PortalApiClient {
       is_deleted: Boolean(c.is_deleted),
     }));
 
+    const delSet = this.getDeletedCategoriesFromStorage();
+    if (Array.isArray(deletedSlugsList)) {
+      deletedSlugsList.forEach((s) => delSet.add(String(s).toLowerCase()));
+    }
+    const finalDeletedSlugs = Array.from(delSet);
+
+    const payloadData = {
+      categories: cleanList,
+      deleted_slugs: finalDeletedSlugs,
+    };
+    const payloadJson = JSON.stringify(payloadData);
+
     // 1. Guaranteed Registry doc in products collection
     try {
       await setDoc(
@@ -989,7 +1017,7 @@ class PortalApiClient {
           name: '[INTERNAL_CATEGORY_REGISTRY]',
           price: 0,
           status: 'private',
-          description: JSON.stringify(cleanList),
+          description: payloadJson,
           categories: ['_category_registry'],
           created_at: new Date().toISOString(),
         },
@@ -1004,7 +1032,7 @@ class PortalApiClient {
       await setDoc(
         doc(db, 'store_settings', 'branding'),
         {
-          maintenance_message: JSON.stringify(cleanList),
+          maintenance_message: payloadJson,
           last_updated: new Date().toISOString(),
         },
         { merge: true }
@@ -1016,7 +1044,7 @@ class PortalApiClient {
 
   async getCategories(): Promise<CategoryItem[]> {
     let localCustomCats: CategoryItem[] = [];
-    const localDeletedCats = new Set<string>();
+    const localDeletedCats = this.getDeletedCategoriesFromStorage();
 
     if (typeof window !== 'undefined') {
       try {
@@ -1043,20 +1071,29 @@ class PortalApiClient {
           const data = regSnap.data();
           if (data && typeof data.description === 'string' && data.description.trim()) {
             const parsed = JSON.parse(data.description);
+            let items: any[] = [];
             if (Array.isArray(parsed)) {
-              parsed.forEach((c: any) => {
-                const slug = String(c.slug || c.name?.toLowerCase().replace(/[^a-z0-9]+/g, '-') || '').toLowerCase();
-                const id = String(c.id || slug).toLowerCase();
-                if (c && c.name && !c.is_deleted && !localDeletedCats.has(slug) && !localDeletedCats.has(id)) {
-                  customCatsMap.set(slug, {
-                    ...c,
-                    id: c.id || slug,
-                    slug,
-                    is_custom: true,
-                  });
-                }
-              });
+              items = parsed;
+            } else if (parsed && typeof parsed === 'object') {
+              if (Array.isArray(parsed.deleted_slugs)) {
+                parsed.deleted_slugs.forEach((s: string) => localDeletedCats.add(String(s).toLowerCase()));
+              }
+              if (Array.isArray(parsed.categories)) {
+                items = parsed.categories;
+              }
             }
+            items.forEach((c: any) => {
+              const slug = String(c.slug || c.name?.toLowerCase().replace(/[^a-z0-9]+/g, '-') || '').toLowerCase();
+              const id = String(c.id || slug).toLowerCase();
+              if (c && c.name && !c.is_deleted && !localDeletedCats.has(slug) && !localDeletedCats.has(id)) {
+                customCatsMap.set(slug, {
+                  ...c,
+                  id: c.id || slug,
+                  slug,
+                  is_custom: true,
+                });
+              }
+            });
           }
         }
       } catch {}
@@ -1067,22 +1104,31 @@ class PortalApiClient {
           const brandSnap = await getDoc(doc(db, 'store_settings', 'branding'));
           if (brandSnap.exists()) {
             const bData = brandSnap.data();
-            if (bData && typeof bData.maintenance_message === 'string' && bData.maintenance_message.startsWith('[')) {
+            if (bData && typeof bData.maintenance_message === 'string' && bData.maintenance_message.trim()) {
               const parsed = JSON.parse(bData.maintenance_message);
+              let items: any[] = [];
               if (Array.isArray(parsed)) {
-                parsed.forEach((c: any) => {
-                  const slug = String(c.slug || c.name?.toLowerCase().replace(/[^a-z0-9]+/g, '-') || '').toLowerCase();
-                  const id = String(c.id || slug).toLowerCase();
-                  if (c && c.name && !c.is_deleted && !localDeletedCats.has(slug) && !localDeletedCats.has(id) && !customCatsMap.has(slug)) {
-                    customCatsMap.set(slug, {
-                      ...c,
-                      id: c.id || slug,
-                      slug,
-                      is_custom: true,
-                    });
-                  }
-                });
+                items = parsed;
+              } else if (parsed && typeof parsed === 'object') {
+                if (Array.isArray(parsed.deleted_slugs)) {
+                  parsed.deleted_slugs.forEach((s: string) => localDeletedCats.add(String(s).toLowerCase()));
+                }
+                if (Array.isArray(parsed.categories)) {
+                  items = parsed.categories;
+                }
               }
+              items.forEach((c: any) => {
+                const slug = String(c.slug || c.name?.toLowerCase().replace(/[^a-z0-9]+/g, '-') || '').toLowerCase();
+                const id = String(c.id || slug).toLowerCase();
+                if (c && c.name && !c.is_deleted && !localDeletedCats.has(slug) && !localDeletedCats.has(id) && !customCatsMap.has(slug)) {
+                  customCatsMap.set(slug, {
+                    ...c,
+                    id: c.id || slug,
+                    slug,
+                    is_custom: true,
+                  });
+                }
+              });
             }
           }
         } catch {}
@@ -1293,8 +1339,14 @@ class PortalApiClient {
   }
 
   async deleteCategory(categoryIdOrSlug: string): Promise<boolean> {
-    const key = categoryIdOrSlug.toLowerCase();
+    const key = String(categoryIdOrSlug || '').toLowerCase().trim();
+    if (!key) return false;
 
+    // 1. Add to persistent deleted category set
+    const delCats = this.getDeletedCategoriesFromStorage();
+    delCats.add(key);
+
+    // 2. Remove from active custom categories
     let currentCustom: CategoryItem[] = [];
     if (typeof window !== 'undefined') {
       try {
@@ -1302,9 +1354,14 @@ class PortalApiClient {
       } catch {}
     }
 
-    const updatedCustom = currentCustom.filter((c: any) => c.id?.toLowerCase() !== key && c.slug?.toLowerCase() !== key);
-    await this.persistCategoriesRegistry(updatedCustom);
+    const updatedCustom = currentCustom.filter(
+      (c: any) => (c.id || '').toLowerCase() !== key && (c.slug || '').toLowerCase() !== key
+    );
 
+    // 3. Persist updated custom categories + deleted_slugs to cloud registry
+    await this.persistCategoriesRegistry(updatedCustom, Array.from(delCats));
+
+    // 4. Try Firestore direct categories collection if accessible
     if (db) {
       try {
         await setDoc(
@@ -1316,19 +1373,22 @@ class PortalApiClient {
       } catch (e) {}
     }
 
-    const idx = initialCategories.findIndex((c) => c.id?.toLowerCase() === key || c.slug.toLowerCase() === key);
-    if (idx !== -1) {
-      initialCategories.splice(idx, 1);
+    // 5. Purge from in-memory initialCategories
+    for (let i = initialCategories.length - 1; i >= 0; i--) {
+      const c = initialCategories[i];
+      if (
+        (c.id && c.id.toLowerCase() === key) ||
+        (c.slug && c.slug.toLowerCase() === key)
+      ) {
+        initialCategories.splice(i, 1);
+      }
     }
 
+    // 6. Update local storage
     if (typeof window !== 'undefined') {
       try {
         localStorage.setItem('vaultzet_custom_categories', JSON.stringify(updatedCustom));
-
-        const delCats = JSON.parse(localStorage.getItem('vaultzet_deleted_categories') || '[]');
-        const set = new Set(delCats.map((k: string) => k.toLowerCase()));
-        set.add(key);
-        localStorage.setItem('vaultzet_deleted_categories', JSON.stringify(Array.from(set)));
+        localStorage.setItem('vaultzet_deleted_categories', JSON.stringify(Array.from(delCats)));
       } catch (e) {}
     }
 
@@ -1336,7 +1396,7 @@ class PortalApiClient {
       adminEmail: 'admin@vaultzet.com',
       action: 'DELETE_CATEGORY',
       module: 'Products',
-      details: `Deleted category: ${key}`,
+      details: `Permanently deleted category: ${key}`,
     });
 
     return true;

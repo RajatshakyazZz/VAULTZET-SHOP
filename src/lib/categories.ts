@@ -581,28 +581,37 @@ export async function fetchCustomCategories(force = false): Promise<CategoryItem
         if (regData && typeof regData.description === 'string' && regData.description.trim()) {
           try {
             const parsed = JSON.parse(regData.description);
+            let items: any[] = [];
             if (Array.isArray(parsed)) {
-              parsed.forEach((c: any) => {
-                const slug = String(c.slug || c.name?.toLowerCase().replace(/[^a-z0-9]+/g, '-') || '').toLowerCase();
-                const id = String(c.id || slug).toLowerCase();
-                if (c && c.name && !c.is_deleted && !deletedSet.has(slug) && !deletedSet.has(id)) {
-                  customCategoriesMap.set(slug, {
-                    id: c.id || slug,
-                    name: String(c.name).trim(),
-                    slug,
-                    count: Number(c.count || 0),
-                    icon: c.icon || '✨',
-                    bg: c.bg || '#f4ebff',
-                    border: c.border || '#e9d5ff',
-                    iconColor: c.iconColor || '#7c3aed',
-                    description: c.description || '',
-                    keywords: Array.isArray(c.keywords) ? c.keywords : c.name.toLowerCase().split(/\s+/),
-                    created_at: c.created_at || c.createdAt || new Date().toISOString(),
-                    is_custom: true,
-                  });
-                }
-              });
+              items = parsed;
+            } else if (parsed && typeof parsed === 'object') {
+              if (Array.isArray(parsed.deleted_slugs)) {
+                parsed.deleted_slugs.forEach((s: string) => deletedSet.add(String(s).toLowerCase()));
+              }
+              if (Array.isArray(parsed.categories)) {
+                items = parsed.categories;
+              }
             }
+            items.forEach((c: any) => {
+              const slug = String(c.slug || c.name?.toLowerCase().replace(/[^a-z0-9]+/g, '-') || '').toLowerCase();
+              const id = String(c.id || slug).toLowerCase();
+              if (c && c.name && !c.is_deleted && !deletedSet.has(slug) && !deletedSet.has(id)) {
+                customCategoriesMap.set(slug, {
+                  id: c.id || slug,
+                  name: String(c.name).trim(),
+                  slug,
+                  count: Number(c.count || 0),
+                  icon: c.icon || '✨',
+                  bg: c.bg || '#f4ebff',
+                  border: c.border || '#e9d5ff',
+                  iconColor: c.iconColor || '#7c3aed',
+                  description: c.description || '',
+                  keywords: Array.isArray(c.keywords) ? c.keywords : c.name.toLowerCase().split(/\s+/),
+                  created_at: c.created_at || c.createdAt || new Date().toISOString(),
+                  is_custom: true,
+                });
+              }
+            });
           } catch {}
         }
       }
@@ -615,31 +624,40 @@ export async function fetchCustomCategories(force = false): Promise<CategoryItem
       const brandSnap = await getDoc(doc(db, 'store_settings', 'branding'));
       if (brandSnap.exists()) {
         const bData = brandSnap.data();
-        if (bData && typeof bData.maintenance_message === 'string' && bData.maintenance_message.startsWith('[')) {
+        if (bData && typeof bData.maintenance_message === 'string' && bData.maintenance_message.trim()) {
           try {
             const parsed = JSON.parse(bData.maintenance_message);
+            let items: any[] = [];
             if (Array.isArray(parsed)) {
-              parsed.forEach((c: any) => {
-                const slug = String(c.slug || c.name?.toLowerCase().replace(/[^a-z0-9]+/g, '-') || '').toLowerCase();
-                const id = String(c.id || slug).toLowerCase();
-                if (c && c.name && !c.is_deleted && !deletedSet.has(slug) && !deletedSet.has(id) && !customCategoriesMap.has(slug)) {
-                  customCategoriesMap.set(slug, {
-                    id: c.id || slug,
-                    name: String(c.name).trim(),
-                    slug,
-                    count: Number(c.count || 0),
-                    icon: c.icon || '✨',
-                    bg: c.bg || '#f4ebff',
-                    border: c.border || '#e9d5ff',
-                    iconColor: c.iconColor || '#7c3aed',
-                    description: c.description || '',
-                    keywords: Array.isArray(c.keywords) ? c.keywords : c.name.toLowerCase().split(/\s+/),
-                    created_at: c.created_at || c.createdAt || new Date().toISOString(),
-                    is_custom: true,
-                  });
-                }
-              });
+              items = parsed;
+            } else if (parsed && typeof parsed === 'object') {
+              if (Array.isArray(parsed.deleted_slugs)) {
+                parsed.deleted_slugs.forEach((s: string) => deletedSet.add(String(s).toLowerCase()));
+              }
+              if (Array.isArray(parsed.categories)) {
+                items = parsed.categories;
+              }
             }
+            items.forEach((c: any) => {
+              const slug = String(c.slug || c.name?.toLowerCase().replace(/[^a-z0-9]+/g, '-') || '').toLowerCase();
+              const id = String(c.id || slug).toLowerCase();
+              if (c && c.name && !c.is_deleted && !deletedSet.has(slug) && !deletedSet.has(id) && !customCategoriesMap.has(slug)) {
+                customCategoriesMap.set(slug, {
+                  id: c.id || slug,
+                  name: String(c.name).trim(),
+                  slug,
+                  count: Number(c.count || 0),
+                  icon: c.icon || '✨',
+                  bg: c.bg || '#f4ebff',
+                  border: c.border || '#e9d5ff',
+                  iconColor: c.iconColor || '#7c3aed',
+                  description: c.description || '',
+                  keywords: Array.isArray(c.keywords) ? c.keywords : c.name.toLowerCase().split(/\s+/),
+                  created_at: c.created_at || c.createdAt || new Date().toISOString(),
+                  is_custom: true,
+                });
+              }
+            });
           } catch {}
         }
       }
@@ -726,9 +744,14 @@ export async function fetchCustomCategories(force = false): Promise<CategoryItem
   });
 
   // Sync back to local storage for instant offline / reload access
-  if (typeof window !== 'undefined' && customList.length > 0) {
+  if (typeof window !== 'undefined') {
     try {
-      localStorage.setItem('vaultzet_custom_categories', JSON.stringify(customList));
+      if (customList.length > 0) {
+        localStorage.setItem('vaultzet_custom_categories', JSON.stringify(customList));
+      }
+      if (deletedSet.size > 0) {
+        localStorage.setItem('vaultzet_deleted_categories', JSON.stringify(Array.from(deletedSet)));
+      }
     } catch {}
   }
 

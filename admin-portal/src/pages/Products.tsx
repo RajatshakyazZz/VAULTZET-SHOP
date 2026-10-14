@@ -261,11 +261,16 @@ export default function Products() {
   const deleteCategoryMutation = useMutation({
     mutationFn: (slugOrId: string) => portalApi.deleteCategory(slugOrId),
     onSuccess: (_, deletedKey) => {
+      const lowKey = String(deletedKey || '').toLowerCase();
       queryClient.setQueryData(['categories'], (old: CategoryItem[] = []) =>
-        old.filter((c) => c.slug !== deletedKey && c.id !== deletedKey)
+        old.filter(
+          (c) =>
+            (c.slug || '').toLowerCase() !== lowKey &&
+            (c.id || '').toLowerCase() !== lowKey
+        )
       );
       queryClient.invalidateQueries({ queryKey: ['categories'] });
-      success('Category Deleted', 'Category removed from store.');
+      success('Category Deleted', 'Category permanently removed from store and admin panel.');
     },
     onError: (err: any) => error('Delete Failed', err.message || 'Could not delete category.'),
   });
@@ -444,8 +449,14 @@ export default function Products() {
   };
 
   const handleDeleteCategory = (cat: CategoryItem) => {
-    if (confirm(`Delete category "${cat.name}" (${cat.slug})?`)) {
-      deleteCategoryMutation.mutate(cat.id || cat.slug);
+    const key = cat.slug || cat.id || '';
+    if (!key) return;
+    if (
+      window.confirm(
+        `Are you sure you want to permanently delete category "${cat.name}" (/category/${cat.slug}) from your store?\n\nThis will remove it from both the Storefront and the Admin Panel.`
+      )
+    ) {
+      deleteCategoryMutation.mutate(key);
     }
   };
 
@@ -981,12 +992,19 @@ export default function Products() {
               >
                 <div>
                   <div className="flex items-start justify-between gap-2">
-                    <span className="w-8 h-8 rounded-lg bg-purple-600/20 text-purple-400 border border-purple-500/30 flex items-center justify-center font-bold text-xs">
-                      <Tag className="w-4 h-4" />
+                    <span className="w-9 h-9 rounded-xl bg-purple-600/20 text-purple-300 border border-purple-500/30 flex items-center justify-center font-bold text-base shadow-xs">
+                      {cat.icon || '✨'}
                     </span>
-                    <span className="text-[11px] font-black text-purple-300 bg-purple-500/10 px-2 py-0.5 rounded-full border border-purple-500/20">
-                      {cat.count || 0} Bundles
-                    </span>
+                    <div className="flex items-center gap-1.5">
+                      {cat.is_custom && (
+                        <span className="text-[10px] font-black text-amber-300 bg-amber-500/15 px-2 py-0.5 rounded-full border border-amber-500/30">
+                          Custom
+                        </span>
+                      )}
+                      <span className="text-[11px] font-black text-purple-300 bg-purple-500/10 px-2 py-0.5 rounded-full border border-purple-500/20">
+                        {cat.count || 0} Bundles
+                      </span>
+                    </div>
                   </div>
 
                   <h4 className="font-bold text-sm text-white mt-2 group-hover:text-purple-300 transition-colors">
@@ -1002,31 +1020,34 @@ export default function Products() {
                   )}
                 </div>
 
-                <div className="pt-3 mt-3 border-t border-slate-800/80 flex items-center justify-between">
+                <div className="pt-3 mt-3 border-t border-slate-800/80 flex items-center justify-between gap-2">
                   <a
-                    href={`https://vaultzet.shop/category/${cat.slug}`}
+                    href={`https://vaultzet.shop/shop?cat=${cat.slug}`}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="text-[11px] text-slate-400 hover:text-white font-semibold flex items-center gap-1"
+                    className="text-[11px] text-slate-400 hover:text-white font-semibold flex items-center gap-1 shrink-0"
                   >
                     <span>View Store</span>
                     <ExternalLink className="w-3 h-3" />
                   </a>
 
-                  <div className="flex items-center gap-1">
+                  <div className="flex items-center gap-1.5">
                     <button
                       onClick={() => handleOpenEditCategory(cat)}
-                      className="p-1.5 rounded-lg bg-slate-800 text-slate-300 hover:text-white hover:bg-slate-700 transition-colors"
+                      className="px-2.5 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 hover:text-white font-bold text-xs flex items-center gap-1 transition-colors border border-slate-700/60"
                       title="Edit Category"
                     >
-                      <Edit2 className="w-3 h-3" />
+                      <Edit2 className="w-3.5 h-3.5 text-purple-400" />
+                      <span>Edit</span>
                     </button>
                     <button
                       onClick={() => handleDeleteCategory(cat)}
-                      className="p-1.5 rounded-lg bg-rose-500/10 text-rose-400 hover:bg-rose-500/20 hover:text-rose-300 transition-colors"
-                      title="Delete Category"
+                      disabled={deleteCategoryMutation.isPending}
+                      className="px-2.5 py-1.5 rounded-xl bg-rose-500/15 hover:bg-rose-500/25 text-rose-400 hover:text-rose-200 font-bold text-xs flex items-center gap-1 transition-colors border border-rose-500/30 disabled:opacity-50"
+                      title="Delete Category from Store"
                     >
-                      <Trash2 className="w-3 h-3" />
+                      <Trash2 className="w-3.5 h-3.5" />
+                      <span>Delete</span>
                     </button>
                   </div>
                 </div>
@@ -1720,22 +1741,38 @@ export default function Products() {
                 />
               </div>
 
-              <div className="flex items-center justify-end gap-3 pt-3 border-t border-slate-800">
-                <button
-                  type="button"
-                  onClick={() => setIsCategoryModalOpen(false)}
-                  className="px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold text-xs transition-colors"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  disabled={createCategoryMutation.isPending || updateCategoryMutation.isPending}
-                  className="px-5 py-2 rounded-xl bg-purple-600 hover:bg-purple-500 text-white font-bold text-xs flex items-center gap-1.5 shadow-lg shadow-purple-600/30 transition-all disabled:opacity-50"
-                >
-                  <Check className="w-4 h-4" />
-                  <span>{editingCategory ? 'Update Category' : 'Create Category'}</span>
-                </button>
+              <div className="flex items-center justify-between gap-3 pt-3 border-t border-slate-800">
+                {editingCategory ? (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const catToDelete = editingCategory;
+                      setIsCategoryModalOpen(false);
+                      handleDeleteCategory(catToDelete);
+                    }}
+                    className="px-4 py-2 rounded-xl bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 border border-rose-500/30 font-bold text-xs flex items-center gap-1.5 transition-colors"
+                  >
+                    <Trash2 className="w-3.5 h-3.5" />
+                    <span>Delete Category</span>
+                  </button>
+                ) : <div />}
+                <div className="flex items-center gap-3">
+                  <button
+                    type="button"
+                    onClick={() => setIsCategoryModalOpen(false)}
+                    className="px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold text-xs transition-colors"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={createCategoryMutation.isPending || updateCategoryMutation.isPending}
+                    className="px-5 py-2 rounded-xl bg-purple-600 hover:bg-purple-500 text-white font-bold text-xs flex items-center gap-1.5 shadow-lg shadow-purple-600/30 transition-all disabled:opacity-50"
+                  >
+                    <Check className="w-4 h-4" />
+                    <span>{editingCategory ? 'Update Category' : 'Create Category'}</span>
+                  </button>
+                </div>
               </div>
             </form>
           </div>
