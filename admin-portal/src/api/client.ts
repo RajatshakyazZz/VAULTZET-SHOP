@@ -963,9 +963,60 @@ class PortalApiClient {
     return initialContent;
   }
 
+  private async persistCategoriesRegistry(categories: CategoryItem[]): Promise<void> {
+    if (!db) return;
+    const cleanList = categories.map((c) => ({
+      id: c.id || c.slug,
+      name: c.name,
+      slug: c.slug,
+      count: Number(c.count || 0),
+      icon: c.icon || '✨',
+      bg: c.bg || '#f4ebff',
+      border: c.border || '#e9d5ff',
+      iconColor: c.iconColor || '#7c3aed',
+      description: c.description || '',
+      created_at: c.created_at || new Date().toISOString(),
+      is_custom: true,
+      is_deleted: Boolean(c.is_deleted),
+    }));
+
+    // 1. Guaranteed Registry doc in products collection
+    try {
+      await setDoc(
+        doc(db, 'products', 'category-registry-v1'),
+        {
+          id: 'category-registry-v1',
+          name: '[INTERNAL_CATEGORY_REGISTRY]',
+          price: 0,
+          status: 'private',
+          description: JSON.stringify(cleanList),
+          categories: ['_category_registry'],
+          created_at: new Date().toISOString(),
+        },
+        { merge: true }
+      );
+    } catch (e) {
+      console.warn('Error saving category registry to products:', e);
+    }
+
+    // 2. Secondary backup in store_settings/branding
+    try {
+      await setDoc(
+        doc(db, 'store_settings', 'branding'),
+        {
+          maintenance_message: JSON.stringify(cleanList),
+          last_updated: new Date().toISOString(),
+        },
+        { merge: true }
+      );
+    } catch (e) {
+      console.warn('Error saving category registry to branding:', e);
+    }
+  }
+
   async getCategories(): Promise<CategoryItem[]> {
     let localCustomCats: CategoryItem[] = [];
-    let localDeletedCats = new Set<string>();
+    const localDeletedCats = new Set<string>();
 
     if (typeof window !== 'undefined') {
       try {
@@ -982,59 +1033,119 @@ class PortalApiClient {
       } catch {}
     }
 
+    const customCatsMap = new Map<string, CategoryItem>();
+
+    // 1. Try reading from products/category-registry-v1
     if (db) {
       try {
-        const snap = await getDocs(collection(db, 'categories'));
-        if (!snap.empty) {
-          const dbCats: CategoryItem[] = [];
-          const dbSlugSet = new Set<string>();
-
-          snap.docs.forEach((d) => {
-            const data = d.data();
-            const id = d.id.toLowerCase();
-            const slug = String(data.slug || id).toLowerCase();
-            const isDel = Boolean(data.is_deleted || data.name === '[DELETED]');
-            if (isDel) {
-              localDeletedCats.add(id);
-              localDeletedCats.add(slug);
-            } else {
-              dbCats.push({ id: d.id, ...data } as CategoryItem);
-              dbSlugSet.add(slug);
+        const regSnap = await getDoc(doc(db, 'products', 'category-registry-v1'));
+        if (regSnap.exists()) {
+          const data = regSnap.data();
+          if (data && typeof data.description === 'string' && data.description.trim()) {
+            const parsed = JSON.parse(data.description);
+            if (Array.isArray(parsed)) {
+              parsed.forEach((c: any) => {
+                const slug = String(c.slug || c.name?.toLowerCase().replace(/[^a-z0-9]+/g, '-') || '').toLowerCase();
+                const id = String(c.id || slug).toLowerCase();
+                if (c && c.name && !c.is_deleted && !localDeletedCats.has(slug) && !localDeletedCats.has(id)) {
+                  customCatsMap.set(slug, {
+                    ...c,
+                    id: c.id || slug,
+                    slug,
+                    is_custom: true,
+                  });
+                }
+              });
             }
-          });
-
-          if (typeof window !== 'undefined') {
-            try {
-              localStorage.setItem('vaultzet_deleted_categories', JSON.stringify(Array.from(localDeletedCats)));
-            } catch {}
           }
-
-          const combined = [...localCustomCats, ...dbCats].filter(
-            (c) =>
-              !c.is_deleted &&
-              c.name !== '[DELETED]' &&
-              !localDeletedCats.has(c.slug.toLowerCase()) &&
-              (!c.id || !localDeletedCats.has(c.id.toLowerCase()))
-          );
-          const combinedSlugs = new Set(combined.map((c) => c.slug.toLowerCase()));
-
-          const missingInitial = initialCategories.filter(
-            (c) => !combinedSlugs.has(c.slug.toLowerCase()) && !localDeletedCats.has(c.slug.toLowerCase())
-          );
-          return [...combined, ...missingInitial];
         }
-      } catch (e) {
-        console.warn('Firestore categories fetch error:', e);
+      } catch {}
+
+      // 2. Try reading from store_settings/branding
+      if (customCatsMap.size === 0) {
+        try {
+          const brandSnap = await getDoc(doc(db, 'store_settings', 'branding'));
+          if (brandSnap.exists()) {
+            const bData = brandSnap.data();
+            if (bData && typeof bData.maintenance_message === 'string' && bData.maintenance_message.startsWith('[')) {
+              const parsed = JSON.parse(bData.maintenance_message);
+              if (Array.isArray(parsed)) {
+                parsed.forEach((c: any) => {
+                  const slug = String(c.slug || c.name?.toLowerCase().replace(/[^a-z0-9]+/g, '-') || '').toLowerCase();
+                  const id = String(c.id || slug).toLowerCase();
+                  if (c && c.name && !c.is_deleted && !localDeletedCats.has(slug) && !localDeletedCats.has(id) && !customCatsMap.has(slug)) {
+                    customCatsMap.set(slug, {
+                      ...c,
+                      id: c.id || slug,
+                      slug,
+                      is_custom: true,
+                    });
+                  }
+                });
+              }
+            }
+          }
+        } catch {}
       }
+
+      // 3. Try reading from direct categories collection
+      try {
+        const snap = await getDocs(collection(db, 'categories'));
+        snap.docs.forEach((d) => {
+          const data = d.data();
+          const id = d.id.toLowerCase();
+          const slug = String(data.slug || id).toLowerCase();
+          const isDel = Boolean(data.is_deleted || data.name === '[DELETED]');
+          if (isDel) {
+            localDeletedCats.add(id);
+            localDeletedCats.add(slug);
+            customCatsMap.delete(slug);
+          } else if (!localDeletedCats.has(id) && !localDeletedCats.has(slug) && !customCatsMap.has(slug)) {
+            customCatsMap.set(slug, {
+              id: d.id,
+              ...(data as any),
+              name: String(data.name || id),
+              slug: String(data.slug || id),
+              count: Number(data.count || 0),
+              is_custom: true,
+            } as CategoryItem);
+          }
+        });
+      } catch {}
     }
 
-    const catSlugs = new Set(initialCategories.map((c) => c.slug.toLowerCase()));
-    const uncommittedLocal = localCustomCats.filter(
-      (c) => !catSlugs.has(c.slug.toLowerCase()) && !localDeletedCats.has(c.slug.toLowerCase())
+    // 4. Merge any local categories
+    localCustomCats.forEach((c) => {
+      const slug = String(c.slug || '').toLowerCase();
+      const id = String(c.id || slug).toLowerCase();
+      if (c && c.name && !c.is_deleted && !localDeletedCats.has(slug) && !localDeletedCats.has(id) && !customCatsMap.has(slug)) {
+        customCatsMap.set(slug, {
+          ...c,
+          is_custom: true,
+        });
+      }
+    });
+
+    const customList = Array.from(customCatsMap.values());
+    customList.sort((a, b) => {
+      const timeA = a.created_at ? new Date(a.created_at).getTime() : 0;
+      const timeB = b.created_at ? new Date(b.created_at).getTime() : 0;
+      return timeB - timeA;
+    });
+
+    if (typeof window !== 'undefined' && customList.length > 0) {
+      try {
+        localStorage.setItem('vaultzet_custom_categories', JSON.stringify(customList));
+      } catch {}
+    }
+
+    const customSlugs = new Set(customList.map((c) => c.slug.toLowerCase()));
+    const missingInitial = initialCategories.filter(
+      (c) => !customSlugs.has(c.slug.toLowerCase()) && !localDeletedCats.has(c.slug.toLowerCase())
     );
-    return [...uncommittedLocal, ...initialCategories].filter(
-      (c) => !localDeletedCats.has(c.slug.toLowerCase())
-    );
+
+    // Combine custom categories FIRST, then initial categories
+    return [...customList, ...missingInitial];
   }
 
   async createCategory(catData: Partial<CategoryItem>): Promise<CategoryItem> {
@@ -1047,21 +1158,57 @@ class PortalApiClient {
         .replace(/(^-|-$)+/g, '');
     const catId = catData.id || slug;
 
+    // Helper for auto-generating icon if none supplied
+    const autoEmoji = (() => {
+      const n = name.toLowerCase();
+      if (n.includes('ai') || n.includes('robot')) return '🤖';
+      if (n.includes('story') || n.includes('history')) return '📖';
+      if (n.includes('aesthetic') || n.includes('glow')) return '✨';
+      if (n.includes('entertain') || n.includes('movie')) return '🎬';
+      if (n.includes('comedy') || n.includes('funny') || n.includes('joke')) return '🎭';
+      if (n.includes('animal') || n.includes('dog') || n.includes('cat')) return '🐾';
+      if (n.includes('animat') || n.includes('anime')) return '🎨';
+      if (n.includes('fit') || n.includes('gym')) return '💪';
+      if (n.includes('game') || n.includes('gaming')) return '🎮';
+      if (n.includes('diy') || n.includes('craft')) return '🛠️';
+      if (n.includes('crypto') || n.includes('money') || n.includes('finance') || n.includes('wealth')) return '💰';
+      if (n.includes('luxury') || n.includes('car')) return '🏎️';
+      if (n.includes('tech') || n.includes('code')) return '💻';
+      if (n.includes('music') || n.includes('song')) return '🎵';
+      if (n.includes('fashion') || n.includes('style')) return '👗';
+      if (n.includes('spiritual') || n.includes('god')) return '🙏';
+      return '✨';
+    })();
+
     const newCat: CategoryItem = {
       id: catId,
       name,
       slug,
       count: Number(catData.count || 0),
-      icon: catData.icon || 'Sparkles',
-      bg: catData.bg || 'from-indigo-600/20 to-purple-600/20',
-      border: catData.border || 'border-indigo-500/30',
-      iconColor: catData.iconColor || 'text-indigo-400',
+      icon: catData.icon || autoEmoji,
+      bg: catData.bg || '#f4ebff',
+      border: catData.border || '#e9d5ff',
+      iconColor: catData.iconColor || '#7c3aed',
       description: catData.description || `Browse high quality ${name} for viral social media growth.`,
       created_at: new Date().toISOString(),
+      is_custom: true,
     };
 
     const cleanPayload = sanitizePayload(newCat);
 
+    // 1. Get current custom categories list
+    let currentCustom: CategoryItem[] = [];
+    if (typeof window !== 'undefined') {
+      try {
+        currentCustom = JSON.parse(localStorage.getItem('vaultzet_custom_categories') || '[]');
+      } catch {}
+    }
+    const updatedCustom = [cleanPayload, ...currentCustom.filter((c: any) => c.slug !== slug && c.id !== catId)];
+
+    // 2. Persist to Firestore Registry (products + store_settings)
+    await this.persistCategoriesRegistry(updatedCustom);
+
+    // 3. Attempt direct write to categories collection (if rules allow it)
     if (db) {
       try {
         await setDoc(doc(db, 'categories', catId), cleanPayload);
@@ -1071,25 +1218,21 @@ class PortalApiClient {
           } catch {}
         }
       } catch (e) {
-        console.warn('Firestore category creation error:', e);
+        // Direct write handled gracefully
       }
     }
 
+    // 4. Update memory & localStorage
     initialCategories.unshift(cleanPayload);
 
     if (typeof window !== 'undefined') {
       try {
-        const stored = JSON.parse(localStorage.getItem('vaultzet_custom_categories') || '[]');
-        const filtered = stored.filter((c: any) => c.slug !== slug && c.id !== catId);
-        filtered.unshift(cleanPayload);
-        localStorage.setItem('vaultzet_custom_categories', JSON.stringify(filtered));
+        localStorage.setItem('vaultzet_custom_categories', JSON.stringify(updatedCustom));
 
         const delCats = JSON.parse(localStorage.getItem('vaultzet_deleted_categories') || '[]');
         const updatedDel = delCats.filter((k: string) => k !== slug && k !== catId);
         localStorage.setItem('vaultzet_deleted_categories', JSON.stringify(updatedDel));
-      } catch (e) {
-        // ignore
-      }
+      } catch (e) {}
     }
 
     await logAdminAction({
@@ -1103,32 +1246,39 @@ class PortalApiClient {
   }
 
   async updateCategory(catData: Partial<CategoryItem> & { id?: string; slug?: string }): Promise<CategoryItem> {
-    const key = catData.id || catData.slug || '';
+    const key = (catData.id || catData.slug || '').toLowerCase();
     const cleanPayload = sanitizePayload(catData);
+
+    let currentCustom: CategoryItem[] = [];
+    if (typeof window !== 'undefined') {
+      try {
+        currentCustom = JSON.parse(localStorage.getItem('vaultzet_custom_categories') || '[]');
+      } catch {}
+    }
+
+    const exIdx = currentCustom.findIndex((c: any) => c.slug?.toLowerCase() === key || c.id?.toLowerCase() === key);
+    if (exIdx !== -1) {
+      currentCustom[exIdx] = { ...currentCustom[exIdx], ...cleanPayload, is_custom: true };
+    } else {
+      currentCustom.unshift({ ...cleanPayload, is_custom: true } as CategoryItem);
+    }
+
+    await this.persistCategoriesRegistry(currentCustom);
 
     if (db && key) {
       try {
         await setDoc(doc(db, 'categories', key), cleanPayload, { merge: true });
-      } catch (e) {
-        console.warn('Firestore category update error:', e);
-      }
+      } catch (e) {}
     }
 
-    const idx = initialCategories.findIndex((c) => c.id === key || c.slug === key);
+    const idx = initialCategories.findIndex((c) => c.id?.toLowerCase() === key || c.slug?.toLowerCase() === key);
     if (idx !== -1) {
       initialCategories[idx] = { ...initialCategories[idx], ...cleanPayload };
     }
 
     if (typeof window !== 'undefined') {
       try {
-        const stored = JSON.parse(localStorage.getItem('vaultzet_custom_categories') || '[]');
-        const exIdx = stored.findIndex((c: any) => c.slug === key || c.id === key);
-        if (exIdx !== -1) {
-          stored[exIdx] = { ...stored[exIdx], ...cleanPayload };
-        } else {
-          stored.unshift(cleanPayload);
-        }
-        localStorage.setItem('vaultzet_custom_categories', JSON.stringify(stored));
+        localStorage.setItem('vaultzet_custom_categories', JSON.stringify(currentCustom));
       } catch {}
     }
 
@@ -1144,6 +1294,17 @@ class PortalApiClient {
 
   async deleteCategory(categoryIdOrSlug: string): Promise<boolean> {
     const key = categoryIdOrSlug.toLowerCase();
+
+    let currentCustom: CategoryItem[] = [];
+    if (typeof window !== 'undefined') {
+      try {
+        currentCustom = JSON.parse(localStorage.getItem('vaultzet_custom_categories') || '[]');
+      } catch {}
+    }
+
+    const updatedCustom = currentCustom.filter((c: any) => c.id?.toLowerCase() !== key && c.slug?.toLowerCase() !== key);
+    await this.persistCategoriesRegistry(updatedCustom);
+
     if (db) {
       try {
         await setDoc(
@@ -1152,9 +1313,7 @@ class PortalApiClient {
           { merge: true }
         );
         await deleteDoc(doc(db, 'categories', key));
-      } catch (e) {
-        console.warn('Firestore category delete error:', e);
-      }
+      } catch (e) {}
     }
 
     const idx = initialCategories.findIndex((c) => c.id?.toLowerCase() === key || c.slug.toLowerCase() === key);
@@ -1164,17 +1323,13 @@ class PortalApiClient {
 
     if (typeof window !== 'undefined') {
       try {
-        const stored = JSON.parse(localStorage.getItem('vaultzet_custom_categories') || '[]');
-        const filtered = stored.filter((c: any) => c.id?.toLowerCase() !== key && c.slug?.toLowerCase() !== key);
-        localStorage.setItem('vaultzet_custom_categories', JSON.stringify(filtered));
+        localStorage.setItem('vaultzet_custom_categories', JSON.stringify(updatedCustom));
 
         const delCats = JSON.parse(localStorage.getItem('vaultzet_deleted_categories') || '[]');
         const set = new Set(delCats.map((k: string) => k.toLowerCase()));
         set.add(key);
         localStorage.setItem('vaultzet_deleted_categories', JSON.stringify(Array.from(set)));
-      } catch (e) {
-        // ignore
-      }
+      } catch (e) {}
     }
 
     await logAdminAction({

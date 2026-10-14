@@ -48,7 +48,7 @@ function ShopContent() {
       }
     }).catch(() => {});
 
-    fetchCustomCategories().then((cats) => {
+    fetchCustomCategories(true).then((cats) => {
       if (cats && cats.length > 0) {
         setCategories(cats);
       }
@@ -232,6 +232,11 @@ function ShopContent() {
                               {isSelected && <Check className="w-3 h-3 stroke-[3]" />}
                             </div>
                             <span className="text-xs font-bold">{cat.name}</span>
+                            {cat.is_custom && (
+                              <span className="text-[9px] font-black px-1.5 py-0.5 rounded-full bg-purple-100 text-purple-700 leading-none">
+                                NEW
+                              </span>
+                            )}
                           </div>
                           <span className="text-[11px] text-[#8e95b0] bg-[#f4f2fa] px-2.5 py-0.5 rounded-full font-bold">
                             {count}

@@ -157,6 +157,7 @@ export default function Products() {
     slug: '',
     description: '',
     count: 0,
+    icon: '✨',
   });
 
   // ==========================================
@@ -234,9 +235,10 @@ export default function Products() {
     mutationFn: (newCat: Partial<CategoryItem>) => portalApi.createCategory(newCat),
     onSuccess: (created) => {
       queryClient.setQueryData(['categories'], (old: CategoryItem[] = []) => [created, ...old]);
+      queryClient.invalidateQueries({ queryKey: ['categories'] });
       success('Category Created', `"${created.name}" is now available for bundles.`);
       setIsCategoryModalOpen(false);
-      setCategoryForm({ name: '', slug: '', description: '', count: 0 });
+      setCategoryForm({ name: '', slug: '', description: '', count: 0, icon: '✨' });
     },
     onError: (err: any) => error('Category Failed', err.message || 'Could not save category.'),
   });
@@ -248,6 +250,7 @@ export default function Products() {
       queryClient.setQueryData(['categories'], (old: CategoryItem[] = []) =>
         old.map((c) => (c.slug === updated.slug || c.id === updated.id ? { ...c, ...updated } : c))
       );
+      queryClient.invalidateQueries({ queryKey: ['categories'] });
       success('Category Updated', `Updated details for "${updated.name || updated.slug}".`);
       setIsCategoryModalOpen(false);
       setEditingCategory(null);
@@ -261,6 +264,7 @@ export default function Products() {
       queryClient.setQueryData(['categories'], (old: CategoryItem[] = []) =>
         old.filter((c) => c.slug !== deletedKey && c.id !== deletedKey)
       );
+      queryClient.invalidateQueries({ queryKey: ['categories'] });
       success('Category Deleted', 'Category removed from store.');
     },
     onError: (err: any) => error('Delete Failed', err.message || 'Could not delete category.'),
@@ -384,7 +388,7 @@ export default function Products() {
 
   const handleOpenAddCategory = () => {
     setEditingCategory(null);
-    setCategoryForm({ name: '', slug: '', description: '', count: 0 });
+    setCategoryForm({ name: '', slug: '', description: '', count: 0, icon: '✨' });
     setIsCategoryModalOpen(true);
   };
 
@@ -395,6 +399,7 @@ export default function Products() {
       slug: cat.slug,
       description: cat.description || '',
       count: cat.count || 0,
+      icon: cat.icon || '✨',
     });
     setIsCategoryModalOpen(true);
   };
@@ -424,6 +429,7 @@ export default function Products() {
         slug: categoryForm.slug.trim(),
         name: categoryForm.name.trim(),
         description: categoryForm.description.trim(),
+        icon: categoryForm.icon?.trim() || '✨',
         count: Number(categoryForm.count || 0),
       });
     } else {
@@ -431,6 +437,7 @@ export default function Products() {
         name: categoryForm.name.trim(),
         slug: categoryForm.slug.trim(),
         description: categoryForm.description.trim(),
+        icon: categoryForm.icon?.trim() || '✨',
         count: Number(categoryForm.count || 0),
       });
     }
@@ -1649,6 +1656,38 @@ export default function Products() {
                   onChange={(e) => handleCategoryNameChange(e.target.value)}
                   className="w-full px-3.5 py-2.5 rounded-xl bg-slate-950 border border-slate-800 focus:border-purple-500 text-xs font-semibold text-white focus:outline-none"
                 />
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-slate-300 mb-1.5">
+                  Category Icon / Emoji
+                </label>
+                <div className="flex items-center gap-2">
+                  <input
+                    type="text"
+                    maxLength={10}
+                    placeholder="✨"
+                    value={categoryForm.icon || '✨'}
+                    onChange={(e) => setCategoryForm((prev) => ({ ...prev, icon: e.target.value }))}
+                    className="w-16 text-center px-2 py-2 rounded-xl bg-slate-950 border border-slate-800 focus:border-purple-500 text-lg font-bold text-white focus:outline-none shrink-0"
+                  />
+                  <div className="flex items-center gap-1.5 flex-wrap">
+                    {['✨', '🔥', '🚀', '💎', '🎬', '🤖', '💰', '⚡', '🎮', '🐾', '💪', '👑'].map((em) => (
+                      <button
+                        key={em}
+                        type="button"
+                        onClick={() => setCategoryForm((prev) => ({ ...prev, icon: em }))}
+                        className={`w-8 h-8 rounded-lg text-sm flex items-center justify-center transition-all border ${
+                          categoryForm.icon === em
+                            ? 'bg-purple-600/40 border-purple-500 text-white scale-110'
+                            : 'bg-slate-950 hover:bg-slate-800 border-slate-800 text-slate-300'
+                        }`}
+                      >
+                        {em}
+                      </button>
+                    ))}
+                  </div>
+                </div>
               </div>
 
               <div>

@@ -1,6 +1,6 @@
 import { BundleProduct } from '@/types';
 import { db } from '@/lib/firebase';
-import { collection, getDocs } from 'firebase/firestore';
+import { collection, getDocs, doc, getDoc } from 'firebase/firestore';
 
 export interface CategoryItem {
   id?: string;
@@ -15,6 +15,7 @@ export interface CategoryItem {
   aliases?: string[];
   keywords?: string[];
   created_at?: string;
+  is_custom?: boolean;
 }
 
 export const COMPETITOR_CATEGORIES: CategoryItem[] = [
@@ -535,7 +536,25 @@ export function getLocalCategoriesSync(): CategoryItem[] {
     if (!raw) return base;
     const custom = JSON.parse(raw);
     if (Array.isArray(custom) && custom.length > 0) {
-      const validCustom = custom.filter((c: any) => !deleted.has(String(c.slug || '').toLowerCase()));
+      const validCustom = custom
+        .filter((c: any) => c && c.name && !c.is_deleted && !deleted.has(String(c.slug || '').toLowerCase()) && (!c.id || !deleted.has(String(c.id).toLowerCase())))
+        .map((c: any) => ({
+          ...c,
+          is_custom: true,
+          count: Number(c.count || 0),
+          icon: c.icon || '✨',
+          bg: c.bg || '#f4ebff',
+          border: c.border || '#e9d5ff',
+          iconColor: c.iconColor || '#7c3aed',
+        }));
+
+      // Sort newest first
+      validCustom.sort((a: any, b: any) => {
+        const timeA = a.created_at ? new Date(a.created_at).getTime() : 0;
+        const timeB = b.created_at ? new Date(b.created_at).getTime() : 0;
+        return timeB - timeA;
+      });
+
       const customSlugs = new Set(validCustom.map((c: any) => String(c.slug || '').toLowerCase()));
       const initialFiltered = base.filter((c) => !customSlugs.has(c.slug.toLowerCase()));
       return [...validCustom, ...initialFiltered];
@@ -546,16 +565,89 @@ export function getLocalCategoriesSync(): CategoryItem[] {
 
 export async function fetchCustomCategories(force = false): Promise<CategoryItem[]> {
   const now = Date.now();
-  if (!force && cachedCustomCategories && now - lastCatFetchTime < 30000) {
+  if (!force && cachedCustomCategories && now - lastCatFetchTime < 15000) {
     return cachedCustomCategories;
   }
 
   const deletedSet = getDeletedCategoriesSync();
-  const localCategories = getLocalCategoriesSync();
-  const list: CategoryItem[] = [];
-  const slugSet = new Set<string>();
+  const customCategoriesMap = new Map<string, CategoryItem>();
 
+  // 1. Fetch from guaranteed cloud registry in products collection
   if (db) {
+    try {
+      const regSnap = await getDoc(doc(db, 'products', 'category-registry-v1'));
+      if (regSnap.exists()) {
+        const regData = regSnap.data();
+        if (regData && typeof regData.description === 'string' && regData.description.trim()) {
+          try {
+            const parsed = JSON.parse(regData.description);
+            if (Array.isArray(parsed)) {
+              parsed.forEach((c: any) => {
+                const slug = String(c.slug || c.name?.toLowerCase().replace(/[^a-z0-9]+/g, '-') || '').toLowerCase();
+                const id = String(c.id || slug).toLowerCase();
+                if (c && c.name && !c.is_deleted && !deletedSet.has(slug) && !deletedSet.has(id)) {
+                  customCategoriesMap.set(slug, {
+                    id: c.id || slug,
+                    name: String(c.name).trim(),
+                    slug,
+                    count: Number(c.count || 0),
+                    icon: c.icon || '✨',
+                    bg: c.bg || '#f4ebff',
+                    border: c.border || '#e9d5ff',
+                    iconColor: c.iconColor || '#7c3aed',
+                    description: c.description || '',
+                    keywords: Array.isArray(c.keywords) ? c.keywords : c.name.toLowerCase().split(/\s+/),
+                    created_at: c.created_at || c.createdAt || new Date().toISOString(),
+                    is_custom: true,
+                  });
+                }
+              });
+            }
+          } catch {}
+        }
+      }
+    } catch (e) {
+      // ignore
+    }
+
+    // 2. Fetch from secondary cloud backup in store_settings/branding
+    try {
+      const brandSnap = await getDoc(doc(db, 'store_settings', 'branding'));
+      if (brandSnap.exists()) {
+        const bData = brandSnap.data();
+        if (bData && typeof bData.maintenance_message === 'string' && bData.maintenance_message.startsWith('[')) {
+          try {
+            const parsed = JSON.parse(bData.maintenance_message);
+            if (Array.isArray(parsed)) {
+              parsed.forEach((c: any) => {
+                const slug = String(c.slug || c.name?.toLowerCase().replace(/[^a-z0-9]+/g, '-') || '').toLowerCase();
+                const id = String(c.id || slug).toLowerCase();
+                if (c && c.name && !c.is_deleted && !deletedSet.has(slug) && !deletedSet.has(id) && !customCategoriesMap.has(slug)) {
+                  customCategoriesMap.set(slug, {
+                    id: c.id || slug,
+                    name: String(c.name).trim(),
+                    slug,
+                    count: Number(c.count || 0),
+                    icon: c.icon || '✨',
+                    bg: c.bg || '#f4ebff',
+                    border: c.border || '#e9d5ff',
+                    iconColor: c.iconColor || '#7c3aed',
+                    description: c.description || '',
+                    keywords: Array.isArray(c.keywords) ? c.keywords : c.name.toLowerCase().split(/\s+/),
+                    created_at: c.created_at || c.createdAt || new Date().toISOString(),
+                    is_custom: true,
+                  });
+                }
+              });
+            }
+          } catch {}
+        }
+      }
+    } catch (e) {
+      // ignore
+    }
+
+    // 3. Fetch from direct categories collection (if accessible)
     try {
       const snap = await getDocs(collection(db, 'categories'));
       snap.docs.forEach((d) => {
@@ -568,50 +660,88 @@ export async function fetchCustomCategories(force = false): Promise<CategoryItem
         if (isDeleted) {
           deletedSet.add(id);
           deletedSet.add(slug);
+          customCategoriesMap.delete(slug);
         } else if (!deletedSet.has(id) && !deletedSet.has(slug)) {
-          const cat: CategoryItem = {
-            id: d.id,
-            name,
-            slug,
-            count: Number(data.count || 25),
-            icon: data.icon || '✨',
-            bg: data.bg || '#f4ebff',
-            border: data.border || '#e9d5ff',
-            iconColor: data.iconColor || '#7c3aed',
-            description: data.description || '',
-            keywords: Array.isArray(data.keywords) && data.keywords.length > 0 ? data.keywords : name.toLowerCase().split(/\s+/),
-            created_at: data.created_at || data.createdAt || '',
-          };
-          list.push(cat);
-          slugSet.add(slug);
+          if (!customCategoriesMap.has(slug)) {
+            customCategoriesMap.set(slug, {
+              id: d.id,
+              name,
+              slug,
+              count: Number(data.count || 0),
+              icon: data.icon || '✨',
+              bg: data.bg || '#f4ebff',
+              border: data.border || '#e9d5ff',
+              iconColor: data.iconColor || '#7c3aed',
+              description: data.description || '',
+              keywords: Array.isArray(data.keywords) && data.keywords.length > 0 ? data.keywords : name.toLowerCase().split(/\s+/),
+              created_at: data.created_at || data.createdAt || '',
+              is_custom: true,
+            });
+          }
         }
       });
     } catch (e) {
-      console.warn('Error fetching categories from Firestore:', e);
+      // direct categories collection might not have open rules yet
     }
   }
 
-  // Merge any local categories not yet in Firestore
-  for (const lc of localCategories) {
-    const slug = lc.slug.toLowerCase();
-    if (!slugSet.has(slug) && !deletedSet.has(slug)) {
-      list.push(lc);
-      slugSet.add(slug);
-    }
+  // 4. Merge any local categories
+  if (typeof window !== 'undefined') {
+    try {
+      const raw = localStorage.getItem('vaultzet_custom_categories');
+      if (raw) {
+        const custom = JSON.parse(raw);
+        if (Array.isArray(custom)) {
+          custom.forEach((c: any) => {
+            const slug = String(c.slug || c.name?.toLowerCase().replace(/[^a-z0-9]+/g, '-') || '').toLowerCase();
+            const id = String(c.id || slug).toLowerCase();
+            if (c && c.name && !c.is_deleted && !deletedSet.has(slug) && !deletedSet.has(id) && !customCategoriesMap.has(slug)) {
+              customCategoriesMap.set(slug, {
+                id: c.id || slug,
+                name: String(c.name).trim(),
+                slug,
+                count: Number(c.count || 0),
+                icon: c.icon || '✨',
+                bg: c.bg || '#f4ebff',
+                border: c.border || '#e9d5ff',
+                iconColor: c.iconColor || '#7c3aed',
+                description: c.description || '',
+                keywords: Array.isArray(c.keywords) ? c.keywords : c.name.toLowerCase().split(/\s+/),
+                created_at: c.created_at || c.createdAt || new Date().toISOString(),
+                is_custom: true,
+              });
+            }
+          });
+        }
+      }
+    } catch {}
   }
 
-  // Merge with static COMPETITOR_CATEGORIES
-  for (const cc of COMPETITOR_CATEGORIES) {
-    const slug = cc.slug.toLowerCase();
-    if (!slugSet.has(slug) && !deletedSet.has(slug)) {
-      list.push(cc);
-      slugSet.add(slug);
-    }
+  // Convert custom categories to array and sort newest first
+  const customList = Array.from(customCategoriesMap.values());
+  customList.sort((a, b) => {
+    const timeA = a.created_at ? new Date(a.created_at).getTime() : 0;
+    const timeB = b.created_at ? new Date(b.created_at).getTime() : 0;
+    return timeB - timeA;
+  });
+
+  // Sync back to local storage for instant offline / reload access
+  if (typeof window !== 'undefined' && customList.length > 0) {
+    try {
+      localStorage.setItem('vaultzet_custom_categories', JSON.stringify(customList));
+    } catch {}
   }
 
-  cachedCustomCategories = list;
+  // 5. Combine: Place custom categories at the FRONT, followed by competitor categories
+  const customSlugs = new Set(customList.map((c) => c.slug.toLowerCase()));
+  const remainingCompetitor = COMPETITOR_CATEGORIES.filter(
+    (cc) => !customSlugs.has(cc.slug.toLowerCase()) && !deletedSet.has(cc.slug.toLowerCase())
+  );
+
+  const combinedList = [...customList, ...remainingCompetitor];
+  cachedCustomCategories = combinedList;
   lastCatFetchTime = now;
-  return list;
+  return combinedList;
 }
 
 

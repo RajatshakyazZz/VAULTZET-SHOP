@@ -107,6 +107,7 @@ export const CategoryItemSchema = z.object({
   iconColor: z.string().optional(),
   description: z.string().optional(),
   created_at: z.string().optional(),
+  is_custom: z.boolean().optional(),
   is_deleted: z.boolean().optional(),
   deleted_at: z.string().optional(),
 });

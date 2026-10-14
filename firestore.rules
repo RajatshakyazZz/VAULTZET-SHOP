@@ -107,13 +107,14 @@ rules_version = '2';
 //    - slug: string (required, 1..100 chars)
 //    - id: string (optional, <= 100 chars)
 //    - count: number (optional, 0..100,000)
-//    - icon: string (optional, <= 50 chars)
-//    - bg: string (optional, <= 50 chars)
-//    - border: string (optional, <= 50 chars)
-//    - iconColor: string (optional, <= 50 chars)
-//    - description: string (optional, <= 500 chars)
+//    - icon: string (optional, <= 200 chars)
+//    - bg: string (optional, <= 100 chars)
+//    - border: string (optional, <= 100 chars)
+//    - iconColor: string (optional, <= 100 chars)
+//    - description: string (optional, <= 5000 chars)
 //    - createdAt: string (optional, <= 100 chars)
 //    - created_at: string (optional, <= 100 chars)
+//    - is_custom: bool (optional)
 //    - is_deleted: bool (optional)
 //    - deleted_at: string (optional, <= 100 chars)
 //    - keywords: list (optional, <= 50 items)
@@ -376,13 +377,14 @@ service cloud.firestore {
         isValidString(data.slug, 1, 100) &&
         isValidOptionalString(data, 'id', 100) &&
         isValidOptionalNumber(data, 'count', 0, 100000) &&
-        isValidOptionalString(data, 'icon', 50) &&
-        isValidOptionalString(data, 'bg', 50) &&
-        isValidOptionalString(data, 'border', 50) &&
-        isValidOptionalString(data, 'iconColor', 50) &&
-        isValidOptionalString(data, 'description', 500) &&
+        isValidOptionalString(data, 'icon', 200) &&
+        isValidOptionalString(data, 'bg', 100) &&
+        isValidOptionalString(data, 'border', 100) &&
+        isValidOptionalString(data, 'iconColor', 100) &&
+        isValidOptionalString(data, 'description', 5000) &&
         isValidOptionalString(data, 'createdAt', 100) &&
         isValidOptionalString(data, 'created_at', 100) &&
+        isValidOptionalBool(data, 'is_custom') &&
         isValidOptionalBool(data, 'is_deleted') &&
         isValidOptionalString(data, 'deleted_at', 100) &&
         isValidOptionalList(data, 'keywords', 50) &&

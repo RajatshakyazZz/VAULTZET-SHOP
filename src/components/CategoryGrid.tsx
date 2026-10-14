@@ -10,7 +10,7 @@ export default function CategoryGrid() {
   const [categories, setCategories] = useState<CategoryItem[]>(() => getLocalCategoriesSync());
 
   useEffect(() => {
-    fetchCustomCategories().then((res) => {
+    fetchCustomCategories(true).then((res) => {
       if (res && res.length > 0) {
         setCategories(res);
       }
@@ -59,23 +59,28 @@ export default function CategoryGrid() {
                 key={cat.slug}
                 href={`/shop?cat=${cat.slug}`}
                 prefetch={false}
-                className="py-5 px-4 rounded-[20px] bg-white border border-[#f1ecfa] shadow-[0_4px_14px_rgba(30,15,70,0.03)] hover:shadow-[0_10px_25px_rgba(108,60,240,0.09)] hover:-translate-y-0.5 transition-all text-center flex flex-col items-center justify-center group"
+                className="py-5 px-4 rounded-[20px] bg-white border border-[#f1ecfa] shadow-[0_4px_14px_rgba(30,15,70,0.03)] hover:shadow-[0_10px_25px_rgba(108,60,240,0.09)] hover:-translate-y-0.5 transition-all text-center flex flex-col items-center justify-center group relative"
               >
+                {cat.is_custom && (
+                  <span className="absolute top-2.5 right-2.5 px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider bg-purple-100 text-purple-700 border border-purple-200 shadow-2xs">
+                    New
+                  </span>
+                )}
                 {/* Pastel Icon Box */}
                 <div
                   style={{
-                    backgroundColor: cat.bg,
+                    backgroundColor: cat.bg || '#f4ebff',
                     color: (cat as any).iconColor || '#6d36e8',
                   }}
                   className="w-11 h-11 rounded-[14px] flex items-center justify-center text-lg font-bold mb-2.5 group-hover:scale-105 transition-transform"
                 >
-                  {cat.icon}
+                  {cat.icon || '✨'}
                 </div>
                 <h3 className="font-extrabold text-[14px] sm:text-[15px] text-[#141d42] group-hover:text-[#6d36e8] transition-colors leading-snug">
                   {cat.name}
                 </h3>
                 <p className="text-[11px] font-semibold text-[#4a5270] mt-0.5">
-                  {cat.count} Bundles
+                  {cat.count || 0} Bundles
                 </p>
               </Link>
             ))}

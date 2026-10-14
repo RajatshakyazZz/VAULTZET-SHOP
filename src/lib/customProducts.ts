@@ -165,6 +165,13 @@ export async function fetchCustomProducts(force = false): Promise<BundleProduct[
       const snap = await getDocs(collection(db, 'products'));
       snap.docs.forEach((d) => {
         const data = d.data();
+        if (
+          d.id === 'category-registry-v1' ||
+          data.name === '[INTERNAL_CATEGORY_REGISTRY]' ||
+          data.status === 'private'
+        ) {
+          return;
+        }
         const slug = String(data.slug || d.id || '').toLowerCase();
         const isDeleted = Boolean(data.is_deleted || data.status === 'trash' || data.status === 'draft');
 
