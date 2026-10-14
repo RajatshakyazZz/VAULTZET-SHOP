@@ -27,6 +27,7 @@ export interface BundleProduct {
   format: string;
   audioIncluded: boolean;
   googleDriveLink?: string;
+  files?: Array<{ id?: string; name: string; file_url: string }>;
   features: string[];
   faqs: { question: string; answer: string }[];
   aliases?: string[];

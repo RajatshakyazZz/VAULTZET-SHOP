@@ -8,7 +8,12 @@ import {
 } from '@/lib/telegram';
 import { BUNDLE_PRODUCTS } from '@/data/bundles';
 
-async function resolveDriveLinkForProduct(item: { id?: string; title?: string }): Promise<string> {
+interface ResolvedProductFiles {
+  primaryLink: string;
+  files: Array<{ id?: string; name: string; file_url: string }>;
+}
+
+async function resolveDriveFilesForProduct(item: { id?: string; title?: string }): Promise<ResolvedProductFiles> {
   const cleanId = String(item.id || '').trim();
   const cleanTitle = String(item.title || '').trim().toLowerCase();
 
@@ -18,12 +23,30 @@ async function resolveDriveLinkForProduct(item: { id?: string; title?: string })
       const snap = await getDoc(doc(db, 'products', cleanId));
       if (snap.exists()) {
         const data = snap.data();
-        const link =
+        const filesList: any[] = Array.isArray(data.files) && data.files.length > 0
+          ? data.files
+              .filter((f: any) => f && (f.file_url || f.url))
+              .map((f: any, idx: number) => ({
+                id: f.id || `file-${idx + 1}`,
+                name: f.name || `Drive File ${idx + 1}`,
+                file_url: f.file_url || f.url,
+              }))
+          : [];
+
+        const primaryLink =
+          filesList[0]?.file_url ||
           data.google_drive_link ||
           data.googleDriveLink ||
-          data.files?.[0]?.file_url;
-        if (link && typeof link === 'string' && link.startsWith('http')) {
-          return link;
+          '';
+
+        if (filesList.length > 0 || (primaryLink && primaryLink.startsWith('http'))) {
+          return {
+            primaryLink: primaryLink || filesList[0]?.file_url,
+            files:
+              filesList.length > 0
+                ? filesList
+                : [{ name: `${item.title || 'Reels Bundle'} Google Drive Access`, file_url: primaryLink }],
+          };
         }
       }
     } catch (e) {
@@ -40,12 +63,30 @@ async function resolveDriveLinkForProduct(item: { id?: string; title?: string })
         const matchesName = data.name && data.name.toLowerCase() === cleanTitle;
         const matchesSlug = data.slug && (data.slug === cleanId || cleanTitle.includes(data.slug));
         if (matchesName || matchesSlug) {
-          const link =
+          const filesList: any[] = Array.isArray(data.files) && data.files.length > 0
+            ? data.files
+                .filter((f: any) => f && (f.file_url || f.url))
+                .map((f: any, idx: number) => ({
+                  id: f.id || `file-${idx + 1}`,
+                  name: f.name || `Drive File ${idx + 1}`,
+                  file_url: f.file_url || f.url,
+                }))
+            : [];
+
+          const primaryLink =
+            filesList[0]?.file_url ||
             data.google_drive_link ||
             data.googleDriveLink ||
-            data.files?.[0]?.file_url;
-          if (link && typeof link === 'string' && link.startsWith('http')) {
-            return link;
+            '';
+
+          if (filesList.length > 0 || (primaryLink && primaryLink.startsWith('http'))) {
+            return {
+              primaryLink: primaryLink || filesList[0]?.file_url,
+              files:
+                filesList.length > 0
+                  ? filesList
+                  : [{ name: `${data.name || item.title || 'Reels Bundle'} Google Drive Access`, file_url: primaryLink }],
+            };
           }
         }
       }
@@ -63,11 +104,15 @@ async function resolveDriveLinkForProduct(item: { id?: string; title?: string })
       (cleanTitle && cleanTitle.includes(b.slug))
   );
 
-  if (matched?.googleDriveLink && matched.googleDriveLink.startsWith('http')) {
-    return matched.googleDriveLink;
-  }
+  const matchedLink = matched?.googleDriveLink || 'https://drive.google.com/drive/folders/vaultzet-master-access';
+  const matchedFiles = Array.isArray(matched?.files) && matched.files.length > 0
+    ? matched.files
+    : [{ name: `${matched?.title || item.title || 'Reels Bundle'} Google Drive Access`, file_url: matchedLink }];
 
-  return 'https://drive.google.com/drive/folders/vaultzet-master-access';
+  return {
+    primaryLink: matchedLink,
+    files: matchedFiles,
+  };
 }
 
 async function handleVerify(orderId: string) {
@@ -119,33 +164,13 @@ async function handleVerify(orderId: string) {
 
     const verifiedItems = await Promise.all(
       rawItems.map(async (it: any) => {
-        const link = await resolveDriveLinkForProduct(it);
-        const cleanId = String(it.id || '').trim();
-        const cleanTitle = String(it.title || '').trim().toLowerCase();
-        const matched = BUNDLE_PRODUCTS.find(
-          (b) =>
-            b.id === cleanId ||
-            b.slug === cleanId ||
-            b.title.toLowerCase() === cleanTitle ||
-            (cleanTitle && cleanTitle.includes(b.slug))
-        );
-        const isAllAccess = cleanId.includes('plan-') || cleanTitle.includes('all bundles');
+        const resolved = await resolveDriveFilesForProduct(it);
         return {
           id: it.id,
           title: it.title,
-          license: it.license || (cleanTitle.includes('reseller') ? 'reseller' : 'personal'),
-          price: it.price || (isAllAccess ? (it.license === 'reseller' ? 899 : 699) : 59),
-          googleDriveLink: link,
-          thumbnail:
-            it.thumbnail ||
-            matched?.thumbnail ||
-            (isAllAccess
-              ? 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&w=800&q=80'
-              : 'https://images.unsplash.com/photo-1579546929518-9e396f3cc809?auto=format&fit=crop&w=800&q=80'),
-          reelCount: it.reelCount || matched?.reelCount || (isAllAccess ? 222000 : 1000),
-          format: it.format || matched?.format || '1080p MP4',
-          resolution: it.resolution || matched?.resolution || '1080P Full HD',
-          isAllAccess,
+          license: it.license || 'personal',
+          googleDriveLink: resolved.primaryLink,
+          files: resolved.files,
         };
       })
     );

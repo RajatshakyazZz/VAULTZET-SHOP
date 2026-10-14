@@ -84,6 +84,13 @@ export default function Products() {
     features_text: '',
     google_drive_link: '',
     file_name: '',
+    drive_files: [
+      {
+        id: 'file-1',
+        name: '',
+        file_url: '',
+      },
+    ] as Array<{ id: string; name: string; file_url: string }>,
     is_hot: false,
     is_trending: false,
     rating: 5,
@@ -116,6 +123,7 @@ export default function Products() {
     features_text: string;
     google_drive_link: string;
     file_name: string;
+    drive_files: Array<{ id: string; name: string; file_url: string }>;
     is_hot: boolean;
     is_trending: boolean;
     rating: number;
@@ -141,6 +149,7 @@ export default function Products() {
     features_text: '',
     google_drive_link: '',
     file_name: '',
+    drive_files: [{ id: 'file-1', name: '', file_url: '' }],
     is_hot: false,
     is_trending: false,
     rating: 4.9,
@@ -191,6 +200,7 @@ export default function Products() {
         features_text: '',
         google_drive_link: '',
         file_name: '',
+        drive_files: [{ id: 'file-1', name: '', file_url: '' }],
         is_hot: false,
         is_trending: false,
         rating: 5,
@@ -282,8 +292,30 @@ export default function Products() {
     setEditingProduct(prod);
     setEditTab('basic');
 
-    const primaryFile = prod.files?.[0];
-    const driveLink = prod.google_drive_link || primaryFile?.file_url || '';
+    // Initialize drive files from prod.files, or fallback to prod.google_drive_link
+    let initialDriveFiles: Array<{ id: string; name: string; file_url: string }> = [];
+    if (prod.files && Array.isArray(prod.files) && prod.files.length > 0) {
+      initialDriveFiles = prod.files
+        .filter((f) => Boolean(f && (f.file_url || f.name)))
+        .map((f, idx) => ({
+          id: f.id || `file-${idx + 1}-${Date.now()}`,
+          name: f.name || `${prod.name} Part ${idx + 1}`,
+          file_url: f.file_url || '',
+        }));
+    }
+    if (initialDriveFiles.length === 0) {
+      const fallbackUrl = prod.google_drive_link || '';
+      initialDriveFiles = [
+        {
+          id: `file-1-${Date.now()}`,
+          name: `${prod.name} Google Drive Access`,
+          file_url: fallbackUrl,
+        },
+      ];
+    }
+
+    const primaryFile = initialDriveFiles[0];
+    const driveLink = primaryFile?.file_url || prod.google_drive_link || '';
     const fileName = primaryFile?.name || `${prod.name} Google Drive Access`;
 
     setEditForm({
@@ -307,10 +339,91 @@ export default function Products() {
       features_text: (prod.features || []).join('\n'),
       google_drive_link: driveLink,
       file_name: fileName,
+      drive_files: initialDriveFiles,
       is_hot: Boolean(prod.is_hot),
       is_trending: Boolean(prod.is_trending),
       rating: prod.rating || 4.9,
       review_count: prod.review_count || 350,
+    });
+  };
+
+  const handleAddEditDriveFile = () => {
+    setEditForm((prev) => ({
+      ...prev,
+      drive_files: [
+        ...prev.drive_files,
+        {
+          id: `file-${Date.now()}-${Math.random().toString(36).substr(2, 4)}`,
+          name: `Part ${prev.drive_files.length + 1}`,
+          file_url: '',
+        },
+      ],
+    }));
+  };
+
+  const handleRemoveEditDriveFile = (index: number) => {
+    setEditForm((prev) => {
+      if (prev.drive_files.length <= 1) return prev;
+      const updated = prev.drive_files.filter((_, i) => i !== index);
+      return {
+        ...prev,
+        drive_files: updated,
+        google_drive_link: updated[0]?.file_url || '',
+        file_name: updated[0]?.name || '',
+      };
+    });
+  };
+
+  const handleUpdateEditDriveFile = (index: number, field: 'name' | 'file_url', val: string) => {
+    setEditForm((prev) => {
+      const updated = [...prev.drive_files];
+      updated[index] = { ...updated[index], [field]: val };
+      return {
+        ...prev,
+        drive_files: updated,
+        google_drive_link: updated[0]?.file_url || '',
+        file_name: updated[0]?.name || '',
+      };
+    });
+  };
+
+  const handleAddCreateDriveFile = () => {
+    setCreateForm((prev) => ({
+      ...prev,
+      drive_files: [
+        ...prev.drive_files,
+        {
+          id: `file-${Date.now()}-${Math.random().toString(36).substr(2, 4)}`,
+          name: `Part ${prev.drive_files.length + 1}`,
+          file_url: '',
+        },
+      ],
+    }));
+  };
+
+  const handleRemoveCreateDriveFile = (index: number) => {
+    setCreateForm((prev) => {
+      if (prev.drive_files.length <= 1) return prev;
+      const updated = prev.drive_files.filter((_, i) => i !== index);
+      return {
+        ...prev,
+        drive_files: updated,
+        google_drive_link: updated[0]?.file_url || '',
+        file_name: updated[0]?.name || '',
+      };
+    });
+  };
+
+  const handleUpdateCreateDriveFile = (index: number, field: 'name' | 'file_url', val: string) => {
+    setCreateForm((prev) => {
+      const updated = [...prev.drive_files];
+      updated[index] = { ...updated[index], [field]: val };
+      return {
+        ...prev,
+        drive_files: updated,
+        google_drive_link: updated[0]?.file_url || '',
+        file_name: updated[0]?.name || '',
+      };
     });
   };
 
@@ -328,15 +441,23 @@ export default function Products() {
       .map((s) => s.trim())
       .filter(Boolean);
 
-    const files = editForm.google_drive_link
-      ? [
-          {
-            id: editingProduct.files?.[0]?.id || `file-${Date.now()}`,
-            name: editForm.file_name.trim() || `${editForm.name} Google Drive Access`,
-            file_url: editForm.google_drive_link.trim(),
-          },
-        ]
-      : editingProduct.files || [];
+    const validDriveFiles = editForm.drive_files
+      .map((f, idx) => ({
+        id: f.id || `file-${idx + 1}-${Date.now()}`,
+        name: f.name.trim() || `${editForm.name.trim()} Part ${idx + 1}`,
+        file_url: f.file_url.trim(),
+      }))
+      .filter((f) => Boolean(f.file_url));
+
+    if (validDriveFiles.length === 0 && editForm.google_drive_link.trim()) {
+      validDriveFiles.push({
+        id: editingProduct.files?.[0]?.id || `file-${Date.now()}`,
+        name: editForm.file_name.trim() || `${editForm.name.trim()} Google Drive Access`,
+        file_url: editForm.google_drive_link.trim(),
+      });
+    }
+
+    const primaryDriveLink = validDriveFiles[0]?.file_url || editForm.google_drive_link.trim();
 
     updateMutation.mutate({
       id: editingProduct.id,
@@ -359,8 +480,8 @@ export default function Products() {
       short_description: editForm.short_description.trim(),
       description: editForm.description.trim(),
       features: features.length > 0 ? features : undefined,
-      google_drive_link: editForm.google_drive_link.trim(),
-      files,
+      google_drive_link: primaryDriveLink,
+      files: validDriveFiles,
       is_hot: editForm.is_hot,
       is_trending: editForm.is_trending,
       rating: Number(editForm.rating),
@@ -486,15 +607,23 @@ export default function Products() {
       .map((s) => s.trim())
       .filter(Boolean);
 
-    const files = createForm.google_drive_link.trim()
-      ? [
-          {
-            id: `file-${Date.now()}`,
-            name: createForm.file_name.trim() || `${createForm.name.trim()} Google Drive Access`,
-            file_url: createForm.google_drive_link.trim(),
-          },
-        ]
-      : [];
+    const validDriveFiles = createForm.drive_files
+      .map((f, idx) => ({
+        id: f.id || `file-${idx + 1}-${Date.now()}`,
+        name: f.name.trim() || `${createForm.name.trim()} Part ${idx + 1}`,
+        file_url: f.file_url.trim(),
+      }))
+      .filter((f) => Boolean(f.file_url));
+
+    if (validDriveFiles.length === 0 && createForm.google_drive_link.trim()) {
+      validDriveFiles.push({
+        id: `file-${Date.now()}`,
+        name: createForm.file_name.trim() || `${createForm.name.trim()} Google Drive Access`,
+        file_url: createForm.google_drive_link.trim(),
+      });
+    }
+
+    const primaryDriveLink = validDriveFiles[0]?.file_url || createForm.google_drive_link.trim();
 
     createMutation.mutate({
       name: createForm.name.trim(),
@@ -518,8 +647,8 @@ export default function Products() {
       short_description: createForm.short_description.trim(),
       description: createForm.description.trim(),
       features: features.length > 0 ? features : undefined,
-      google_drive_link: createForm.google_drive_link.trim(),
-      files,
+      google_drive_link: primaryDriveLink,
+      files: validDriveFiles,
       is_hot: createForm.is_hot,
       is_trending: createForm.is_trending,
       rating: Number(createForm.rating || 5),
@@ -647,11 +776,12 @@ export default function Products() {
       header: 'Drive Download File',
       cell: (p) => {
         const driveLink = p.google_drive_link || p.files?.[0]?.file_url;
-        return driveLink ? (
+        const count = p.files && p.files.length > 0 ? p.files.length : (driveLink ? 1 : 0);
+        return count > 0 ? (
           <div className="flex items-center gap-1.5 text-xs text-emerald-400">
             <Check className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
             <span className="text-[11px] font-medium truncate max-w-[130px]" title={driveLink}>
-              Google Drive Ready
+              {count > 1 ? `${count} Drive Files` : 'Google Drive Ready'}
             </span>
           </div>
         ) : (
@@ -869,6 +999,11 @@ export default function Products() {
                       <span className="font-bold text-slate-300 flex items-center gap-1.5">
                         <FolderOpen className="w-3.5 h-3.5 text-amber-400" />
                         <span>Google Drive Link:</span>
+                        {prod.files && prod.files.length > 1 && (
+                          <span className="text-[10px] font-bold text-purple-400 bg-purple-500/10 px-2 py-0.5 rounded-full border border-purple-500/20">
+                            {prod.files.length} Files
+                          </span>
+                        )}
                       </span>
                       {driveLink && (
                         <div className="flex items-center gap-2">
@@ -892,7 +1027,43 @@ export default function Products() {
                       )}
                     </div>
 
-                    {driveLink ? (
+                    {prod.files && prod.files.length > 1 ? (
+                      <div className="space-y-1.5 pt-1">
+                        {prod.files.map((f, fIdx) => (
+                          <div
+                            key={f.id || fIdx}
+                            className="p-2 rounded-lg bg-slate-900/80 border border-slate-800 flex items-center justify-between text-[11px] gap-2"
+                          >
+                            <div className="min-w-0">
+                              <span className="font-bold text-slate-200 truncate block">
+                                {f.name || `File Part #${fIdx + 1}`}
+                              </span>
+                              <span className="font-mono text-[10px] text-slate-400 truncate block">
+                                {f.file_url}
+                              </span>
+                            </div>
+                            <div className="flex items-center gap-1.5 shrink-0">
+                              <button
+                                onClick={() => handleCopy(f.file_url)}
+                                className="text-[10px] text-purple-400 hover:text-purple-300 font-bold p-1"
+                                title="Copy file URL"
+                              >
+                                {copiedLink === f.file_url ? 'Copied' : 'Copy'}
+                              </button>
+                              <a
+                                href={f.file_url}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="text-[10px] text-emerald-400 hover:underline font-bold p-1"
+                                title="Open Drive link"
+                              >
+                                Open
+                              </a>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    ) : driveLink ? (
                       <div className="font-mono text-[11px] text-slate-400 bg-slate-900/60 p-2 rounded-lg truncate border border-slate-800">
                         {driveLink}
                       </div>
@@ -1149,7 +1320,7 @@ export default function Products() {
                     : 'text-slate-400 hover:text-white bg-slate-950/60'
                 }`}
               >
-                4. Google Drive Download Link
+                4. Google Drive Download Links ({editForm.drive_files.length})
               </button>
             </div>
 
@@ -1544,64 +1715,123 @@ export default function Products() {
               {/* TAB D: GOOGLE DRIVE & DIGITAL FILE DELIVERY */}
               {editTab === 'files' && (
                 <div className="space-y-4">
-                  <div className="p-4 rounded-2xl bg-amber-500/10 border border-amber-500/20 text-xs text-amber-300 space-y-1">
-                    <div className="font-bold flex items-center gap-1.5">
-                      <FolderOpen className="w-4 h-4 text-amber-400" />
-                      <span>Customer Download Delivery Link</span>
+                  <div className="p-4 rounded-2xl bg-amber-500/10 border border-amber-500/20 text-xs text-amber-300 space-y-1.5">
+                    <div className="font-bold flex items-center justify-between">
+                      <div className="flex items-center gap-1.5">
+                        <FolderOpen className="w-4 h-4 text-amber-400" />
+                        <span>Customer Download Delivery Links (Multiple Files Supported)</span>
+                      </div>
+                      <span className="text-[10px] font-bold px-2.5 py-0.5 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/30">
+                        {editForm.drive_files.length} {editForm.drive_files.length === 1 ? 'Drive File' : 'Drive Files'}
+                      </span>
                     </div>
-                    <p className="text-[11px] text-slate-400">
-                      When a customer completes purchase via Cashfree on your store, this exact Google Drive / Mega link is automatically unlocked on the confirmation page and sent via email/Telegram!
+                    <p className="text-[11px] text-slate-400 leading-relaxed">
+                      Ek product ki multiple Google Drive / Mega files yaha add karein (jaise Part 1, Part 2, Bonus Zip). Jab customer Cashfree se payment complete karega, to confirmation page aur download portal par ye saare download links unlock ho jayenge!
+                    </p>
+                    <p className="text-[11px] text-emerald-400 font-bold pt-0.5">
+                      🔒 Security: Download links database me direct secure rehte hain aur payment se pehle kabhi frontend code me expose nahi hote.
                     </p>
                   </div>
 
-                  <div>
-                    <label className="block text-xs font-bold text-slate-300 mb-1.5">
-                      Google Drive Folder / Download URL *
-                    </label>
-                    <div className="flex items-center rounded-xl bg-slate-950 border border-slate-800 focus-within:border-purple-500 px-3 py-2.5">
-                      <FolderOpen className="w-4 h-4 text-amber-400 mr-2 shrink-0" />
-                      <input
-                        type="url"
-                        value={editForm.google_drive_link}
-                        onChange={(e) => setEditForm((prev) => ({ ...prev, google_drive_link: e.target.value }))}
-                        placeholder="https://drive.google.com/drive/folders/... or https://mega.nz/..."
-                        className="w-full bg-transparent text-xs text-white placeholder-slate-600 focus:outline-none font-mono"
-                      />
-                    </div>
-                  </div>
-
-                  <div>
-                    <label className="block text-xs font-bold text-slate-300 mb-1.5">
-                      File Display Name
-                    </label>
-                    <input
-                      type="text"
-                      value={editForm.file_name}
-                      onChange={(e) => setEditForm((prev) => ({ ...prev, file_name: e.target.value }))}
-                      placeholder="e.g. 2500+ AI Reels Google Drive High-Speed Access"
-                      className="w-full px-3.5 py-2.5 rounded-xl bg-slate-950 border border-slate-800 focus:border-purple-500 text-xs text-white focus:outline-none"
-                    />
-                  </div>
-
-                  {editForm.google_drive_link && (
-                    <div className="p-3.5 rounded-xl bg-slate-950 border border-slate-800 flex items-center justify-between text-xs">
-                      <div className="flex items-center gap-2 truncate pr-2">
-                        <Check className="w-4 h-4 text-emerald-400 shrink-0" />
-                        <span className="font-mono text-purple-300 truncate">
-                          {editForm.google_drive_link}
-                        </span>
-                      </div>
-                      <a
-                        href={editForm.google_drive_link}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="px-3 py-1 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs shrink-0 flex items-center gap-1"
+                  {/* Multiple Drive Files List */}
+                  <div className="space-y-3.5">
+                    {editForm.drive_files.map((file, idx) => (
+                      <div
+                        key={file.id || idx}
+                        className="p-4 rounded-2xl bg-slate-950/80 border border-slate-800 hover:border-slate-700/80 space-y-3 transition-colors shadow-sm"
                       >
-                        <ExternalLink className="w-3 h-3" />
-                        <span>Test Link</span>
-                      </a>
-                    </div>
-                  )}
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-2">
+                            <span className="px-2.5 py-0.5 rounded-lg text-[10px] font-black uppercase tracking-wider bg-purple-500/20 text-purple-300 border border-purple-500/30">
+                              Drive File #{idx + 1}
+                            </span>
+                            {idx === 0 && (
+                              <span className="px-2 py-0.5 rounded-lg text-[10px] font-bold bg-emerald-500/15 text-emerald-300 border border-emerald-500/20">
+                                Primary Link
+                              </span>
+                            )}
+                          </div>
+
+                          <div className="flex items-center gap-2">
+                            {file.file_url && (
+                              <a
+                                href={file.file_url}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="px-2.5 py-1 rounded-lg bg-emerald-600/20 hover:bg-emerald-600 text-emerald-300 hover:text-white border border-emerald-500/30 text-[11px] font-bold flex items-center gap-1 transition-colors"
+                              >
+                                <ExternalLink className="w-3 h-3" />
+                                <span>Test Link</span>
+                              </a>
+                            )}
+                            {editForm.drive_files.length > 1 && (
+                              <button
+                                type="button"
+                                onClick={() => handleRemoveEditDriveFile(idx)}
+                                className="p-1.5 rounded-lg bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 border border-rose-500/20 hover:border-rose-500/40 transition-colors"
+                                title="Remove this file link"
+                              >
+                                <Trash2 className="w-3.5 h-3.5" />
+                              </button>
+                            )}
+                          </div>
+                        </div>
+
+                        <div>
+                          <label className="block text-[11px] font-bold text-slate-300 mb-1">
+                            Google Drive Folder / Download URL *
+                          </label>
+                          <div className="flex items-center rounded-xl bg-slate-900 border border-slate-800 focus-within:border-purple-500 px-3 py-2">
+                            <FolderOpen className="w-4 h-4 text-amber-400 mr-2 shrink-0" />
+                            <input
+                              type="url"
+                              value={file.file_url}
+                              onChange={(e) => handleUpdateEditDriveFile(idx, 'file_url', e.target.value)}
+                              placeholder="https://drive.google.com/drive/folders/... or https://mega.nz/..."
+                              className="w-full bg-transparent text-xs text-white placeholder-slate-600 focus:outline-none font-mono"
+                            />
+                          </div>
+                        </div>
+
+                        <div>
+                          <label className="block text-[11px] font-bold text-slate-300 mb-1">
+                            File Display Name / Part Label
+                          </label>
+                          <input
+                            type="text"
+                            value={file.name}
+                            onChange={(e) => handleUpdateEditDriveFile(idx, 'name', e.target.value)}
+                            placeholder={idx === 0 ? "e.g. Part 1: 500+ AI Reels (Google Drive Access)" : `e.g. Part ${idx + 1}: 500+ Luxury Reels & Bonus Assets`}
+                            className="w-full px-3 py-2 rounded-xl bg-slate-900 border border-slate-800 focus:border-purple-500 text-xs text-white focus:outline-none"
+                          />
+                        </div>
+
+                        {file.file_url && (
+                          <div className="px-3 py-2 rounded-xl bg-slate-900/60 border border-slate-800/80 flex items-center justify-between text-[11px]">
+                            <div className="flex items-center gap-2 truncate pr-2">
+                              <Check className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
+                              <span className="font-mono text-purple-300 truncate">
+                                {file.file_url}
+                              </span>
+                            </div>
+                            <span className="text-[10px] font-bold text-emerald-400 shrink-0">
+                              Ready
+                            </span>
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+
+                  {/* Add Another Drive Link Button */}
+                  <button
+                    type="button"
+                    onClick={handleAddEditDriveFile}
+                    className="w-full py-3 rounded-2xl border-2 border-dashed border-purple-500/30 hover:border-purple-500/60 bg-purple-500/5 hover:bg-purple-500/10 text-purple-300 hover:text-white font-bold text-xs flex items-center justify-center gap-2 transition-all cursor-pointer shadow-sm"
+                  >
+                    <Plus className="w-4 h-4 text-purple-400" />
+                    <span>+ Add Another Google Drive Link / File Part</span>
+                  </button>
                 </div>
               )}
 
@@ -1867,7 +2097,7 @@ export default function Products() {
                     : 'text-slate-400 hover:text-white bg-slate-950/60'
                 }`}
               >
-                4. Google Drive Download Link
+                4. Google Drive Download Links ({createForm.drive_files.length})
               </button>
             </div>
 
@@ -2280,67 +2510,123 @@ export default function Products() {
               {/* TAB 4: GOOGLE DRIVE & DIGITAL FILE DELIVERY */}
               {addTab === 'files' && (
                 <div className="space-y-4">
-                  <div className="p-4 rounded-2xl bg-amber-500/10 border border-amber-500/20 text-xs text-amber-300 space-y-1">
-                    <div className="font-bold flex items-center gap-1.5">
-                      <FolderOpen className="w-4 h-4 text-amber-400" />
-                      <span>Customer Download Delivery Link</span>
-                    </div>
-                    <p className="text-[11px] text-slate-400">
-                      When a customer completes purchase via Cashfree on your store, this exact Google Drive / Mega link is automatically unlocked on the confirmation page and sent via email/Telegram!
-                    </p>
-                    <p className="text-[11px] text-emerald-400 font-bold pt-1">
-                      🔒 Security Guarantee: This download link goes directly to the secure database and is NEVER exposed in the frontend source code. Unpaid users cannot access it.
-                    </p>
-                  </div>
-
-                  <div>
-                    <label className="block text-xs font-bold text-slate-300 mb-1.5">
-                      Google Drive Folder / Download URL *
-                    </label>
-                    <div className="flex items-center rounded-xl bg-slate-950 border border-slate-800 focus-within:border-purple-500 px-3 py-2.5">
-                      <FolderOpen className="w-4 h-4 text-amber-400 mr-2 shrink-0" />
-                      <input
-                        type="url"
-                        value={createForm.google_drive_link}
-                        onChange={(e) => setCreateForm((prev) => ({ ...prev, google_drive_link: e.target.value }))}
-                        placeholder="https://drive.google.com/drive/folders/... or https://mega.nz/..."
-                        className="w-full bg-transparent text-xs text-white placeholder-slate-600 focus:outline-none font-mono"
-                      />
-                    </div>
-                  </div>
-
-                  <div>
-                    <label className="block text-xs font-bold text-slate-300 mb-1.5">
-                      File Display Name
-                    </label>
-                    <input
-                      type="text"
-                      value={createForm.file_name}
-                      onChange={(e) => setCreateForm((prev) => ({ ...prev, file_name: e.target.value }))}
-                      placeholder="e.g. 2000+ Stop Scrolling Reels Bundle – Scroll-St.zip (Google Drive Access)"
-                      className="w-full px-3.5 py-2.5 rounded-xl bg-slate-950 border border-slate-800 focus:border-purple-500 text-xs text-white focus:outline-none"
-                    />
-                  </div>
-
-                  {createForm.google_drive_link && (
-                    <div className="p-3.5 rounded-xl bg-slate-950 border border-slate-800 flex items-center justify-between text-xs">
-                      <div className="flex items-center gap-2 truncate pr-2">
-                        <Check className="w-4 h-4 text-emerald-400 shrink-0" />
-                        <span className="font-mono text-purple-300 truncate">
-                          {createForm.google_drive_link}
-                        </span>
+                  <div className="p-4 rounded-2xl bg-amber-500/10 border border-amber-500/20 text-xs text-amber-300 space-y-1.5">
+                    <div className="font-bold flex items-center justify-between">
+                      <div className="flex items-center gap-1.5">
+                        <FolderOpen className="w-4 h-4 text-amber-400" />
+                        <span>Customer Download Delivery Links (Multiple Files Supported)</span>
                       </div>
-                      <a
-                        href={createForm.google_drive_link}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="px-3 py-1 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs shrink-0 flex items-center gap-1"
-                      >
-                        <ExternalLink className="w-3 h-3" />
-                        <span>Test Link</span>
-                      </a>
+                      <span className="text-[10px] font-bold px-2.5 py-0.5 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/30">
+                        {createForm.drive_files.length} {createForm.drive_files.length === 1 ? 'Drive File' : 'Drive Files'}
+                      </span>
                     </div>
-                  )}
+                    <p className="text-[11px] text-slate-400 leading-relaxed">
+                      Ek product ki multiple Google Drive / Mega files yaha add karein (jaise Part 1, Part 2, Bonus Zip). Jab customer Cashfree se payment complete karega, to confirmation page aur download portal par ye saare download links unlock ho jayenge!
+                    </p>
+                    <p className="text-[11px] text-emerald-400 font-bold pt-0.5">
+                      🔒 Security Guarantee: Download links database me direct secure rehte hain aur payment se pehle kabhi frontend code me expose nahi hote.
+                    </p>
+                  </div>
+
+                  {/* Multiple Drive Files List */}
+                  <div className="space-y-3.5">
+                    {createForm.drive_files.map((file, idx) => (
+                      <div
+                        key={file.id || idx}
+                        className="p-4 rounded-2xl bg-slate-950/80 border border-slate-800 hover:border-slate-700/80 space-y-3 transition-colors shadow-sm"
+                      >
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-2">
+                            <span className="px-2.5 py-0.5 rounded-lg text-[10px] font-black uppercase tracking-wider bg-purple-500/20 text-purple-300 border border-purple-500/30">
+                              Drive File #{idx + 1}
+                            </span>
+                            {idx === 0 && (
+                              <span className="px-2 py-0.5 rounded-lg text-[10px] font-bold bg-emerald-500/15 text-emerald-300 border border-emerald-500/20">
+                                Primary Link
+                              </span>
+                            )}
+                          </div>
+
+                          <div className="flex items-center gap-2">
+                            {file.file_url && (
+                              <a
+                                href={file.file_url}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="px-2.5 py-1 rounded-lg bg-emerald-600/20 hover:bg-emerald-600 text-emerald-300 hover:text-white border border-emerald-500/30 text-[11px] font-bold flex items-center gap-1 transition-colors"
+                              >
+                                <ExternalLink className="w-3 h-3" />
+                                <span>Test Link</span>
+                              </a>
+                            )}
+                            {createForm.drive_files.length > 1 && (
+                              <button
+                                type="button"
+                                onClick={() => handleRemoveCreateDriveFile(idx)}
+                                className="p-1.5 rounded-lg bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 border border-rose-500/20 hover:border-rose-500/40 transition-colors"
+                                title="Remove this file link"
+                              >
+                                <Trash2 className="w-3.5 h-3.5" />
+                              </button>
+                            )}
+                          </div>
+                        </div>
+
+                        <div>
+                          <label className="block text-[11px] font-bold text-slate-300 mb-1">
+                            Google Drive Folder / Download URL *
+                          </label>
+                          <div className="flex items-center rounded-xl bg-slate-900 border border-slate-800 focus-within:border-purple-500 px-3 py-2">
+                            <FolderOpen className="w-4 h-4 text-amber-400 mr-2 shrink-0" />
+                            <input
+                              type="url"
+                              value={file.file_url}
+                              onChange={(e) => handleUpdateCreateDriveFile(idx, 'file_url', e.target.value)}
+                              placeholder="https://drive.google.com/drive/folders/... or https://mega.nz/..."
+                              className="w-full bg-transparent text-xs text-white placeholder-slate-600 focus:outline-none font-mono"
+                            />
+                          </div>
+                        </div>
+
+                        <div>
+                          <label className="block text-[11px] font-bold text-slate-300 mb-1">
+                            File Display Name / Part Label
+                          </label>
+                          <input
+                            type="text"
+                            value={file.name}
+                            onChange={(e) => handleUpdateCreateDriveFile(idx, 'name', e.target.value)}
+                            placeholder={idx === 0 ? "e.g. Part 1: 500+ AI Reels (Google Drive Access)" : `e.g. Part ${idx + 1}: 500+ Luxury Reels & Bonus Assets`}
+                            className="w-full px-3 py-2 rounded-xl bg-slate-900 border border-slate-800 focus:border-purple-500 text-xs text-white focus:outline-none"
+                          />
+                        </div>
+
+                        {file.file_url && (
+                          <div className="px-3 py-2 rounded-xl bg-slate-900/60 border border-slate-800/80 flex items-center justify-between text-[11px]">
+                            <div className="flex items-center gap-2 truncate pr-2">
+                              <Check className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
+                              <span className="font-mono text-purple-300 truncate">
+                                {file.file_url}
+                              </span>
+                            </div>
+                            <span className="text-[10px] font-bold text-emerald-400 shrink-0">
+                              Ready
+                            </span>
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+
+                  {/* Add Another Drive Link Button */}
+                  <button
+                    type="button"
+                    onClick={handleAddCreateDriveFile}
+                    className="w-full py-3 rounded-2xl border-2 border-dashed border-purple-500/30 hover:border-purple-500/60 bg-purple-500/5 hover:bg-purple-500/10 text-purple-300 hover:text-white font-bold text-xs flex items-center justify-center gap-2 transition-all cursor-pointer shadow-sm"
+                  >
+                    <Plus className="w-4 h-4 text-purple-400" />
+                    <span>+ Add Another Google Drive Link / File Part</span>
+                  </button>
                 </div>
               )}
 

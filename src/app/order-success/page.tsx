@@ -519,6 +519,11 @@ function OrderSuccessContent() {
                             >
                               {isReseller ? 'Reseller Rights Included' : 'Personal License'}
                             </span>
+                            {Array.isArray(item.files) && item.files.length > 1 && (
+                              <span className="text-[10.5px] font-black uppercase tracking-wider px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-800 border border-emerald-200">
+                                {item.files.length} Drive Files Included
+                              </span>
+                            )}
                             <span className="text-[11px] font-bold text-slate-400">
                               Format: {item.format || 'MP4 Video'}
                             </span>
@@ -557,51 +562,93 @@ function OrderSuccessContent() {
                                   Google Drive Unlocked
                                 </strong>
                                 <span className="block text-[11px] text-[#63708b] font-medium">
-                                  Your shared link is ready to open
+                                  {Array.isArray(item.files) && item.files.length > 1
+                                    ? `${item.files.length} shared folders ready`
+                                    : 'Your shared link is ready to open'}
                                 </span>
                               </div>
                             </div>
 
-                            <a
-                              href={driveUrl}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="w-full py-3 px-4 rounded-xl bg-gradient-to-r from-[#6734ff] to-[#7d3dff] hover:from-[#5e2ae6] hover:to-[#6f33ea] text-white font-extrabold text-xs sm:text-sm flex items-center justify-center gap-2 shadow-[0_10px_22px_rgba(103,52,255,0.22)] transition-transform hover:scale-[1.02]"
-                            >
-                              <Download className="w-4 h-4 stroke-[2.5]" />
-                              <span>Open Google Drive Folder</span>
-                              <ArrowRight className="w-4 h-4" />
-                            </a>
+                            {Array.isArray(item.files) && item.files.length > 1 ? (
+                              <div className="space-y-2.5 pt-1">
+                                {item.files.map((f: any, fIdx: number) => {
+                                  const fUrl = f.file_url || f.url || driveUrl;
+                                  const fCopyKey = `item-${idx}-file-${fIdx}`;
+                                  return (
+                                    <div
+                                      key={f.id || fIdx}
+                                      className="p-2.5 rounded-xl bg-white border border-emerald-100 shadow-sm space-y-1.5"
+                                    >
+                                      <div className="flex items-center justify-between gap-1 text-[11px]">
+                                        <span className="font-bold text-[#17214a] truncate">
+                                          {f.name || `Drive File #${fIdx + 1}`}
+                                        </span>
+                                        <button
+                                          type="button"
+                                          onClick={() => handleCopyLink(fUrl, fCopyKey)}
+                                          className="text-[10px] font-bold text-slate-500 hover:text-purple-700 shrink-0"
+                                        >
+                                          {copiedKey === fCopyKey ? 'Copied' : 'Copy'}
+                                        </button>
+                                      </div>
+                                      <a
+                                        href={fUrl}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="w-full py-2 px-3 rounded-lg bg-gradient-to-r from-[#6734ff] to-[#7d3dff] hover:from-[#5e2ae6] hover:to-[#6f33ea] text-white font-extrabold text-xs flex items-center justify-center gap-1.5 shadow-sm transition-transform hover:scale-[1.01]"
+                                      >
+                                        <Download className="w-3.5 h-3.5 stroke-[2.5]" />
+                                        <span>Open Drive Folder</span>
+                                        <ArrowRight className="w-3.5 h-3.5" />
+                                      </a>
+                                    </div>
+                                  );
+                                })}
+                              </div>
+                            ) : (
+                              <>
+                                <a
+                                  href={driveUrl}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="w-full py-3 px-4 rounded-xl bg-gradient-to-r from-[#6734ff] to-[#7d3dff] hover:from-[#5e2ae6] hover:to-[#6f33ea] text-white font-extrabold text-xs sm:text-sm flex items-center justify-center gap-2 shadow-[0_10px_22px_rgba(103,52,255,0.22)] transition-transform hover:scale-[1.02]"
+                                >
+                                  <Download className="w-4 h-4 stroke-[2.5]" />
+                                  <span>Open Google Drive Folder</span>
+                                  <ArrowRight className="w-4 h-4" />
+                                </a>
 
-                            <div className="flex items-center justify-between gap-2 pt-1">
-                              <button
-                                type="button"
-                                onClick={() => handleCopyLink(driveUrl, copyKey)}
-                                className="text-[11px] font-bold text-slate-500 hover:text-purple-700 flex items-center gap-1 transition-colors"
-                              >
-                                {copiedKey === copyKey ? (
-                                  <>
-                                    <Check className="w-3 h-3 text-emerald-600 stroke-[3]" />
-                                    <span className="text-emerald-600">Copied to Clipboard!</span>
-                                  </>
-                                ) : (
-                                  <>
-                                    <Copy className="w-3 h-3" />
-                                    <span>Copy Drive Link</span>
-                                  </>
-                                )}
-                              </button>
+                                <div className="flex items-center justify-between gap-2 pt-1">
+                                  <button
+                                    type="button"
+                                    onClick={() => handleCopyLink(driveUrl, copyKey)}
+                                    className="text-[11px] font-bold text-slate-500 hover:text-purple-700 flex items-center gap-1 transition-colors"
+                                  >
+                                    {copiedKey === copyKey ? (
+                                      <>
+                                        <Check className="w-3 h-3 text-emerald-600 stroke-[3]" />
+                                        <span className="text-emerald-600">Copied to Clipboard!</span>
+                                      </>
+                                    ) : (
+                                      <>
+                                        <Copy className="w-3 h-3" />
+                                        <span>Copy Drive Link</span>
+                                      </>
+                                    )}
+                                  </button>
 
-                              <a
-                                href={driveUrl}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="text-[11px] font-bold text-purple-600 hover:underline flex items-center gap-1"
-                              >
-                                <span>Direct Link</span>
-                                <ExternalLink className="w-3 h-3" />
-                              </a>
-                            </div>
+                                  <a
+                                    href={driveUrl}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="text-[11px] font-bold text-purple-600 hover:underline flex items-center gap-1"
+                                  >
+                                    <span>Direct Link</span>
+                                    <ExternalLink className="w-3 h-3" />
+                                  </a>
+                                </div>
+                              </>
+                            )}
                           </div>
                         </div>
 

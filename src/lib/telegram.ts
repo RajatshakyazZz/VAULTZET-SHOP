@@ -240,26 +240,48 @@ export async function sendSaleSuccessTelegramAlert(data: OrderAlertData): Promis
 
   const itemsWithLinks =
     items.length > 0
-      ? items.map((it) => ({
-          ...it,
-          resolvedDriveLink: resolveDriveLinkForItem(it),
-        }))
+      ? items.map((it) => {
+          const filesList: Array<{ id?: string; name: string; file_url?: string; url?: string }> =
+            Array.isArray(it.files) && it.files.length > 0
+              ? it.files
+              : [{ name: it.title || 'Google Drive Access', file_url: resolveDriveLinkForItem(it) }];
+
+          return {
+            ...it,
+            resolvedDriveLink: resolveDriveLinkForItem(it),
+            files: filesList,
+          };
+        })
       : [
           {
             title: 'Viral Reels Bundle',
             license: 'personal',
             price: data.totalAmount,
             resolvedDriveLink: 'https://vaultzet.shop/my-order',
+            files: [{ name: 'Viral Reels Bundle Access', file_url: 'https://vaultzet.shop/my-order' }],
           },
         ];
 
   const itemsFormatted = itemsWithLinks
-    .map(
-      (it, idx) =>
-        `   ${idx + 1}. <b>${escapeHtml(it.title)}</b> [${escapeHtml(
-          (it.license || 'personal').toUpperCase()
-        )}] — ₹${it.price}\n      📂 <a href="${escapeHtml(it.resolvedDriveLink)}">Open Google Drive Folder</a>`
-    )
+    .map((it, idx) => {
+      const header = `   ${idx + 1}. <b>${escapeHtml(it.title)}</b> [${escapeHtml(
+        (it.license || 'personal').toUpperCase()
+      )}] — ₹${it.price}`;
+
+      if (it.files && it.files.length > 1) {
+        const subFiles = it.files
+          .map(
+            (f: any, fIdx: number) =>
+              `      📂 <b>${escapeHtml(f.name || `Part ${fIdx + 1}`)}:</b> <a href="${escapeHtml(
+                f.file_url || f.url || it.resolvedDriveLink
+              )}">Open Google Drive</a>`
+          )
+          .join('\n');
+        return `${header}\n${subFiles}`;
+      } else {
+        return `${header}\n      📂 <a href="${escapeHtml(it.resolvedDriveLink)}">Open Google Drive Folder</a>`;
+      }
+    })
     .join('\n');
 
   const bumpLine = data.orderBump
@@ -287,7 +309,18 @@ ${itemsFormatted}${bumpLine}
 👇 <i>Tap below to send the buyer their direct Google Drive download link on WhatsApp in 1 click!</i>`;
 
   const driveLinksText = itemsWithLinks
-    .map((it, idx) => `${idx + 1}. *${it.title}*\n📂 Drive Link: ${it.resolvedDriveLink}`)
+    .map((it, idx) => {
+      if (it.files && it.files.length > 1) {
+        const subLinks = it.files
+          .map(
+            (f: any, fIdx: number) =>
+              `   • ${f.name || `Part ${fIdx + 1}`}: ${f.file_url || f.url || it.resolvedDriveLink}`
+          )
+          .join('\n');
+        return `${idx + 1}. *${it.title}* (${it.files.length} Files):\n${subLinks}`;
+      }
+      return `${idx + 1}. *${it.title}*\n📂 Drive Link: ${it.resolvedDriveLink}`;
+    })
     .join('\n\n');
 
   const driveDeliveryMsg = `Hi ${customerName}! 🎉\n\nThank you for your purchase on *Vaultzet Store*! Your payment of *₹${data.totalAmount}.00* (Order #${data.orderNumber}) is confirmed. ✅\n\n📂 *Here is your Instant Google Drive Download Access:*\n\n${driveLinksText}\n\n🔑 You can also access all your orders anytime at:\n👉 https://vaultzet.shop/my-order (Email: ${customerEmail})\n\nEnjoy your reels & grow fast! Reply here if you need any assistance. 🚀`;
