@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { ShoppingCart, Search, Menu, X, Play } from 'lucide-react';
@@ -16,37 +16,71 @@ export default function Header() {
   const [isMobileSearchOpen, setIsMobileSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
 
-  // Sync header search box with URL when on /shop without useSearchParams CSR bailout
+  const searchQueryRef = useRef(searchQuery);
+  searchQueryRef.current = searchQuery;
+
+  // Sync header search box with URL query when on /shop or when pathname changes
   useEffect(() => {
-    if (pathname === '/shop' && typeof window !== 'undefined') {
+    if (typeof window !== 'undefined') {
       const params = new URLSearchParams(window.location.search);
       const s = params.get('s') || params.get('q') || '';
-      setSearchQuery(s);
+      if (pathname === '/shop') {
+        setSearchQuery(s);
+      } else if (!s) {
+        setSearchQuery('');
+      }
     }
   }, [pathname]);
+
+  // Listen to custom cross-component search sync event (e.g. from /shop page search bar)
+  useEffect(() => {
+    const handleVaultzetSearch = (e: Event) => {
+      const customEvt = e as CustomEvent<string>;
+      if (typeof customEvt.detail === 'string' && customEvt.detail !== searchQueryRef.current) {
+        setSearchQuery(customEvt.detail);
+      }
+    };
+    window.addEventListener('vaultzet:search', handleVaultzetSearch);
+    return () => window.removeEventListener('vaultzet:search', handleVaultzetSearch);
+  }, []);
 
   // Real-time live search on every keystroke without pressing Enter
   const handleSearchChange = (val: string) => {
     setSearchQuery(val);
     if (typeof window !== 'undefined') {
-      const q = val.trim() ? `?s=${encodeURIComponent(val.trim())}` : '';
-      router.replace(`/shop${q}`, { scroll: false });
+      if (pathname === '/shop') {
+        const url = val.trim() ? `/shop?s=${encodeURIComponent(val.trim())}` : '/shop';
+        window.history.replaceState(null, '', url);
+        window.dispatchEvent(new CustomEvent('vaultzet:search', { detail: val }));
+      } else {
+        const q = val.trim() ? `?s=${encodeURIComponent(val.trim())}` : '';
+        router.push(`/shop${q}`);
+      }
     }
   };
 
   const handleClearSearch = () => {
     setSearchQuery('');
-    if (pathname === '/shop' && typeof window !== 'undefined') {
-      router.replace('/shop', { scroll: false });
+    if (typeof window !== 'undefined') {
+      if (pathname === '/shop') {
+        window.history.replaceState(null, '', '/shop');
+        window.dispatchEvent(new CustomEvent('vaultzet:search', { detail: '' }));
+      }
     }
   };
 
   const handleSearchSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (searchQuery.trim()) {
-      setIsMobileSearchOpen(false);
-      setIsMobileMenuOpen(false);
-      router.replace(`/shop?s=${encodeURIComponent(searchQuery.trim())}`, { scroll: false });
+    setIsMobileSearchOpen(false);
+    setIsMobileMenuOpen(false);
+    if (typeof window !== 'undefined') {
+      if (pathname === '/shop') {
+        const url = searchQuery.trim() ? `/shop?s=${encodeURIComponent(searchQuery.trim())}` : '/shop';
+        window.history.replaceState(null, '', url);
+        window.dispatchEvent(new CustomEvent('vaultzet:search', { detail: searchQuery }));
+      } else {
+        router.push(`/shop?s=${encodeURIComponent(searchQuery.trim())}`);
+      }
     }
   };
 
@@ -121,6 +155,8 @@ export default function Header() {
               <Search className="w-4 h-4 text-[#7c3aed] shrink-0" />
               <input
                 type="text"
+                autoComplete="off"
+                spellCheck="false"
                 aria-label="Search bundles"
                 placeholder="Search bundles..."
                 value={searchQuery}
@@ -211,6 +247,8 @@ export default function Header() {
               <input
                 type="text"
                 autoFocus
+                autoComplete="off"
+                spellCheck="false"
                 placeholder="Type to search bundles instantly..."
                 value={searchQuery}
                 onChange={(e) => handleSearchChange(e.target.value)}

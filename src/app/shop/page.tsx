@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useMemo, Suspense } from 'react';
+import React, { useState, useEffect, useMemo, useRef, Suspense } from 'react';
 import Link from 'next/link';
 import { useSearchParams, useRouter } from 'next/navigation';
 import {
@@ -50,11 +50,44 @@ function ShopContent() {
 
   const { addToCart, buyNow } = useCart();
 
-  // Sync state whenever URL query params change (e.g. from header search)
+  // Track the current search term to avoid redundant updates from searchParams
+  const searchTermRef = useRef(searchTerm);
+  searchTermRef.current = searchTerm;
+
+  // Listen to custom cross-component search sync event (e.g. from Header search box)
+  useEffect(() => {
+    const handleVaultzetSearch = (e: Event) => {
+      const customEvt = e as CustomEvent<string>;
+      if (typeof customEvt.detail === 'string' && customEvt.detail !== searchTermRef.current) {
+        setSearchTerm(customEvt.detail);
+        setCurrentPage(1);
+      }
+    };
+    window.addEventListener('vaultzet:search', handleVaultzetSearch);
+    return () => window.removeEventListener('vaultzet:search', handleVaultzetSearch);
+  }, []);
+
+  // Listen to browser Back / Forward buttons
+  useEffect(() => {
+    const handlePopState = () => {
+      const params = new URLSearchParams(window.location.search);
+      const s = params.get('s') || params.get('q') || '';
+      if (s !== searchTermRef.current) {
+        setSearchTerm(s);
+        setCurrentPage(1);
+      }
+    };
+    window.addEventListener('popstate', handlePopState);
+    return () => window.removeEventListener('popstate', handlePopState);
+  }, []);
+
+  // Sync state when URL searchParams change via router navigation
   useEffect(() => {
     const s = searchParams.get('s') || searchParams.get('q') || '';
-    setSearchTerm(s);
-    setCurrentPage(1);
+    if (s !== searchTermRef.current) {
+      setSearchTerm(s);
+      setCurrentPage(1);
+    }
   }, [searchParams]);
 
   // Load custom products from Firestore on mount
@@ -72,27 +105,43 @@ function ShopContent() {
 
   // Real-time live filtering on every keystroke without pressing Enter
   const filteredBundles = useMemo(() => {
-    const q = String(searchTerm || '').toLowerCase().trim();
+    const rawQ = String(searchTerm || '').toLowerCase().trim();
+    if (!rawQ) {
+      return [...allBundles].sort((a, b) => {
+        if (sortBy === 'price-low') return (a.personalPrice || 0) - (b.personalPrice || 0);
+        if (sortBy === 'price-high') return (b.personalPrice || 0) - (a.personalPrice || 0);
+        if (sortBy === 'reels') return (b.reelCount || 0) - (a.reelCount || 0);
+        return (b.isHot ? 1 : 0) - (a.isHot ? 1 : 0);
+      });
+    }
+
+    const tokens = rawQ
+      .replace(/[^\p{L}\p{M}\p{N}\s]/gu, ' ')
+      .split(/\s+/)
+      .filter(Boolean);
+
+    if (tokens.length === 0) {
+      return allBundles;
+    }
+
     return allBundles
       .filter((b) => {
         if (!b) return false;
-        if (!q) return true;
 
         const title = String(b.title || '').toLowerCase();
-        const desc = String(b.shortDescription || '').toLowerCase();
+        const shortDesc = String(b.shortDescription || '').toLowerCase();
+        const fullDesc = String(b.description || '').toLowerCase();
         const cat = String(b.category || '').toLowerCase();
+        const catSlug = String(b.categorySlug || '').toLowerCase();
         const slug = String(b.slug || '').toLowerCase();
-        const tags = Array.isArray(b.tags) ? b.tags.map((t) => String(t).toLowerCase()) : [];
-        const aliases = Array.isArray(b.aliases) ? b.aliases.map((a) => String(a).toLowerCase()) : [];
+        const reelCount = String(b.reelCount || '');
+        const personalPrice = String(b.personalPrice || '');
+        const tags = Array.isArray(b.tags) ? b.tags.join(' ').toLowerCase() : '';
+        const aliases = Array.isArray(b.aliases) ? b.aliases.join(' ').toLowerCase() : '';
+        const rawCats = Array.isArray(b.categories) ? b.categories.join(' ').toLowerCase() : '';
 
-        return (
-          title.includes(q) ||
-          desc.includes(q) ||
-          cat.includes(q) ||
-          slug.includes(q) ||
-          tags.some((t) => t.includes(q)) ||
-          aliases.some((a) => a.includes(q))
-        );
+        const corpus = `${title} ${shortDesc} ${fullDesc} ${cat} ${catSlug} ${slug} ${reelCount} ${personalPrice} ${tags} ${aliases} ${rawCats}`;
+        return tokens.every((token) => corpus.includes(token));
       })
       .sort((a, b) => {
         if (sortBy === 'price-low') return (a.personalPrice || 0) - (b.personalPrice || 0);
@@ -115,8 +164,9 @@ function ShopContent() {
     setSearchTerm(val);
     setCurrentPage(1);
     if (typeof window !== 'undefined') {
-      const q = val.trim() ? `?s=${encodeURIComponent(val.trim())}` : '';
-      router.replace(`/shop${q}`, { scroll: false });
+      const url = val.trim() ? `/shop?s=${encodeURIComponent(val.trim())}` : '/shop';
+      window.history.replaceState(null, '', url);
+      window.dispatchEvent(new CustomEvent('vaultzet:search', { detail: val }));
     }
   };
 
@@ -124,7 +174,8 @@ function ShopContent() {
     setSearchTerm('');
     setCurrentPage(1);
     if (typeof window !== 'undefined') {
-      router.replace('/shop', { scroll: false });
+      window.history.replaceState(null, '', '/shop');
+      window.dispatchEvent(new CustomEvent('vaultzet:search', { detail: '' }));
     }
   };
 
@@ -202,9 +253,14 @@ function ShopContent() {
             <input
               type="text"
               autoFocus={Boolean(initialSearch)}
+              autoComplete="off"
+              spellCheck="false"
               placeholder="Search 130+ viral reels bundles (e.g. AI, Horror, Gym, Premanand, Cartoon, Car)..."
               value={searchTerm}
               onChange={(e) => handleSearchChange(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') e.preventDefault();
+              }}
               className="w-full pl-11 sm:pl-14 pr-24 sm:pr-28 py-3.5 sm:py-4 rounded-2xl bg-white border-2 border-[#e3d7fa] focus:border-[#6f33e8] focus:ring-4 focus:ring-purple-500/10 text-xs sm:text-base font-bold text-[#162048] placeholder:text-gray-400 focus:outline-none shadow-sm transition-all"
             />
 
