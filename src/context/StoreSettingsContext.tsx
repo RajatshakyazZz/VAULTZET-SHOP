@@ -82,8 +82,6 @@ export function StoreSettingsProvider({ children }: { children: React.ReactNode 
   }, []);
 
   useEffect(() => {
-    let unsubGeneral: (() => void) | undefined;
-    let unsubBranding: (() => void) | undefined;
     let isCancelled = false;
     let hasTriggered = false;
 
@@ -93,7 +91,7 @@ export function StoreSettingsProvider({ children }: { children: React.ReactNode 
       cleanupListeners();
 
       try {
-        const [{ db }, { doc, onSnapshot }] = await Promise.all([
+        const [{ db }, { doc, getDoc }] = await Promise.all([
           import('@/lib/firebase'),
           import('firebase/firestore'),
         ]);
@@ -102,57 +100,51 @@ export function StoreSettingsProvider({ children }: { children: React.ReactNode 
           return;
         }
 
-        unsubGeneral = onSnapshot(
-          doc(db, 'store_settings', 'general'),
-          (docSnap) => {
-            if (docSnap.exists()) {
-              const data = docSnap.data();
-              setSettings((prev) => {
-                const updated = {
-                  ...prev,
-                  storeName: sanitizeStoreName(data.store_name, prev.storeName),
-                  supportEmail: sanitizeEmail(data.contact_email, prev.supportEmail),
-                  supportWhatsapp: sanitizePhone(data.support_whatsapp, prev.supportWhatsapp),
-                  currency: data.currency || prev.currency,
-                  currencySymbol: data.currency_symbol || prev.currencySymbol,
-                };
-                try {
-                  localStorage.setItem('vaultzet_store_settings', JSON.stringify(updated));
-                } catch {}
-                return updated;
-              });
-            }
-            setIsLoading(false);
-          },
-          () => {
-            setIsLoading(false);
-          }
-        );
+        const [generalSnap, brandingSnap] = await Promise.all([
+          getDoc(doc(db, 'store_settings', 'general')).catch(() => null),
+          getDoc(doc(db, 'store_settings', 'branding')).catch(() => null),
+        ]);
 
-        unsubBranding = onSnapshot(
-          doc(db, 'store_settings', 'branding'),
-          (docSnap) => {
-            if (docSnap.exists()) {
-              const data = docSnap.data();
-              setSettings((prev) => {
-                const updated = {
-                  ...prev,
-                  storeName: sanitizeStoreName(data.store_name, prev.storeName),
-                  tagline: data.tagline || prev.tagline,
-                  logoUrl: data.logo_url || prev.logoUrl,
-                  primaryColor: data.primary_color || prev.primaryColor,
-                };
-                try {
-                  localStorage.setItem('vaultzet_store_settings', JSON.stringify(updated));
-                } catch {}
-                return updated;
-              });
-            }
-          },
-          () => {}
-        );
+        if (!isCancelled && generalSnap && generalSnap.exists()) {
+          const data = generalSnap.data();
+          setSettings((prev) => {
+            const updated = {
+              ...prev,
+              storeName: sanitizeStoreName(data.store_name, prev.storeName),
+              supportEmail: sanitizeEmail(data.contact_email, prev.supportEmail),
+              supportWhatsapp: sanitizePhone(data.support_whatsapp, prev.supportWhatsapp),
+              currency: data.currency || prev.currency,
+              currencySymbol: data.currency_symbol || prev.currencySymbol,
+            };
+            try {
+              localStorage.setItem('vaultzet_store_settings', JSON.stringify(updated));
+            } catch {}
+            return updated;
+          });
+        }
+
+        if (!isCancelled && brandingSnap && brandingSnap.exists()) {
+          const data = brandingSnap.data();
+          setSettings((prev) => {
+            const updated = {
+              ...prev,
+              storeName: sanitizeStoreName(data.store_name, prev.storeName),
+              tagline: data.tagline || prev.tagline,
+              logoUrl: data.logo_url || prev.logoUrl,
+              primaryColor: data.primary_color || prev.primaryColor,
+            };
+            try {
+              localStorage.setItem('vaultzet_store_settings', JSON.stringify(updated));
+            } catch {}
+            return updated;
+          });
+        }
       } catch {
-        setIsLoading(false);
+        // Fallback gracefully without throwing console errors
+      } finally {
+        if (!isCancelled) {
+          setIsLoading(false);
+        }
       }
     };
 
@@ -168,8 +160,6 @@ export function StoreSettingsProvider({ children }: { children: React.ReactNode 
     return () => {
       isCancelled = true;
       cleanupListeners();
-      if (unsubGeneral) unsubGeneral();
-      if (unsubBranding) unsubBranding();
     };
   }, []);
 

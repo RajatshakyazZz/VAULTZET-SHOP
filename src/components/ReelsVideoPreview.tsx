@@ -8,6 +8,7 @@ import { useCart } from '@/context/CartContext';
 import { ReelItem, BundleProduct } from '@/types';
 import { getStoreReels, initialStoreReels, parseVideoUrl } from '@/lib/reels';
 import { resolveBundleSlug, getProductUrlForReel } from '@/lib/bundleResolver';
+import { optimizeImageUrl } from '@/lib/imageOptimized';
 
 export default function ReelsVideoPreview() {
   const { buyNow } = useCart();
@@ -139,7 +140,7 @@ export default function ReelsVideoPreview() {
               const reelPoster =
                 item.poster ||
                 resolveBundleSlug(item.bundleSlug || item.title)?.thumbnail ||
-                '/baby-strawberry-reel.jpg';
+                '/baby-strawberry-reel.webp';
 
               return (
                 <div
@@ -159,15 +160,15 @@ export default function ReelsVideoPreview() {
                       />
                     ) : (
                       <img
-                        src={reelPoster}
+                        src={optimizeImageUrl(reelPoster, 256, 75)}
                         alt={item.title}
-                        width={540}
-                        height={960}
+                        width={256}
+                        height={455}
                         loading="lazy"
                         decoding="async"
                         onClick={() => handleTogglePlay(item.id)}
                         onError={(e) => {
-                          (e.currentTarget as HTMLImageElement).src = '/baby-strawberry-reel.jpg';
+                          (e.currentTarget as HTMLImageElement).src = '/baby-strawberry-reel.webp';
                         }}
                         className="absolute inset-0 w-full h-full object-cover cursor-pointer"
                       />
@@ -178,7 +179,7 @@ export default function ReelsVideoPreview() {
                         videoRefs.current[item.id] = el;
                       }}
                       src={item.videoUrl}
-                      poster={reelPoster}
+                      poster={optimizeImageUrl(reelPoster, 256, 75)}
                       autoPlay
                       loop
                       playsInline
@@ -188,15 +189,15 @@ export default function ReelsVideoPreview() {
                     />
                   ) : (
                     <img
-                      src={reelPoster}
+                      src={optimizeImageUrl(reelPoster, 256, 75)}
                       alt={item.title}
-                      width={540}
-                      height={960}
+                      width={256}
+                      height={455}
                       loading="lazy"
                       decoding="async"
                       onClick={() => handleTogglePlay(item.id)}
                       onError={(e) => {
-                        (e.currentTarget as HTMLImageElement).src = '/baby-strawberry-reel.jpg';
+                        (e.currentTarget as HTMLImageElement).src = '/baby-strawberry-reel.webp';
                       }}
                       className="absolute inset-0 w-full h-full object-cover cursor-pointer"
                     />

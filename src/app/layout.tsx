@@ -135,18 +135,26 @@ export default function RootLayout({
         <meta httpEquiv="Content-Security-Policy" content="upgrade-insecure-requests" />
         <meta name="google-site-verification" content="googlef90de30240e3b03b" />
         <meta name="google-site-verification" content="googlef90de30240e3b03b.html" />
+        <link rel="preconnect" href="https://reelsbundles.in" />
+        <link rel="dns-prefetch" href="https://reelsbundles.in" />
+        <link
+          rel="preload"
+          as="image"
+          href="/_next/image?url=https%3A%2F%2Freelsbundles.in%2Fwp-content%2Fuploads%2F2026%2F10%2F1500-mad-scientist-reels-bundle-4-2-1024x768.jpg&w=384&q=75"
+          fetchPriority="high"
+        />
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
         />
       </head>
       <body className="min-h-screen flex flex-col antialiased selection:bg-rb-purple selection:text-white pb-[calc(4.5rem+env(safe-area-inset-bottom,0px))] md:pb-0">
-        {/* Google tag (gtag.js) */}
+        {/* Google tag (gtag.js) loaded lazily to prevent blocking LCP & main thread */}
         <Script
           src="https://www.googletagmanager.com/gtag/js?id=G-6RZBVZKPML"
-          strategy="afterInteractive"
+          strategy="lazyOnload"
         />
-        <Script id="google-analytics" strategy="afterInteractive">
+        <Script id="google-analytics" strategy="lazyOnload">
           {`
             window.dataLayer = window.dataLayer || [];
             function gtag(){dataLayer.push(arguments);}
