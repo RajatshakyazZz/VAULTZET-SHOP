@@ -1,11 +1,15 @@
 'use client';
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import { ShoppingCart, Search, Menu, X, Play } from 'lucide-react';
+import { ShoppingCart, Search, Menu, X, Play, ArrowRight, Sparkles } from 'lucide-react';
 import { useCart } from '@/context/CartContext';
 import { useStoreSettings } from '@/context/StoreSettingsContext';
+import { BUNDLE_PRODUCTS } from '@/data/bundles';
+import { getAllCatalogBundles, getLocalCustomProductsSync } from '@/lib/customProducts';
+import { filterBundlesByQuery } from '@/lib/search';
+import { BundleProduct } from '@/types';
 
 export default function Header() {
   const pathname = usePathname();
@@ -15,9 +19,33 @@ export default function Header() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isMobileSearchOpen, setIsMobileSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
 
+  const desktopSearchRef = useRef<HTMLDivElement>(null);
   const searchQueryRef = useRef(searchQuery);
   searchQueryRef.current = searchQuery;
+
+  // Catalog bundles for instant header autocomplete
+  const catalogBundles = useMemo<BundleProduct[]>(() => {
+    return getAllCatalogBundles(getLocalCustomProductsSync(), BUNDLE_PRODUCTS);
+  }, []);
+
+  // Instant matching results for live autocomplete dropdown
+  const searchResults = useMemo(() => {
+    if (!searchQuery.trim()) return [];
+    return filterBundlesByQuery(catalogBundles, searchQuery);
+  }, [catalogBundles, searchQuery]);
+
+  // Close desktop dropdown on click outside
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (desktopSearchRef.current && !desktopSearchRef.current.contains(e.target as Node)) {
+        setIsDropdownOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
 
   // Sync header search box with URL query when on /shop or when pathname changes
   useEffect(() => {
@@ -47,20 +75,20 @@ export default function Header() {
   // Real-time live search on every keystroke without pressing Enter
   const handleSearchChange = (val: string) => {
     setSearchQuery(val);
+    setIsDropdownOpen(Boolean(val.trim()));
+
     if (typeof window !== 'undefined') {
       if (pathname === '/shop') {
         const url = val.trim() ? `/shop?s=${encodeURIComponent(val.trim())}` : '/shop';
         window.history.replaceState(null, '', url);
         window.dispatchEvent(new CustomEvent('vaultzet:search', { detail: val }));
-      } else {
-        const q = val.trim() ? `?s=${encodeURIComponent(val.trim())}` : '';
-        router.push(`/shop${q}`);
       }
     }
   };
 
   const handleClearSearch = () => {
     setSearchQuery('');
+    setIsDropdownOpen(false);
     if (typeof window !== 'undefined') {
       if (pathname === '/shop') {
         window.history.replaceState(null, '', '/shop');
@@ -69,19 +97,17 @@ export default function Header() {
     }
   };
 
-  const handleSearchSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleViewAllResults = () => {
+    setIsDropdownOpen(false);
     setIsMobileSearchOpen(false);
     setIsMobileMenuOpen(false);
-    if (typeof window !== 'undefined') {
-      if (pathname === '/shop') {
-        const url = searchQuery.trim() ? `/shop?s=${encodeURIComponent(searchQuery.trim())}` : '/shop';
-        window.history.replaceState(null, '', url);
-        window.dispatchEvent(new CustomEvent('vaultzet:search', { detail: searchQuery }));
-      } else {
-        router.push(`/shop?s=${encodeURIComponent(searchQuery.trim())}`);
-      }
-    }
+    const q = searchQuery.trim() ? `?s=${encodeURIComponent(searchQuery.trim())}` : '';
+    router.push(`/shop${q}`);
+  };
+
+  const handleSearchSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    handleViewAllResults();
   };
 
   const navLinks = [
@@ -145,35 +171,107 @@ export default function Header() {
             })}
           </nav>
 
-          {/* Right Tools matching Competitor Screenshots 1 & 4 */}
+          {/* Right Tools matching Competitor Screenshots */}
           <div className="flex items-center gap-2 sm:gap-3">
-            {/* Desktop Pill Search Box with Instant Keystroke Search */}
-            <form
-              onSubmit={handleSearchSubmit}
-              className="hidden sm:flex items-center bg-[#fbf9ff] hover:bg-[#f5f0ff] focus-within:bg-white border border-[#e8dfff] rounded-full pl-3.5 pr-2 py-0.5 focus-within:ring-2 focus-within:ring-[#7c3aed]/20 focus-within:border-[#7c3aed] transition-all"
-            >
-              <Search className="w-4 h-4 text-[#7c3aed] shrink-0" />
-              <input
-                type="text"
-                autoComplete="off"
-                spellCheck="false"
-                aria-label="Search bundles"
-                placeholder="Search bundles..."
-                value={searchQuery}
-                onChange={(e) => handleSearchChange(e.target.value)}
-                className="w-44 lg:w-56 py-2 px-2 bg-transparent text-[13px] font-medium text-[#182247] placeholder:text-[#525b7a] focus:outline-none"
-              />
-              {searchQuery ? (
-                <button
-                  type="button"
-                  onClick={handleClearSearch}
-                  aria-label="Clear search"
-                  className="p-1 rounded-full text-gray-400 hover:text-gray-700 hover:bg-gray-100 transition-colors shrink-0"
-                >
-                  <X className="w-3.5 h-3.5" />
-                </button>
-              ) : null}
-            </form>
+            {/* Desktop Pill Search Box with Instant Live Autocomplete Dropdown */}
+            <div ref={desktopSearchRef} className="relative hidden sm:block">
+              <form
+                onSubmit={handleSearchSubmit}
+                className="flex items-center bg-[#fbf9ff] hover:bg-[#f5f0ff] focus-within:bg-white border border-[#e8dfff] rounded-full pl-3.5 pr-2 py-0.5 focus-within:ring-2 focus-within:ring-[#7c3aed]/20 focus-within:border-[#7c3aed] transition-all"
+              >
+                <Search className="w-4 h-4 text-[#7c3aed] shrink-0" />
+                <input
+                  type="text"
+                  autoComplete="off"
+                  spellCheck="false"
+                  aria-label="Search bundles"
+                  placeholder="Search bundles..."
+                  value={searchQuery}
+                  onFocus={() => {
+                    if (searchQuery.trim()) setIsDropdownOpen(true);
+                  }}
+                  onChange={(e) => handleSearchChange(e.target.value)}
+                  className="w-44 lg:w-56 py-2 px-2 bg-transparent text-[13px] font-medium text-[#182247] placeholder:text-[#525b7a] focus:outline-none"
+                />
+                {searchQuery ? (
+                  <button
+                    type="button"
+                    onClick={handleClearSearch}
+                    aria-label="Clear search"
+                    className="p-1 rounded-full text-gray-400 hover:text-gray-700 hover:bg-gray-100 transition-colors shrink-0"
+                  >
+                    <X className="w-3.5 h-3.5" />
+                  </button>
+                ) : null}
+              </form>
+
+              {/* Instant Dropdown Results for Desktop */}
+              {isDropdownOpen && searchQuery.trim() && (
+                <div className="absolute top-full right-0 mt-2 w-80 lg:w-96 bg-white rounded-2xl shadow-2xl border border-purple-100 overflow-hidden z-50 animate-in fade-in zoom-in-95 duration-150">
+                  <div className="p-2.5 bg-gradient-to-r from-purple-50/80 to-pink-50/80 border-b border-purple-100 flex items-center justify-between">
+                    <span className="text-[11px] font-extrabold text-[#6f33e8] uppercase tracking-wider flex items-center gap-1">
+                      <Sparkles className="w-3 h-3" />
+                      <span>{searchResults.length} Bundle{searchResults.length !== 1 ? 's' : ''} Found</span>
+                    </span>
+                    {searchResults.length > 0 && (
+                      <span className="text-[10px] text-gray-400 font-medium">Click to open</span>
+                    )}
+                  </div>
+
+                  <div className="max-h-80 overflow-y-auto divide-y divide-purple-50 p-1">
+                    {searchResults.slice(0, 5).map((bundle) => (
+                      <Link
+                        key={bundle.id}
+                        href={`/product/${bundle.slug}`}
+                        onClick={() => setIsDropdownOpen(false)}
+                        className="flex items-center gap-3 p-2 rounded-xl hover:bg-purple-50/70 transition-colors group"
+                      >
+                        <img
+                          src={bundle.thumbnail}
+                          alt={bundle.title}
+                          className="w-11 h-11 rounded-lg object-cover shrink-0 bg-slate-900 border border-purple-100"
+                        />
+                        <div className="min-w-0 flex-1">
+                          <h4 className="text-xs font-bold text-[#162048] line-clamp-1 group-hover:text-[#6f33e8] transition-colors">
+                            {bundle.title}
+                          </h4>
+                          <div className="flex items-center gap-2 mt-0.5">
+                            <span className="text-[10px] font-bold text-[#6f33e8] bg-purple-50 px-1.5 py-0.5 rounded">
+                              {bundle.reelCount}+ Reels
+                            </span>
+                            <span className="text-xs font-black text-[#162048]">
+                              ₹{bundle.personalPrice || 49}
+                            </span>
+                            {bundle.personalOriginalPrice && (
+                              <span className="text-[10px] text-gray-400 line-through">
+                                ₹{bundle.personalOriginalPrice}
+                              </span>
+                            )}
+                          </div>
+                        </div>
+                      </Link>
+                    ))}
+
+                    {searchResults.length === 0 && (
+                      <div className="py-6 text-center text-xs text-gray-500 space-y-1">
+                        <p className="font-semibold text-gray-700">No matching bundles</p>
+                        <p className="text-[11px] text-gray-400">Try AI, Horror, Gym, Premanand, Car</p>
+                      </div>
+                    )}
+                  </div>
+
+                  {searchResults.length > 0 && (
+                    <button
+                      type="button"
+                      onClick={handleViewAllResults}
+                      className="w-full py-2.5 bg-gradient-to-r from-[#6f33e8] to-[#9333ea] hover:from-[#5b24d0] hover:to-[#7e22ce] text-white text-xs font-bold text-center block transition-all"
+                    >
+                      View all {searchResults.length} results in Shop &rarr;
+                    </button>
+                  )}
+                </div>
+              )}
+            </div>
 
             {/* Mobile Search Button matching Screenshots 1 & 4 */}
             <button
@@ -236,7 +334,7 @@ export default function Header() {
           </div>
         </div>
 
-        {/* Mobile Search Dropdown Bar with Instant Keystroke Search */}
+        {/* Mobile Search Dropdown Bar with Instant Keystroke Search & Product Preview List */}
         {isMobileSearchOpen && (
           <div className="sm:hidden border-t border-slate-100 bg-white py-2.5 px-1 animate-in fade-in duration-150">
             <form
@@ -268,6 +366,75 @@ export default function Header() {
                 </div>
               )}
             </form>
+
+            {/* Mobile Instant Results List */}
+            {searchQuery.trim() && (
+              <div className="mt-2.5 bg-white rounded-2xl border border-purple-100 shadow-lg overflow-hidden animate-in fade-in duration-150">
+                <div className="p-2 bg-purple-50/70 border-b border-purple-100 flex items-center justify-between text-[11px] font-bold text-[#6f33e8]">
+                  <span>
+                    {searchResults.length} Bundle{searchResults.length !== 1 ? 's' : ''} Found
+                  </span>
+                  {searchResults.length > 0 && (
+                    <button
+                      type="button"
+                      onClick={handleViewAllResults}
+                      className="text-[10px] text-[#6f33e8] underline font-extrabold"
+                    >
+                      See All in Shop &rarr;
+                    </button>
+                  )}
+                </div>
+
+                <div className="max-h-64 overflow-y-auto divide-y divide-purple-50 p-1">
+                  {searchResults.slice(0, 5).map((bundle) => (
+                    <Link
+                      key={bundle.id}
+                      href={`/product/${bundle.slug}`}
+                      onClick={() => {
+                        setIsMobileSearchOpen(false);
+                        setIsDropdownOpen(false);
+                      }}
+                      className="flex items-center gap-2.5 p-2 rounded-xl active:bg-purple-100/70 transition-colors"
+                    >
+                      <img
+                        src={bundle.thumbnail}
+                        alt={bundle.title}
+                        className="w-10 h-10 rounded-lg object-cover shrink-0 bg-slate-900 border border-purple-100"
+                      />
+                      <div className="min-w-0 flex-1">
+                        <h4 className="text-xs font-bold text-[#162048] line-clamp-1">
+                          {bundle.title}
+                        </h4>
+                        <div className="flex items-center gap-1.5 mt-0.5">
+                          <span className="text-[9px] font-bold text-[#6f33e8] bg-purple-50 px-1 py-0.2 rounded">
+                            {bundle.reelCount}+ Reels
+                          </span>
+                          <span className="text-xs font-black text-[#162048]">
+                            ₹{bundle.personalPrice || 49}
+                          </span>
+                        </div>
+                      </div>
+                    </Link>
+                  ))}
+
+                  {searchResults.length === 0 && (
+                    <div className="py-4 text-center text-xs text-gray-500">
+                      No bundles found. Try AI, Horror, Gym, Premanand...
+                    </div>
+                  )}
+                </div>
+
+                {searchResults.length > 0 && (
+                  <button
+                    type="button"
+                    onClick={handleViewAllResults}
+                    className="w-full py-2 bg-[#6f33e8] text-white text-xs font-bold text-center block"
+                  >
+                    View all {searchResults.length} results in Shop &rarr;
+                  </button>
+                )}
+              </div>
+            )}
           </div>
         )}
 

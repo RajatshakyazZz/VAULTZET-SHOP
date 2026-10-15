@@ -21,6 +21,7 @@ import {
 import { BUNDLE_PRODUCTS } from '@/data/bundles';
 import { useCart } from '@/context/CartContext';
 import { fetchCustomProducts, getAllCatalogBundles, getLocalCustomProductsSync } from '@/lib/customProducts';
+import { filterBundlesByQuery } from '@/lib/search';
 import { BundleProduct } from '@/types';
 
 const ITEMS_PER_PAGE = 12;
@@ -81,10 +82,10 @@ function ShopContent() {
     return () => window.removeEventListener('popstate', handlePopState);
   }, []);
 
-  // Sync state when URL searchParams change via router navigation
+  // Sync state when URL searchParams change via router navigation from outside only
   useEffect(() => {
     const s = searchParams.get('s') || searchParams.get('q') || '';
-    if (s !== searchTermRef.current) {
+    if (s && s !== searchTermRef.current) {
       setSearchTerm(s);
       setCurrentPage(1);
     }
@@ -105,50 +106,13 @@ function ShopContent() {
 
   // Real-time live filtering on every keystroke without pressing Enter
   const filteredBundles = useMemo(() => {
-    const rawQ = String(searchTerm || '').toLowerCase().trim();
-    if (!rawQ) {
-      return [...allBundles].sort((a, b) => {
-        if (sortBy === 'price-low') return (a.personalPrice || 0) - (b.personalPrice || 0);
-        if (sortBy === 'price-high') return (b.personalPrice || 0) - (a.personalPrice || 0);
-        if (sortBy === 'reels') return (b.reelCount || 0) - (a.reelCount || 0);
-        return (b.isHot ? 1 : 0) - (a.isHot ? 1 : 0);
-      });
-    }
-
-    const tokens = rawQ
-      .replace(/[^\p{L}\p{M}\p{N}\s]/gu, ' ')
-      .split(/\s+/)
-      .filter(Boolean);
-
-    if (tokens.length === 0) {
-      return allBundles;
-    }
-
-    return allBundles
-      .filter((b) => {
-        if (!b) return false;
-
-        const title = String(b.title || '').toLowerCase();
-        const shortDesc = String(b.shortDescription || '').toLowerCase();
-        const fullDesc = String(b.description || '').toLowerCase();
-        const cat = String(b.category || '').toLowerCase();
-        const catSlug = String(b.categorySlug || '').toLowerCase();
-        const slug = String(b.slug || '').toLowerCase();
-        const reelCount = String(b.reelCount || '');
-        const personalPrice = String(b.personalPrice || '');
-        const tags = Array.isArray(b.tags) ? b.tags.join(' ').toLowerCase() : '';
-        const aliases = Array.isArray(b.aliases) ? b.aliases.join(' ').toLowerCase() : '';
-        const rawCats = Array.isArray(b.categories) ? b.categories.join(' ').toLowerCase() : '';
-
-        const corpus = `${title} ${shortDesc} ${fullDesc} ${cat} ${catSlug} ${slug} ${reelCount} ${personalPrice} ${tags} ${aliases} ${rawCats}`;
-        return tokens.every((token) => corpus.includes(token));
-      })
-      .sort((a, b) => {
-        if (sortBy === 'price-low') return (a.personalPrice || 0) - (b.personalPrice || 0);
-        if (sortBy === 'price-high') return (b.personalPrice || 0) - (a.personalPrice || 0);
-        if (sortBy === 'reels') return (b.reelCount || 0) - (a.reelCount || 0);
-        return (b.isHot ? 1 : 0) - (a.isHot ? 1 : 0);
-      });
+    const matched = filterBundlesByQuery(allBundles, searchTerm);
+    return [...matched].sort((a, b) => {
+      if (sortBy === 'price-low') return (a.personalPrice || 0) - (b.personalPrice || 0);
+      if (sortBy === 'price-high') return (b.personalPrice || 0) - (a.personalPrice || 0);
+      if (sortBy === 'reels') return (b.reelCount || 0) - (a.reelCount || 0);
+      return (b.isHot ? 1 : 0) - (a.isHot ? 1 : 0);
+    });
   }, [allBundles, searchTerm, sortBy]);
 
   // Safe pagination calculations
