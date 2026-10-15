@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { usePathname, useRouter, useSearchParams } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import { ShoppingCart, Search, Menu, X, Play } from 'lucide-react';
 import { useCart } from '@/context/CartContext';
 import { useStoreSettings } from '@/context/StoreSettingsContext';
@@ -10,20 +10,20 @@ import { useStoreSettings } from '@/context/StoreSettingsContext';
 export default function Header() {
   const pathname = usePathname();
   const router = useRouter();
-  const searchParams = useSearchParams();
   const { cartCount, setIsCartOpen } = useCart();
   const { settings } = useStoreSettings();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isMobileSearchOpen, setIsMobileSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
 
-  // Sync header search box with URL when on /shop
+  // Sync header search box with URL when on /shop without useSearchParams CSR bailout
   useEffect(() => {
-    if (pathname === '/shop') {
-      const s = searchParams?.get('s') || searchParams?.get('q') || '';
+    if (pathname === '/shop' && typeof window !== 'undefined') {
+      const params = new URLSearchParams(window.location.search);
+      const s = params.get('s') || params.get('q') || '';
       setSearchQuery(s);
     }
-  }, [pathname, searchParams]);
+  }, [pathname]);
 
   // Real-time live search on every keystroke without pressing Enter
   const handleSearchChange = (val: string) => {
