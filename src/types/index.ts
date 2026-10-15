@@ -30,6 +30,8 @@ export interface BundleProduct {
   files?: Array<{ id?: string; name: string; file_url: string }>;
   features: string[];
   faqs: { question: string; answer: string }[];
+  categories?: string[];
+  categorySlugs?: string[];
   aliases?: string[];
 }
 

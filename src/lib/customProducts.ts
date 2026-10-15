@@ -19,15 +19,17 @@ export function mapFirestoreDocToBundleProduct(data: any): BundleProduct {
   const resellerPrice = Number(data.reseller_price || price * 2);
   const resellerRegularPrice = Number(data.reseller_regular_price || price * 10);
 
-  let category = 'Trending Reels';
-  if (Array.isArray(data.categories) && data.categories.length > 0) {
-    category = String(data.categories[0] || 'Trending Reels');
-  } else if (typeof data.categories === 'string' && data.categories.trim()) {
-    category = data.categories.trim();
-  } else if (typeof data.category === 'string' && data.category.trim()) {
-    category = data.category.trim();
-  }
+  const rawCats: string[] = Array.isArray(data.categories)
+    ? data.categories.map(String).map((c: string) => c.trim()).filter(Boolean)
+    : typeof data.categories === 'string' && data.categories.trim()
+    ? [data.categories.trim()]
+    : typeof data.category === 'string' && data.category.trim()
+    ? [data.category.trim()]
+    : ['Trending Reels'];
+
+  const category = rawCats[0] || 'Trending Reels';
   const categorySlug = category.toLowerCase().replace(/[^a-z0-9]+/g, '-');
+  const categorySlugs = rawCats.map((c) => c.toLowerCase().replace(/[^a-z0-9]+/g, '-'));
 
   let tags: string[] = [];
   if (Array.isArray(data.tags)) {
@@ -108,6 +110,8 @@ export function mapFirestoreDocToBundleProduct(data: any): BundleProduct {
     googleDriveLink: '', // Never expose real drive link in public client state
     features,
     faqs,
+    categories: rawCats,
+    categorySlugs,
   };
 }
 

@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useMemo, Suspense } from 'react';
 import Link from 'next/link';
-import { useSearchParams } from 'next/navigation';
+import { useSearchParams, useRouter } from 'next/navigation';
 import {
   Search,
   ShoppingCart,
@@ -22,24 +22,26 @@ import {
 } from 'lucide-react';
 import { BUNDLE_PRODUCTS, CATEGORIES as DEFAULT_CATEGORIES } from '@/data/bundles';
 import { useCart } from '@/context/CartContext';
-import { fetchCustomProducts, getAllCatalogBundles } from '@/lib/customProducts';
+import { fetchCustomProducts, getAllCatalogBundles, getLocalCustomProductsSync } from '@/lib/customProducts';
 import { BundleProduct } from '@/types';
 import {
   calculateCategoryCounts,
   productMatchesCategory,
   fetchCustomCategories,
   getLocalCategoriesSync,
+  cleanCategoryName,
   CategoryItem,
 } from '@/lib/categories';
 
 const ITEMS_PER_PAGE = 12;
 
 function ShopContent() {
+  const router = useRouter();
   const searchParams = useSearchParams();
   const initialCategory = searchParams.get('cat') || searchParams.get('category') || 'all';
   const initialSearch = searchParams.get('s') || searchParams.get('q') || '';
 
-  const [customProducts, setCustomProducts] = useState<BundleProduct[]>([]);
+  const [customProducts, setCustomProducts] = useState<BundleProduct[]>(() => getLocalCustomProductsSync());
   const [categories, setCategories] = useState<CategoryItem[]>(() => getLocalCategoriesSync());
   const [selectedCategory, setSelectedCategory] = useState(initialCategory);
   const [searchTerm, setSearchTerm] = useState(initialSearch);
@@ -50,6 +52,18 @@ function ShopContent() {
   const [isMobileFilterOpen, setIsMobileFilterOpen] = useState(false);
 
   const { addToCart, buyNow } = useCart();
+
+  // Prevent background body scrolling when mobile drawer is open
+  useEffect(() => {
+    if (isMobileFilterOpen) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = '';
+    }
+    return () => {
+      document.body.style.overflow = '';
+    };
+  }, [isMobileFilterOpen]);
 
   // Sync state whenever URL query params change (e.g. from homepage category clicks)
   useEffect(() => {
@@ -110,12 +124,13 @@ function ShopContent() {
       });
   }, [allBundles, selectedCategory, categories, searchTerm, minPrice, maxPrice, sortBy]);
 
-  // Total pagination calculations
+  // Total pagination calculations with safe page clamping
   const totalPages = Math.max(1, Math.ceil(filteredBundles.length / ITEMS_PER_PAGE));
+  const safePage = Math.min(Math.max(1, currentPage), totalPages);
   const paginatedBundles = useMemo(() => {
-    const start = (currentPage - 1) * ITEMS_PER_PAGE;
+    const start = (safePage - 1) * ITEMS_PER_PAGE;
     return filteredBundles.slice(start, start + ITEMS_PER_PAGE);
-  }, [filteredBundles, currentPage]);
+  }, [filteredBundles, safePage]);
 
   const handleCategorySelect = (slug: string) => {
     const nextCategory = selectedCategory === slug ? 'all' : slug;
@@ -123,14 +138,15 @@ function ShopContent() {
     setCurrentPage(1);
 
     if (typeof window !== 'undefined') {
-      const url = new URL(window.location.href);
+      const params = new URLSearchParams(window.location.search);
       if (nextCategory === 'all') {
-        url.searchParams.delete('cat');
-        url.searchParams.delete('category');
+        params.delete('cat');
+        params.delete('category');
       } else {
-        url.searchParams.set('cat', nextCategory);
+        params.set('cat', nextCategory);
       }
-      window.history.pushState({}, '', url.toString());
+      const query = params.toString() ? `?${params.toString()}` : '';
+      router.replace(`/shop${query}`, { scroll: false });
     }
   };
 
@@ -142,12 +158,7 @@ function ShopContent() {
     setCurrentPage(1);
 
     if (typeof window !== 'undefined') {
-      const url = new URL(window.location.href);
-      url.searchParams.delete('cat');
-      url.searchParams.delete('category');
-      url.searchParams.delete('s');
-      url.searchParams.delete('q');
-      window.history.pushState({}, '', url.toString());
+      router.replace('/shop', { scroll: false });
     }
   };
 
@@ -216,7 +227,7 @@ function ShopContent() {
         </div>
 
         {/* Mobile Full-Width Filter Trigger Button matching Screenshot 4 */}
-        <div className="lg:hidden">
+        <div className="lg:hidden space-y-2.5">
           <button
             type="button"
             onClick={() => setIsMobileFilterOpen(true)}
@@ -225,9 +236,51 @@ function ShopContent() {
             <SlidersHorizontal className="w-3.5 h-3.5 text-[#6f33e8]" />
             <span>Filters</span>
             {selectedCategory !== 'all' && (
-              <span className="w-2 h-2 rounded-full bg-[#6f33e8]" />
+              <span className="px-2 py-0.5 rounded-full text-[10px] font-black bg-purple-100 text-[#6f33e8]">
+                {cleanCategoryName(categories.find((c) => c.slug === selectedCategory)?.name || selectedCategory)}
+              </span>
             )}
           </button>
+
+          {/* Quick horizontal category chip bar for 1-tap browsing on mobile */}
+          <div className="-mx-3 px-3 overflow-x-auto flex items-center gap-1.5 scrollbar-none py-0.5">
+            <button
+              type="button"
+              onClick={() => handleCategorySelect('all')}
+              className={`px-3 py-1.5 rounded-full text-[11px] font-extrabold shrink-0 transition-all ${
+                selectedCategory === 'all'
+                  ? 'bg-[#6f33e8] text-white shadow-xs'
+                  : 'bg-white border border-[#eee8fa] text-gray-700 hover:bg-gray-50'
+              }`}
+            >
+              All ({allBundles.length})
+            </button>
+            {categories.slice(0, 16).map((cat) => {
+              const isSelected = selectedCategory === cat.slug;
+              const count = categoryCounts[cat.slug] || 0;
+              const cleanName = cleanCategoryName(cat.name);
+              return (
+                <button
+                  key={cat.slug}
+                  type="button"
+                  onClick={() => handleCategorySelect(cat.slug)}
+                  className={`px-3 py-1.5 rounded-full text-[11px] font-bold shrink-0 transition-all flex items-center gap-1.5 ${
+                    isSelected
+                      ? 'bg-[#6f33e8] text-white shadow-xs font-extrabold'
+                      : 'bg-white border border-[#eee8fa] text-gray-700 hover:bg-gray-50'
+                  }`}
+                >
+                  <span>{cat.icon || '✨'}</span>
+                  <span>{cleanName}</span>
+                  <span className={`text-[9px] px-1.5 py-0.2 rounded-full font-black ${
+                    isSelected ? 'bg-white/25 text-white' : 'bg-gray-100 text-gray-500'
+                  }`}>
+                    {count}
+                  </span>
+                </button>
+              );
+            })}
+          </div>
         </div>
 
         {/* 2-Column Layout: Desktop Sidebar + Product Grid matching Image 1 & 4 */}
@@ -646,32 +699,44 @@ function ShopContent() {
 
       {/* Mobile Slide-Over Filter Drawer */}
       {isMobileFilterOpen && (
-        <div className="fixed inset-0 z-50 lg:hidden flex flex-col justify-end">
-          {/* Backdrop */}
+        <div className="fixed inset-0 z-[100] lg:hidden flex flex-col justify-end">
+          {/* Dark Blur Backdrop */}
           <div
             onClick={() => setIsMobileFilterOpen(false)}
-            className="fixed inset-0 bg-black/50 backdrop-blur-xs transition-opacity"
+            className="fixed inset-0 bg-black/60 backdrop-blur-xs transition-opacity"
+            aria-hidden="true"
           />
 
-          {/* Drawer content */}
-          <div className="relative bg-white rounded-t-[28px] max-h-[85vh] overflow-y-auto p-5 space-y-4 shadow-2xl z-10 animate-in slide-in-from-bottom duration-200">
-            <div className="flex items-center justify-between pb-3 border-b border-gray-100">
+          {/* Drawer Sheet Container */}
+          <div className="relative bg-white rounded-t-[32px] max-h-[85vh] flex flex-col z-[101] shadow-[0_-12px_40px_rgba(0,0,0,0.25)] overflow-hidden animate-in slide-in-from-bottom duration-200">
+            
+            {/* 1. Sticky Top Header */}
+            <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100 bg-white shrink-0">
               <div className="flex items-center gap-2">
-                <SlidersHorizontal className="w-4 h-4 text-[#6f33e8]" />
-                <span className="text-sm font-black text-[#162048]">Filter Bundles</span>
+                <div className="w-7 h-7 rounded-lg bg-purple-50 text-[#6f33e8] flex items-center justify-center">
+                  <SlidersHorizontal className="w-3.5 h-3.5" />
+                </div>
+                <div>
+                  <span className="text-sm font-black text-[#162048]">Filter Bundles</span>
+                  {selectedCategory !== 'all' && (
+                    <span className="ml-2 text-[10px] font-extrabold bg-purple-100 text-[#6f33e8] px-2 py-0.5 rounded-full">
+                      Active
+                    </span>
+                  )}
+                </div>
               </div>
               <div className="flex items-center gap-2">
                 <button
                   type="button"
                   onClick={clearFilters}
-                  className="text-xs font-bold text-gray-500 hover:text-gray-800 px-2 py-1"
+                  className="text-xs font-bold text-gray-500 hover:text-[#6f33e8] px-2.5 py-1 rounded-full border border-gray-200 hover:bg-gray-50 transition-colors"
                 >
                   Clear All
                 </button>
                 <button
                   type="button"
                   onClick={() => setIsMobileFilterOpen(false)}
-                  className="p-1 rounded-full bg-gray-100 text-gray-600 hover:bg-gray-200"
+                  className="p-1.5 rounded-full bg-gray-100 text-gray-600 hover:bg-gray-200 transition-colors"
                   aria-label="Close"
                 >
                   <X className="w-4 h-4" />
@@ -679,81 +744,113 @@ function ShopContent() {
               </div>
             </div>
 
-            {/* Mobile Search */}
-            <div className="space-y-1">
-              <label className="text-xs font-bold text-[#162048] block">Search</label>
-              <div className="relative">
-                <input
-                  type="text"
-                  placeholder="Search bundle name..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="w-full pl-3.5 pr-8 py-2.5 rounded-xl border border-gray-200 text-xs focus:outline-none focus:ring-2 focus:ring-[#6f33e8]"
-                />
-                <Search className="w-3.5 h-3.5 text-purple-400 absolute right-3 top-3 pointer-events-none" />
+            {/* 2. Scrollable Middle Body */}
+            <div className="flex-1 overflow-y-auto px-5 py-4 space-y-4 overscroll-contain">
+              {/* Mobile Search */}
+              <div className="space-y-1.5">
+                <label className="text-xs font-bold text-[#162048] block">Search</label>
+                <div className="relative">
+                  <input
+                    type="text"
+                    placeholder="Search bundle name..."
+                    value={searchTerm}
+                    onChange={(e) => {
+                      setSearchTerm(e.target.value);
+                      setCurrentPage(1);
+                    }}
+                    className="w-full pl-3.5 pr-8 py-2.5 rounded-xl border border-gray-200 text-xs focus:outline-none focus:ring-2 focus:ring-[#6f33e8] font-medium"
+                  />
+                  <Search className="w-3.5 h-3.5 text-purple-400 absolute right-3 top-3 pointer-events-none" />
+                </div>
               </div>
-            </div>
 
-            {/* Mobile Categories list */}
-            <div className="space-y-1.5">
-              <label className="text-xs font-bold text-[#162048] block">Categories</label>
-              <div className="space-y-1 max-h-56 overflow-y-auto pr-1">
-                {categories.map((cat) => {
-                  const isSelected = selectedCategory === cat.slug;
-                  const count = categoryCounts[cat.slug] || 0;
-                  return (
-                    <button
-                      key={cat.slug}
-                      type="button"
-                      onClick={() => handleCategorySelect(cat.slug)}
-                      className={`w-full flex items-center justify-between py-2 px-2.5 rounded-xl text-xs transition-colors ${
-                        isSelected
-                          ? 'bg-purple-50 text-[#6f33e8] font-black'
-                          : 'text-gray-700 hover:bg-gray-50'
-                      }`}
-                    >
-                      <div className="flex items-center gap-2">
-                        <div
-                          className={`w-4 h-4 rounded-md border flex items-center justify-center ${
-                            isSelected
-                              ? 'bg-[#6f33e8] border-[#6f33e8] text-white'
-                              : 'border-gray-300'
-                          }`}
-                        >
-                          {isSelected && <Check className="w-3 h-3 stroke-[3]" />}
+              {/* Mobile Categories list */}
+              <div className="space-y-1.5">
+                <div className="flex items-center justify-between">
+                  <label className="text-xs font-bold text-[#162048] block">Categories</label>
+                  <span className="text-[10px] font-semibold text-gray-400">{categories.length} total</span>
+                </div>
+                <div className="space-y-1 max-h-60 overflow-y-auto pr-1">
+                  {categories.map((cat) => {
+                    const isSelected = selectedCategory === cat.slug;
+                    const count = categoryCounts[cat.slug] || 0;
+                    const cleanName = cleanCategoryName(cat.name);
+                    return (
+                      <button
+                        key={cat.slug}
+                        type="button"
+                        onClick={() => handleCategorySelect(cat.slug)}
+                        className={`w-full flex items-center justify-between py-2.5 px-3 rounded-xl text-xs transition-all ${
+                          isSelected
+                            ? 'bg-purple-50 text-[#6f33e8] font-black border border-purple-200 shadow-2xs'
+                            : 'text-gray-700 hover:bg-gray-50 border border-transparent'
+                        }`}
+                      >
+                        <div className="flex items-center gap-2.5 min-w-0">
+                          <div
+                            className={`w-4 h-4 rounded-md border flex items-center justify-center shrink-0 ${
+                              isSelected
+                                ? 'bg-[#6f33e8] border-[#6f33e8] text-white'
+                                : 'border-gray-300'
+                            }`}
+                          >
+                            {isSelected && <Check className="w-3 h-3 stroke-[3]" />}
+                          </div>
+                          <span className="text-xs font-bold truncate">{cleanName}</span>
+                          {cat.is_custom && (
+                            <span className="text-[8px] font-black px-1.5 py-0.5 rounded-full bg-purple-100 text-purple-700">
+                              NEW
+                            </span>
+                          )}
                         </div>
-                        <span className="text-xs font-bold">{cat.name}</span>
-                      </div>
-                      <span className="text-[10px] text-gray-500 bg-gray-100 px-2 py-0.5 rounded-full font-bold">
-                        {count}
-                      </span>
-                    </button>
-                  );
-                })}
+                        <span className={`text-[10px] px-2 py-0.5 rounded-full font-bold shrink-0 ${
+                          isSelected ? 'bg-purple-200/70 text-[#5a22d4]' : 'bg-gray-100 text-gray-500'
+                        }`}>
+                          {count}
+                        </span>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* Price slider */}
+              <div className="space-y-2 pt-2 border-t border-gray-100">
+                <div className="flex items-center justify-between">
+                  <label className="text-xs font-bold text-[#162048]">Price Range</label>
+                  <span className="text-xs font-extrabold text-[#6f33e8]">Up to ₹{maxPrice}</span>
+                </div>
+                <input
+                  type="range"
+                  min="0"
+                  max="999"
+                  value={maxPrice}
+                  onChange={(e) => {
+                    setMaxPrice(Number(e.target.value));
+                    setCurrentPage(1);
+                  }}
+                  className="w-full accent-[#6f33e8] cursor-pointer"
+                />
               </div>
             </div>
 
-            {/* Price slider */}
-            <div className="space-y-2 pt-2 border-t border-gray-100">
-              <label className="text-xs font-bold text-[#162048] block">Price Range (up to ₹{maxPrice})</label>
-              <input
-                type="range"
-                min="0"
-                max="999"
-                value={maxPrice}
-                onChange={(e) => setMaxPrice(Number(e.target.value))}
-                className="w-full accent-[#6f33e8]"
-              />
+            {/* 3. Sticky Bottom Footer - Always Visible, Never Blocked */}
+            <div className="sticky bottom-0 bg-white border-t border-gray-100 px-5 pt-3 pb-8 sm:pb-6 shadow-[0_-8px_20px_rgba(0,0,0,0.06)] shrink-0 z-20">
+              <button
+                type="button"
+                onClick={() => {
+                  setIsMobileFilterOpen(false);
+                  if (typeof window !== 'undefined') {
+                    window.scrollTo({ top: 100, behavior: 'smooth' });
+                  }
+                }}
+                className="w-full py-3.5 rounded-xl bg-gradient-to-r from-[#6533e4] to-[#7839ee] hover:opacity-95 text-white font-black text-xs sm:text-sm shadow-md shadow-purple-500/25 flex items-center justify-center gap-2 active:scale-[0.98] transition-all"
+              >
+                <Check className="w-4 h-4 stroke-[3]" />
+                <span>Apply Filters ({filteredBundles.length} Bundles)</span>
+              </button>
             </div>
 
-            {/* Apply button */}
-            <button
-              type="button"
-              onClick={() => setIsMobileFilterOpen(false)}
-              className="w-full py-3 rounded-xl bg-gradient-to-r from-[#6533e4] to-[#7839ee] text-white font-black text-xs shadow-md shadow-purple-500/25"
-            >
-              Apply Filters ({filteredBundles.length} Bundles)
-            </button>
           </div>
         </div>
       )}

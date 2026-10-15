@@ -135,11 +135,11 @@ export const COMPETITOR_CATEGORIES: CategoryItem[] = [
     keywords: ['anime', 'ghibli', 'manga', 'naruto', 'otaku', 'japanese'],
   },
   {
-    name: 'Art &amp;',
+    name: 'Art & Craft',
     slug: 'art-amp',
     icon: '🎨',
     keywords: ['art', 'paper art', 'art & craft', 'craft', 'drawing', 'painting'],
-    aliases: ['art-craft', 'art-reels'],
+    aliases: ['art-craft', 'art-reels', 'art-amp'],
   },
   {
     name: 'ASMR Reels',
@@ -166,11 +166,11 @@ export const COMPETITOR_CATEGORIES: CategoryItem[] = [
     keywords: ['car', 'cars', 'f1', 'vehicle', 'automotive', 'mafia cars', 'supercar'],
   },
   {
-    name: 'Cartoon &amp;',
+    name: 'Cartoons & Animation',
     slug: 'cartoon-amp',
     icon: '📺',
     keywords: ['cartoon', 'cartoons', '3d cartoon', 'sharko', 'stickman', 'toons'],
-    aliases: ['cartoon-reels', 'cartoons'],
+    aliases: ['cartoon-reels', 'cartoons', 'cartoon-amp'],
   },
   {
     name: 'Fashion Reels',
@@ -197,18 +197,18 @@ export const COMPETITOR_CATEGORIES: CategoryItem[] = [
     keywords: ['couple', 'dosti', 'friendship', 'relationship', 'love', 'romantic', 'relatable', 'adult talks'],
   },
   {
-    name: 'Business &amp;',
+    name: 'Business & Finance',
     slug: 'business-amp',
     icon: '📈',
     keywords: ['business', 'growth', 'stock', 'finance', 'entrepreneur', 'wealth'],
-    aliases: ['business-finance'],
+    aliases: ['business-finance', 'business-amp'],
   },
   {
-    name: 'Cars &amp;',
+    name: 'Cars & Luxury',
     slug: 'cars-amp',
     icon: '🏎️',
     keywords: ['car', 'cars', 'f1', 'vehicle', 'mafia cars', 'automotive'],
-    aliases: ['cars-vehicles'],
+    aliases: ['cars-vehicles', 'cars-amp'],
   },
   {
     name: 'Celebrity Reels',
@@ -253,11 +253,11 @@ export const COMPETITOR_CATEGORIES: CategoryItem[] = [
     keywords: ['mindset', 'stoic', 'sigma', 'attitude', 'discipline', 'mental'],
   },
   {
-    name: 'Motivation &amp;',
+    name: 'Motivation & Mindset',
     slug: 'motivation-amp',
     icon: '🚀',
     keywords: ['motivation', 'mindset', 'success', 'growth', 'motivational'],
-    aliases: ['motivation-mindset'],
+    aliases: ['motivation-mindset', 'motivation-amp'],
   },
   {
     name: 'Movie Reels',
@@ -272,11 +272,11 @@ export const COMPETITOR_CATEGORIES: CategoryItem[] = [
     keywords: ['religious', 'premanand', 'sanatan', 'god', 'islamic', 'spiritual', 'dharma'],
   },
   {
-    name: 'Spiritual &amp;',
+    name: 'Spiritual & Devotional',
     slug: 'spiritual-amp',
     icon: '🕉️',
     keywords: ['spiritual', 'premanand', 'sanatan', 'god', 'bhakti', 'soul'],
-    aliases: ['spiritual-devotional'],
+    aliases: ['spiritual-devotional', 'spiritual-amp'],
   },
   {
     name: 'Tech Reels',
@@ -285,11 +285,11 @@ export const COMPETITOR_CATEGORIES: CategoryItem[] = [
     keywords: ['tech', 'technology', 'ai tech', 'faceless', 'ai', 'gadget', 'coding'],
   },
   {
-    name: 'Tools &amp;',
+    name: 'Tools & Tips',
     slug: 'tools-amp',
     icon: '🔧',
     keywords: ['tools', 'tools tips', 'camera tips', 'tips', 'utilities'],
-    aliases: ['tools-tips'],
+    aliases: ['tools-tips', 'tools-amp'],
   },
   {
     name: 'Travel Reels',
@@ -328,18 +328,18 @@ export const COMPETITOR_CATEGORIES: CategoryItem[] = [
     keywords: ['danc', 'dancing', 'dancers', 'baby dancing'],
   },
   {
-    name: 'DIY &amp;',
+    name: 'DIY & Crafts',
     slug: 'diy-amp',
     icon: '🔨',
     keywords: ['diy', 'craft', 'woodwork', 'restoration'],
-    aliases: ['diy-crafts'],
+    aliases: ['diy-crafts', 'diy-amp'],
   },
   {
-    name: 'Emotional &amp;',
+    name: 'Emotional & Drama',
     slug: 'emotional-amp',
     icon: '🥺',
     keywords: ['emotional', 'dosti', 'friendship', 'sad', 'heart', 'feelings'],
-    aliases: ['emotional-drama'],
+    aliases: ['emotional-drama', 'emotional-amp'],
   },
   {
     name: 'Inspirational Reels',
@@ -348,18 +348,18 @@ export const COMPETITOR_CATEGORIES: CategoryItem[] = [
     keywords: ['inspiration', 'humanity', 'kindness', 'motivat', 'uplifting'],
   },
   {
-    name: 'Lifestyle &amp;',
+    name: 'Lifestyle & Luxury',
     slug: 'lifestyle-amp',
     icon: '🍸',
     keywords: ['lifestyle', 'luxury', 'billionaire', 'living'],
-    aliases: ['lifestyle-luxury'],
+    aliases: ['lifestyle-luxury', 'lifestyle-amp'],
   },
   {
-    name: 'Nature &amp;',
+    name: 'Nature & Wildlife',
     slug: 'nature-amp',
     icon: '🌲',
     keywords: ['nature', 'wildlife', 'trees', 'ocean', 'rain', 'snow'],
-    aliases: ['nature-wildlife'],
+    aliases: ['nature-wildlife', 'nature-amp'],
   },
   {
     name: 'Podcast Reels',
@@ -368,25 +368,25 @@ export const COMPETITOR_CATEGORIES: CategoryItem[] = [
     keywords: ['podcast', 'interview', 'talk show'],
   },
   {
-    name: 'Satisfying &amp;',
+    name: 'Satisfying & ASMR',
     slug: 'satisfying-amp',
     icon: '✨',
     keywords: ['satisfying', 'asmr', 'glass cutting', 'restoration'],
-    aliases: ['satisfying-asmr'],
+    aliases: ['satisfying-asmr', 'satisfying-amp'],
   },
   {
-    name: 'Space &amp;',
+    name: 'Space & Universe',
     slug: 'space-amp',
     icon: '🌌',
     keywords: ['space', 'universe', 'cosmic', 'galaxy', 'astronomy'],
-    aliases: ['space-universe'],
+    aliases: ['space-universe', 'space-amp'],
   },
   {
-    name: 'Sports &amp;',
+    name: 'Sports & Fitness',
     slug: 'sports-amp',
     icon: '🏆',
     keywords: ['sport', 'cricket', 'football', 'basketball', 'cycling', 'athletic'],
-    aliases: ['sports-fitness'],
+    aliases: ['sports-fitness', 'sports-amp'],
   },
   {
     name: 'Trending Reels',
@@ -401,6 +401,17 @@ export const COMPETITOR_CATEGORIES: CategoryItem[] = [
     keywords: ['unboxing', 'mini car', 'unpacking'],
   },
 ];
+
+export function cleanCategoryName(name: string): string {
+  return String(name || '')
+    .replace(/&amp;/g, '&')
+    .replace(/&lt;/g, '<')
+    .replace(/&gt;/g, '>')
+    .replace(/&quot;/g, '"')
+    .replace(/&#39;/g, "'")
+    .replace(/\s+/g, ' ')
+    .trim();
+}
 
 /**
  * Safely normalizes category slugs or names for reliable comparison.
@@ -606,6 +617,7 @@ export function getLocalCategoriesSync(): CategoryItem[] {
         .filter((c: any) => c && c.name && !c.is_deleted && !deleted.has(String(c.slug || '').toLowerCase()) && (!c.id || !deleted.has(String(c.id).toLowerCase())))
         .map((c: any) => ({
           ...c,
+          name: cleanCategoryName(c.name),
           is_custom: true,
           count: Number(c.count || 0),
           icon: c.icon || '✨',
@@ -710,7 +722,7 @@ export async function fetchCustomCategories(force = false): Promise<CategoryItem
               if (c && c.name && !c.is_deleted && !deletedSet.has(slug) && !deletedSet.has(id) && !customCategoriesMap.has(slug)) {
                 customCategoriesMap.set(slug, {
                   id: c.id || slug,
-                  name: String(c.name).trim(),
+                  name: cleanCategoryName(c.name),
                   slug,
                   count: Number(c.count || 0),
                   icon: c.icon || '✨',
@@ -737,7 +749,7 @@ export async function fetchCustomCategories(force = false): Promise<CategoryItem
       snap.docs.forEach((d) => {
         const data = d.data();
         const id = d.id.toLowerCase();
-        const name = String(data.name || 'Category');
+        const name = cleanCategoryName(String(data.name || 'Category'));
         const slug = String(data.slug || name.toLowerCase().replace(/[^a-z0-9]+/g, '-')).toLowerCase();
         const isDeleted = Boolean(data.is_deleted || name === '[DELETED]');
 
@@ -782,7 +794,7 @@ export async function fetchCustomCategories(force = false): Promise<CategoryItem
             if (c && c.name && !c.is_deleted && !deletedSet.has(slug) && !deletedSet.has(id) && !customCategoriesMap.has(slug)) {
               customCategoriesMap.set(slug, {
                 id: c.id || slug,
-                name: String(c.name).trim(),
+                name: cleanCategoryName(c.name),
                 slug,
                 count: Number(c.count || 0),
                 icon: c.icon || '✨',
