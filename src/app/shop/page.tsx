@@ -82,13 +82,11 @@ function ShopContent() {
     return () => window.removeEventListener('popstate', handlePopState);
   }, []);
 
-  // Sync state when URL searchParams change via router navigation from outside only
+  // Sync state when URL searchParams change via router navigation (e.g. from homepage or Enter)
   useEffect(() => {
     const s = searchParams.get('s') || searchParams.get('q') || '';
-    if (s && s !== searchTermRef.current) {
-      setSearchTerm(s);
-      setCurrentPage(1);
-    }
+    setSearchTerm(s);
+    setCurrentPage(1);
   }, [searchParams]);
 
   // Load custom products from Firestore on mount
@@ -134,12 +132,33 @@ function ShopContent() {
     }
   };
 
+  // Explicit Search submit on Enter or Search button click (matching homepage behavior)
+  const handleSearchSubmit = (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
+    const q = searchTerm.trim();
+    setCurrentPage(1);
+    const targetUrl = q ? `/shop?s=${encodeURIComponent(q)}` : '/shop';
+    router.push(targetUrl);
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(new CustomEvent('vaultzet:search', { detail: q }));
+    }
+  };
+
   const handleClearSearch = () => {
     setSearchTerm('');
     setCurrentPage(1);
+    router.push('/shop');
     if (typeof window !== 'undefined') {
-      window.history.replaceState(null, '', '/shop');
       window.dispatchEvent(new CustomEvent('vaultzet:search', { detail: '' }));
+    }
+  };
+
+  const handlePopularTagClick = (tagQuery: string) => {
+    setSearchTerm(tagQuery);
+    setCurrentPage(1);
+    router.push(`/shop?s=${encodeURIComponent(tagQuery)}`);
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(new CustomEvent('vaultzet:search', { detail: tagQuery }));
     }
   };
 
@@ -207,46 +226,47 @@ function ShopContent() {
           </div>
         </div>
 
-        {/* PROMINENT LIVE SEARCH BAR: Instant real-time search without pressing Enter */}
-        <div className="rounded-3xl bg-gradient-to-br from-[#f8f5ff] via-white to-[#f5f0ff] border border-[#e8ddfb] p-4 sm:p-6 shadow-sm space-y-3.5">
-          <div className="relative">
-            <div className="absolute inset-y-0 left-0 pl-4 sm:pl-5 flex items-center pointer-events-none text-[#6f33e8]">
-              <Search className="w-5 h-5 sm:w-6 sm:h-6" />
+        {/* PROMINENT SEARCH BAR: Enter to Search + Dedicated Search Button + Live Filter */}
+        <div className="rounded-3xl bg-gradient-to-br from-[#f8f5ff] via-white to-[#f5f0ff] border border-[#e8ddfb] p-3.5 sm:p-6 shadow-sm space-y-3.5">
+          <form onSubmit={handleSearchSubmit} className="relative flex items-center">
+            <div className="absolute inset-y-0 left-0 pl-3.5 sm:pl-5 flex items-center pointer-events-none text-[#6f33e8]">
+              <Search className="w-4 h-4 sm:w-5 sm:h-5" />
             </div>
             
             <input
-              type="text"
+              type="search"
               autoFocus={Boolean(initialSearch)}
               autoComplete="off"
               spellCheck="false"
-              placeholder="Search 130+ viral reels bundles (e.g. AI, Horror, Gym, Premanand, Cartoon, Car)..."
+              placeholder="Search 130+ viral reels bundles (e.g. AI, Horror, Gym, Premanand)..."
               value={searchTerm}
               onChange={(e) => handleSearchChange(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter') e.preventDefault();
-              }}
-              className="w-full pl-11 sm:pl-14 pr-24 sm:pr-28 py-3.5 sm:py-4 rounded-2xl bg-white border-2 border-[#e3d7fa] focus:border-[#6f33e8] focus:ring-4 focus:ring-purple-500/10 text-xs sm:text-base font-bold text-[#162048] placeholder:text-gray-400 focus:outline-none shadow-sm transition-all"
+              className="w-full pl-10 sm:pl-13 pr-28 sm:pr-36 py-3 sm:py-3.5 rounded-2xl bg-white border-2 border-[#e3d7fa] focus:border-[#6f33e8] focus:ring-4 focus:ring-purple-500/10 text-xs sm:text-base font-bold text-[#162048] placeholder:text-gray-400 focus:outline-none shadow-sm transition-all"
             />
 
-            {/* Clear Button (X) or Live Search Badge */}
-            <div className="absolute inset-y-0 right-0 pr-3 sm:pr-4 flex items-center gap-1.5">
+            {/* Clear Button (X) + Dedicated Search Action Button */}
+            <div className="absolute inset-y-0 right-1.5 sm:right-2 flex items-center gap-1 sm:gap-1.5">
               {searchTerm ? (
                 <button
                   type="button"
                   onClick={handleClearSearch}
-                  className="px-2.5 py-1.5 rounded-xl bg-gray-100 hover:bg-gray-200 text-gray-600 text-xs font-bold flex items-center gap-1 transition-colors"
+                  className="p-1.5 sm:p-2 rounded-xl text-gray-400 hover:text-gray-700 hover:bg-gray-100 transition-colors"
                   title="Clear search"
+                  aria-label="Clear search"
                 >
-                  <X className="w-3.5 h-3.5" />
-                  <span className="hidden sm:inline">Clear</span>
+                  <X className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                 </button>
-              ) : (
-                <span className="text-[11px] font-bold text-purple-600 bg-purple-50 px-2.5 py-1 rounded-lg border border-purple-100 hidden sm:inline">
-                  Live Search
-                </span>
-              )}
+              ) : null}
+
+              <button
+                type="submit"
+                className="px-3.5 sm:px-5 py-2 sm:py-2 rounded-xl bg-gradient-to-r from-[#6f33e8] to-[#9333ea] hover:from-[#5b24d0] hover:to-[#7e22ce] text-white text-xs sm:text-sm font-bold shadow-md hover:shadow-lg transition-all flex items-center gap-1.5 shrink-0 active:scale-95 cursor-pointer"
+              >
+                <Search className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                <span>Search</span>
+              </button>
             </div>
-          </div>
+          </form>
 
           {/* Quick 1-Tap Search Filter Tags */}
           <div className="flex items-center gap-1.5 sm:gap-2 overflow-x-auto no-scrollbar py-0.5">
@@ -260,7 +280,7 @@ function ShopContent() {
                 <button
                   key={tag.query}
                   type="button"
-                  onClick={() => handleSearchChange(tag.query)}
+                  onClick={() => handlePopularTagClick(tag.query)}
                   className={`px-3 py-1.5 rounded-full text-xs font-bold shrink-0 transition-all ${
                     isActive
                       ? 'bg-[#6f33e8] text-white shadow-xs'
