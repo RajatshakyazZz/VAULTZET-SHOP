@@ -72,37 +72,25 @@ export default function Header() {
     return () => window.removeEventListener('vaultzet:search', handleVaultzetSearch);
   }, []);
 
-  // Real-time live search on every keystroke without pressing Enter
+  // Real-time live search on every keystroke to power instant dropdown
   const handleSearchChange = (val: string) => {
     setSearchQuery(val);
     setIsDropdownOpen(Boolean(val.trim()));
-
-    if (typeof window !== 'undefined') {
-      if (pathname === '/shop') {
-        const url = val.trim() ? `/shop?s=${encodeURIComponent(val.trim())}` : '/shop';
-        window.history.replaceState(null, '', url);
-        window.dispatchEvent(new CustomEvent('vaultzet:search', { detail: val }));
-      }
-    }
   };
 
   const handleClearSearch = () => {
     setSearchQuery('');
     setIsDropdownOpen(false);
-    if (typeof window !== 'undefined') {
-      if (pathname === '/shop') {
-        window.history.replaceState(null, '', '/shop');
-        window.dispatchEvent(new CustomEvent('vaultzet:search', { detail: '' }));
-      }
-    }
   };
 
   const handleViewAllResults = () => {
     setIsDropdownOpen(false);
     setIsMobileSearchOpen(false);
     setIsMobileMenuOpen(false);
-    const q = searchQuery.trim() ? `?s=${encodeURIComponent(searchQuery.trim())}` : '';
-    router.push(`/shop${q}`);
+    const q = searchQuery.trim();
+    if (typeof window !== 'undefined') {
+      window.location.href = q ? `/shop?s=${encodeURIComponent(q)}` : '/shop';
+    }
   };
 
   const handleSearchSubmit = (e: React.FormEvent) => {

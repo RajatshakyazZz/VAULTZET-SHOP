@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useMemo, useRef, Suspense } from 'react';
 import Link from 'next/link';
-import { useSearchParams, useRouter } from 'next/navigation';
+import { useSearchParams } from 'next/navigation';
 import {
   Search,
   ShoppingCart,
@@ -40,54 +40,49 @@ const POPULAR_SEARCH_TAGS = [
 ];
 
 function ShopContent() {
-  const router = useRouter();
   const searchParams = useSearchParams();
   const initialSearch = searchParams.get('s') || searchParams.get('q') || '';
 
   const [customProducts, setCustomProducts] = useState<BundleProduct[]>(() => getLocalCustomProductsSync());
   const [searchTerm, setSearchTerm] = useState(initialSearch);
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [sortBy, setSortBy] = useState<'popular' | 'price-low' | 'price-high' | 'reels'>('popular');
   const [currentPage, setCurrentPage] = useState(1);
 
+  const shopSearchRef = useRef<HTMLDivElement>(null);
   const { addToCart, buyNow } = useCart();
 
-  // Track the current search term to avoid redundant updates from searchParams
-  const searchTermRef = useRef(searchTerm);
-  searchTermRef.current = searchTerm;
-
-  // Listen to custom cross-component search sync event (e.g. from Header search box)
+  // Close dropdown on click outside
   useEffect(() => {
-    const handleVaultzetSearch = (e: Event) => {
-      const customEvt = e as CustomEvent<string>;
-      if (typeof customEvt.detail === 'string' && customEvt.detail !== searchTermRef.current) {
-        setSearchTerm(customEvt.detail);
-        setCurrentPage(1);
+    const handleClickOutside = (e: MouseEvent) => {
+      if (shopSearchRef.current && !shopSearchRef.current.contains(e.target as Node)) {
+        setIsDropdownOpen(false);
       }
     };
-    window.addEventListener('vaultzet:search', handleVaultzetSearch);
-    return () => window.removeEventListener('vaultzet:search', handleVaultzetSearch);
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  // Listen to browser Back / Forward buttons
+  // Sync state when URL searchParams change or on popstate (browser back/forward)
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const params = new URLSearchParams(window.location.search);
+      const s = params.get('s') || params.get('q') || searchParams.get('s') || searchParams.get('q') || '';
+      setSearchTerm(s);
+      setCurrentPage(1);
+    }
+  }, [searchParams]);
+
   useEffect(() => {
     const handlePopState = () => {
       const params = new URLSearchParams(window.location.search);
       const s = params.get('s') || params.get('q') || '';
-      if (s !== searchTermRef.current) {
-        setSearchTerm(s);
-        setCurrentPage(1);
-      }
+      setSearchTerm(s);
+      setCurrentPage(1);
     };
     window.addEventListener('popstate', handlePopState);
     return () => window.removeEventListener('popstate', handlePopState);
   }, []);
-
-  // Sync state when URL searchParams change via router navigation (e.g. from homepage or Enter)
-  useEffect(() => {
-    const s = searchParams.get('s') || searchParams.get('q') || '';
-    setSearchTerm(s);
-    setCurrentPage(1);
-  }, [searchParams]);
 
   // Load custom products from Firestore on mount
   useEffect(() => {
@@ -102,7 +97,13 @@ function ShopContent() {
     return getAllCatalogBundles(customProducts, BUNDLE_PRODUCTS);
   }, [customProducts]);
 
-  // Real-time live filtering on every keystroke without pressing Enter
+  // Instant matching results for live autocomplete dropdown popup (identical to Header.tsx)
+  const searchResults = useMemo(() => {
+    if (!searchTerm.trim()) return [];
+    return filterBundlesByQuery(allBundles, searchTerm);
+  }, [allBundles, searchTerm]);
+
+  // Real-time live filtering on the page grid
   const filteredBundles = useMemo(() => {
     const matched = filterBundlesByQuery(allBundles, searchTerm);
     return [...matched].sort((a, b) => {
@@ -121,44 +122,35 @@ function ShopContent() {
     return filteredBundles.slice(start, start + ITEMS_PER_PAGE);
   }, [filteredBundles, safePage]);
 
-  // Keystroke live search handler: immediately filters and updates URL without Enter
+  // Keystroke live search handler: immediately filters grid and displays instant dropdown
   const handleSearchChange = (val: string) => {
     setSearchTerm(val);
     setCurrentPage(1);
-    if (typeof window !== 'undefined') {
-      const url = val.trim() ? `/shop?s=${encodeURIComponent(val.trim())}` : '/shop';
-      window.history.replaceState(null, '', url);
-      window.dispatchEvent(new CustomEvent('vaultzet:search', { detail: val }));
-    }
+    setIsDropdownOpen(Boolean(val.trim()));
   };
 
-  // Explicit Search submit on Enter or Search button click (matching homepage behavior)
+  // Submit on Enter or Search button click: 100% reliable full navigation matching Header.tsx
   const handleSearchSubmit = (e?: React.FormEvent) => {
     if (e) e.preventDefault();
+    setIsDropdownOpen(false);
     const q = searchTerm.trim();
-    setCurrentPage(1);
-    const targetUrl = q ? `/shop?s=${encodeURIComponent(q)}` : '/shop';
-    router.push(targetUrl);
     if (typeof window !== 'undefined') {
-      window.dispatchEvent(new CustomEvent('vaultzet:search', { detail: q }));
+      window.location.href = q ? `/shop?s=${encodeURIComponent(q)}` : '/shop';
     }
   };
 
   const handleClearSearch = () => {
     setSearchTerm('');
-    setCurrentPage(1);
-    router.push('/shop');
+    setIsDropdownOpen(false);
     if (typeof window !== 'undefined') {
-      window.dispatchEvent(new CustomEvent('vaultzet:search', { detail: '' }));
+      window.location.href = '/shop';
     }
   };
 
   const handlePopularTagClick = (tagQuery: string) => {
-    setSearchTerm(tagQuery);
-    setCurrentPage(1);
-    router.push(`/shop?s=${encodeURIComponent(tagQuery)}`);
+    setIsDropdownOpen(false);
     if (typeof window !== 'undefined') {
-      window.dispatchEvent(new CustomEvent('vaultzet:search', { detail: tagQuery }));
+      window.location.href = `/shop?s=${encodeURIComponent(tagQuery)}`;
     }
   };
 
@@ -226,20 +218,23 @@ function ShopContent() {
           </div>
         </div>
 
-        {/* PROMINENT SEARCH BAR: Enter to Search + Dedicated Search Button + Live Filter */}
-        <div className="rounded-3xl bg-gradient-to-br from-[#f8f5ff] via-white to-[#f5f0ff] border border-[#e8ddfb] p-3.5 sm:p-6 shadow-sm space-y-3.5">
+        {/* PROMINENT SEARCH BAR: Enter to Search + Dedicated Search Button + Instant Live Dropdown */}
+        <div ref={shopSearchRef} className="relative rounded-3xl bg-gradient-to-br from-[#f8f5ff] via-white to-[#f5f0ff] border border-[#e8ddfb] p-3.5 sm:p-6 shadow-sm space-y-3.5 z-30">
           <form onSubmit={handleSearchSubmit} className="relative flex items-center">
             <div className="absolute inset-y-0 left-0 pl-3.5 sm:pl-5 flex items-center pointer-events-none text-[#6f33e8]">
               <Search className="w-4 h-4 sm:w-5 sm:h-5" />
             </div>
             
             <input
-              type="search"
+              type="text"
               autoFocus={Boolean(initialSearch)}
               autoComplete="off"
               spellCheck="false"
               placeholder="Search 130+ viral reels bundles (e.g. AI, Horror, Gym, Premanand)..."
               value={searchTerm}
+              onFocus={() => {
+                if (searchTerm.trim()) setIsDropdownOpen(true);
+              }}
               onChange={(e) => handleSearchChange(e.target.value)}
               className="w-full pl-10 sm:pl-13 pr-28 sm:pr-36 py-3 sm:py-3.5 rounded-2xl bg-white border-2 border-[#e3d7fa] focus:border-[#6f33e8] focus:ring-4 focus:ring-purple-500/10 text-xs sm:text-base font-bold text-[#162048] placeholder:text-gray-400 focus:outline-none shadow-sm transition-all"
             />
@@ -250,7 +245,7 @@ function ShopContent() {
                 <button
                   type="button"
                   onClick={handleClearSearch}
-                  className="p-1.5 sm:p-2 rounded-xl text-gray-400 hover:text-gray-700 hover:bg-gray-100 transition-colors"
+                  className="p-1.5 sm:p-2 rounded-xl text-gray-400 hover:text-gray-700 hover:bg-gray-100 transition-colors cursor-pointer"
                   title="Clear search"
                   aria-label="Clear search"
                 >
@@ -268,6 +263,73 @@ function ShopContent() {
             </div>
           </form>
 
+          {/* Instant Dropdown Results Popup (exact same as Header search bar) */}
+          {isDropdownOpen && searchTerm.trim() && (
+            <div className="absolute top-[68px] sm:top-[78px] left-3.5 sm:left-6 right-3.5 sm:right-6 bg-white rounded-2xl shadow-2xl border border-purple-100 overflow-hidden z-50 animate-in fade-in zoom-in-95 duration-150">
+              <div className="p-2.5 sm:p-3 bg-gradient-to-r from-purple-50/80 to-pink-50/80 border-b border-purple-100 flex items-center justify-between">
+                <span className="text-[11px] sm:text-xs font-extrabold text-[#6f33e8] uppercase tracking-wider flex items-center gap-1.5">
+                  <Sparkles className="w-3.5 h-3.5" />
+                  <span>{searchResults.length} Bundle{searchResults.length !== 1 ? 's' : ''} Found</span>
+                </span>
+                {searchResults.length > 0 && (
+                  <span className="text-[10px] sm:text-[11px] text-gray-400 font-semibold">Click product to open</span>
+                )}
+              </div>
+
+              <div className="max-h-80 overflow-y-auto divide-y divide-purple-50 p-1 sm:p-1.5">
+                {searchResults.slice(0, 5).map((bundle) => (
+                  <Link
+                    key={bundle.id}
+                    href={`/product/${bundle.slug}`}
+                    onClick={() => setIsDropdownOpen(false)}
+                    className="flex items-center gap-3 p-2 sm:p-2.5 rounded-xl hover:bg-purple-50/80 transition-colors group"
+                  >
+                    <img
+                      src={bundle.thumbnail}
+                      alt={bundle.title}
+                      className="w-11 h-11 sm:w-12 sm:h-12 rounded-xl object-cover shrink-0 bg-slate-900 border border-purple-100"
+                    />
+                    <div className="min-w-0 flex-1">
+                      <h4 className="text-xs sm:text-sm font-bold text-[#162048] line-clamp-1 group-hover:text-[#6f33e8] transition-colors">
+                        {bundle.title}
+                      </h4>
+                      <div className="flex items-center gap-2 mt-0.5 sm:mt-1">
+                        <span className="text-[10px] font-bold text-[#6f33e8] bg-purple-50 px-2 py-0.5 rounded-md">
+                          {bundle.reelCount}+ Reels
+                        </span>
+                        <span className="text-xs sm:text-sm font-black text-[#162048]">
+                          ₹{bundle.personalPrice || 49}
+                        </span>
+                        {bundle.personalOriginalPrice && (
+                          <span className="text-[10px] sm:text-[11px] text-gray-400 line-through">
+                            ₹{bundle.personalOriginalPrice}
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  </Link>
+                ))}
+
+                {searchResults.length === 0 && (
+                  <div className="py-6 sm:py-8 text-center text-xs text-gray-500 space-y-1">
+                    <p className="font-bold text-gray-700">No matching bundles found</p>
+                    <p className="text-[11px] text-gray-400">Try searching AI, Horror, Gym, Premanand, Cartoon, Car</p>
+                  </div>
+                )}
+              </div>
+
+              {searchResults.length > 0 && (
+                <button
+                  type="button"
+                  onClick={() => handleSearchSubmit()}
+                  className="w-full py-2.5 sm:py-3 bg-gradient-to-r from-[#6f33e8] to-[#9333ea] hover:from-[#5b24d0] hover:to-[#7e22ce] text-white text-xs sm:text-sm font-bold text-center block transition-all cursor-pointer"
+                >
+                  View all {searchResults.length} results in Shop &rarr;
+                </button>
+              )}
+            </div>
+          )}
+
           {/* Quick 1-Tap Search Filter Tags */}
           <div className="flex items-center gap-1.5 sm:gap-2 overflow-x-auto no-scrollbar py-0.5">
             <span className="text-[11px] sm:text-xs font-extrabold text-gray-500 shrink-0 flex items-center gap-1">
@@ -281,7 +343,7 @@ function ShopContent() {
                   key={tag.query}
                   type="button"
                   onClick={() => handlePopularTagClick(tag.query)}
-                  className={`px-3 py-1.5 rounded-full text-xs font-bold shrink-0 transition-all ${
+                  className={`px-3 py-1.5 rounded-full text-xs font-bold shrink-0 transition-all cursor-pointer ${
                     isActive
                       ? 'bg-[#6f33e8] text-white shadow-xs'
                       : 'bg-white border border-[#eee8fa] text-gray-700 hover:bg-purple-50/70 hover:border-purple-200'
