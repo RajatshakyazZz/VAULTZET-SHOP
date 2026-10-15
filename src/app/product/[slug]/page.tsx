@@ -214,7 +214,7 @@ export default function ProductDetailPage() {
           <span className="opacity-40">/</span>
           <Link href="/shop" className="hover:text-rb-purple transition-colors">Shop</Link>
           <span className="opacity-40">/</span>
-          <Link href={`/shop?cat=${product.categorySlug}`} className="hover:text-rb-purple transition-colors">
+          <Link href={`/shop?s=${encodeURIComponent(product.category || '')}`} className="hover:text-rb-purple transition-colors">
             {product.category}
           </Link>
           <span className="opacity-40">/</span>

@@ -1,8 +1,8 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { usePathname, useRouter } from 'next/navigation';
+import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { ShoppingCart, Search, Menu, X, Play } from 'lucide-react';
 import { useCart } from '@/context/CartContext';
 import { useStoreSettings } from '@/context/StoreSettingsContext';
@@ -10,18 +10,43 @@ import { useStoreSettings } from '@/context/StoreSettingsContext';
 export default function Header() {
   const pathname = usePathname();
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { cartCount, setIsCartOpen } = useCart();
   const { settings } = useStoreSettings();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isMobileSearchOpen, setIsMobileSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
 
+  // Sync header search box with URL when on /shop
+  useEffect(() => {
+    if (pathname === '/shop') {
+      const s = searchParams?.get('s') || searchParams?.get('q') || '';
+      setSearchQuery(s);
+    }
+  }, [pathname, searchParams]);
+
+  // Real-time live search on every keystroke without pressing Enter
+  const handleSearchChange = (val: string) => {
+    setSearchQuery(val);
+    if (typeof window !== 'undefined') {
+      const q = val.trim() ? `?s=${encodeURIComponent(val.trim())}` : '';
+      router.replace(`/shop${q}`, { scroll: false });
+    }
+  };
+
+  const handleClearSearch = () => {
+    setSearchQuery('');
+    if (pathname === '/shop' && typeof window !== 'undefined') {
+      router.replace('/shop', { scroll: false });
+    }
+  };
+
   const handleSearchSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (searchQuery.trim()) {
       setIsMobileSearchOpen(false);
       setIsMobileMenuOpen(false);
-      router.push(`/shop?s=${encodeURIComponent(searchQuery.trim())}`);
+      router.replace(`/shop?s=${encodeURIComponent(searchQuery.trim())}`, { scroll: false });
     }
   };
 
@@ -88,26 +113,30 @@ export default function Header() {
 
           {/* Right Tools matching Competitor Screenshots 1 & 4 */}
           <div className="flex items-center gap-2 sm:gap-3">
-            {/* Desktop Pill Search Box */}
+            {/* Desktop Pill Search Box with Instant Keystroke Search */}
             <form
               onSubmit={handleSearchSubmit}
-              className="hidden sm:flex items-center bg-[#fbf9ff] hover:bg-[#f5f0ff] focus-within:bg-white border border-[#e8dfff] rounded-full pl-4 pr-1 py-0.5 focus-within:ring-2 focus-within:ring-[#7c3aed]/20 focus-within:border-[#7c3aed] transition-all"
+              className="hidden sm:flex items-center bg-[#fbf9ff] hover:bg-[#f5f0ff] focus-within:bg-white border border-[#e8dfff] rounded-full pl-3.5 pr-2 py-0.5 focus-within:ring-2 focus-within:ring-[#7c3aed]/20 focus-within:border-[#7c3aed] transition-all"
             >
+              <Search className="w-4 h-4 text-[#7c3aed] shrink-0" />
               <input
                 type="text"
                 aria-label="Search bundles"
                 placeholder="Search bundles..."
                 value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-44 lg:w-52 py-2 bg-transparent text-[13px] font-medium text-[#182247] placeholder:text-[#525b7a] focus:outline-none"
+                onChange={(e) => handleSearchChange(e.target.value)}
+                className="w-44 lg:w-56 py-2 px-2 bg-transparent text-[13px] font-medium text-[#182247] placeholder:text-[#525b7a] focus:outline-none"
               />
-              <button
-                type="submit"
-                aria-label="Search"
-                className="w-9 h-9 rounded-full flex items-center justify-center text-[#5e2de0] hover:bg-purple-100/60 transition-colors shrink-0"
-              >
-                <Search className="w-4 h-4" />
-              </button>
+              {searchQuery ? (
+                <button
+                  type="button"
+                  onClick={handleClearSearch}
+                  aria-label="Clear search"
+                  className="p-1 rounded-full text-gray-400 hover:text-gray-700 hover:bg-gray-100 transition-colors shrink-0"
+                >
+                  <X className="w-3.5 h-3.5" />
+                </button>
+              ) : null}
             </form>
 
             {/* Mobile Search Button matching Screenshots 1 & 4 */}
@@ -171,28 +200,35 @@ export default function Header() {
           </div>
         </div>
 
-        {/* Mobile Search Dropdown Bar */}
+        {/* Mobile Search Dropdown Bar with Instant Keystroke Search */}
         {isMobileSearchOpen && (
           <div className="sm:hidden border-t border-slate-100 bg-white py-2.5 px-1 animate-in fade-in duration-150">
             <form
               onSubmit={handleSearchSubmit}
-              className="flex items-center bg-[#fbf9ff] border border-[#e8dfff] rounded-full pl-3.5 pr-1 py-0.5"
+              className="flex items-center bg-[#fbf9ff] border border-[#e8dfff] rounded-full pl-3 pr-2 py-0.5 focus-within:border-[#7c3aed] focus-within:ring-2 focus-within:ring-[#7c3aed]/20"
             >
+              <Search className="w-4 h-4 text-[#7c3aed] shrink-0" />
               <input
                 type="text"
                 autoFocus
-                placeholder="Search viral reels bundles..."
+                placeholder="Type to search bundles instantly..."
                 value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full py-1.5 bg-transparent text-xs font-medium text-[#182247] placeholder:text-[#525b7a] focus:outline-none"
+                onChange={(e) => handleSearchChange(e.target.value)}
+                className="w-full py-1.5 px-2 bg-transparent text-xs font-medium text-[#182247] placeholder:text-[#525b7a] focus:outline-none"
               />
-              <button
-                type="submit"
-                aria-label="Search"
-                className="w-8 h-8 rounded-full bg-[#6533e4] text-white flex items-center justify-center shrink-0"
-              >
-                <Search className="w-3.5 h-3.5" />
-              </button>
+              {searchQuery ? (
+                <button
+                  type="button"
+                  onClick={handleClearSearch}
+                  className="p-1 rounded-full text-gray-400 hover:text-gray-700"
+                >
+                  <X className="w-3.5 h-3.5" />
+                </button>
+              ) : (
+                <div className="w-7 h-7 rounded-full bg-[#6533e4] text-white flex items-center justify-center shrink-0">
+                  <Search className="w-3 h-3" />
+                </div>
+              )}
             </form>
           </div>
         )}

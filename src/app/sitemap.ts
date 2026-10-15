@@ -1,5 +1,5 @@
 import { MetadataRoute } from 'next';
-import { BUNDLE_PRODUCTS, CATEGORIES } from '@/data/bundles';
+import { BUNDLE_PRODUCTS } from '@/data/bundles';
 
 export default function sitemap(): MetadataRoute.Sitemap {
   const baseUrl = 'https://www.vaultzet.shop';
@@ -61,13 +61,6 @@ export default function sitemap(): MetadataRoute.Sitemap {
     },
   ];
 
-  const categoryRoutes: MetadataRoute.Sitemap = CATEGORIES.map((cat) => ({
-    url: `${baseUrl}/shop?cat=${encodeURIComponent(cat.slug)}`,
-    lastModified: new Date(),
-    changeFrequency: 'weekly',
-    priority: 0.8,
-  }));
-
   const productRoutes: MetadataRoute.Sitemap = BUNDLE_PRODUCTS.map((bundle) => ({
     url: `${baseUrl}/product/${bundle.slug}`,
     lastModified: new Date(),
@@ -75,5 +68,5 @@ export default function sitemap(): MetadataRoute.Sitemap {
     priority: 0.85,
   }));
 
-  return [...staticRoutes, ...categoryRoutes, ...productRoutes];
+  return [...staticRoutes, ...productRoutes];
 }

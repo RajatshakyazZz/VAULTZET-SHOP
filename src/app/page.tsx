@@ -1,5 +1,4 @@
 import Hero from '@/components/Hero';
-import CategoryGrid from '@/components/CategoryGrid';
 import TrendingMarquee from '@/components/TrendingMarquee';
 import ReelsVideoPreview from '@/components/ReelsVideoPreview';
 import FreshReelsGrid from '@/components/FreshReelsGrid';
@@ -12,9 +11,6 @@ export default function HomePage() {
     <div className="space-y-4">
       {/* Hero with Typewriter & 3D Cards */}
       <Hero />
-
-      {/* 8 Curated Niche Categories */}
-      <CategoryGrid />
 
       {/* Trending Bundles Auto-Marquee */}
       <TrendingMarquee />
