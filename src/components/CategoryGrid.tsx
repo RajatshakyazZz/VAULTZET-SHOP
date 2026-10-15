@@ -1,13 +1,16 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import Link from 'next/link';
 import { ArrowRight } from 'lucide-react';
-import { CATEGORIES as DEFAULT_CATEGORIES } from '@/data/bundles';
-import { fetchCustomCategories, getLocalCategoriesSync, CategoryItem } from '@/lib/categories';
+import { BUNDLE_PRODUCTS } from '@/data/bundles';
+import { fetchCustomCategories, getLocalCategoriesSync, calculateCategoryCounts, CategoryItem } from '@/lib/categories';
+import { fetchCustomProducts, getAllCatalogBundles, getLocalCustomProductsSync } from '@/lib/customProducts';
+import { BundleProduct } from '@/types';
 
 export default function CategoryGrid() {
   const [categories, setCategories] = useState<CategoryItem[]>(() => getLocalCategoriesSync());
+  const [customProducts, setCustomProducts] = useState<BundleProduct[]>(() => getLocalCustomProductsSync());
 
   useEffect(() => {
     fetchCustomCategories(true).then((res) => {
@@ -15,7 +18,21 @@ export default function CategoryGrid() {
         setCategories(res);
       }
     }).catch(() => {});
+
+    fetchCustomProducts().then((res) => {
+      if (res && res.length > 0) {
+        setCustomProducts(res);
+      }
+    }).catch(() => {});
   }, []);
+
+  const allBundles = useMemo(() => {
+    return getAllCatalogBundles(customProducts, BUNDLE_PRODUCTS);
+  }, [customProducts]);
+
+  const categoryCounts = useMemo(() => {
+    return calculateCategoryCounts(allBundles, categories);
+  }, [allBundles, categories]);
 
   return (
     <section className="py-4 sm:py-6 [contain:layout_style]">
@@ -80,7 +97,7 @@ export default function CategoryGrid() {
                   {cat.name}
                 </h3>
                 <p className="text-[11px] font-semibold text-[#4a5270] mt-0.5">
-                  {cat.count || 0} Bundles
+                  {categoryCounts[cat.slug] ?? cat.count ?? 0} Bundles
                 </p>
               </Link>
             ))}

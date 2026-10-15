@@ -121,9 +121,9 @@ export default function ReelsVideoPreview() {
             <Link
               href="/reels"
               prefetch={false}
-              className="px-4 py-2 rounded-full bg-black/25 hover:bg-black/35 text-white border border-white/30 text-xs font-bold transition-colors shrink-0 flex items-center gap-1.5"
+              className="px-4 py-2 rounded-full bg-white/20 hover:bg-white/30 text-white border border-white/30 text-xs font-extrabold transition-colors shrink-0 flex items-center gap-1.5 shadow-xs"
             >
-              <span>View Full Feed</span>
+              <span>View All Previews</span>
               <ArrowRight className="w-3.5 h-3.5" />
             </Link>
           </div>
@@ -255,10 +255,10 @@ export default function ReelsVideoPreview() {
                     <button
                       type="button"
                       onClick={() => handleBuy(item)}
-                      className="px-2.5 py-1 rounded-full bg-[#c23000] hover:bg-[#a32600] text-white text-[11px] font-black shrink-0 flex items-center gap-0.5 shadow-md active:scale-95 transition-transform"
+                      className="px-2.5 py-1 rounded-full bg-gradient-to-r from-[#ff5500] to-[#ff7700] hover:from-[#ea4e00] hover:to-[#ea6a00] text-white text-[11px] font-black shrink-0 flex items-center gap-0.5 shadow-md active:scale-95 transition-all"
                     >
                       <span>Buy Now</span>
-                      <span>›</span>
+                      <span className="text-[13px] leading-none">›</span>
                     </button>
                   </div>
 

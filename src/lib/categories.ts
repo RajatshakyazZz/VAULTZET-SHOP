@@ -403,7 +403,20 @@ export const COMPETITOR_CATEGORIES: CategoryItem[] = [
 ];
 
 /**
- * Checks if a given product belongs to a specific category slug.
+ * Safely normalizes category slugs or names for reliable comparison.
+ */
+export function normalizeCategorySlug(str: string): string {
+  return String(str || '')
+    .trim()
+    .toLowerCase()
+    .replace(/&amp;/g, 'and')
+    .replace(/&/g, 'and')
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '');
+}
+
+/**
+ * Checks if a given product belongs to a specific category slug or name.
  */
 export function productMatchesCategory(
   product: BundleProduct | any,
@@ -414,55 +427,97 @@ export function productMatchesCategory(
   if (!product) return false;
 
   const targetClean = String(targetCategorySlug).trim().toLowerCase();
+  const targetNorm = normalizeCategorySlug(targetCategorySlug);
 
-  // 1. Direct slug or category match
-  const catSlug = String(product.categorySlug || '').toLowerCase();
-  if (catSlug && catSlug === targetClean) {
+  // 1. Direct slug or category match on product fields
+  const prodSlug = String(product.categorySlug || '').toLowerCase();
+  const prodSlugNorm = normalizeCategorySlug(product.categorySlug);
+  if (prodSlug && (prodSlug === targetClean || prodSlugNorm === targetNorm)) {
     return true;
   }
 
-  const catName = String(product.category || '').toLowerCase();
-  if (catName && catName.replace(/[^a-z0-9]+/g, '-') === targetClean) {
+  const prodCatName = String(product.category || '').toLowerCase();
+  const prodCatNorm = normalizeCategorySlug(product.category);
+  if (prodCatName && (prodCatName === targetClean || prodCatNorm === targetNorm)) {
     return true;
   }
 
-  // 2. Extra category lists
+  // 2. Extra category lists on product (from admin portal or tags)
   if (Array.isArray(product.categorySlugs)) {
-    if (product.categorySlugs.some((s: any) => typeof s === 'string' && s.toLowerCase() === targetClean)) {
+    if (
+      product.categorySlugs.some((s: any) => {
+        if (typeof s !== 'string') return false;
+        const sClean = s.toLowerCase();
+        return sClean === targetClean || normalizeCategorySlug(s) === targetNorm;
+      })
+    ) {
       return true;
     }
   }
 
   if (Array.isArray(product.categories)) {
     if (
-      product.categories.some(
-        (c: any) =>
-          typeof c === 'string' &&
-          (c.toLowerCase() === targetClean ||
-            c.toLowerCase().replace(/[^a-z0-9]+/g, '-') === targetClean)
-      )
+      product.categories.some((c: any) => {
+        if (typeof c !== 'string') return false;
+        const cClean = c.toLowerCase();
+        return cClean === targetClean || normalizeCategorySlug(c) === targetNorm;
+      })
     ) {
       return true;
     }
   }
 
-  // 3. Find Category Definition
+  // 3. Find Category Definition across custom + competitor lists
   const lookup = categoriesList && categoriesList.length > 0 ? categoriesList : COMPETITOR_CATEGORIES;
-  const catDef = lookup.find(
-    (c) =>
-      c.slug.toLowerCase() === targetClean ||
-      (Array.isArray(c.aliases) && c.aliases.includes(targetClean))
-  );
+  const catDef = lookup.find((c) => {
+    if (!c) return false;
+    const cSlug = String(c.slug || '').toLowerCase();
+    const cName = String(c.name || '').toLowerCase();
+    const cNorm = normalizeCategorySlug(c.slug);
+    const cNameNorm = normalizeCategorySlug(c.name);
 
-  if (!catDef) return false;
+    if (cSlug === targetClean || cNorm === targetNorm) return true;
+    if (cName === targetClean || cNameNorm === targetNorm) return true;
+    if (c.id && (String(c.id).toLowerCase() === targetClean || normalizeCategorySlug(c.id) === targetNorm)) return true;
+    if (Array.isArray(c.aliases)) {
+      return c.aliases.some((a) => {
+        const aClean = String(a).toLowerCase();
+        return aClean === targetClean || normalizeCategorySlug(a) === targetNorm;
+      });
+    }
+    return false;
+  });
 
-  // 4. Keyword and text match
+  // If category definition found, test product category against definition's names and aliases
+  if (catDef) {
+    const validSlugs = new Set([
+      String(catDef.slug || '').toLowerCase(),
+      normalizeCategorySlug(catDef.slug),
+      String(catDef.name || '').toLowerCase(),
+      normalizeCategorySlug(catDef.name),
+      ...(Array.isArray(catDef.aliases) ? catDef.aliases.map((a) => String(a).toLowerCase()) : []),
+      ...(Array.isArray(catDef.aliases) ? catDef.aliases.map(normalizeCategorySlug) : []),
+    ]);
+
+    if (prodSlug && validSlugs.has(prodSlug)) return true;
+    if (prodSlugNorm && validSlugs.has(prodSlugNorm)) return true;
+    if (prodCatName && validSlugs.has(prodCatName)) return true;
+    if (prodCatNorm && validSlugs.has(prodCatNorm)) return true;
+
+    if (Array.isArray(product.categories)) {
+      if (product.categories.some((c: any) => typeof c === 'string' && (validSlugs.has(c.toLowerCase()) || validSlugs.has(normalizeCategorySlug(c))))) {
+        return true;
+      }
+    }
+  }
+
+  // 4. Keyword and text corpus fallback
   const tagsList = Array.isArray(product.tags) ? product.tags : [];
   const extraCategoriesList = Array.isArray(product.categories) ? product.categories : [];
   const textCorpus = [
     String(product.title || ''),
     String(product.slug || ''),
-    catName,
+    prodCatName,
     String(product.shortDescription || ''),
     ...tagsList.map(String),
     ...extraCategoriesList.map(String),
@@ -471,11 +526,22 @@ export function productMatchesCategory(
     .join(' ')
     .toLowerCase();
 
-  const keywords = Array.isArray(catDef.keywords) && catDef.keywords.length > 0
-    ? catDef.keywords
-    : catDef.name.toLowerCase().split(/\s+/).filter(w => w.length > 2);
+  const keywordsToCheck: string[] = [];
+  if (catDef && Array.isArray(catDef.keywords) && catDef.keywords.length > 0) {
+    keywordsToCheck.push(...catDef.keywords);
+  }
+  if (catDef && catDef.name) {
+    keywordsToCheck.push(...catDef.name.toLowerCase().split(/\s+/).filter((w) => w.length > 2 && w !== 'reels' && w !== 'pack' && w !== 'bundle'));
+  }
+  // Also derive keywords from targetNorm
+  const derivedTerms = targetNorm.split('-').filter((w) => w.length > 2 && w !== 'reels' && w !== 'pack' && w !== 'bundle');
+  keywordsToCheck.push(...derivedTerms);
 
-  return keywords.some((kw) => textCorpus.includes(kw.toLowerCase()));
+  if (keywordsToCheck.length > 0) {
+    return keywordsToCheck.some((kw) => textCorpus.includes(kw.toLowerCase()));
+  }
+
+  return false;
 }
 
 /**

@@ -145,45 +145,43 @@ export default function Hero() {
                 </a>
               </div>
 
-              {/* 3 Glossy Color Stat Cards matching Competitor Screenshot */}
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3.5 pt-3 max-w-xl">
-                
+              {/* 3 Glossy Color Stat Cards on Desktop */}
+              <div className="hidden lg:grid grid-cols-3 gap-3.5 pt-3 max-w-xl">
                 {/* 129 Published Bundles (Purple Gradient) */}
-                <div className="relative overflow-hidden p-4 rounded-[20px] bg-gradient-to-br from-[#5d3be3] to-[#8353f5] text-white flex items-center gap-3 shadow-[0_10px_24px_rgba(93,59,227,0.2)]">
+                <div className="relative overflow-hidden p-3.5 rounded-[20px] bg-gradient-to-br from-[#5d3be3] to-[#8353f5] text-white flex flex-col items-center text-center shadow-[0_10px_24px_rgba(93,59,227,0.2)]">
                   <div className="absolute -right-5 -bottom-6 w-20 h-20 rounded-full bg-white/12 pointer-events-none" />
-                  <div className="w-10 h-10 rounded-2xl bg-white/15 border border-white/25 flex items-center justify-center shrink-0">
+                  <div className="w-9 h-9 rounded-xl bg-white/15 border border-white/25 flex items-center justify-center shrink-0 mb-1">
                     <FolderKanban className="w-4 h-4 text-white" />
                   </div>
                   <div className="leading-tight relative z-10">
-                    <div className="text-[22px] font-black tracking-tight">129</div>
-                    <div className="text-[11px] font-bold text-white/90 mt-0.5">Published Bundles</div>
+                    <div className="text-[20px] font-black tracking-tight">{totalBundles || 129}</div>
+                    <div className="text-[10px] font-bold text-white/90 mt-0.5">Published Bundles</div>
                   </div>
                 </div>
 
                 {/* 222K+ Ready-to-Post Reels (Coral/Pink Gradient) */}
-                <div className="relative overflow-hidden p-4 rounded-[20px] bg-gradient-to-br from-[#ef3966] to-[#f86669] text-white flex items-center gap-3 shadow-[0_10px_24px_rgba(239,57,102,0.2)]">
+                <div className="relative overflow-hidden p-3.5 rounded-[20px] bg-gradient-to-br from-[#ef3966] to-[#f86669] text-white flex flex-col items-center text-center shadow-[0_10px_24px_rgba(239,57,102,0.2)]">
                   <div className="absolute -right-5 -bottom-6 w-20 h-20 rounded-full bg-white/12 pointer-events-none" />
-                  <div className="w-10 h-10 rounded-2xl bg-white/15 border border-white/25 flex items-center justify-center shrink-0">
+                  <div className="w-9 h-9 rounded-xl bg-white/15 border border-white/25 flex items-center justify-center shrink-0 mb-1">
                     <Film className="w-4 h-4 text-white" />
                   </div>
                   <div className="leading-tight relative z-10">
-                    <div className="text-[22px] font-black tracking-tight">222K+</div>
-                    <div className="text-[11px] font-bold text-white/90 mt-0.5">Ready-to-Post Reels</div>
+                    <div className="text-[20px] font-black tracking-tight">222K+</div>
+                    <div className="text-[10px] font-bold text-white/90 mt-0.5">Ready-to-Post Reels</div>
                   </div>
                 </div>
 
                 {/* Up to 1080P Maximum Quality (Teal Gradient) */}
-                <div className="relative overflow-hidden p-4 rounded-[20px] bg-gradient-to-br from-[#06967d] to-[#11b594] text-white flex items-center gap-3 shadow-[0_10px_24px_rgba(6,150,125,0.2)]">
+                <div className="relative overflow-hidden p-3.5 rounded-[20px] bg-gradient-to-br from-[#06967d] to-[#11b594] text-white flex flex-col items-center text-center shadow-[0_10px_24px_rgba(6,150,125,0.2)]">
                   <div className="absolute -right-5 -bottom-6 w-20 h-20 rounded-full bg-white/12 pointer-events-none" />
-                  <div className="w-10 h-10 rounded-2xl bg-white/15 border border-white/25 flex items-center justify-center shrink-0">
+                  <div className="w-9 h-9 rounded-xl bg-white/15 border border-white/25 flex items-center justify-center shrink-0 mb-1">
                     <ShieldCheck className="w-4 h-4 text-white" />
                   </div>
                   <div className="leading-tight relative z-10">
-                    <div className="text-[18px] font-black tracking-tight leading-none">Up to 1080P</div>
-                    <div className="text-[11px] font-bold text-white/90 mt-1">Maximum Quality</div>
+                    <div className="text-[16px] font-black tracking-tight leading-none">Up to 1080P</div>
+                    <div className="text-[10px] font-bold text-white/90 mt-1">Maximum Quality</div>
                   </div>
                 </div>
-
               </div>
 
             </div>
@@ -319,6 +317,45 @@ export default function Hero() {
                 <span className="px-4 py-1.5 rounded-full text-[11px] font-extrabold bg-white/95 text-[#141d42] border border-white shadow-[0_6px_18px_rgba(30,15,70,0.08)]">
                   1080P Available
                 </span>
+              </div>
+
+              {/* 3 Glossy Color Stat Cards on Mobile matching Competitor Screenshot 1 */}
+              <div className="grid lg:hidden grid-cols-3 gap-2 pt-3 w-full max-w-md relative z-10">
+                {/* 129 Published Bundles (Purple Gradient) */}
+                <div className="relative overflow-hidden p-2.5 rounded-2xl bg-gradient-to-br from-[#5d3be3] to-[#8353f5] text-white flex flex-col items-center text-center shadow-[0_10px_24px_rgba(93,59,227,0.2)]">
+                  <div className="absolute -right-5 -bottom-6 w-16 h-16 rounded-full bg-white/12 pointer-events-none" />
+                  <div className="w-8 h-8 rounded-xl bg-white/15 border border-white/25 flex items-center justify-center shrink-0 mb-1">
+                    <FolderKanban className="w-3.5 h-3.5 text-white" />
+                  </div>
+                  <div className="leading-tight relative z-10">
+                    <div className="text-[16px] font-black tracking-tight">{totalBundles || 129}</div>
+                    <div className="text-[9px] font-bold text-white/90 mt-0.5 line-clamp-1">Published Bundles</div>
+                  </div>
+                </div>
+
+                {/* 222K+ Ready-to-Post Reels (Coral/Pink Gradient) */}
+                <div className="relative overflow-hidden p-2.5 rounded-2xl bg-gradient-to-br from-[#ef3966] to-[#f86669] text-white flex flex-col items-center text-center shadow-[0_10px_24px_rgba(239,57,102,0.2)]">
+                  <div className="absolute -right-5 -bottom-6 w-16 h-16 rounded-full bg-white/12 pointer-events-none" />
+                  <div className="w-8 h-8 rounded-xl bg-white/15 border border-white/25 flex items-center justify-center shrink-0 mb-1">
+                    <Film className="w-3.5 h-3.5 text-white" />
+                  </div>
+                  <div className="leading-tight relative z-10">
+                    <div className="text-[16px] font-black tracking-tight">222K+</div>
+                    <div className="text-[9px] font-bold text-white/90 mt-0.5 line-clamp-1">Ready-to-Post Reels</div>
+                  </div>
+                </div>
+
+                {/* Up to 1080P Maximum Quality (Teal Gradient) */}
+                <div className="relative overflow-hidden p-2.5 rounded-2xl bg-gradient-to-br from-[#06967d] to-[#11b594] text-white flex flex-col items-center text-center shadow-[0_10px_24px_rgba(6,150,125,0.2)]">
+                  <div className="absolute -right-5 -bottom-6 w-16 h-16 rounded-full bg-white/12 pointer-events-none" />
+                  <div className="w-8 h-8 rounded-xl bg-white/15 border border-white/25 flex items-center justify-center shrink-0 mb-1">
+                    <ShieldCheck className="w-3.5 h-3.5 text-white" />
+                  </div>
+                  <div className="leading-tight relative z-10">
+                    <div className="text-[13px] font-black tracking-tight leading-none">Up to 1080P</div>
+                    <div className="text-[9px] font-bold text-white/90 mt-1 line-clamp-1">Maximum Quality</div>
+                  </div>
+                </div>
               </div>
 
             </div>

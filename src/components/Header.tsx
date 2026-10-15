@@ -13,11 +13,14 @@ export default function Header() {
   const { cartCount, setIsCartOpen } = useCart();
   const { settings } = useStoreSettings();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isMobileSearchOpen, setIsMobileSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
 
   const handleSearchSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (searchQuery.trim()) {
+      setIsMobileSearchOpen(false);
+      setIsMobileMenuOpen(false);
       router.push(`/shop?s=${encodeURIComponent(searchQuery.trim())}`);
     }
   };
@@ -37,11 +40,11 @@ export default function Header() {
   return (
     <header className="sticky top-0 z-50 bg-white border-b border-slate-100 shadow-[0_2px_10px_rgba(20,10,50,0.02)]">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between h-[74px] gap-4">
+        <div className="flex items-center justify-between h-[66px] sm:h-[74px] gap-3">
           
           {/* Dynamic Brand Logo synced with Admin Panel */}
           <Link href="/" prefetch={false} className="flex items-center gap-2.5 group shrink-0">
-            <div className="w-10 h-9 rounded-xl bg-black border border-slate-800/80 overflow-hidden flex items-center justify-center shadow-sm shadow-purple-500/20 group-hover:scale-105 transition-transform">
+            <div className="w-9 h-9 sm:w-10 sm:h-9 rounded-xl bg-black border border-slate-800/80 overflow-hidden flex items-center justify-center shadow-sm shadow-purple-500/20 group-hover:scale-105 transition-transform">
               <img
                 src="/logo.webp"
                 alt="Vaultzet Store Logo"
@@ -52,10 +55,10 @@ export default function Header() {
               />
             </div>
             <div className="flex flex-col">
-              <span className="font-black text-[17px] text-[#162048] tracking-tight leading-tight">
+              <span className="font-black text-[16px] sm:text-[17px] text-[#162048] tracking-tight leading-tight">
                 {settings.storeName}
               </span>
-              <span className="text-[12px] font-medium text-[#4a5270] tracking-tight">
+              <span className="text-[11px] sm:text-[12px] font-medium text-[#4a5270] tracking-tight">
                 {settings.tagline}
               </span>
             </div>
@@ -83,9 +86,9 @@ export default function Header() {
             })}
           </nav>
 
-          {/* Right Tools (Pill Search + Cart) */}
-          <div className="flex items-center gap-3">
-            {/* Pill Search Box with non-overlapping 36x36 target size */}
+          {/* Right Tools matching Competitor Screenshots 1 & 4 */}
+          <div className="flex items-center gap-2 sm:gap-3">
+            {/* Desktop Pill Search Box */}
             <form
               onSubmit={handleSearchSubmit}
               className="hidden sm:flex items-center bg-[#fbf9ff] hover:bg-[#f5f0ff] focus-within:bg-white border border-[#e8dfff] rounded-full pl-4 pr-1 py-0.5 focus-within:ring-2 focus-within:ring-[#7c3aed]/20 focus-within:border-[#7c3aed] transition-all"
@@ -107,11 +110,39 @@ export default function Header() {
               </button>
             </form>
 
-            {/* Cart Button Pill matching Image 1 */}
+            {/* Mobile Search Button matching Screenshots 1 & 4 */}
+            <button
+              type="button"
+              onClick={() => {
+                setIsMobileSearchOpen(!isMobileSearchOpen);
+                if (isMobileMenuOpen) setIsMobileMenuOpen(false);
+              }}
+              aria-label="Search"
+              className="sm:hidden w-9 h-9 rounded-xl bg-[#f5f1fd] text-[#5e2de0] flex items-center justify-center hover:bg-purple-100 transition-colors"
+            >
+              <Search className="w-4 h-4" />
+            </button>
+
+            {/* Mobile Cart Button matching Screenshots 1 & 4 */}
             <Link
               href="/cart"
               prefetch={false}
-              className="flex items-center gap-2 px-4 py-2 rounded-full bg-[#f4f1fa] hover:bg-[#eae4f7] border border-[#e2d8f5] text-[#162048] font-bold text-sm transition-all group"
+              className="sm:hidden w-9 h-9 rounded-xl bg-[#f5f1fd] text-[#5e2de0] flex items-center justify-center relative hover:bg-purple-100 transition-colors"
+              aria-label="Cart"
+            >
+              <ShoppingCart className="w-4 h-4" />
+              {cartCount > 0 && (
+                <span className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-red-600 text-[9px] font-black text-white flex items-center justify-center shadow-xs">
+                  {cartCount}
+                </span>
+              )}
+            </Link>
+
+            {/* Desktop Cart Button Pill */}
+            <Link
+              href="/cart"
+              prefetch={false}
+              className="hidden sm:flex items-center gap-2 px-4 py-2 rounded-full bg-[#f4f1fa] hover:bg-[#eae4f7] border border-[#e2d8f5] text-[#162048] font-bold text-sm transition-all group"
               aria-label="Cart"
             >
               <div className="relative">
@@ -127,42 +158,48 @@ export default function Header() {
 
             {/* Mobile menu toggle */}
             <button
-              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+              onClick={() => {
+                setIsMobileMenuOpen(!isMobileMenuOpen);
+                if (isMobileSearchOpen) setIsMobileSearchOpen(false);
+              }}
               aria-label={isMobileMenuOpen ? 'Close navigation menu' : 'Open navigation menu'}
               aria-expanded={isMobileMenuOpen}
-              className="md:hidden p-2 rounded-xl text-[#182247] hover:bg-slate-100"
+              className="md:hidden w-9 h-9 rounded-xl border border-gray-200 text-[#182247] flex items-center justify-center hover:bg-slate-100"
             >
-              {isMobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+              {isMobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
             </button>
           </div>
         </div>
 
-        {/* Mobile menu dropdown */}
-        {isMobileMenuOpen && (
-          <div className="md:hidden border-t border-slate-100 bg-white px-4 py-4 space-y-3">
+        {/* Mobile Search Dropdown Bar */}
+        {isMobileSearchOpen && (
+          <div className="sm:hidden border-t border-slate-100 bg-white py-2.5 px-1 animate-in fade-in duration-150">
             <form
-              onSubmit={(e) => {
-                handleSearchSubmit(e);
-                setIsMobileMenuOpen(false);
-              }}
-              className="flex items-center sm:hidden bg-[#fbf9ff] border border-[#e8dfff] rounded-full pl-4 pr-1 py-0.5"
+              onSubmit={handleSearchSubmit}
+              className="flex items-center bg-[#fbf9ff] border border-[#e8dfff] rounded-full pl-3.5 pr-1 py-0.5"
             >
               <input
                 type="text"
-                aria-label="Search viral reels bundles"
+                autoFocus
                 placeholder="Search viral reels bundles..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full py-2 bg-transparent text-base font-medium text-[#182247] placeholder:text-[#525b7a] focus:outline-none"
+                className="w-full py-1.5 bg-transparent text-xs font-medium text-[#182247] placeholder:text-[#525b7a] focus:outline-none"
               />
               <button
                 type="submit"
                 aria-label="Search"
-                className="w-9 h-9 rounded-full flex items-center justify-center text-[#5e2de0] shrink-0"
+                className="w-8 h-8 rounded-full bg-[#6533e4] text-white flex items-center justify-center shrink-0"
               >
-                <Search className="w-4 h-4" />
+                <Search className="w-3.5 h-3.5" />
               </button>
             </form>
+          </div>
+        )}
+
+        {/* Mobile menu dropdown */}
+        {isMobileMenuOpen && (
+          <div className="md:hidden border-t border-slate-100 bg-white px-4 py-4 space-y-3">
             <div className="space-y-1">
               {navLinks.map((link) => (
                 <Link
