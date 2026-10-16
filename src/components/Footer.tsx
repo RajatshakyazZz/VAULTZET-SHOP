@@ -60,6 +60,10 @@ export default function Footer() {
   const quickLinks = [
     { label: 'Home', href: '/' },
     { label: 'All Bundles', href: '/shop' },
+    { label: 'Reels Feed', href: '/reels' },
+    { label: 'Creator Blog', href: '/blog' },
+    { label: 'AI Reels', href: '/category/ai-reels' },
+    { label: 'Motivational', href: '/category/motivation-reels' },
     { label: 'Cart', href: '#cart' },
     { label: 'My Orders', href: '/my-order' },
   ];
@@ -178,6 +182,10 @@ export default function Footer() {
 
           {/* Legal Links Bar */}
           <div className="pt-6 border-t border-gray-100 flex flex-wrap items-center justify-center gap-x-4 gap-y-2 text-xs font-semibold text-[#4a5270]">
+            <Link href="/privacy-policy" prefetch={false} className="hover:text-[#6f33e8] transition-colors">
+              Privacy Policy
+            </Link>
+            <span className="text-gray-300">•</span>
             <Link href="/refund-policy" prefetch={false} className="hover:text-[#6f33e8] transition-colors">
               Refund Policy
             </Link>

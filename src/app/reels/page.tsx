@@ -15,6 +15,7 @@ import { useCart } from '@/context/CartContext';
 import { ReelItem, BundleProduct } from '@/types';
 import { getStoreReels, initialStoreReels, parseVideoUrl } from '@/lib/reels';
 import { resolveBundleSlug, getProductUrlForReel } from '@/lib/bundleResolver';
+import { track } from '@/lib/analytics';
 
 interface FeedReelItem extends ReelItem {
   feedKey: string;
@@ -71,6 +72,16 @@ export default function ReelsFeedPage() {
           initialLikes[r.id] = r.likes ?? 0;
         });
         setLikes(initialLikes);
+
+        track('view_item_list', {
+          item_list_name: 'Reels Feed Showcase',
+          items: data.slice(0, 10).map((r, i) => ({
+            item_id: r.bundleId || r.id,
+            item_name: r.bundleTitle || r.title,
+            price: Number(r.bundlePrice || 49),
+            index: i + 1,
+          })),
+        });
       }
     });
     return () => {
@@ -240,8 +251,27 @@ export default function ReelsFeedPage() {
     buyNow(bundle, 'personal');
   };
 
+  const siteUrl = (process.env.NEXT_PUBLIC_SITE_URL || 'https://vaultzet.shop').replace(/\/+$/, '');
+  const itemListJsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'ItemList',
+    name: 'Vaultzet Store Viral Reels Video Previews',
+    numberOfItems: baseReels.length,
+    itemListElement: baseReels.slice(0, 20).map((r, idx) => ({
+      '@type': 'ListItem',
+      position: idx + 1,
+      name: r.title,
+      url: `${siteUrl}${getProductUrlForReel(r)}`,
+    })),
+  };
+
   return (
     <div className="fixed inset-0 bg-[#09080d] text-white select-none overflow-hidden z-30">
+      {/* ItemList Structured Data */}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(itemListJsonLd) }}
+      />
       <style jsx global>{`
         @keyframes rbreels-shine {
           0% {

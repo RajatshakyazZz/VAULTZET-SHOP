@@ -4,6 +4,7 @@ import React, { createContext, useContext, useState, useEffect } from 'react';
 import { BundleProduct, CartItem, LicenseType } from '@/types';
 import { ORDER_BUMP } from '@/data/bundles';
 import { useRouter } from 'next/navigation';
+import { track } from '@/lib/analytics';
 
 interface CartContextType {
   items: CartItem[];
@@ -72,7 +73,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
   }, [items, orderBumpAdded]);
 
   const addToCart = (product: BundleProduct, license: LicenseType = 'personal') => {
-    const price = license === 'reseller' ? product.resellerPrice : product.personalPrice;
+    const price = Number(license === 'reseller' ? product.resellerPrice : product.personalPrice);
     setItems((prev) => {
       const existing = prev.find((i) => i.product.id === product.id && i.license === license);
       if (existing) {
@@ -80,11 +81,25 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
       }
       return [...prev, { product, license, price }];
     });
+    track('add_to_cart', {
+      currency: 'INR',
+      value: price,
+      items: [
+        {
+          item_id: product.id,
+          item_name: product.title,
+          item_category: product.category,
+          price,
+          quantity: 1,
+          item_variant: license,
+        },
+      ],
+    });
     setIsCartOpen(true);
   };
 
   const buyNow = (product: BundleProduct, license: LicenseType = 'personal') => {
-    const price = license === 'reseller' ? product.resellerPrice : product.personalPrice;
+    const price = Number(license === 'reseller' ? product.resellerPrice : product.personalPrice);
     const singleItem: CartItem = { product, license, price };
     setBuyNowItem(singleItem);
     try {
@@ -92,6 +107,20 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     } catch {
       // ignore
     }
+    track('begin_checkout', {
+      currency: 'INR',
+      value: price,
+      items: [
+        {
+          item_id: product.id,
+          item_name: product.title,
+          item_category: product.category,
+          price,
+          quantity: 1,
+          item_variant: license,
+        },
+      ],
+    });
     setIsCartOpen(false);
     router.push('/checkout?mode=buynow');
   };
@@ -106,7 +135,26 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
   };
 
   const removeFromCart = (productId: string, license: LicenseType) => {
-    setItems((prev) => prev.filter((i) => !(i.product.id === productId && i.license === license)));
+    setItems((prev) => {
+      const item = prev.find((i) => i.product.id === productId && i.license === license);
+      if (item) {
+        track('remove_from_cart', {
+          currency: 'INR',
+          value: item.price,
+          items: [
+            {
+              item_id: item.product.id,
+              item_name: item.product.title,
+              item_category: item.product.category,
+              price: item.price,
+              quantity: 1,
+              item_variant: item.license,
+            },
+          ],
+        });
+      }
+      return prev.filter((i) => !(i.product.id === productId && i.license === license));
+    });
   };
 
   const clearCart = () => {

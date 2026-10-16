@@ -22,6 +22,8 @@ import { BUNDLE_PRODUCTS } from '@/data/bundles';
 import { useCart } from '@/context/CartContext';
 import { fetchCustomProducts, getAllCatalogBundles, getLocalCustomProductsSync } from '@/lib/customProducts';
 import { filterBundlesByQuery } from '@/lib/search';
+import { track } from '@/lib/analytics';
+import { optimizeImageUrl } from '@/lib/imageOptimized';
 import { BundleProduct } from '@/types';
 
 const ITEMS_PER_PAGE = 12;
@@ -122,6 +124,22 @@ function ShopContent() {
     return filteredBundles.slice(start, start + ITEMS_PER_PAGE);
   }, [filteredBundles, safePage]);
 
+  // Track GA4 view_item_list when catalog items are loaded/filtered
+  useEffect(() => {
+    if (paginatedBundles.length > 0) {
+      track('view_item_list', {
+        item_list_name: searchTerm ? `Search Results: ${searchTerm}` : 'Shop All Bundles',
+        items: paginatedBundles.map((b, idx) => ({
+          item_id: b.id,
+          item_name: b.title,
+          item_category: b.category,
+          price: Number(b.personalPrice || 49),
+          index: (safePage - 1) * ITEMS_PER_PAGE + idx + 1,
+        })),
+      });
+    }
+  }, [safePage, searchTerm, sortBy]);
+
   // Keystroke live search handler: immediately filters grid and displays instant dropdown
   const handleSearchChange = (val: string) => {
     setSearchTerm(val);
@@ -134,6 +152,9 @@ function ShopContent() {
     if (e) e.preventDefault();
     setIsDropdownOpen(false);
     const q = searchTerm.trim();
+    if (q) {
+      track('search', { search_term: q });
+    }
     if (typeof window !== 'undefined') {
       window.location.href = q ? `/shop?s=${encodeURIComponent(q)}` : '/shop';
     }
@@ -154,8 +175,27 @@ function ShopContent() {
     }
   };
 
+  const siteUrl = (process.env.NEXT_PUBLIC_SITE_URL || 'https://vaultzet.shop').replace(/\/+$/, '');
+  const itemListJsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'ItemList',
+    name: 'Vaultzet Store Reels Bundles',
+    numberOfItems: filteredBundles.length,
+    itemListElement: paginatedBundles.map((b, idx) => ({
+      '@type': 'ListItem',
+      position: (currentPage - 1) * ITEMS_PER_PAGE + idx + 1,
+      url: `${siteUrl}/product/${b.slug}`,
+      name: b.title,
+    })),
+  };
+
   return (
     <div className="py-4 sm:py-8 pb-24 md:pb-12">
+      {/* ItemList Structured Data */}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(itemListJsonLd) }}
+      />
       <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 space-y-6 sm:space-y-8">
         
         {/* Top Header & 3 Stat Cards */}
@@ -442,13 +482,26 @@ function ShopContent() {
                 {/* Thumbnail with Ribbon & Resolution Badge */}
                 <Link
                   href={`/product/${bundle.slug}`}
+                  onClick={() =>
+                    track('select_item', {
+                      item_list_name: searchTerm ? `Search: ${searchTerm}` : 'Shop All Bundles',
+                      items: [
+                        {
+                          item_id: bundle.id,
+                          item_name: bundle.title,
+                          item_category: bundle.category,
+                          price: Number(bundle.personalPrice || 49),
+                        },
+                      ],
+                    })
+                  }
                   className="relative aspect-[4/3] overflow-hidden bg-slate-900 block"
                 >
                   <img
-                    src={bundle.thumbnail}
+                    src={optimizeImageUrl(bundle.thumbnail, 384, 75)}
                     alt={bundle.title}
-                    width={640}
-                    height={480}
+                    width={384}
+                    height={288}
                     loading="lazy"
                     decoding="async"
                     className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
@@ -485,7 +538,22 @@ function ShopContent() {
                 <div className="p-2.5 sm:p-4 flex-1 flex flex-col justify-between space-y-2 sm:space-y-3.5">
                   <div className="space-y-1.5 sm:space-y-2">
                     {/* Title (2 lines clamp) */}
-                    <Link href={`/product/${bundle.slug}`}>
+                    <Link
+                      href={`/product/${bundle.slug}`}
+                      onClick={() =>
+                        track('select_item', {
+                          item_list_name: searchTerm ? `Search: ${searchTerm}` : 'Shop All Bundles',
+                          items: [
+                            {
+                              item_id: bundle.id,
+                              item_name: bundle.title,
+                              item_category: bundle.category,
+                              price: Number(bundle.personalPrice || 49),
+                            },
+                          ],
+                        })
+                      }
+                    >
                       <h3 className="font-extrabold text-xs sm:text-[14px] text-[#162048] hover:text-[#6f33e8] transition-colors line-clamp-2 leading-snug min-h-[32px] sm:min-h-[40px]">
                         {bundle.title}
                       </h3>

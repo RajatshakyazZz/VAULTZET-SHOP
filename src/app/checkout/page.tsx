@@ -19,6 +19,7 @@ import {
 } from 'lucide-react';
 import { useCart } from '@/context/CartContext';
 import { ORDER_BUMP } from '@/data/bundles';
+import { track } from '@/lib/analytics';
 
 declare global {
   interface Window {
@@ -55,6 +56,24 @@ function CheckoutContent() {
   const [isProcessing, setIsProcessing] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [sdkLoaded, setSdkLoaded] = useState(false);
+
+  // Track GA4 begin_checkout on checkout load
+  useEffect(() => {
+    if (checkoutItems.length > 0) {
+      track('begin_checkout', {
+        currency: 'INR',
+        value: checkoutTotal,
+        items: checkoutItems.map((i) => ({
+          item_id: i.product.id,
+          item_name: i.product.title,
+          item_category: i.product.category,
+          price: i.price,
+          quantity: 1,
+          item_variant: i.license,
+        })),
+      });
+    }
+  }, []);
 
   // Normalize phone input: strip +91 / leading 0 on autofill, allow digits only, max 10 digits
   const normalizePhoneInput = (raw: string): string => {
@@ -227,18 +246,36 @@ function CheckoutContent() {
 
     if (nameError) {
       setErrorMessage(nameError);
+      document.getElementById('delivery-info')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
       return;
     }
     if (emailError) {
       setErrorMessage(emailError);
+      document.getElementById('delivery-info')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
       return;
     }
     if (phoneError) {
       setErrorMessage(phoneError);
+      document.getElementById('delivery-info')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
       return;
     }
 
     setIsProcessing(true);
+
+    // Track GA4 add_payment_info
+    track('add_payment_info', {
+      payment_type: 'Cashfree UPI / Netbanking / Cards',
+      currency: 'INR',
+      value: checkoutTotal,
+      items: checkoutItems.map((i, idx) => ({
+        item_id: i.product.id,
+        item_name: i.product.title,
+        item_category: i.product.category || 'Reels Bundle',
+        price: Number(i.price),
+        quantity: 1,
+        index: idx,
+      })),
+    });
 
     const orderNumber = `VZ-${Math.floor(100000 + Math.random() * 900000)}`;
     const orderPayload = {
@@ -357,7 +394,7 @@ function CheckoutContent() {
         onLoad={() => setSdkLoaded(true)}
       />
 
-      <div className="py-8 sm:py-12 bg-[#faf9ff]">
+      <div className="py-8 sm:py-12 pb-36 lg:pb-12 bg-[#faf9ff]">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
           
           {/* Checkout Header */}
@@ -400,7 +437,7 @@ function CheckoutContent() {
             <div className="lg:col-span-7 space-y-6">
               
               {/* 1. Customer Details (Minimal 3 Fields with Strict Anti-Fake Validation) */}
-              <div className="rounded-3xl p-5 sm:p-6 bg-white border border-[#eae2fa] shadow-sm space-y-4">
+              <div id="delivery-info" className="rounded-3xl p-5 sm:p-6 bg-white border border-[#eae2fa] shadow-sm space-y-4 scroll-mt-24">
                 <div className="flex items-center justify-between gap-2">
                   <div className="flex items-center gap-2">
                     <span className="w-6 h-6 rounded-full bg-rb-purple text-white text-xs font-black flex items-center justify-center">
@@ -773,11 +810,61 @@ function CheckoutContent() {
                   </div>
                 </div>
 
-                {/* Submit CTA */}
+                {/* Submit CTA (Desktop only inside right column) */}
+                <div className="hidden lg:block space-y-3">
+                  <button
+                    type="submit"
+                    disabled={isProcessing}
+                    className="w-full py-4 px-6 rounded-2xl btn-gradient-orange text-white font-black text-sm flex items-center justify-center gap-2 shadow-xl hover:scale-[1.01] transition-all disabled:opacity-70 cursor-pointer"
+                  >
+                    {isProcessing ? (
+                      <span className="flex items-center gap-2">
+                        <Loader2 className="w-4 h-4 animate-spin" />
+                        Connecting Cashfree Gateway...
+                      </span>
+                    ) : (
+                      <>
+                        <Lock className="w-4 h-4" />
+                        <span>Pay ₹{checkoutTotal}.00 via Cashfree (Instant Access)</span>
+                      </>
+                    )}
+                  </button>
+
+                  <div className="space-y-1.5 text-center text-[11px] text-slate-400 pt-2 font-medium">
+                    <p className="flex items-center justify-center gap-1 text-slate-600 font-bold">
+                      <ShieldCheck className="w-4 h-4 text-emerald-600" />
+                      Instant Google Drive Link Delivery
+                    </p>
+                    <p>Protected by 256-bit SSL encryption & Cashfree Security</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Sticky Mobile Checkout Footer Bar (Visible on mobile screens < lg) */}
+            <div className="lg:hidden fixed bottom-0 inset-x-0 z-50 bg-white/95 backdrop-blur-md border-t border-[#eae2fa] shadow-[0_-8px_30px_rgba(24,34,71,0.12)] px-4 py-3 pb-safe">
+              <div className="max-w-md mx-auto space-y-2">
+                <div className="flex items-center justify-between px-1">
+                  <div>
+                    <span className="text-[10px] sm:text-[11px] font-bold text-slate-500 uppercase tracking-wider block">
+                      Final Total
+                    </span>
+                    <span className="text-xl sm:text-2xl font-black text-rb-purple">
+                      ₹{checkoutTotal}.00
+                    </span>
+                  </div>
+                  <div className="text-right">
+                    <span className="inline-flex items-center gap-1 text-[10px] sm:text-[11px] font-bold text-emerald-700 bg-emerald-50 px-2.5 py-1 rounded-md border border-emerald-200">
+                      <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" />
+                      <span>256-bit SSL</span>
+                    </span>
+                  </div>
+                </div>
+
                 <button
                   type="submit"
                   disabled={isProcessing}
-                  className="w-full py-4 px-6 rounded-2xl btn-gradient-orange text-white font-black text-sm flex items-center justify-center gap-2 shadow-xl hover:scale-[1.01] transition-all disabled:opacity-70 cursor-pointer"
+                  className="w-full py-3.5 sm:py-4 px-6 rounded-2xl btn-gradient-orange text-white font-black text-sm sm:text-base flex items-center justify-center gap-2 shadow-xl hover:scale-[1.01] active:scale-[0.98] transition-all disabled:opacity-70 cursor-pointer"
                 >
                   {isProcessing ? (
                     <span className="flex items-center gap-2">
@@ -792,12 +879,9 @@ function CheckoutContent() {
                   )}
                 </button>
 
-                <div className="space-y-1.5 text-center text-[11px] text-slate-400 pt-2 font-medium">
-                  <p className="flex items-center justify-center gap-1 text-slate-600 font-bold">
-                    <ShieldCheck className="w-4 h-4 text-emerald-600" />
-                    Instant Google Drive Link Delivery
-                  </p>
-                  <p>Protected by 256-bit SSL encryption & Cashfree Security</p>
+                <div className="flex items-center justify-center gap-1.5 text-[10px] sm:text-[11px] text-slate-500 font-medium text-center">
+                  <ShieldCheck className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+                  <span>Instant Google Drive Delivery · 256-bit SSL Security</span>
                 </div>
               </div>
             </div>

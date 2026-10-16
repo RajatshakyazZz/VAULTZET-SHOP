@@ -31,6 +31,7 @@ import { useStoreSettings } from '@/context/StoreSettingsContext';
 import { useCart } from '@/context/CartContext';
 import { ALL_ACCESS_PLANS } from '@/data/bundles';
 import { BundleProduct } from '@/types';
+import { track } from '@/lib/analytics';
 
 function OrderSuccessContent() {
   const searchParams = useSearchParams();
@@ -92,6 +93,48 @@ function OrderSuccessContent() {
                 hasBump: data.hasBump,
               });
               localStorage.setItem('vaultzet_purchased_orders', JSON.stringify(list));
+
+              // Fire GA4 and Meta Pixel purchase event (deduplicated by order id in localStorage)
+              const purchaseItems = Array.isArray(data.items) && data.items.length > 0
+                ? data.items.map((item: any, idx: number) => ({
+                    item_id: String(item.id || item.slug || `bundle-${idx + 1}`),
+                    item_name: String(item.title || item.name || 'Reels Bundle'),
+                    item_category: item.category || 'Reels Bundle',
+                    price: Number(item.price || data.order_amount || 0),
+                    quantity: Number(item.quantity || 1),
+                    item_variant: item.license || 'personal',
+                    index: idx,
+                  }))
+                : [
+                    {
+                      item_id: String(orderNum),
+                      item_name: 'Reels Bundle Order',
+                      item_category: 'Reels Bundle',
+                      price: Number(data.order_amount || 0),
+                      quantity: 1,
+                    },
+                  ];
+
+              if (data.hasBump) {
+                purchaseItems.push({
+                  item_id: 'order-bump-course',
+                  item_name: 'Viral Reels Masterclass & Canva Templates',
+                  item_category: 'Order Bump',
+                  price: 99,
+                  quantity: 1,
+                  item_variant: 'bump',
+                  index: purchaseItems.length,
+                });
+              }
+
+              track('purchase', {
+                transaction_id: String(orderNum),
+                value: Number(data.order_amount || 0),
+                currency: 'INR',
+                tax: 0,
+                shipping: 0,
+                items: purchaseItems,
+              });
             }
           } catch (e) {
             console.warn('Could not store order locally:', e);

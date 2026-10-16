@@ -1,15 +1,27 @@
 import { MetadataRoute } from 'next';
 
 export default function robots(): MetadataRoute.Robots {
+  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://vaultzet.shop';
+
   return {
     rules: [
       {
         userAgent: '*',
         allow: '/',
-        disallow: ['/api/', '/checkout', '/order-success'],
+        disallow: [
+          '/api/',
+          '/analy',
+          '/customers',
+          '/costumers',
+          '/order-status',
+          '/order-success',
+          '/checkout',
+          '/cart',
+          '/_next/',
+        ],
       },
     ],
-    sitemap: 'https://www.vaultzet.shop/sitemap.xml',
-    host: 'https://www.vaultzet.shop',
+    sitemap: `${baseUrl}/sitemap.xml`,
+    host: baseUrl,
   };
 }
