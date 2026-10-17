@@ -102,7 +102,6 @@ export default function Header() {
     { name: 'Home', href: '/' },
     { name: 'Shop', href: '/shop' },
     { name: 'Reels Feed', href: '/reels' },
-    { name: 'Blog', href: '/blog' },
     { name: 'My Orders', href: '/my-order' },
     { name: 'About Us', href: '/about-us' },
   ];

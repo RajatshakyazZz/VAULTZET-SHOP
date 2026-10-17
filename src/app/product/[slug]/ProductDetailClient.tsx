@@ -6,7 +6,6 @@ import {
   ChevronRight,
   Star,
   CheckCircle2,
-  ShoppingCart,
   Zap,
   ShieldCheck,
   Sparkles,
@@ -35,7 +34,7 @@ import {
 } from 'lucide-react';
 import { BUNDLE_PRODUCTS } from '@/data/bundles';
 import { useCart } from '@/context/CartContext';
-import { LicenseType, BundleProduct } from '@/types';
+import { BundleProduct } from '@/types';
 import { optimizeImageUrl } from '@/lib/imageOptimized';
 import { getBundleContentDetails } from '@/lib/bundleContent';
 import { parseVideoUrl } from '@/lib/reels';
@@ -46,14 +45,12 @@ interface ProductDetailClientProps {
 }
 
 export default function ProductDetailClient({ product }: ProductDetailClientProps) {
-  const { addToCart, buyNow } = useCart();
+  const { buyNow } = useCart();
 
-  const [selectedLicense, setSelectedLicense] = useState<LicenseType>('personal');
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const [isDescExpanded, setIsDescExpanded] = useState(false);
   const [openFaqIndex, setOpenFaqIndex] = useState<number | null>(0);
   const [isPreviewOpen, setIsPreviewOpen] = useState(false);
-  const [showAddedToast, setShowAddedToast] = useState(false);
   const [isVideoMuted, setIsVideoMuted] = useState(false);
   const videoRef = useRef<HTMLVideoElement | null>(null);
 
@@ -70,7 +67,7 @@ export default function ProductDetailClient({ product }: ProductDetailClientProp
             item_category: product.category || 'Reels Bundle',
             price: Number(product.personalPrice),
             quantity: 1,
-            item_variant: 'personal',
+            item_variant: 'standard',
           },
         ],
       });
@@ -99,25 +96,13 @@ export default function ProductDetailClient({ product }: ProductDetailClientProp
     }
   }, [isPreviewOpen, isYouTube]);
 
-  const activePrice = selectedLicense === 'reseller' ? product.resellerPrice : product.personalPrice;
-  const originalPrice = selectedLicense === 'reseller' ? product.resellerOriginalPrice : product.personalOriginalPrice;
+  const activePrice = product.personalPrice;
+  const originalPrice = product.personalOriginalPrice;
   const discountPercent = Math.round(((originalPrice - activePrice) / originalPrice) * 100);
-  const personalDiscountPercent = Math.round(
-    ((product.personalOriginalPrice - product.personalPrice) / product.personalOriginalPrice) * 100
-  );
-  const resellerDiscountPercent = Math.round(
-    ((product.resellerOriginalPrice - product.resellerPrice) / product.resellerOriginalPrice) * 100
-  );
   const currentImage = selectedImage || product.thumbnail || '';
 
   const details = getBundleContentDetails(product);
   const relatedBundles = BUNDLE_PRODUCTS.filter((b) => b.id !== product.id && !b.isUpcoming).slice(0, 4);
-
-  const handleAddToCart = () => {
-    addToCart(product, selectedLicense);
-    setShowAddedToast(true);
-    setTimeout(() => setShowAddedToast(false), 2500);
-  };
 
   const scrollToPurchase = () => {
     const el = document.getElementById('purchase-card');
@@ -171,18 +156,7 @@ export default function ProductDetailClient({ product }: ProductDetailClientProp
   };
 
   return (
-    <div className="bg-white min-h-screen text-[#17151f]">
-      {/* Toast Notification */}
-      {showAddedToast && (
-        <div className="fixed top-6 right-6 z-50 bg-[#17151f] text-white px-5 py-3 rounded-2xl shadow-2xl flex items-center gap-3 animate-in fade-in slide-in-from-top-4 duration-200">
-          <CheckCircle2 className="w-5 h-5 text-emerald-400 shrink-0" />
-          <div className="text-xs">
-            <p className="font-bold">Added to Cart!</p>
-            <p className="text-slate-300">{product.title.slice(0, 32)}...</p>
-          </div>
-        </div>
-      )}
-
+    <div className="bg-white min-h-screen text-[#17151f] pb-24 md:pb-8">
       {/* Main Container */}
       <div className="max-w-[1180px] mx-auto px-4 sm:px-6 py-4 sm:py-8 space-y-10 sm:space-y-14">
         
@@ -343,120 +317,35 @@ export default function ProductDetailClient({ product }: ProductDetailClientProp
               </span>
             </div>
 
-            {/* INTERACTIVE LICENSE SELECTOR */}
+            {/* PURCHASE CARD */}
             <div id="purchase-card" className="relative rounded-2xl sm:rounded-3xl border border-[#e5e7eb] bg-white p-5 sm:p-6 shadow-[0_4px_24px_rgba(0,0,0,0.03)] overflow-hidden space-y-4">
               <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-[#6366f1] via-[#a855f7] to-[#ec4899]" />
 
-              <div className="inline-block px-2.5 py-1 rounded-md text-[10px] sm:text-[11px] font-black uppercase tracking-wider bg-[#f3e8ff] text-[#7e22ce]">
-                SELECT YOUR LICENSE
-              </div>
-
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1 sm:gap-2">
-                <div>
-                  <h3 className="text-base font-extrabold text-[#111827]">License Option</h3>
-                  <p className="text-xs text-gray-500">Choose according to your usage need</p>
+              {/* Instant Delivery & Quality Highlights */}
+              <div className="grid grid-cols-3 gap-2 pt-1 text-center">
+                <div className="bg-[#faf5ff] border border-[#f3e8ff] rounded-xl p-2.5">
+                  <div className="text-[11px] font-extrabold text-[#7c3aed]">⚡ Instant</div>
+                  <div className="text-[10px] text-gray-500 font-medium">Drive Access</div>
+                </div>
+                <div className="bg-[#f0fdf4] border border-[#dcfce7] rounded-xl p-2.5">
+                  <div className="text-[11px] font-extrabold text-emerald-700">🎬 1080P HD</div>
+                  <div className="text-[10px] text-gray-500 font-medium">Ready to Post</div>
+                </div>
+                <div className="bg-[#eff6ff] border border-[#dbeafe] rounded-xl p-2.5">
+                  <div className="text-[11px] font-extrabold text-blue-700">✨ Zero Logo</div>
+                  <div className="text-[10px] text-gray-500 font-medium">No Watermark</div>
                 </div>
               </div>
 
-              {/* Dual License Option Cards */}
-              <div className="space-y-3 pt-1">
-                {/* 1. Personal License Option */}
-                <div
-                  onClick={() => setSelectedLicense('personal')}
-                  className={`relative flex items-start justify-between p-3.5 sm:p-4 rounded-xl border-2 cursor-pointer transition-all ${
-                    selectedLicense === 'personal'
-                      ? 'border-[#7c3aed] bg-[#faf5ff] shadow-sm'
-                      : 'border-gray-200 hover:border-gray-300 bg-white'
-                  }`}
-                >
-                  <div className="flex items-start gap-3">
-                    <div
-                      className={`w-5 h-5 rounded-full border-2 flex items-center justify-center shrink-0 mt-0.5 transition-colors ${
-                        selectedLicense === 'personal'
-                          ? 'border-[#7c3aed] bg-[#7c3aed]'
-                          : 'border-gray-300 bg-white'
-                      }`}
-                    >
-                      {selectedLicense === 'personal' && <div className="w-2 h-2 rounded-full bg-white" />}
-                    </div>
-                    <div>
-                      <div className="flex items-center gap-2 flex-wrap">
-                        <strong className="text-sm font-bold text-[#111827]">Personal Use License</strong>
-                        <span className="text-[10px] font-extrabold px-2 py-0.5 rounded-full bg-purple-100 text-[#7c3aed]">
-                          Best for Pages
-                        </span>
-                      </div>
-                      <p className="text-xs text-gray-500 mt-0.5">Post on your own Instagram, YouTube & Facebook</p>
-                    </div>
-                  </div>
-                  <div className="text-right shrink-0">
-                    <span className="block text-base font-extrabold text-[#111827]">
-                      ₹{product.personalPrice}.00
-                    </span>
-                    <span className="block text-[11px] text-gray-400 line-through">
-                      ₹{product.personalOriginalPrice}.00
-                    </span>
-                  </div>
-                </div>
-
-                {/* 2. Reseller License Option */}
-                <div
-                  onClick={() => setSelectedLicense('reseller')}
-                  className={`relative flex items-start justify-between p-3.5 sm:p-4 rounded-xl border-2 cursor-pointer transition-all ${
-                    selectedLicense === 'reseller'
-                      ? 'border-[#db2777] bg-[#fdf2f8] shadow-sm'
-                      : 'border-gray-200 hover:border-gray-300 bg-white'
-                  }`}
-                >
-                  <div className="flex items-start gap-3">
-                    <div
-                      className={`w-5 h-5 rounded-full border-2 flex items-center justify-center shrink-0 mt-0.5 transition-colors ${
-                        selectedLicense === 'reseller'
-                          ? 'border-[#db2777] bg-[#db2777]'
-                          : 'border-gray-300 bg-white'
-                      }`}
-                    >
-                      {selectedLicense === 'reseller' && <div className="w-2 h-2 rounded-full bg-white" />}
-                    </div>
-                    <div>
-                      <div className="flex items-center gap-2 flex-wrap">
-                        <strong className="text-sm font-bold text-[#111827]">Commercial & Reseller Rights (MRR)</strong>
-                        <span className="text-[10px] font-extrabold px-2 py-0.5 rounded-full bg-pink-100 text-[#db2777]">
-                          Earn 100% Profit
-                        </span>
-                      </div>
-                      <p className="text-xs text-gray-500 mt-0.5">Resell this entire bundle to your own buyers and keep 100% revenue</p>
-                    </div>
-                  </div>
-                  <div className="text-right shrink-0">
-                    <span className="block text-base font-extrabold text-[#111827]">
-                      ₹{product.resellerPrice}.00
-                    </span>
-                    <span className="block text-[11px] text-gray-400 line-through">
-                      ₹{product.resellerOriginalPrice}.00
-                    </span>
-                  </div>
-                </div>
-              </div>
-
-              {/* Action Buttons: Buy Now & Add to Cart */}
-              <div className="pt-2 space-y-2.5">
+              {/* Single Primary Buy Now Button */}
+              <div className="pt-1">
                 <button
                   type="button"
-                  onClick={() => buyNow(product, selectedLicense)}
-                  className="w-full py-3.5 sm:py-4 px-6 rounded-2xl btn-gradient-primary text-white font-black text-sm sm:text-base shadow-xl hover:shadow-2xl hover:scale-[1.01] active:scale-[0.99] transition-all flex items-center justify-center gap-2.5 cursor-pointer"
+                  onClick={() => buyNow(product, 'personal')}
+                  className="w-full py-4 px-6 rounded-2xl btn-gradient-primary text-white font-black text-base sm:text-lg shadow-xl hover:shadow-2xl hover:scale-[1.01] active:scale-[0.99] transition-all flex items-center justify-center gap-2.5 cursor-pointer"
                 >
                   <Zap className="w-5 h-5 fill-white" />
-                  <span>Instant Buy Now — ₹{activePrice}.00</span>
-                </button>
-
-                <button
-                  type="button"
-                  onClick={handleAddToCart}
-                  className="w-full py-3 px-6 rounded-2xl bg-white border-2 border-purple-200 text-rb-purple font-extrabold text-xs sm:text-sm hover:bg-purple-50 transition-all flex items-center justify-center gap-2 cursor-pointer"
-                >
-                  <ShoppingCart className="w-4 h-4" />
-                  <span>Add To Cart (Multi-Bundle)</span>
+                  <span>Buy Now — ₹{activePrice}.00</span>
                 </button>
               </div>
 
@@ -589,9 +478,9 @@ export default function ProductDetailClient({ product }: ProductDetailClientProp
               <div className="w-9 h-9 rounded-full bg-purple-100 text-rb-purple font-black text-sm flex items-center justify-center">
                 1
               </div>
-              <h3 className="text-sm font-extrabold text-[#17151f]">Select License & Checkout</h3>
+              <h3 className="text-sm font-extrabold text-[#17151f]">Instant Buy Now & Checkout</h3>
               <p className="text-xs text-[#6f6a78] leading-relaxed">
-                Choose Personal (to post on your pages) or Reseller (to sell to clients and keep 100% profit). Pay securely via UPI, Card, or NetBanking.
+                Click Buy Now and pay securely via UPI, QR code, Card, or NetBanking. Instant access guaranteed.
               </p>
             </div>
 
@@ -906,6 +795,27 @@ export default function ProductDetailClient({ product }: ProductDetailClientProp
           </div>
         </div>
       )}
+
+      {/* MOBILE STICKY BOTTOM BUY BAR */}
+      <div className="fixed bottom-0 left-0 right-0 z-40 md:hidden bg-white/95 backdrop-blur-md border-t border-gray-200 px-4 py-3 shadow-[0_-4px_20px_rgba(0,0,0,0.08)]">
+        <div className="flex items-center justify-between gap-3 max-w-md mx-auto">
+          <div className="flex flex-col">
+            <span className="text-[10px] text-gray-500 font-bold uppercase tracking-wider">Instant Access</span>
+            <div className="flex items-baseline gap-1.5">
+              <span className="text-xl font-black text-gray-900">₹{activePrice}.00</span>
+              <span className="text-xs text-gray-400 line-through">₹{originalPrice}.00</span>
+            </div>
+          </div>
+          <button
+            type="button"
+            onClick={() => buyNow(product, 'personal')}
+            className="flex-1 py-3 px-5 rounded-xl btn-gradient-primary text-white font-black text-sm shadow-md active:scale-95 transition-all flex items-center justify-center gap-2 cursor-pointer"
+          >
+            <Zap className="w-4 h-4 fill-white" />
+            <span>Buy Now</span>
+          </button>
+        </div>
+      </div>
 
     </div>
   );

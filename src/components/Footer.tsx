@@ -51,7 +51,7 @@ export default function Footer() {
     },
     {
       title: 'Creator Friendly',
-      subtitle: 'Personal and reseller options',
+      subtitle: 'Ready to post & grow',
       icon: Heart,
       bg: 'bg-pink-100/70 text-pink-600',
     },
@@ -61,7 +61,6 @@ export default function Footer() {
     { label: 'Home', href: '/' },
     { label: 'All Bundles', href: '/shop' },
     { label: 'Reels Feed', href: '/reels' },
-    { label: 'Creator Blog', href: '/blog' },
     { label: 'AI Reels', href: '/category/ai-reels' },
     { label: 'Motivational', href: '/category/motivation-reels' },
     { label: 'Cart', href: '#cart' },

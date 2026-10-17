@@ -116,10 +116,10 @@ Next.js XML Route Handlers serve real-time, submit-ready XML sitemaps:
 - **Category Sitemap:** `https://vaultzet.shop/sitemap-categories.xml`
   - Lists all 20+ niche hubs with `priority: 0.7` and `changefreq: weekly`
 - **Pages Sitemap:** `https://vaultzet.shop/sitemap-pages.xml`
-  - Homepage (`priority: 1.0`), `/shop`, `/reels`, `/blog`, and legal pages
+  - Homepage (`priority: 1.0`), `/shop`, `/reels`, and legal pages
 
 ### Robots.txt Configuration (`/robots.txt`)
-Allows search engines to crawl all public landing, category, product, and blog pages while explicitly disallowing private, operational, and user-specific paths:
+Allows search engines to crawl all public landing, category, and product pages while explicitly disallowing private, operational, and user-specific paths:
 ```txt
 User-Agent: *
 Allow: /
@@ -163,17 +163,15 @@ Host: https://vaultzet.shop
 3. **Product & Offer Schema (`src/app/product/[slug]/page.tsx`):**
    - Name, image gallery, SKU, price, currency (INR), availability (`InStock`), seller, and `AggregateRating` (real rating and reviews).
 4. **BreadcrumbList Schema:**
-   - Present on Product pages, Category hubs, and Blog articles.
+   - Present on Product pages and Category hubs.
 5. **FAQPage Schema:**
    - Present on Product pages and Category hubs with rich Q&A pairs for accordion rich snippets.
 6. **ItemList Schema:**
    - Present on `/shop`, `/reels`, and `/category/[slug]`.
-7. **BlogPosting Schema (`src/app/blog/[slug]/page.tsx`):**
-   - Headline, featured image, publish date, author, and publisher.
 
 ---
 
-## 8. Programmatic SEO Hubs & Blog
+## 8. Programmatic SEO Category Hubs
 
 ### Category Landing Pages (`/category/[slug]`)
 Dynamic hubs created for 20+ viral niches (`/category/ai-reels`, `/category/motivation-reels`, `/category/animation-reels`, `/category/story-reels`, `/category/fitness-reels`, etc.):
@@ -181,14 +179,6 @@ Dynamic hubs created for 20+ viral niches (`/category/ai-reels`, `/category/moti
 - Niche-specific product grid with instant checkout links
 - 4-question FAQ accordion with FAQPage JSON-LD schema
 - Cross-links to other popular categories
-
-### Creator Blog (`/blog` & `/blog/[slug]`)
-5 high-intent starter guides targeting organic queries:
-1. `/blog/viral-reels-bundle-guide` — *Viral Reels Bundle Guide: 2026 Me Instagram Page Grow Karne Ka Secret*
-2. `/blog/faceless-instagram-channel-kaise-banaye` — *Faceless Instagram Channel Kaise Banaye: Step-by-Step Complete Guide*
-3. `/blog/ready-to-post-reels-monetization` — *Ready to Post Reels Se Earning Kaise Karein? 5 Best Monetization Ways*
-4. `/blog/instagram-algorithm-hacks-reels` — *Instagram Reels Algorithm Hacks 2026: Har Video Par Viral Views Ka Secret*
-5. `/blog/best-ai-reels-bundles-india` — *Best AI Reels Bundles in India: Top High-Retention Themes*
 
 ---
 
