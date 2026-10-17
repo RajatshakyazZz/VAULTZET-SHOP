@@ -11,7 +11,7 @@ import CartDrawer from '@/components/CartDrawer';
 import AnalyticsTracker from '@/components/AnalyticsTracker';
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://www.vaultzet.shop';
-const GTM_ID = process.env.NEXT_PUBLIC_GTM_ID || '';
+const GTM_ID = process.env.NEXT_PUBLIC_GTM_ID || 'GTM-TD8N9SDD';
 const GA4_ID = process.env.NEXT_PUBLIC_GA4_ID || 'G-6RZBVZKPML';
 const GSC_VERIFICATION = process.env.NEXT_PUBLIC_GSC_VERIFICATION || 'googlef90de30240e3b03b';
 const BING_VERIFICATION = process.env.NEXT_PUBLIC_BING_VERIFICATION || '';
