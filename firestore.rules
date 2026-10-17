@@ -21,6 +21,13 @@ rules_version = '2';
 //    - createdAt: timestamp (optional)
 //    - timestampIso: string (optional, <= 50 chars)
 //    - transactionId: string (optional, <= 100 chars)
+//    - purchase_event_id: string (optional, <= 100 chars, Meta Pixel / CAPI deduplication event ID)
+//    - purchase_event_status: string (optional, in ['pending', 'sent', 'delivered', 'failed'])
+//    - purchase_event_sent_at: string (optional, <= 100 chars, ISO timestamp of CAPI dispatch)
+//    - purchase_event_attempts: number (optional, 0..100, CAPI retry counter)
+//    - purchase_client_fired: bool (optional, browser Pixel fire acknowledgement)
+//    - order_token: string (optional, <= 100 chars, order verification/access token)
+//    - cf_payment_id: string (optional, <= 100 chars, Cashfree payment reference ID)
 //    - Protection: Deletion strictly denied. Crucial fields immutable on update.
 //
 // 2. products:
@@ -177,7 +184,7 @@ service cloud.firestore {
 
     function isValidOrder(data) {
       return data.keys().hasAll(['orderNumber', 'customer', 'items', 'totalAmount', 'paymentMethod', 'status']) &&
-        data.keys().hasOnly(['id', 'orderNumber', 'customer', 'items', 'orderBump', 'totalAmount', 'paymentMethod', 'status', 'createdAt', 'timestampIso', 'transactionId']) &&
+        data.keys().hasOnly(['id', 'orderNumber', 'customer', 'items', 'orderBump', 'totalAmount', 'paymentMethod', 'status', 'createdAt', 'timestampIso', 'transactionId', 'purchase_event_id', 'purchase_event_status', 'purchase_event_sent_at', 'purchase_event_attempts', 'purchase_client_fired', 'order_token', 'cf_payment_id']) &&
         isValidString(data.orderNumber, 3, 60) &&
         data.customer is map &&
         data.customer.keys().hasAll(['fullName', 'email']) &&
@@ -197,7 +204,14 @@ service cloud.firestore {
         data.status in ['pending', 'processing', 'completed', 'on-hold', 'failed', 'refunded', 'cancelled'] &&
         (!('createdAt' in data) || data.createdAt is timestamp) &&
         isValidOptionalString(data, 'timestampIso', 50) &&
-        isValidOptionalString(data, 'transactionId', 100);
+        isValidOptionalString(data, 'transactionId', 100) &&
+        isValidOptionalString(data, 'purchase_event_id', 100) &&
+        (!('purchase_event_status' in data) || data.purchase_event_status == null || data.purchase_event_status in ['pending', 'sent', 'delivered', 'failed']) &&
+        isValidOptionalString(data, 'purchase_event_sent_at', 100) &&
+        isValidOptionalNumber(data, 'purchase_event_attempts', 0, 100) &&
+        isValidOptionalBool(data, 'purchase_client_fired') &&
+        isValidOptionalString(data, 'order_token', 100) &&
+        isValidOptionalString(data, 'cf_payment_id', 100);
     }
 
     function areOrderImmutableFieldsUnchanged() {

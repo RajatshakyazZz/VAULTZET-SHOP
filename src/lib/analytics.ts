@@ -138,13 +138,31 @@ function bridgeToMetaPixel(event: AnalyticsEventName, payload: Record<string, an
           num_items: payload.items?.length || 1,
         });
         break;
-      case 'purchase':
-        window.fbq('track', 'Purchase', {
+      case 'purchase': {
+        const orderId = payload.transaction_id || payload.order_id || '';
+        const eventId = payload.event_id || (orderId ? `purchase_${orderId}` : undefined);
+        const fbData: Record<string, any> = {
           value: Number(payload.value || 0),
-          currency: 'INR',
-          order_id: payload.transaction_id,
-        });
+          currency: payload.currency || 'INR',
+          order_id: orderId,
+        };
+        if (payload.items && Array.isArray(payload.items) && payload.items.length > 0) {
+          fbData.contents = payload.items.map((it: any) => ({
+            id: String(it.item_id || it.id),
+            quantity: Number(it.quantity || 1),
+            item_price: Number(it.price || 0),
+          }));
+          fbData.content_ids = payload.items.map((it: any) => String(it.item_id || it.id));
+          fbData.content_type = 'product';
+          fbData.num_items = payload.items.length;
+        }
+        if (eventId) {
+          window.fbq('track', 'Purchase', fbData, { eventID: eventId });
+        } else {
+          window.fbq('track', 'Purchase', fbData);
+        }
         break;
+      }
       case 'search':
         window.fbq('track', 'Search', {
           search_string: payload.search_term,

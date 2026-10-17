@@ -1,3 +1,4 @@
+import crypto from 'crypto';
 import { db } from './firebase';
 import { doc, getDoc } from 'firebase/firestore';
 
@@ -287,5 +288,30 @@ export async function getCashfreePgPayments(orderId: string): Promise<any[]> {
   }
 
   return response.json();
+}
+
+/**
+ * Verifies official Cashfree webhook signature using HMAC-SHA256.
+ */
+export function verifyCashfreeWebhookSignature(
+  rawBody: string,
+  signature: string,
+  timestamp: string,
+  secretKey: string
+): boolean {
+  if (!signature || !timestamp || !secretKey) return false;
+  try {
+    const payload = `${timestamp}${rawBody}`;
+    const expectedSignature = crypto
+      .createHmac('sha256', secretKey)
+      .update(payload)
+      .digest('base64');
+    return crypto.timingSafeEqual(
+      Buffer.from(signature.trim()),
+      Buffer.from(expectedSignature.trim())
+    );
+  } catch {
+    return false;
+  }
 }
 

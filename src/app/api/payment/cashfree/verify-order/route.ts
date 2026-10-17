@@ -7,6 +7,8 @@ import {
   sendAbandonedOrPendingTelegramAlert,
 } from '@/lib/telegram';
 import { BUNDLE_PRODUCTS } from '@/data/bundles';
+import { sendMetaCapiPurchase } from '@/lib/metaCapi';
+import { extractClientMetadata, verifyOrderToken, generateOrderToken } from '@/lib/orderToken';
 
 interface ResolvedProductFiles {
   primaryLink: string;
@@ -115,7 +117,16 @@ async function resolveDriveFilesForProduct(item: { id?: string; title?: string }
   };
 }
 
-async function handleVerify(orderId: string) {
+async function handleVerify(
+  orderId: string,
+  clientMeta?: {
+    clientIp?: string;
+    clientUserAgent?: string;
+    fbp?: string;
+    fbc?: string;
+    token?: string;
+  }
+) {
   const verification = await verifyCashfreePgOrder(orderId);
 
   let storedOrder: any = null;
@@ -125,8 +136,12 @@ async function handleVerify(orderId: string) {
       if (snap.exists()) {
         storedOrder = snap.data();
       }
-    } catch {}
+    } catch (e) {
+      console.warn('Error reading stored order doc:', e);
+    }
   }
+
+  const validToken = generateOrderToken(orderId);
 
   const alertPayload = {
     orderNumber: orderId,
@@ -143,17 +158,58 @@ async function handleVerify(orderId: string) {
   };
 
   if (verification.paid) {
+    const isFirstPaidTransition = storedOrder?.status !== 'completed';
+    const isCapiDelivered = storedOrder?.purchase_event_status === 'delivered';
+    const isClientFired = storedOrder?.purchase_client_fired === true;
+
+    let capiStatus = storedOrder?.purchase_event_status || 'pending';
+    let capiSentAt = storedOrder?.purchase_event_sent_at || null;
+
+    // Send server-side Meta Conversions API (CAPI) purchase event once
+    if (!isCapiDelivered) {
+      try {
+        const capiResult = await sendMetaCapiPurchase({
+          orderId,
+          totalAmount: Number(storedOrder?.totalAmount || verification.order_amount || 0),
+          currency: 'INR',
+          items: storedOrder?.items || [],
+          customer: storedOrder?.customer,
+          clientIp: clientMeta?.clientIp,
+          clientUserAgent: clientMeta?.clientUserAgent,
+          fbp: clientMeta?.fbp,
+          fbc: clientMeta?.fbc,
+        });
+
+        if (capiResult.success) {
+          capiStatus = 'delivered';
+          capiSentAt = new Date().toISOString();
+        } else if (!capiResult.skipped) {
+          capiStatus = 'failed';
+        }
+      } catch (capiErr) {
+        console.error('[Meta CAPI] Error dispatching event during verification:', capiErr);
+      }
+    }
+
     if (db) {
       try {
         const orderRef = doc(db, 'orders', orderId);
-        await updateDoc(orderRef, {
+        const updatePayload: Record<string, any> = {
           status: 'completed',
-        });
+          purchase_event_id: `purchase_${orderId}`,
+          purchase_event_status: capiStatus,
+          purchase_event_attempts: (storedOrder?.purchase_event_attempts || 0) + 1,
+        };
+        if (capiSentAt) {
+          updatePayload.purchase_event_sent_at = capiSentAt;
+        }
+        await updateDoc(orderRef, updatePayload);
       } catch (err) {
         console.warn('Error updating Firestore order status:', err);
       }
     }
-    if (storedOrder?.status !== 'completed') {
+
+    if (isFirstPaidTransition) {
       await sendSaleSuccessTelegramAlert(alertPayload);
     }
 
@@ -175,21 +231,31 @@ async function handleVerify(orderId: string) {
       })
     );
 
+    // Browser is only eligible to fire Pixel if it has never fired before for this order
+    const eligibleForBrowserEvent = !isClientFired;
+
     return {
       ...verification,
       orderNumber: orderId,
       customer: storedOrder?.customer || { fullName: 'Customer', email: '' },
       items: verifiedItems,
       hasBump: Boolean(storedOrder?.orderBump),
+      purchase_event_id: `purchase_${orderId}`,
+      eligible_for_browser_event: eligibleForBrowserEvent,
+      order_token: storedOrder?.order_token || validToken,
     };
   } else {
-    await sendAbandonedOrPendingTelegramAlert(alertPayload, 'payment_abandoned');
+    if (storedOrder?.status === 'pending') {
+      await sendAbandonedOrPendingTelegramAlert(alertPayload, 'payment_abandoned');
+    }
     return {
       ...verification,
       orderNumber: orderId,
       customer: storedOrder?.customer || { fullName: 'Customer', email: '' },
       items: [],
       hasBump: false,
+      eligible_for_browser_event: false,
+      order_token: validToken,
     };
   }
 }
@@ -197,7 +263,8 @@ async function handleVerify(orderId: string) {
 export async function GET(request: Request) {
   try {
     const { searchParams } = new URL(request.url);
-    const orderId = searchParams.get('order_id');
+    const orderId = searchParams.get('order_id') || searchParams.get('orderId');
+    const token = searchParams.get('token');
 
     if (!orderId) {
       return NextResponse.json(
@@ -206,7 +273,12 @@ export async function GET(request: Request) {
       );
     }
 
-    const verification: any = await handleVerify(orderId);
+    const clientMeta = {
+      ...extractClientMetadata(request),
+      token: token || undefined,
+    };
+
+    const verification: any = await handleVerify(orderId, clientMeta);
 
     if (verification.paid) {
       return NextResponse.json({
@@ -218,6 +290,9 @@ export async function GET(request: Request) {
         customer: verification.customer,
         items: verification.items,
         hasBump: verification.hasBump,
+        purchase_event_id: verification.purchase_event_id,
+        eligible_for_browser_event: verification.eligible_for_browser_event,
+        order_token: verification.order_token,
       });
     }
 
@@ -227,6 +302,7 @@ export async function GET(request: Request) {
       order_status: verification.order_status || 'PENDING',
       order_amount: verification.order_amount,
       orderNumber: orderId,
+      eligible_for_browser_event: false,
       error: 'Payment incomplete or pending confirmation',
     });
   } catch (error: any) {
@@ -245,6 +321,7 @@ export async function POST(request: Request) {
   try {
     const body = await request.json();
     const orderId = body.orderId || body.order_id;
+    const action = body.action;
 
     if (!orderId) {
       return NextResponse.json(
@@ -253,7 +330,27 @@ export async function POST(request: Request) {
       );
     }
 
-    const verification: any = await handleVerify(orderId);
+    // Support client-side fire acknowledgement to guarantee permanent single-fire deduplication
+    if (action === 'mark_client_fired') {
+      if (db) {
+        try {
+          const orderRef = doc(db, 'orders', orderId);
+          await updateDoc(orderRef, {
+            purchase_client_fired: true,
+          });
+        } catch (err) {
+          console.warn('Could not mark purchase_client_fired in Firestore:', err);
+        }
+      }
+      return NextResponse.json({ success: true, marked: true });
+    }
+
+    const clientMeta = {
+      ...extractClientMetadata(request),
+      token: body.token || undefined,
+    };
+
+    const verification: any = await handleVerify(orderId, clientMeta);
 
     if (verification.paid) {
       return NextResponse.json({
@@ -265,6 +362,9 @@ export async function POST(request: Request) {
         customer: verification.customer,
         items: verification.items,
         hasBump: verification.hasBump,
+        purchase_event_id: verification.purchase_event_id,
+        eligible_for_browser_event: verification.eligible_for_browser_event,
+        order_token: verification.order_token,
       });
     }
 
@@ -274,6 +374,7 @@ export async function POST(request: Request) {
       order_status: verification.order_status || 'PENDING',
       order_amount: verification.order_amount,
       orderNumber: orderId,
+      eligible_for_browser_event: false,
       error: 'Payment incomplete or pending confirmation',
     });
   } catch (error: any) {

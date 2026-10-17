@@ -3,6 +3,7 @@ import { createCashfreePgOrder } from '@/lib/cashfree';
 import { db } from '@/lib/firebase';
 import { doc, setDoc, serverTimestamp } from 'firebase/firestore';
 import { sendAbandonedOrPendingTelegramAlert } from '@/lib/telegram';
+import { generateOrderToken } from '@/lib/orderToken';
 
 export async function POST(request: Request) {
   try {
@@ -47,16 +48,18 @@ export async function POST(request: Request) {
       ? `http://${hostHeader}`
       : 'https://vaultzet.shop';
 
-    // 1. Generate Cashfree Order Session
+    const orderToken = generateOrderToken(orderNumber);
+
+    // 1. Generate Cashfree Order Session with secure returnUrl
     const cashfreeOrder = await createCashfreePgOrder({
       orderId: orderNumber,
       orderAmount: Number(totalAmount),
       customer: {
-        fullName: customer.fullName || 'Customer',
-        email: customer.email,
-        phone: customer.phone || '9999999999',
+        fullName: cleanName || 'Customer',
+        email: cleanEmail,
+        phone: cleanPhone || '9999999999',
       },
-      returnUrl: `${returnBaseUrl}/api/payment/cashfree/return?order_id={order_id}`,
+      returnUrl: `${returnBaseUrl}/api/payment/cashfree/return?order_id={order_id}&token=${encodeURIComponent(orderToken)}`,
     });
 
     // 2. Persist Pending Order to Firestore (strictly matching firestore.rules schema)
@@ -66,9 +69,9 @@ export async function POST(request: Request) {
         await setDoc(orderRef, {
           orderNumber,
           customer: {
-            fullName: customer.fullName || 'Customer',
-            email: customer.email.trim().toLowerCase(),
-            phone: customer.phone || '',
+            fullName: cleanName || 'Customer',
+            email: cleanEmail,
+            phone: cleanPhone || '',
           },
           items: items && items.length > 0 ? items : [{ id: 'bundle', title: 'Viral Reels Bundle', price: Number(totalAmount), license: 'personal' }],
           orderBump: orderBump || null,
@@ -78,6 +81,11 @@ export async function POST(request: Request) {
           status: 'pending',
           createdAt: serverTimestamp(),
           timestampIso: new Date().toISOString(),
+          purchase_event_id: `purchase_${orderNumber}`,
+          purchase_event_status: 'pending',
+          purchase_event_attempts: 0,
+          purchase_client_fired: false,
+          order_token: orderToken,
         });
       } catch (firestoreErr) {
         console.warn('Could not save pending order to Firestore:', firestoreErr);
@@ -89,9 +97,9 @@ export async function POST(request: Request) {
       {
         orderNumber,
         customer: {
-          fullName: customer.fullName || 'Customer',
-          email: customer.email.trim().toLowerCase(),
-          phone: customer.phone || '',
+          fullName: cleanName || 'Customer',
+          email: cleanEmail,
+          phone: cleanPhone || '',
         },
         items: items || [],
         orderBump: orderBump || null,
@@ -107,6 +115,7 @@ export async function POST(request: Request) {
       order_id: cashfreeOrder.order_id,
       payment_session_id: cashfreeOrder.payment_session_id,
       environment: cashfreeOrder.environment,
+      order_token: orderToken,
     });
   } catch (error: any) {
     console.error('Error creating Cashfree order:', error);

@@ -323,6 +323,7 @@ function CheckoutContent() {
         ...orderPayload,
         orderId: orderNumber,
         paymentSessionId: data.payment_session_id,
+        orderToken: data.order_token,
         status: 'pending',
       }));
 

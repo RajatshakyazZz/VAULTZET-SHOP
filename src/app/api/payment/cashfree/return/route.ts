@@ -6,16 +6,20 @@ import {
   sendSaleSuccessTelegramAlert,
   sendAbandonedOrPendingTelegramAlert,
 } from '@/lib/telegram';
+import { generateOrderToken } from '@/lib/orderToken';
 
 export async function GET(request: Request) {
   const url = new URL(request.url);
   const orderId = url.searchParams.get('order_id');
+  const tokenParam = url.searchParams.get('token');
   const isLocalhost = url.host.includes('localhost');
   const baseUrl = isLocalhost ? `${url.protocol}//${url.host}` : 'https://vaultzet.shop';
 
   if (!orderId) {
     return NextResponse.redirect(`${baseUrl}/checkout?error=missing_order_id`);
   }
+
+  const orderToken = tokenParam || generateOrderToken(orderId);
 
   try {
     const verification = await verifyCashfreePgOrder(orderId);
@@ -48,7 +52,9 @@ export async function GET(request: Request) {
     };
 
     if (verification.paid) {
-      if (db) {
+      const isAlreadyCompleted = storedOrder?.status === 'completed';
+
+      if (db && !isAlreadyCompleted) {
         try {
           const orderRef = doc(db, 'orders', orderId);
           await updateDoc(orderRef, {
@@ -59,12 +65,16 @@ export async function GET(request: Request) {
         }
       }
 
-      // Send celebratory Sale Telegram Alert
-      await sendSaleSuccessTelegramAlert(alertPayload);
+      // Send celebratory Sale Telegram Alert only if not already sent
+      if (!isAlreadyCompleted) {
+        await sendSaleSuccessTelegramAlert(alertPayload);
+      }
 
-      return NextResponse.redirect(`${baseUrl}/order-success?orderId=${encodeURIComponent(orderId)}`);
+      return NextResponse.redirect(
+        `${baseUrl}/order-success?orderId=${encodeURIComponent(orderId)}&token=${encodeURIComponent(orderToken)}`
+      );
     } else {
-      if (db) {
+      if (db && storedOrder?.status === 'pending') {
         try {
           const orderRef = doc(db, 'orders', orderId);
           await updateDoc(orderRef, {
@@ -76,7 +86,9 @@ export async function GET(request: Request) {
       }
 
       // Send Abandoned Payment Telegram Alert with WhatsApp Follow-Up button
-      await sendAbandonedOrPendingTelegramAlert(alertPayload, 'payment_abandoned');
+      if (storedOrder?.status !== 'failed') {
+        await sendAbandonedOrPendingTelegramAlert(alertPayload, 'payment_abandoned');
+      }
 
       return NextResponse.redirect(
         `${baseUrl}/checkout?error=payment_${verification.order_status?.toLowerCase() || 'incomplete'}&orderId=${encodeURIComponent(orderId)}`
@@ -84,6 +96,8 @@ export async function GET(request: Request) {
     }
   } catch (err: any) {
     console.error('Error handling Cashfree return redirect:', err);
-    return NextResponse.redirect(`${baseUrl}/order-success?orderId=${encodeURIComponent(orderId)}`);
+    return NextResponse.redirect(
+      `${baseUrl}/order-success?orderId=${encodeURIComponent(orderId)}&token=${encodeURIComponent(orderToken)}`
+    );
   }
 }

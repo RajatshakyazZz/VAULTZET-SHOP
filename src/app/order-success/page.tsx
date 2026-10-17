@@ -65,24 +65,29 @@ function OrderSuccessContent() {
     }
     setOrderId(targetId);
 
+    const rawToken = searchParams.get('token') || '';
+
     // Call server-side payment verification endpoint
     let isCancelled = false;
     setStatus('verifying');
 
-    fetch(`/api/payment/cashfree/verify-order?order_id=${encodeURIComponent(targetId)}`)
+    const verifyUrl = `/api/payment/cashfree/verify-order?order_id=${encodeURIComponent(targetId)}${rawToken ? `&token=${encodeURIComponent(rawToken)}` : ''}`;
+
+    fetch(verifyUrl)
       .then((res) => res.json())
       .then((data) => {
         if (isCancelled) return;
         if (data.success && data.paid) {
           setVerifiedData(data);
           setStatus('paid');
+          const orderNum = data.orderNumber || targetId;
+
           try {
             localStorage.removeItem('vaultzet_latest_order');
             const existingRaw = localStorage.getItem('vaultzet_purchased_orders');
             const list = existingRaw ? JSON.parse(existingRaw) : [];
-            const orderNum = data.orderNumber || targetId;
-            const already = list.some((o: any) => (o.orderNumber || o.order_id || o.orderId) === orderNum);
-            if (!already) {
+            const alreadyInLocal = list.some((o: any) => (o.orderNumber || o.order_id || o.orderId) === orderNum);
+            if (!alreadyInLocal) {
               list.unshift({
                 orderNumber: orderNum,
                 order_id: targetId,
@@ -93,51 +98,67 @@ function OrderSuccessContent() {
                 hasBump: data.hasBump,
               });
               localStorage.setItem('vaultzet_purchased_orders', JSON.stringify(list));
-
-              // Fire GA4 and Meta Pixel purchase event (deduplicated by order id in localStorage)
-              const purchaseItems = Array.isArray(data.items) && data.items.length > 0
-                ? data.items.map((item: any, idx: number) => ({
-                    item_id: String(item.id || item.slug || `bundle-${idx + 1}`),
-                    item_name: String(item.title || item.name || 'Reels Bundle'),
-                    item_category: item.category || 'Reels Bundle',
-                    price: Number(item.price || data.order_amount || 0),
-                    quantity: Number(item.quantity || 1),
-                    item_variant: item.license || 'personal',
-                    index: idx,
-                  }))
-                : [
-                    {
-                      item_id: String(orderNum),
-                      item_name: 'Reels Bundle Order',
-                      item_category: 'Reels Bundle',
-                      price: Number(data.order_amount || 0),
-                      quantity: 1,
-                    },
-                  ];
-
-              if (data.hasBump) {
-                purchaseItems.push({
-                  item_id: 'order-bump-course',
-                  item_name: 'Viral Reels Masterclass & Canva Templates',
-                  item_category: 'Order Bump',
-                  price: 99,
-                  quantity: 1,
-                  item_variant: 'bump',
-                  index: purchaseItems.length,
-                });
-              }
-
-              track('purchase', {
-                transaction_id: String(orderNum),
-                value: Number(data.order_amount || 0),
-                currency: 'INR',
-                tax: 0,
-                shipping: 0,
-                items: purchaseItems,
-              });
             }
           } catch (e) {
             console.warn('Could not store order locally:', e);
+          }
+
+          // Strict server-side gatekeeper: ONLY fire browser event if backend confirms this order hasn't fired yet
+          if (data.eligible_for_browser_event) {
+            // 1. Immediately notify server to mark client fired, preventing any future fires across reloads/devices
+            fetch('/api/payment/cashfree/verify-order', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                action: 'mark_client_fired',
+                orderId: orderNum,
+                token: data.order_token || rawToken,
+              }),
+            }).catch(() => {});
+
+            // 2. Build commerce items
+            const purchaseItems = Array.isArray(data.items) && data.items.length > 0
+              ? data.items.map((item: any, idx: number) => ({
+                  item_id: String(item.id || item.slug || `bundle-${idx + 1}`),
+                  item_name: String(item.title || item.name || 'Reels Bundle'),
+                  item_category: item.category || 'Reels Bundle',
+                  price: Number(item.price || data.order_amount || 0),
+                  quantity: Number(item.quantity || 1),
+                  item_variant: item.license || 'personal',
+                  index: idx,
+                }))
+              : [
+                  {
+                    item_id: String(orderNum),
+                    item_name: 'Reels Bundle Order',
+                    item_category: 'Reels Bundle',
+                    price: Number(data.order_amount || 0),
+                    quantity: 1,
+                  },
+                ];
+
+            if (data.hasBump) {
+              purchaseItems.push({
+                item_id: 'order-bump-course',
+                item_name: 'Viral Reels Masterclass & Canva Templates',
+                item_category: 'Order Bump',
+                price: 99,
+                quantity: 1,
+                item_variant: 'bump',
+                index: purchaseItems.length,
+              });
+            }
+
+            // 3. Fire GA4 and Meta Pixel with deterministic event ID identical to CAPI
+            track('purchase', {
+              transaction_id: String(orderNum),
+              event_id: data.purchase_event_id || `purchase_${orderNum}`,
+              value: Number(data.order_amount || 0),
+              currency: 'INR',
+              tax: 0,
+              shipping: 0,
+              items: purchaseItems,
+            });
           }
         } else {
           setStatus('unpaid');
