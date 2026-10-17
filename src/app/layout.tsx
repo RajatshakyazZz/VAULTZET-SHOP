@@ -12,7 +12,7 @@ import AnalyticsTracker from '@/components/AnalyticsTracker';
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://www.vaultzet.shop';
 const GTM_ID = process.env.NEXT_PUBLIC_GTM_ID || 'GTM-TD8N9SDD';
-const GA4_ID = process.env.NEXT_PUBLIC_GA4_ID || 'G-6RZBVZKPML';
+const GA4_ID = process.env.NEXT_PUBLIC_GA4_ID || 'G-7RMXL2RZ4J';
 const GSC_VERIFICATION = process.env.NEXT_PUBLIC_GSC_VERIFICATION || 'googlef90de30240e3b03b';
 const BING_VERIFICATION = process.env.NEXT_PUBLIC_BING_VERIFICATION || '';
 const META_PIXEL_ID = process.env.NEXT_PUBLIC_META_PIXEL_ID || '1715650960276913';
@@ -213,8 +213,27 @@ export default function RootLayout({
           `}
         </Script>
 
-        {/* Primary Tag Orchestrator: GTM if set */}
-        {GTM_ID ? (
+        {/* Google tag (gtag.js) */}
+        {GA4_ID && (
+          <>
+            <Script
+              src={`https://www.googletagmanager.com/gtag/js?id=${GA4_ID}`}
+              strategy="afterInteractive"
+            />
+            <Script id="google-analytics" strategy="afterInteractive">
+              {`
+                window.dataLayer = window.dataLayer || [];
+                function gtag(){dataLayer.push(arguments);}
+                gtag('js', new Date());
+
+                gtag('config', '${GA4_ID}');
+              `}
+            </Script>
+          </>
+        )}
+
+        {/* Google Tag Manager (GTM) */}
+        {GTM_ID && (
           <Script id="gtm-script" strategy="afterInteractive">
             {`
               (function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
@@ -224,27 +243,6 @@ export default function RootLayout({
               })(window,document,'dataLayer','${GTM_ID}');
             `}
           </Script>
-        ) : (
-          /* GA4 Direct Fallback if GTM not configured */
-          GA4_ID && (
-            <>
-              <Script
-                src={`https://www.googletagmanager.com/gtag/js?id=${GA4_ID}`}
-                strategy="afterInteractive"
-              />
-              <Script id="ga4-init" strategy="afterInteractive">
-                {`
-                  window.dataLayer = window.dataLayer || [];
-                  function gtag(){dataLayer.push(arguments);}
-                  gtag('js', new Date());
-                  gtag('config', '${GA4_ID}', {
-                    send_page_view: false,
-                    cookie_flags: 'SameSite=None;Secure'
-                  });
-                `}
-              </Script>
-            </>
-          )
         )}
 
         {/* Meta Pixel Script */}
