@@ -4,6 +4,10 @@ import {
   OWNER_CHAT_ID,
   sendStoreCommandReport,
 } from '@/lib/telegram';
+import {
+  isAuthorizedTelegramAdmin,
+  handleAdminTelegramCommand,
+} from '@/lib/telegramReseller';
 
 async function answerCallbackQuery(callbackQueryId: string, text?: string) {
   try {
@@ -12,7 +16,7 @@ async function answerCallbackQuery(callbackQueryId: string, text?: string) {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         callback_query_id: callbackQueryId,
-        text: text || 'Updating store report...',
+        text: text || 'Processing...',
       }),
     });
   } catch {}
@@ -20,11 +24,18 @@ async function answerCallbackQuery(callbackQueryId: string, text?: string) {
 
 /**
  * POST /api/telegram/webhook
- * Receives live commands (/today, /orders, /pending, /summary, /help) & button clicks from Telegram
- * Restricted strictly to Owner Chat ID: 5950203511
+ * Receives live commands & button clicks from Telegram
+ * Strictly authorized to configured Admin / Owner chat IDs
  */
 export async function POST(request: Request) {
   try {
+    // 0. Secret Token Validation (if configured in environment)
+    const secretHeader = request.headers.get('x-telegram-bot-api-secret-token');
+    const configuredSecret = process.env.TELEGRAM_WEBHOOK_SECRET;
+    if (configuredSecret && secretHeader !== configuredSecret) {
+      return NextResponse.json({ error: 'Unauthorized secret token' }, { status: 401 });
+    }
+
     const update = await request.json();
 
     // 1. Handle Inline Button Clicks (callback_query)
@@ -33,14 +44,40 @@ export async function POST(request: Request) {
       const fromId = String(cb.from?.id || '');
       const chatId = String(cb.message?.chat?.id || '');
 
-      if (fromId !== OWNER_CHAT_ID && chatId !== OWNER_CHAT_ID) {
-        await answerCallbackQuery(cb.id, '⛔ Unauthorized: Owner only.');
+      if (!isAuthorizedTelegramAdmin(fromId, chatId)) {
+        await answerCallbackQuery(cb.id, '⛔ Unauthorized: Admin only.');
         return NextResponse.json({ ok: true });
       }
 
       const action = String(cb.data || '');
       await answerCallbackQuery(cb.id);
 
+      // Reseller dynamic callbacks (e.g. reseller_RSL-..., products_RSL-..., wallet_RSL-...)
+      if (action.startsWith('reseller_')) {
+        const uid = action.replace('reseller_', '');
+        await handleAdminTelegramCommand(`/reseller ${uid}`, fromId, chatId);
+        return NextResponse.json({ ok: true });
+      }
+      if (action.startsWith('products_')) {
+        const uid = action.replace('products_', '');
+        await handleAdminTelegramCommand(`/products ${uid}`, fromId, chatId);
+        return NextResponse.json({ ok: true });
+      }
+      if (action.startsWith('wallet_')) {
+        const uid = action.replace('wallet_', '');
+        await handleAdminTelegramCommand(`/wallet ${uid}`, fromId, chatId);
+        return NextResponse.json({ ok: true });
+      }
+      if (action === 'cmd_report') {
+        await handleAdminTelegramCommand('/report', fromId, chatId);
+        return NextResponse.json({ ok: true });
+      }
+      if (action === 'cmd_topresellers') {
+        await handleAdminTelegramCommand('/topresellers', fromId, chatId);
+        return NextResponse.json({ ok: true });
+      }
+
+      // Existing store commands
       if (action === 'cmd_today') {
         await sendStoreCommandReport('today');
       } else if (action === 'cmd_orders') {
@@ -56,7 +93,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ ok: true });
     }
 
-    // 2. Handle Text Commands (/today, /orders, /pending, /summary, /start, /help)
+    // 2. Handle Text Commands
     const msg = update.message || update.edited_message;
     if (!msg) {
       return NextResponse.json({ ok: true });
@@ -65,21 +102,29 @@ export async function POST(request: Request) {
     const chatId = String(msg.chat?.id || '');
     const fromId = String(msg.from?.id || '');
 
-    // Strict owner-only enforcement
-    if (chatId !== OWNER_CHAT_ID && fromId !== OWNER_CHAT_ID) {
+    // Strict authorized admin check
+    if (!isAuthorizedTelegramAdmin(fromId, chatId)) {
       return NextResponse.json({ ok: true });
     }
 
-    const rawText = String(msg.text || '').trim().toLowerCase();
-    const cmd = rawText.split(/\s+/)[0].split('@')[0];
+    const rawText = String(msg.text || '').trim();
+    const parts = rawText.split(/\s+/);
+    const cmd = parts[0].toLowerCase().split('@')[0];
 
+    // First attempt reseller-specific admin commands (/reseller, /sales, /products, /wallet, /withdrawals, /topresellers, /report)
+    const handled = await handleAdminTelegramCommand(rawText, fromId, chatId);
+    if (handled) {
+      return NextResponse.json({ ok: true });
+    }
+
+    // Existing store commands
     if (cmd === '/today' || cmd === 'today') {
       await sendStoreCommandReport('today');
-    } else if (cmd === '/orders' || cmd === 'orders' || cmd === '/sales') {
+    } else if (cmd === '/orders' || cmd === 'orders') {
       await sendStoreCommandReport('orders');
     } else if (cmd === '/pending' || cmd === 'pending' || cmd === '/abandoned') {
       await sendStoreCommandReport('pending');
-    } else if (cmd === '/summary' || cmd === 'summary' || cmd === '/report') {
+    } else if (cmd === '/summary' || cmd === 'summary') {
       await sendStoreCommandReport('night_summary');
     } else if (cmd === '/start' || cmd === '/help' || cmd === 'help' || cmd === 'menu') {
       await sendStoreCommandReport('help');
@@ -94,48 +139,62 @@ export async function POST(request: Request) {
 
 /**
  * GET /api/telegram/webhook
- * Registers the Telegram Webhook & Bot Command Menu (/today, /orders, /pending, /summary, /help)
+ * Registers the Telegram Webhook & Bot Command Menu
  */
 export async function GET(request: Request) {
   try {
-    const { searchParams } = new URL(request.url);
-    const webhookUrl =
-      searchParams.get('url') || 'https://www.vaultzet.shop/api/telegram/webhook';
+    const host = request.headers.get('host') || 'vaultzet.shop';
+    const protocol = host.includes('localhost') ? 'http' : 'https';
+    const webhookUrl = `${protocol}://${host}/api/telegram/webhook`;
 
-    const commands = [
-      { command: 'today', description: '📊 Today Sales, Revenue (₹), Pending & Top Bundle' },
-      { command: 'orders', description: '✅ Last 5 Paid Orders + Send Drive Link on WhatsApp' },
-      { command: 'pending', description: '⏳ Abandoned Checkouts + 20% Discount Recovery' },
-      { command: 'summary', description: '🌙 Full Daily Night Summary & All-Time Report' },
-      { command: 'help', description: '🤖 Show Vaultzet Store Command Center Menu' },
-    ];
+    const registerWebhookUrl = `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/setWebhook`;
+    const webhookPayload: Record<string, any> = {
+      url: webhookUrl,
+      drop_pending_updates: true,
+      allowed_updates: ['message', 'edited_message', 'callback_query'],
+    };
 
-    const [webhookRes, cmdRes] = await Promise.all([
-      fetch(`https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/setWebhook`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          url: webhookUrl,
-          allowed_updates: ['message', 'callback_query'],
-        }),
-      }).then((r) => r.json()),
-      fetch(`https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/setMyCommands`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ commands }),
-      }).then((r) => r.json()),
-    ]);
+    if (process.env.TELEGRAM_WEBHOOK_SECRET) {
+      webhookPayload.secret_token = process.env.TELEGRAM_WEBHOOK_SECRET;
+    }
+
+    const res = await fetch(registerWebhookUrl, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(webhookPayload),
+    });
+    const webhookResult = await res.json();
+
+    // Register bot commands list with Telegram
+    const commandsUrl = `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/setMyCommands`;
+    await fetch(commandsUrl, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        commands: [
+          { command: 'reseller', description: 'Look up reseller by UID (/reseller RSL-XXXX)' },
+          { command: 'sales', description: 'View sales breakdown for reseller UID' },
+          { command: 'products', description: 'View product sales for reseller UID' },
+          { command: 'wallet', description: 'View wallet ledger for reseller UID' },
+          { command: 'withdrawals', description: 'View withdrawal history for reseller UID' },
+          { command: 'topresellers', description: 'Leaderboard of top performing resellers' },
+          { command: 'report', description: 'Store-wide reseller performance report' },
+          { command: 'today', description: 'Today sales & revenue overview (IST)' },
+          { command: 'orders', description: 'Recent paid orders' },
+          { command: 'pending', description: 'Abandoned & pending checkout leads' },
+          { command: 'summary', description: 'Daily store totals & health' },
+          { command: 'help', description: 'Command menu & help' },
+        ],
+      }),
+    });
 
     return NextResponse.json({
       success: true,
+      message: 'Telegram Webhook & Command Menu configured successfully',
       webhookUrl,
-      webhookResponse: webhookRes,
-      commandsResponse: cmdRes,
+      webhookResult,
     });
   } catch (err: any) {
-    return NextResponse.json(
-      { success: false, error: err.message || 'Webhook registration failed' },
-      { status: 500 }
-    );
+    return NextResponse.json({ success: false, error: err.message }, { status: 500 });
   }
 }

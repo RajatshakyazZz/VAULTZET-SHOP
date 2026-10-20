@@ -20,7 +20,7 @@ import { getResellerListingsByUser, updateResellerListing } from '@/lib/reseller
 import { ResellerListing } from '@/types/reseller';
 
 export default function ResellerProductsPage() {
-  const { user } = useResellerAuth();
+  const { user, profile } = useResellerAuth();
   const [listings, setListings] = useState<ResellerListing[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [copiedSlug, setCopiedSlug] = useState<string | null>(null);
@@ -105,7 +105,14 @@ export default function ResellerProductsPage() {
       {/* Header */}
       <div className="p-6 sm:p-8 rounded-3xl bg-white border border-purple-100 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-xl sm:text-2xl font-black text-[#162048]">My Reseller Products</h1>
+          <div className="flex items-center gap-3">
+            <h1 className="text-xl sm:text-2xl font-black text-[#162048]">My Reseller Products</h1>
+            {profile?.resellerUid && (
+              <span className="font-mono text-xs px-2.5 py-0.5 rounded-full bg-amber-500/10 text-amber-700 border border-amber-500/20 font-bold">
+                🆔 {profile.resellerUid}
+              </span>
+            )}
+          </div>
           <p className="text-xs text-slate-500 mt-1 font-medium">
             Manage your custom links, adjust selling prices, and track individual sales performance.
           </p>

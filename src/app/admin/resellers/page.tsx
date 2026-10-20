@@ -15,11 +15,20 @@ import {
   Search,
   RefreshCw,
   ExternalLink,
+  Download,
+  Eye,
+  EyeOff,
+  X,
+  FileSpreadsheet,
+  ArrowUpDown,
+  Filter,
 } from 'lucide-react';
-import { ResellerListing, WithdrawalRequest } from '@/types/reseller';
+import { ResellerListing, WithdrawalRequest, ResellerFullAnalytics } from '@/types/reseller';
+import { maskUpiId } from '@/lib/resellerService';
 
 export default function AdminResellersManagementPage() {
-  const [activeTab, setActiveTab] = useState<'withdrawals' | 'listings' | 'settings'>('withdrawals');
+  const [activeTab, setActiveTab] = useState<'resellers' | 'withdrawals' | 'listings' | 'settings'>('resellers');
+  const [resellers, setResellers] = useState<any[]>([]);
   const [withdrawals, setWithdrawals] = useState<WithdrawalRequest[]>([]);
   const [listings, setListings] = useState<ResellerListing[]>([]);
   const [settings, setSettings] = useState({
@@ -31,11 +40,22 @@ export default function AdminResellersManagementPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [processingId, setProcessingId] = useState<string | null>(null);
 
+  // Search & Filter state for Resellers
+  const [searchQuery, setSearchQuery] = useState('');
+  const [statusFilter, setStatusFilter] = useState<'all' | 'active' | 'suspended'>('all');
+  const [sortBy, setSortBy] = useState<'earnings' | 'sales' | 'revenue' | 'date'>('earnings');
+
+  // Reseller deep dive modal
+  const [selectedResellerUid, setSelectedResellerUid] = useState<string | null>(null);
+  const [resellerDetail, setResellerDetail] = useState<ResellerFullAnalytics | null>(null);
+  const [loadingDetail, setLoadingDetail] = useState(false);
+
   // Payout confirmation modal state
   const [payoutModalReq, setPayoutModalReq] = useState<WithdrawalRequest | null>(null);
   const [payoutRef, setPayoutRef] = useState('');
   const [rejectModalReq, setRejectModalReq] = useState<WithdrawalRequest | null>(null);
   const [rejectReason, setRejectReason] = useState('');
+  const [revealedUpiIds, setRevealedUpiIds] = useState<Record<string, boolean>>({});
 
   useEffect(() => {
     loadAll();
@@ -44,12 +64,14 @@ export default function AdminResellersManagementPage() {
   const loadAll = async () => {
     setIsLoading(true);
     try {
-      const [wRes, lRes, sRes] = await Promise.all([
+      const [rRes, wRes, lRes, sRes] = await Promise.all([
+        fetch('/api/admin/reseller/resellers').then((r) => r.json()),
         fetch('/api/admin/reseller/withdrawals').then((r) => r.json()),
         fetch('/api/admin/reseller/listings').then((r) => r.json()),
         fetch('/api/admin/reseller/settings').then((r) => r.json()),
       ]);
 
+      if (rRes.success) setResellers(rRes.resellers || []);
       if (wRes.success) setWithdrawals(wRes.withdrawals || []);
       if (lRes.success) setListings(lRes.listings || []);
       if (sRes.success) setSettings(sRes.settings || {});
@@ -57,6 +79,22 @@ export default function AdminResellersManagementPage() {
       console.warn('Error loading admin reseller data:', e);
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const openResellerDetail = async (uid: string) => {
+    setSelectedResellerUid(uid);
+    setLoadingDetail(true);
+    try {
+      const res = await fetch(`/api/admin/reseller/resellers?uid=${encodeURIComponent(uid)}`);
+      const data = await res.json();
+      if (data.success) {
+        setResellerDetail(data.reseller);
+      }
+    } catch (e) {
+      console.warn('Error fetching reseller detail:', e);
+    } finally {
+      setLoadingDetail(false);
     }
   };
 
@@ -95,7 +133,7 @@ export default function AdminResellersManagementPage() {
         body: JSON.stringify({
           withdrawalId: rejectModalReq.id,
           status: 'rejected',
-          adminNotes: rejectReason.trim() || 'Incorrect payout details',
+          adminNotes: rejectReason.trim() || 'Declined by admin',
         }),
       });
       if (res.ok) {
@@ -104,237 +142,544 @@ export default function AdminResellersManagementPage() {
         await loadAll();
       }
     } catch (e) {
-      console.warn('Error rejecting:', e);
+      console.warn('Error rejecting payout:', e);
     } finally {
       setProcessingId(null);
     }
   };
 
-  const handleToggleListing = async (listingId: string, currentStatus: string) => {
-    const nextStatus = currentStatus === 'suspended' ? 'active' : 'suspended';
+  const toggleListingStatus = async (listingId: string, currentStatus: string) => {
+    const nextStatus = currentStatus === 'active' ? 'paused' : 'active';
+    setProcessingId(listingId);
     try {
-      await fetch('/api/admin/reseller/listings', {
+      const res = await fetch('/api/admin/reseller/listings', {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ listingId, status: nextStatus }),
       });
-      await loadAll();
+      if (res.ok) {
+        await loadAll();
+      }
     } catch (e) {
-      console.warn('Error updating listing:', e);
+      console.warn('Error toggling listing:', e);
+    } finally {
+      setProcessingId(null);
     }
   };
 
   const handleSaveSettings = async (e: React.FormEvent) => {
     e.preventDefault();
+    setProcessingId('settings');
     try {
       await fetch('/api/admin/reseller/settings', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(settings),
       });
-      alert('Reseller settings updated successfully!');
+      alert('Reseller global settings saved successfully.');
     } catch (e) {
-      alert('Failed to save settings');
+      console.warn('Error saving settings:', e);
+    } finally {
+      setProcessingId(null);
     }
   };
 
-  const pendingWithdrawals = withdrawals.filter((w) => w.status === 'pending');
-  const totalPendingAmount = pendingWithdrawals.reduce((sum, w) => sum + w.amount, 0);
+  const toggleRevealUpi = (id: string) => {
+    setRevealedUpiIds((prev) => ({ ...prev, [id]: !prev[id] }));
+  };
+
+  // Export Reseller Directory to CSV
+  const exportToCsv = () => {
+    const headers = [
+      'Reseller UID',
+      'Name',
+      'Email',
+      'Status',
+      'Registered At',
+      'Verified Orders',
+      'Units Sold',
+      'Gross Sales (INR)',
+      'Net Sales (INR)',
+      'Total Earnings (INR)',
+      'Available Balance (INR)',
+      'Total Withdrawn (INR)',
+    ];
+
+    const rows = resellers.map((r) => [
+      r.profile.resellerUid || '',
+      `"${r.profile.displayName || ''}"`,
+      r.profile.email || '',
+      r.profile.status || '',
+      r.profile.createdAt ? new Date(r.profile.createdAt).toLocaleDateString('en-IN') : '',
+      r.totalOrders || 0,
+      r.unitsSold || 0,
+      r.grossSales || 0,
+      r.netSales || 0,
+      r.resellerEarnings || 0,
+      r.wallet.availableBalance || 0,
+      r.wallet.totalWithdrawn || 0,
+    ]);
+
+    const csvContent = 'data:text/csv;charset=utf-8,' + [headers.join(','), ...rows.map((e) => e.join(','))].join('\n');
+    const encodedUri = encodeURI(csvContent);
+    const link = document.createElement('a');
+    link.setAttribute('href', encodedUri);
+    link.setAttribute('download', `vaultzet_resellers_${new Date().toISOString().slice(0, 10)}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
+  // Filtered & Sorted Resellers
+  const filteredResellers = resellers
+    .filter((r) => {
+      const q = searchQuery.toLowerCase().trim();
+      const matchSearch =
+        !q ||
+        r.profile.resellerUid?.toLowerCase().includes(q) ||
+        r.profile.displayName?.toLowerCase().includes(q) ||
+        r.profile.email?.toLowerCase().includes(q);
+
+      const matchStatus = statusFilter === 'all' || r.profile.status === statusFilter;
+      return matchSearch && matchStatus;
+    })
+    .sort((a, b) => {
+      if (sortBy === 'earnings') return b.resellerEarnings - a.resellerEarnings;
+      if (sortBy === 'sales') return b.totalOrders - a.totalOrders;
+      if (sortBy === 'revenue') return b.grossSales - a.grossSales;
+      return new Date(b.profile.createdAt).getTime() - new Date(a.profile.createdAt).getTime();
+    });
+
+  const pendingWithdrawalsCount = withdrawals.filter(
+    (w) => w.status === 'pending' || w.status === 'pending_review'
+  ).length;
 
   return (
-    <div className="min-h-screen bg-[#f8f6fc] text-[#162048] p-4 sm:p-8">
-      <div className="max-w-7xl mx-auto space-y-6">
-        
-        {/* Header */}
-        <div className="p-6 sm:p-8 rounded-3xl bg-white border border-purple-100 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+    <div className="min-h-screen bg-slate-950 text-slate-100 p-4 sm:p-8">
+      <div className="max-w-7xl mx-auto space-y-8">
+        {/* Top Header */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-6 border-b border-slate-800">
           <div>
-            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-purple-100 text-[#6734f7] text-[10px] font-black uppercase tracking-wider mb-2">
-              <ShieldCheck className="w-3.5 h-3.5" />
-              <span>Vaultzet Admin</span>
+            <div className="flex items-center gap-3">
+              <span className="px-3 py-1 rounded-full text-xs font-bold bg-amber-500/10 text-amber-400 border border-amber-500/20">
+                Admin Control Center
+              </span>
+              <span className="text-xs text-slate-500">Reseller Management & Payouts</span>
             </div>
-            <h1 className="text-xl sm:text-2xl font-black text-[#162048]">
-              Reseller Program Management
+            <h1 className="text-3xl font-black text-white tracking-tight mt-1">
+              Resell & Earn Ecosystem
             </h1>
-            <p className="text-xs text-slate-500 font-medium">
-              Review partner payout requests, moderate customized listings, and manage financial commission rules.
-            </p>
           </div>
+          <div className="flex items-center gap-3">
+            <button
+              onClick={loadAll}
+              className="px-4 py-2 bg-slate-900 hover:bg-slate-800 border border-slate-800 rounded-xl text-xs font-semibold text-slate-300 flex items-center gap-2 transition"
+            >
+              <RefreshCw className={`w-3.5 h-3.5 ${isLoading ? 'animate-spin' : ''}`} />
+              Refresh Data
+            </button>
+            <Link
+              href="/earn/dashboard"
+              target="_blank"
+              className="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-white rounded-xl text-xs font-semibold flex items-center gap-1.5 transition"
+            >
+              <ExternalLink className="w-3.5 h-3.5" />
+              Reseller View
+            </Link>
+          </div>
+        </div>
 
+        {/* Navigation Tabs */}
+        <div className="flex items-center gap-2 border-b border-slate-800 pb-2">
           <button
-            type="button"
-            onClick={loadAll}
-            className="px-4 py-2 rounded-xl bg-purple-50 hover:bg-purple-100 text-[#6734f7] text-xs font-bold flex items-center gap-1.5 self-start sm:self-auto transition-colors"
+            onClick={() => setActiveTab('resellers')}
+            className={`px-5 py-2.5 rounded-xl font-bold text-sm flex items-center gap-2 transition ${
+              activeTab === 'resellers'
+                ? 'bg-amber-500 text-slate-950 shadow-lg shadow-amber-500/20'
+                : 'text-slate-400 hover:text-white hover:bg-slate-900'
+            }`}
           >
-            <RefreshCw className="w-3.5 h-3.5" />
-            <span>Refresh Data</span>
+            <Users className="w-4 h-4" />
+            Resellers Directory ({resellers.length})
           </button>
-        </div>
-
-        {/* 3 Metric Cards */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-          <div className="p-5 rounded-3xl bg-white border border-purple-100 shadow-xs">
-            <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider block">
-              Pending Payout Requests
-            </span>
-            <div className="text-2xl font-black text-amber-600 mt-1">
-              ₹{totalPendingAmount.toLocaleString('en-IN')}
-            </div>
-            <span className="text-[10px] text-gray-400 font-medium">
-              {pendingWithdrawals.length} request(s) awaiting action
-            </span>
-          </div>
-
-          <div className="p-5 rounded-3xl bg-white border border-purple-100 shadow-xs">
-            <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider block">
-              Total Reseller Listings
-            </span>
-            <div className="text-2xl font-black text-[#162048] mt-1">
-              {listings.length}
-            </div>
-            <span className="text-[10px] text-gray-400 font-medium">
-              {listings.filter((l) => l.status === 'active').length} active listings
-            </span>
-          </div>
-
-          <div className="p-5 rounded-3xl bg-white border border-purple-100 shadow-xs">
-            <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider block">
-              Program Status
-            </span>
-            <div className="text-2xl font-black text-green-600 mt-1">
-              {settings.enabled ? 'ACTIVE' : 'DISABLED'}
-            </div>
-            <span className="text-[10px] text-gray-400 font-medium">
-              Min markup ₹{settings.min_markup}
-            </span>
-          </div>
-        </div>
-
-        {/* Tabs */}
-        <div className="flex border-b border-purple-100 bg-white rounded-2xl p-1 gap-1">
           <button
-            type="button"
             onClick={() => setActiveTab('withdrawals')}
-            className={`flex-1 py-2.5 rounded-xl text-xs font-black transition-all ${
+            className={`px-5 py-2.5 rounded-xl font-bold text-sm flex items-center gap-2 transition relative ${
               activeTab === 'withdrawals'
-                ? 'bg-[#6734f7] text-white shadow-sm'
-                : 'text-gray-600 hover:bg-purple-50'
+                ? 'bg-emerald-500 text-slate-950 shadow-lg shadow-emerald-500/20'
+                : 'text-slate-400 hover:text-white hover:bg-slate-900'
             }`}
           >
-            Withdrawal Requests ({pendingWithdrawals.length} Pending)
+            <Wallet className="w-4 h-4" />
+            Withdrawal Queue
+            {pendingWithdrawalsCount > 0 && (
+              <span className="ml-1.5 px-2 py-0.5 rounded-full text-xs font-black bg-rose-500 text-white">
+                {pendingWithdrawalsCount}
+              </span>
+            )}
           </button>
           <button
-            type="button"
             onClick={() => setActiveTab('listings')}
-            className={`flex-1 py-2.5 rounded-xl text-xs font-black transition-all ${
+            className={`px-5 py-2.5 rounded-xl font-bold text-sm flex items-center gap-2 transition ${
               activeTab === 'listings'
-                ? 'bg-[#6734f7] text-white shadow-sm'
-                : 'text-gray-600 hover:bg-purple-50'
+                ? 'bg-cyan-500 text-slate-950 shadow-lg shadow-cyan-500/20'
+                : 'text-slate-400 hover:text-white hover:bg-slate-900'
             }`}
           >
-            Reseller Listings ({listings.length})
+            <Package className="w-4 h-4" />
+            Product Listings ({listings.length})
           </button>
           <button
-            type="button"
             onClick={() => setActiveTab('settings')}
-            className={`flex-1 py-2.5 rounded-xl text-xs font-black transition-all ${
+            className={`px-5 py-2.5 rounded-xl font-bold text-sm flex items-center gap-2 transition ${
               activeTab === 'settings'
-                ? 'bg-[#6734f7] text-white shadow-sm'
-                : 'text-gray-600 hover:bg-purple-50'
+                ? 'bg-purple-500 text-slate-950 shadow-lg shadow-purple-500/20'
+                : 'text-slate-400 hover:text-white hover:bg-slate-900'
             }`}
           >
-            Program Settings
+            <ShieldCheck className="w-4 h-4" />
+            Global Rules
           </button>
         </div>
 
-        {/* TAB 1: WITHDRAWALS */}
+        {/* ========================================================================= */}
+        {/* TAB 1: RESELLER DIRECTORY & PRODUCT ANALYTICS */}
+        {/* ========================================================================= */}
+        {activeTab === 'resellers' && (
+          <div className="space-y-6">
+            {/* Search, Filter & Export Bar */}
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-slate-900/60 p-4 rounded-2xl border border-slate-800">
+              <div className="relative flex-1">
+                <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-3" />
+                <input
+                  type="text"
+                  placeholder="Search by Reseller UID (RSL-XXXX), name, or email..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="w-full bg-slate-800/80 border border-slate-700 rounded-xl pl-10 pr-4 py-2 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-amber-500 font-mono"
+                />
+              </div>
+
+              <div className="flex items-center gap-3">
+                <select
+                  value={statusFilter}
+                  onChange={(e) => setStatusFilter(e.target.value as any)}
+                  className="bg-slate-800 border border-slate-700 text-slate-200 text-xs rounded-xl px-3 py-2 focus:outline-none focus:border-amber-500"
+                >
+                  <option value="all">All Statuses</option>
+                  <option value="active">Active Only</option>
+                  <option value="suspended">Suspended Only</option>
+                </select>
+
+                <select
+                  value={sortBy}
+                  onChange={(e) => setSortBy(e.target.value as any)}
+                  className="bg-slate-800 border border-slate-700 text-slate-200 text-xs rounded-xl px-3 py-2 focus:outline-none focus:border-amber-500"
+                >
+                  <option value="earnings">Sort by Net Earnings</option>
+                  <option value="sales">Sort by Verified Orders</option>
+                  <option value="revenue">Sort by Gross Revenue</option>
+                  <option value="date">Sort by Joined Date</option>
+                </select>
+
+                <button
+                  onClick={exportToCsv}
+                  className="px-3.5 py-2 bg-slate-800 hover:bg-slate-700 border border-slate-700 text-white rounded-xl text-xs font-semibold flex items-center gap-1.5 transition"
+                >
+                  <Download className="w-3.5 h-3.5 text-amber-400" />
+                  Export CSV
+                </button>
+              </div>
+            </div>
+
+            {/* Reseller Table */}
+            <div className="bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden">
+              {filteredResellers.length === 0 ? (
+                <div className="py-16 text-center text-slate-500 text-sm">
+                  <Users className="w-8 h-8 mx-auto mb-2 opacity-40 text-slate-400" />
+                  No resellers match your search criteria.
+                </div>
+              ) : (
+                <div className="overflow-x-auto">
+                  <table className="w-full text-left text-sm text-slate-300">
+                    <thead className="bg-slate-800/60 text-xs text-slate-400 uppercase font-semibold">
+                      <tr>
+                        <th className="py-3 px-6">Reseller UID</th>
+                        <th className="py-3 px-6">Reseller</th>
+                        <th className="py-3 px-6">Status</th>
+                        <th className="py-3 px-6">Verified Sales</th>
+                        <th className="py-3 px-6">Gross Sales</th>
+                        <th className="py-3 px-6">Reseller Margin</th>
+                        <th className="py-3 px-6">Wallet Available</th>
+                        <th className="py-3 px-6">Withdrawn</th>
+                        <th className="py-3 px-6 text-right">Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-slate-800">
+                      {filteredResellers.map((r) => (
+                        <tr key={r.profile.userId} className="hover:bg-slate-800/40 transition">
+                          <td className="py-4 px-6 font-mono text-xs font-bold text-amber-400">
+                            {r.profile.resellerUid || 'RSL-USER'}
+                          </td>
+                          <td className="py-4 px-6">
+                            <div className="font-semibold text-white">{r.profile.displayName}</div>
+                            <div className="text-xs text-slate-500">{r.profile.email}</div>
+                          </td>
+                          <td className="py-4 px-6">
+                            <span
+                              className={`px-2 py-0.5 rounded-full text-xs font-semibold ${
+                                r.profile.status === 'active'
+                                  ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20'
+                                  : 'bg-rose-500/10 text-rose-400 border border-rose-500/20'
+                              }`}
+                            >
+                              {r.profile.status}
+                            </span>
+                          </td>
+                          <td className="py-4 px-6 font-mono text-xs text-white">
+                            <strong>{r.totalOrders}</strong> orders ({r.unitsSold} units)
+                          </td>
+                          <td className="py-4 px-6 font-bold text-white">
+                            ₹{r.grossSales.toLocaleString('en-IN')}
+                          </td>
+                          <td className="py-4 px-6 font-bold text-emerald-400">
+                            ₹{r.resellerEarnings.toLocaleString('en-IN')}
+                          </td>
+                          <td className="py-4 px-6 font-mono text-xs text-cyan-400">
+                            ₹{r.wallet.availableBalance.toLocaleString('en-IN')}
+                          </td>
+                          <td className="py-4 px-6 font-mono text-xs text-slate-400">
+                            ₹{r.wallet.totalWithdrawn.toLocaleString('en-IN')}
+                          </td>
+                          <td className="py-4 px-6 text-right">
+                            <button
+                              onClick={() => openResellerDetail(r.profile.resellerUid)}
+                              className="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-amber-300 rounded-lg text-xs font-semibold border border-slate-700 transition"
+                            >
+                              Inspect / Analytics
+                            </button>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* ========================================================================= */}
+        {/* TAB 2: WITHDRAWAL MANAGEMENT QUEUE */}
+        {/* ========================================================================= */}
         {activeTab === 'withdrawals' && (
-          <div className="p-6 rounded-3xl bg-white border border-purple-100 shadow-xs space-y-4">
-            <h2 className="text-sm font-black text-[#162048]">All Partner Payout Requests</h2>
+          <div className="bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden">
+            <div className="p-6 border-b border-slate-800">
+              <h2 className="text-lg font-bold text-white flex items-center gap-2">
+                <Wallet className="w-5 h-5 text-emerald-400" />
+                Reseller Payout Queue
+              </h2>
+              <p className="text-slate-400 text-xs mt-0.5">
+                Review payout requests, inspect full UPI VPAs, and record bank/UPI settlement references.
+              </p>
+            </div>
 
             {withdrawals.length === 0 ? (
-              <p className="text-xs text-gray-400 py-6 text-center font-medium">
-                No withdrawal requests have been made yet.
-              </p>
+              <div className="py-16 text-center text-slate-500 text-sm">
+                Zero withdrawal requests recorded yet.
+              </div>
             ) : (
               <div className="overflow-x-auto">
-                <table className="w-full text-left text-xs">
-                  <thead>
-                    <tr className="border-b border-purple-100 text-gray-400 font-extrabold uppercase text-[10px]">
-                      <th className="py-3">Reseller</th>
-                      <th className="py-3">Amount</th>
-                      <th className="py-3">Payout Details</th>
-                      <th className="py-3">Status</th>
-                      <th className="py-3">Date</th>
-                      <th className="py-3 text-right">Action</th>
+                <table className="w-full text-left text-sm text-slate-300">
+                  <thead className="bg-slate-800/50 text-xs text-slate-400 uppercase font-semibold">
+                    <tr>
+                      <th className="py-3 px-6">Request ID</th>
+                      <th className="py-3 px-6">Reseller UID</th>
+                      <th className="py-3 px-6">Reseller</th>
+                      <th className="py-3 px-6">Amount</th>
+                      <th className="py-3 px-6">UPI Details</th>
+                      <th className="py-3 px-6">Status</th>
+                      <th className="py-3 px-6">Date</th>
+                      <th className="py-3 px-6 text-right">Actions</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-purple-50">
-                    {withdrawals.map((wdr) => (
-                      <tr key={wdr.id} className="hover:bg-purple-50/30">
-                        <td className="py-3.5 pr-2">
-                          <span className="font-bold text-[#162048] block">{wdr.resellerName}</span>
-                          <span className="text-[10px] text-gray-400">{wdr.resellerEmail}</span>
-                        </td>
+                  <tbody className="divide-y divide-slate-800">
+                    {withdrawals.map((w) => {
+                      const isRevealed = Boolean(revealedUpiIds[w.id]);
+                      const fullUpi = w.payoutDetails?.upiId || 'N/A';
+                      const maskedUpi = maskUpiId(fullUpi);
 
-                        <td className="py-3.5 font-black text-base text-[#162048]">
-                          ₹{wdr.amount}
-                        </td>
-
-                        <td className="py-3.5 font-mono text-[11px] text-gray-700">
-                          {wdr.payoutMethod === 'upi' ? (
-                            <div>
-                              <span className="text-[9px] font-bold uppercase text-purple-600 block">UPI ID</span>
-                              <span className="font-bold">{wdr.payoutDetails.upiId}</span>
+                      return (
+                        <tr key={w.id} className="hover:bg-slate-800/30 transition">
+                          <td className="py-4 px-6 font-mono text-xs font-bold text-white">
+                            {w.id}
+                          </td>
+                          <td className="py-4 px-6 font-mono text-xs text-amber-400">
+                            {w.resellerUid}
+                          </td>
+                          <td className="py-4 px-6">
+                            <div className="font-semibold text-white">{w.resellerName}</div>
+                            <div className="text-xs text-slate-500">{w.resellerEmail}</div>
+                          </td>
+                          <td className="py-4 px-6 font-bold text-emerald-400">
+                            ₹{w.amount.toLocaleString('en-IN')}
+                          </td>
+                          <td className="py-4 px-6">
+                            <div className="flex items-center gap-2">
+                              <span className="font-mono text-xs text-white">
+                                {isRevealed ? fullUpi : maskedUpi}
+                              </span>
+                              <button
+                                onClick={() => toggleRevealUpi(w.id)}
+                                className="text-slate-500 hover:text-slate-300 p-0.5"
+                                title={isRevealed ? 'Hide full UPI' : 'Reveal full UPI'}
+                              >
+                                {isRevealed ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
+                              </button>
                             </div>
-                          ) : (
-                            <div>
-                              <span className="text-[9px] font-bold uppercase text-blue-600 block">Bank Transfer</span>
-                              <span>{wdr.payoutDetails.accountHolderName} • {wdr.payoutDetails.accountNumber} ({wdr.payoutDetails.ifscCode})</span>
+                            <div className="text-[11px] text-slate-400 mt-0.5">
+                              Name: {w.payoutDetails?.accountHolderName || w.resellerName}
                             </div>
-                          )}
-                        </td>
+                          </td>
+                          <td className="py-4 px-6">
+                            {w.status === 'paid' ? (
+                              <span className="px-2.5 py-1 rounded-full text-xs font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                                Paid
+                              </span>
+                            ) : w.status === 'rejected' ? (
+                              <span className="px-2.5 py-1 rounded-full text-xs font-semibold bg-rose-500/10 text-rose-400 border border-rose-500/20">
+                                Rejected
+                              </span>
+                            ) : (
+                              <span className="px-2.5 py-1 rounded-full text-xs font-semibold bg-amber-500/10 text-amber-400 border border-amber-500/20">
+                                Pending Review
+                              </span>
+                            )}
+                          </td>
+                          <td className="py-4 px-6 text-xs text-slate-400">
+                            {new Date(w.createdAt).toLocaleDateString('en-IN')}
+                          </td>
+                          <td className="py-4 px-6 text-right">
+                            {w.status === 'pending' || w.status === 'pending_review' ? (
+                              <div className="flex items-center justify-end gap-2">
+                                <button
+                                  onClick={() => setPayoutModalReq(w)}
+                                  className="px-3 py-1.5 bg-emerald-500 hover:bg-emerald-600 text-slate-950 font-bold rounded-lg text-xs transition"
+                                >
+                                  Mark Paid
+                                </button>
+                                <button
+                                  onClick={() => setRejectModalReq(w)}
+                                  className="px-3 py-1.5 bg-rose-500/10 hover:bg-rose-500/20 border border-rose-500/30 text-rose-400 rounded-lg text-xs font-semibold transition"
+                                >
+                                  Reject
+                                </button>
+                              </div>
+                            ) : (
+                              <span className="font-mono text-xs text-slate-500">
+                                {w.payoutReference || w.adminNotes || 'Settled'}
+                              </span>
+                            )}
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </div>
+        )}
 
-                        <td className="py-3.5">
+        {/* ========================================================================= */}
+        {/* TAB 3: PRODUCT LISTINGS MODERATION */}
+        {/* ========================================================================= */}
+        {activeTab === 'listings' && (
+          <div className="bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden">
+            <div className="p-6 border-b border-slate-800">
+              <h2 className="text-lg font-bold text-white flex items-center gap-2">
+                <Package className="w-5 h-5 text-cyan-400" />
+                Reseller Custom Listings
+              </h2>
+              <p className="text-slate-400 text-xs mt-0.5">
+                Audit customized product descriptions, resale prices, and pause suspicious listings.
+              </p>
+            </div>
+
+            {listings.length === 0 ? (
+              <div className="py-16 text-center text-slate-500 text-sm">
+                Zero reseller listings created yet.
+              </div>
+            ) : (
+              <div className="overflow-x-auto">
+                <table className="w-full text-left text-sm text-slate-300">
+                  <thead className="bg-slate-800/50 text-xs text-slate-400 uppercase font-semibold">
+                    <tr>
+                      <th className="py-3 px-6">Product Title</th>
+                      <th className="py-3 px-6">Reseller UID</th>
+                      <th className="py-3 px-6">Base Price</th>
+                      <th className="py-3 px-6">Resale Price</th>
+                      <th className="py-3 px-6">Margin</th>
+                      <th className="py-3 px-6">Sales</th>
+                      <th className="py-3 px-6">Status</th>
+                      <th className="py-3 px-6 text-right">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-800">
+                    {listings.map((l) => (
+                      <tr key={l.id} className="hover:bg-slate-800/30 transition">
+                        <td className="py-4 px-6">
+                          <div className="font-semibold text-white">{l.customTitle}</div>
+                          <div className="text-xs text-slate-500 font-mono">/r/{l.slug}</div>
+                        </td>
+                        <td className="py-4 px-6 font-mono text-xs text-amber-400">
+                          {l.resellerUid || 'RSL-USER'}
+                        </td>
+                        <td className="py-4 px-6 font-mono text-xs text-slate-400">
+                          ₹{l.basePrice}
+                        </td>
+                        <td className="py-4 px-6 font-bold text-white">
+                          ₹{l.resalePrice}
+                        </td>
+                        <td className="py-4 px-6 font-bold text-emerald-400">
+                          +₹{l.grossMargin}
+                        </td>
+                        <td className="py-4 px-6 font-mono text-xs text-slate-300">
+                          {l.salesCount || 0}
+                        </td>
+                        <td className="py-4 px-6">
                           <span
-                            className={`px-2.5 py-0.5 rounded-full text-[9px] font-extrabold uppercase tracking-wider ${
-                              wdr.status === 'paid'
-                                ? 'bg-green-50 text-green-700 border border-green-200'
-                                : wdr.status === 'pending'
-                                ? 'bg-amber-50 text-amber-700 border border-amber-200'
-                                : 'bg-red-50 text-red-700 border border-red-200'
+                            className={`px-2.5 py-1 rounded-full text-xs font-semibold ${
+                              l.status === 'active'
+                                ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20'
+                                : 'bg-rose-500/10 text-rose-400 border border-rose-500/20'
                             }`}
                           >
-                            {wdr.status}
+                            {l.status}
                           </span>
                         </td>
-
-                        <td className="py-3.5 text-gray-500 font-medium">
-                          {new Date(wdr.createdAt).toLocaleDateString()}
-                        </td>
-
-                        <td className="py-3.5 text-right">
-                          {wdr.status === 'pending' ? (
-                            <div className="flex items-center justify-end gap-1.5">
-                              <button
-                                type="button"
-                                onClick={() => setPayoutModalReq(wdr)}
-                                className="px-3 py-1.5 rounded-lg bg-green-600 text-white font-bold text-[11px] shadow-sm hover:bg-green-700"
-                              >
-                                Mark Paid
-                              </button>
-                              <button
-                                type="button"
-                                onClick={() => setRejectModalReq(wdr)}
-                                className="px-3 py-1.5 rounded-lg bg-red-50 text-red-700 border border-red-200 font-bold text-[11px] hover:bg-red-100"
-                              >
-                                Reject
-                              </button>
-                            </div>
-                          ) : (
-                            <span className="text-[10px] text-gray-400 font-bold">
-                              {wdr.payoutReference || 'Processed'}
-                            </span>
-                          )}
+                        <td className="py-4 px-6 text-right">
+                          <div className="flex items-center justify-end gap-2">
+                            <Link
+                              href={`/r/${l.slug}`}
+                              target="_blank"
+                              className="p-1.5 text-slate-400 hover:text-white rounded-lg hover:bg-slate-800"
+                              title="Inspect Landing Page"
+                            >
+                              <ExternalLink className="w-4 h-4" />
+                            </Link>
+                            <button
+                              onClick={() => toggleListingStatus(l.id, l.status)}
+                              disabled={processingId === l.id}
+                              className={`px-3 py-1 rounded-lg text-xs font-semibold transition ${
+                                l.status === 'active'
+                                  ? 'bg-rose-500/10 text-rose-400 hover:bg-rose-500/20'
+                                  : 'bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500/20'
+                              }`}
+                            >
+                              {l.status === 'active' ? 'Pause' : 'Activate'}
+                            </button>
+                          </div>
                         </td>
                       </tr>
                     ))}
@@ -345,217 +690,346 @@ export default function AdminResellersManagementPage() {
           </div>
         )}
 
-        {/* TAB 2: LISTINGS */}
-        {activeTab === 'listings' && (
-          <div className="p-6 rounded-3xl bg-white border border-purple-100 shadow-xs space-y-4">
-            <h2 className="text-sm font-black text-[#162048]">All Custom Reseller Listings</h2>
-
-            <div className="overflow-x-auto">
-              <table className="w-full text-left text-xs">
-                <thead>
-                  <tr className="border-b border-purple-100 text-gray-400 font-extrabold uppercase text-[10px]">
-                    <th className="py-3">Title & Reseller</th>
-                    <th className="py-3">Slug</th>
-                    <th className="py-3">Base / Resale</th>
-                    <th className="py-3">Margin</th>
-                    <th className="py-3">Sales</th>
-                    <th className="py-3">Status</th>
-                    <th className="py-3 text-right">Actions</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-purple-50">
-                  {listings.map((l) => (
-                    <tr key={l.id} className="hover:bg-purple-50/30">
-                      <td className="py-3.5 pr-2">
-                        <span className="font-bold text-[#162048] block">{l.customTitle}</span>
-                        <span className="text-[10px] text-gray-400">By {l.resellerName}</span>
-                      </td>
-
-                      <td className="py-3.5 font-mono text-[11px] text-purple-600">
-                        <Link href={`/r/${l.slug}`} target="_blank" className="hover:underline flex items-center gap-1">
-                          <span>/r/{l.slug}</span>
-                          <ExternalLink className="w-3 h-3" />
-                        </Link>
-                      </td>
-
-                      <td className="py-3.5">
-                        <span className="text-gray-400 line-through mr-1">₹{l.basePrice}</span>
-                        <span className="font-black text-[#162048]">₹{l.resalePrice}</span>
-                      </td>
-
-                      <td className="py-3.5 font-black text-green-600">+₹{l.grossMargin}</td>
-                      <td className="py-3.5 font-bold text-[#162048]">{l.salesCount || 0}</td>
-
-                      <td className="py-3.5">
-                        <span
-                          className={`px-2.5 py-0.5 rounded-full text-[9px] font-extrabold uppercase tracking-wider ${
-                            l.status === 'active'
-                              ? 'bg-green-50 text-green-700 border border-green-200'
-                              : 'bg-red-50 text-red-700 border border-red-200'
-                          }`}
-                        >
-                          {l.status}
-                        </span>
-                      </td>
-
-                      <td className="py-3.5 text-right">
-                        <button
-                          type="button"
-                          onClick={() => handleToggleListing(l.id, l.status)}
-                          className={`px-3 py-1 rounded-lg text-[11px] font-bold border transition-colors ${
-                            l.status === 'suspended'
-                              ? 'bg-green-50 text-green-700 border-green-200 hover:bg-green-100'
-                              : 'bg-red-50 text-red-700 border-red-200 hover:bg-red-100'
-                          }`}
-                        >
-                          {l.status === 'suspended' ? 'Restore' : 'Suspend'}
-                        </button>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </div>
-        )}
-
-        {/* TAB 3: SETTINGS */}
+        {/* ========================================================================= */}
+        {/* TAB 4: GLOBAL SETTINGS */}
+        {/* ========================================================================= */}
         {activeTab === 'settings' && (
-          <form onSubmit={handleSaveSettings} className="p-6 sm:p-8 rounded-3xl bg-white border border-purple-100 shadow-xs space-y-4 max-w-2xl text-xs font-medium">
-            <h2 className="text-sm font-black text-[#162048] border-b border-purple-50 pb-3">
-              Global Reseller Program Configuration
+          <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 max-w-2xl">
+            <h2 className="text-lg font-bold text-white flex items-center gap-2 mb-2">
+              <ShieldCheck className="w-5 h-5 text-purple-400" />
+              Reseller Program Rules & Safeguards
             </h2>
+            <p className="text-slate-400 text-xs mb-6">
+              Configure global price boundaries, commission limits, and program participation.
+            </p>
 
-            <div>
-              <label className="flex items-center gap-2 cursor-pointer">
+            <form onSubmit={handleSaveSettings} className="space-y-5">
+              <div className="flex items-center justify-between p-4 bg-slate-800/40 rounded-xl border border-slate-700/60">
+                <div>
+                  <div className="text-sm font-semibold text-white">Enable Resell & Earn Feature</div>
+                  <div className="text-xs text-slate-400">Allow visitors to register as resellers and create custom links</div>
+                </div>
                 <input
                   type="checkbox"
                   checked={settings.enabled}
                   onChange={(e) => setSettings({ ...settings, enabled: e.target.checked })}
-                  className="w-4 h-4 text-[#6734f7] rounded"
+                  className="w-5 h-5 accent-emerald-500 rounded cursor-pointer"
                 />
-                <span className="font-bold text-gray-800">Enable Reseller & Earn Program Globally</span>
-              </label>
-              <p className="text-[11px] text-gray-400 ml-6 mt-0.5">
-                When unchecked, the &ldquo;Resell & Earn&rdquo; button is hidden on store product pages.
-              </p>
-            </div>
-
-            <div>
-              <label className="block font-bold text-gray-700 mb-1">Minimum Markup (₹ INR)</label>
-              <input
-                type="number"
-                min={10}
-                value={settings.min_markup}
-                onChange={(e) => setSettings({ ...settings, min_markup: Number(e.target.value) })}
-                className="w-full max-w-xs px-3.5 py-2.5 rounded-xl border border-gray-200 text-xs font-bold text-[#162048]"
-              />
-            </div>
-
-            <div>
-              <label className="block font-bold text-gray-700 mb-1">Maximum Allowed Selling Price (₹)</label>
-              <input
-                type="number"
-                min={500}
-                value={settings.max_price}
-                onChange={(e) => setSettings({ ...settings, max_price: Number(e.target.value) })}
-                className="w-full max-w-xs px-3.5 py-2.5 rounded-xl border border-gray-200 text-xs font-bold text-[#162048]"
-              />
-            </div>
-
-            <div className="pt-3">
-              <button
-                type="submit"
-                className="px-6 py-2.5 rounded-xl bg-[#6734f7] text-white text-xs font-black shadow-md hover:bg-[#5827dc]"
-              >
-                Save Configuration
-              </button>
-            </div>
-          </form>
-        )}
-
-        {/* Mark Paid Modal */}
-        {payoutModalReq && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs">
-            <div className="w-full max-w-md bg-white rounded-3xl p-6 border border-purple-100 shadow-2xl space-y-4 text-xs font-medium">
-              <h3 className="text-base font-black text-[#162048]">Record Verified Payout</h3>
-              <p className="text-gray-500">
-                You are marking payout of <strong>₹{payoutModalReq.amount}</strong> to {payoutModalReq.resellerName} as completed.
-              </p>
+              </div>
 
               <div>
-                <label className="block font-bold text-gray-700 mb-1">UTR / Bank Transaction Reference</label>
+                <label className="block text-xs font-semibold text-slate-300 mb-1">
+                  Minimum Required Markup (₹)
+                </label>
+                <input
+                  type="number"
+                  min={1}
+                  value={settings.min_markup}
+                  onChange={(e) => setSettings({ ...settings, min_markup: Number(e.target.value) })}
+                  className="w-full bg-slate-800 border border-slate-700 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-purple-500 font-mono"
+                />
+                <span className="text-[11px] text-slate-500 mt-1 block">
+                  Resellers cannot set resale price below base price + this markup.
+                </span>
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-slate-300 mb-1">
+                  Maximum Allowable Resale Price (₹)
+                </label>
+                <input
+                  type="number"
+                  min={100}
+                  value={settings.max_price}
+                  onChange={(e) => setSettings({ ...settings, max_price: Number(e.target.value) })}
+                  className="w-full bg-slate-800 border border-slate-700 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-purple-500 font-mono"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-slate-300 mb-1">
+                  Earning Settlement Policy
+                </label>
+                <select
+                  value={settings.settlement_policy}
+                  onChange={(e) => setSettings({ ...settings, settlement_policy: e.target.value })}
+                  className="w-full bg-slate-800 border border-slate-700 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-purple-500"
+                >
+                  <option value="immediate">Immediate (Credited to Available on verified order)</option>
+                  <option value="hold_7d">7-Day Cooling Period (Credited to Pending first)</option>
+                </select>
+              </div>
+
+              <div className="pt-2">
+                <button
+                  type="submit"
+                  disabled={processingId === 'settings'}
+                  className="px-6 py-2.5 bg-purple-500 hover:bg-purple-600 text-white font-bold rounded-xl text-sm transition"
+                >
+                  {processingId === 'settings' ? 'Saving...' : 'Save Settings'}
+                </button>
+              </div>
+            </form>
+          </div>
+        )}
+
+        {/* ========================================================================= */}
+        {/* RESELLER DETAIL & PRODUCT ANALYTICS MODAL */}
+        {/* ========================================================================= */}
+        {selectedResellerUid && (
+          <div className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4">
+            <div className="bg-slate-900 border border-slate-800 w-full max-w-4xl max-h-[90vh] overflow-y-auto rounded-2xl p-6 shadow-2xl relative space-y-6">
+              <button
+                onClick={() => {
+                  setSelectedResellerUid(null);
+                  setResellerDetail(null);
+                }}
+                className="absolute top-4 right-4 text-slate-400 hover:text-white p-1 rounded-lg"
+              >
+                <X className="w-5 h-5" />
+              </button>
+
+              {loadingDetail || !resellerDetail ? (
+                <div className="py-16 text-center text-slate-400">
+                  <RefreshCw className="w-8 h-8 animate-spin mx-auto mb-2 text-amber-400" />
+                  Loading reseller sales & product analytics...
+                </div>
+              ) : (
+                <>
+                  {/* Reseller Header */}
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-800 pb-5">
+                    <div>
+                      <div className="flex items-center gap-3">
+                        <h3 className="text-xl font-black text-white">{resellerDetail.profile.displayName}</h3>
+                        <span className="font-mono text-xs px-2.5 py-1 rounded-lg bg-amber-500/10 text-amber-400 border border-amber-500/20 font-bold">
+                          {resellerDetail.profile.resellerUid}
+                        </span>
+                      </div>
+                      <p className="text-xs text-slate-400 mt-1">
+                        Email: <strong>{resellerDetail.profile.email}</strong>
+                        {resellerDetail.profile.phone && ` • Phone: ${resellerDetail.profile.phone}`}
+                      </p>
+                    </div>
+
+                    <div className="flex items-center gap-3 font-mono text-xs">
+                      <div className="p-3 rounded-xl bg-slate-800/80 border border-slate-700/60">
+                        <div className="text-slate-400">Available:</div>
+                        <div className="text-base font-bold text-emerald-400">
+                          ₹{resellerDetail.wallet.availableBalance}
+                        </div>
+                      </div>
+                      <div className="p-3 rounded-xl bg-slate-800/80 border border-slate-700/60">
+                        <div className="text-slate-400">Lifetime Earned:</div>
+                        <div className="text-base font-bold text-white">
+                          ₹{resellerDetail.resellerEarnings}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Product-Level Sales Breakdown Table */}
+                  <div>
+                    <h4 className="text-sm font-bold text-white flex items-center gap-2 mb-3">
+                      <Package className="w-4 h-4 text-cyan-400" />
+                      Product-by-Product Performance
+                    </h4>
+                    {resellerDetail.products.length === 0 ? (
+                      <div className="py-6 text-center text-slate-500 text-xs border border-dashed border-slate-800 rounded-xl">
+                        No product sales recorded yet for this reseller.
+                      </div>
+                    ) : (
+                      <div className="overflow-x-auto border border-slate-800 rounded-xl">
+                        <table className="w-full text-left text-xs text-slate-300">
+                          <thead className="bg-slate-800/60 uppercase text-slate-400 font-semibold">
+                            <tr>
+                              <th className="py-2.5 px-4">Product Name</th>
+                              <th className="py-2.5 px-4">Verified Orders</th>
+                              <th className="py-2.5 px-4">Units Sold</th>
+                              <th className="py-2.5 px-4">Gross Sales</th>
+                              <th className="py-2.5 px-4">Net Sales</th>
+                              <th className="py-2.5 px-4">Reseller Earnings</th>
+                            </tr>
+                          </thead>
+                          <tbody className="divide-y divide-slate-800">
+                            {resellerDetail.products.map((p) => (
+                              <tr key={p.productId} className="hover:bg-slate-800/30">
+                                <td className="py-3 px-4 font-semibold text-white">{p.productTitle}</td>
+                                <td className="py-3 px-4 font-mono">{p.verifiedOrders}</td>
+                                <td className="py-3 px-4 font-mono">{p.unitsSold}</td>
+                                <td className="py-3 px-4 font-bold text-white">₹{p.grossSales}</td>
+                                <td className="py-3 px-4 font-bold text-white">₹{p.netSales}</td>
+                                <td className="py-3 px-4 font-bold text-emerald-400">+₹{p.resellerEarnings}</td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Attributed Orders */}
+                  <div>
+                    <h4 className="text-sm font-bold text-white flex items-center gap-2 mb-3">
+                      <FileSpreadsheet className="w-4 h-4 text-emerald-400" />
+                      Recent Attributed Orders ({resellerDetail.recentOrders.length})
+                    </h4>
+                    {resellerDetail.recentOrders.length === 0 ? (
+                      <div className="py-4 text-center text-slate-500 text-xs">No orders yet.</div>
+                    ) : (
+                      <div className="overflow-x-auto border border-slate-800 rounded-xl max-h-48 overflow-y-auto">
+                        <table className="w-full text-left text-xs text-slate-300">
+                          <thead className="bg-slate-800/60 uppercase text-slate-400 font-semibold">
+                            <tr>
+                              <th className="py-2 px-4">Order #</th>
+                              <th className="py-2 px-4">Product</th>
+                              <th className="py-2 px-4">Resale Price</th>
+                              <th className="py-2 px-4">Earning</th>
+                              <th className="py-2 px-4">Status</th>
+                              <th className="py-2 px-4">Date</th>
+                            </tr>
+                          </thead>
+                          <tbody className="divide-y divide-slate-800">
+                            {resellerDetail.recentOrders.map((o) => (
+                              <tr key={o.orderId} className="hover:bg-slate-800/20">
+                                <td className="py-2 px-4 font-mono">{o.orderNumber}</td>
+                                <td className="py-2 px-4 text-white">{o.productTitle}</td>
+                                <td className="py-2 px-4 font-bold">₹{o.resalePrice}</td>
+                                <td className="py-2 px-4 font-bold text-emerald-400">+₹{o.earningAmount}</td>
+                                <td className="py-2 px-4">{o.orderStatus}</td>
+                                <td className="py-2 px-4 text-slate-500">
+                                  {new Date(o.createdAt).toLocaleDateString('en-IN')}
+                                </td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Close button */}
+                  <div className="pt-2 flex justify-end">
+                    <button
+                      onClick={() => setSelectedResellerUid(null)}
+                      className="px-5 py-2 bg-slate-800 hover:bg-slate-700 text-white rounded-xl text-xs font-bold transition"
+                    >
+                      Close
+                    </button>
+                  </div>
+                </>
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* MODAL: MARK PAID */}
+        {payoutModalReq && (
+          <div className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4">
+            <div className="bg-slate-900 border border-slate-800 w-full max-w-md rounded-2xl p-6 shadow-2xl relative space-y-4">
+              <button
+                onClick={() => setPayoutModalReq(null)}
+                className="absolute top-4 right-4 text-slate-400 hover:text-white p-1 rounded-lg"
+              >
+                <X className="w-5 h-5" />
+              </button>
+
+              <h3 className="text-lg font-bold text-white flex items-center gap-2">
+                <CheckCircle2 className="w-5 h-5 text-emerald-400" />
+                Confirm Payout Transfer
+              </h3>
+              <p className="text-xs text-slate-400">
+                Record bank or UPI settlement reference for Withdrawal <strong>#{payoutModalReq.id}</strong>.
+              </p>
+
+              <div className="p-3 rounded-xl bg-slate-800 border border-slate-700 text-xs space-y-1 font-mono">
+                <div>Reseller UID: <span className="text-amber-400 font-bold">{payoutModalReq.resellerUid}</span></div>
+                <div>Amount: <span className="text-emerald-400 font-bold">₹{payoutModalReq.amount}</span></div>
+                <div>Full UPI: <span className="text-white font-bold">{payoutModalReq.payoutDetails?.upiId || 'N/A'}</span></div>
+                <div>Recipient: <span className="text-white">{payoutModalReq.payoutDetails?.accountHolderName || payoutModalReq.resellerName}</span></div>
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-slate-300 mb-1">
+                  Bank Reference / UTR Number
+                </label>
                 <input
                   type="text"
-                  placeholder="e.g. UTR 429302194820 / IMPS Ref"
+                  placeholder="e.g. UPI/429182910291, IMPS-9812921"
                   value={payoutRef}
                   onChange={(e) => setPayoutRef(e.target.value)}
-                  className="w-full px-3.5 py-2.5 rounded-xl border border-gray-200 text-xs"
+                  className="w-full bg-slate-800 border border-slate-700 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-emerald-500 font-mono"
                 />
               </div>
 
-              <div className="flex justify-end gap-2 pt-2">
+              <div className="pt-2 flex items-center gap-3">
                 <button
-                  type="button"
                   onClick={() => setPayoutModalReq(null)}
-                  className="px-4 py-2 rounded-xl border border-gray-200 text-xs font-bold text-gray-600 hover:bg-gray-50"
+                  className="flex-1 py-2.5 bg-slate-800 hover:bg-slate-700 text-white rounded-xl text-xs font-bold transition"
                 >
                   Cancel
                 </button>
                 <button
-                  type="button"
-                  disabled={processingId === payoutModalReq.id}
                   onClick={handleMarkPaid}
-                  className="px-5 py-2 rounded-xl bg-green-600 text-white text-xs font-black shadow-md hover:bg-green-700 disabled:opacity-50"
+                  disabled={processingId === payoutModalReq.id}
+                  className="flex-1 py-2.5 bg-emerald-500 hover:bg-emerald-600 text-slate-950 rounded-xl text-xs font-bold transition"
                 >
-                  Confirm Paid
+                  {processingId === payoutModalReq.id ? 'Recording...' : 'Confirm Paid'}
                 </button>
               </div>
             </div>
           </div>
         )}
 
-        {/* Reject Modal */}
+        {/* MODAL: REJECT PAYOUT */}
         {rejectModalReq && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs">
-            <div className="w-full max-w-md bg-white rounded-3xl p-6 border border-purple-100 shadow-2xl space-y-4 text-xs font-medium">
-              <h3 className="text-base font-black text-red-600">Reject Payout Request</h3>
-              <p className="text-gray-500">
-                Rejecting this request will automatically refund the reserved ₹{rejectModalReq.amount} back to the reseller&apos;s available balance.
+          <div className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4">
+            <div className="bg-slate-900 border border-slate-800 w-full max-w-md rounded-2xl p-6 shadow-2xl relative space-y-4">
+              <button
+                onClick={() => setRejectModalReq(null)}
+                className="absolute top-4 right-4 text-slate-400 hover:text-white p-1 rounded-lg"
+              >
+                <X className="w-5 h-5" />
+              </button>
+
+              <h3 className="text-lg font-bold text-white flex items-center gap-2">
+                <AlertCircle className="w-5 h-5 text-rose-400" />
+                Reject Payout Request
+              </h3>
+              <p className="text-xs text-slate-400">
+                Rejecting will automatically restore <strong>₹{rejectModalReq.amount}</strong> back to the reseller&apos;s available wallet balance.
               </p>
 
               <div>
-                <label className="block font-bold text-gray-700 mb-1">Reason for Rejection</label>
-                <input
-                  type="text"
-                  placeholder="e.g. Invalid UPI ID / Incorrect Bank Details"
+                <label className="block text-xs font-semibold text-slate-300 mb-1">
+                  Rejection Reason (Visible to Reseller)
+                </label>
+                <textarea
+                  rows={3}
+                  placeholder="e.g. Invalid UPI VPA, Bank account inactive, please update your UPI ID in wallet."
                   value={rejectReason}
                   onChange={(e) => setRejectReason(e.target.value)}
-                  className="w-full px-3.5 py-2.5 rounded-xl border border-gray-200 text-xs"
+                  className="w-full bg-slate-800 border border-slate-700 rounded-xl px-4 py-2 text-sm text-white focus:outline-none focus:border-rose-500"
                 />
               </div>
 
-              <div className="flex justify-end gap-2 pt-2">
+              <div className="pt-2 flex items-center gap-3">
                 <button
-                  type="button"
                   onClick={() => setRejectModalReq(null)}
-                  className="px-4 py-2 rounded-xl border border-gray-200 text-xs font-bold text-gray-600 hover:bg-gray-50"
+                  className="flex-1 py-2.5 bg-slate-800 hover:bg-slate-700 text-white rounded-xl text-xs font-bold transition"
                 >
                   Cancel
                 </button>
                 <button
-                  type="button"
-                  disabled={processingId === rejectModalReq.id}
                   onClick={handleRejectPayout}
-                  className="px-5 py-2 rounded-xl bg-red-600 text-white text-xs font-black shadow-md hover:bg-red-700 disabled:opacity-50"
+                  disabled={processingId === rejectModalReq.id}
+                  className="flex-1 py-2.5 bg-rose-500 hover:bg-rose-600 text-white rounded-xl text-xs font-bold transition"
                 >
-                  Reject & Refund Balance
+                  {processingId === rejectModalReq.id ? 'Reversing...' : 'Reject & Refund'}
                 </button>
               </div>
             </div>
           </div>
         )}
-
       </div>
     </div>
   );

@@ -65,6 +65,7 @@ export async function POST(request: Request) {
 
           resellerAttribution = {
             reseller_id: listing.resellerId,
+            reseller_uid: listing.resellerUid || '',
             reseller_listing_id: listing.id,
             reseller_slug: listing.slug,
             base_price_snapshot: basePrice,

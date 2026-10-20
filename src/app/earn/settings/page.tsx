@@ -70,6 +70,31 @@ export default function ResellerSettingsPage() {
         </p>
       </div>
 
+      {/* Permanent Reseller UID Banner */}
+      <div className="p-5 rounded-3xl bg-amber-50 border border-amber-200 text-amber-950 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-xs">
+        <div>
+          <div className="text-[10px] font-black uppercase tracking-wider text-amber-700">Permanent Reseller UID</div>
+          <div className="font-mono text-lg font-black text-amber-950 mt-0.5">
+            🆔 {profile?.resellerUid || 'Generating...'}
+          </div>
+          <p className="text-[11px] text-amber-800 mt-0.5">
+            Permanent unique identifier linked to your account. Use this for commission inquiries.
+          </p>
+        </div>
+        {profile?.resellerUid && (
+          <button
+            type="button"
+            onClick={() => {
+              navigator.clipboard.writeText(profile.resellerUid);
+              alert(`Copied Reseller UID: ${profile.resellerUid}`);
+            }}
+            className="px-4 py-2 bg-amber-200/80 hover:bg-amber-300 text-amber-950 font-bold rounded-xl text-xs transition shrink-0"
+          >
+            Copy UID
+          </button>
+        )}
+      </div>
+
       {error && (
         <div className="p-4 rounded-2xl bg-red-50 border border-red-200 text-red-700 text-xs flex items-center gap-2">
           <AlertCircle className="w-4 h-4 shrink-0" />

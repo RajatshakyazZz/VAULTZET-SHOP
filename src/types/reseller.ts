@@ -8,10 +8,28 @@ export interface PayoutDetails {
   accountNumber?: string;
   ifscCode?: string;
   bankName?: string;
+  label?: string;
+}
+
+export interface ResellerPayoutMethod {
+  id: string;
+  userId: string;
+  resellerUid: string;
+  type: 'upi' | 'bank';
+  upiId?: string;
+  accountHolderName: string;
+  accountNumber?: string;
+  ifscCode?: string;
+  bankName?: string;
+  label?: string;
+  isDefault?: boolean;
+  createdAt: string;
+  updatedAt: string;
 }
 
 export interface ResellerProfile {
   userId: string;
+  resellerUid: string; // Permanent unique public ID, e.g. RSL-8K4M2P9X
   displayName: string;
   email: string;
   phone?: string;
@@ -28,6 +46,7 @@ export interface ResellerListing {
   id: string;
   slug: string;
   resellerId: string;
+  resellerUid?: string;
   resellerName: string;
   originalProductId: string;
   originalProductSlug: string;
@@ -63,6 +82,7 @@ export type WalletTransactionStatus = 'completed' | 'pending' | 'reversed' | 'fa
 export interface WalletTransaction {
   id: string;
   resellerId: string;
+  resellerUid?: string;
   orderId?: string;
   listingId?: string;
   type: WalletTransactionType;
@@ -75,6 +95,7 @@ export interface WalletTransaction {
 
 export interface WalletAccount {
   resellerId: string;
+  resellerUid?: string;
   availableBalance: number;
   pendingBalance: number;
   totalEarned: number;
@@ -82,11 +103,12 @@ export interface WalletAccount {
   updatedAt: string;
 }
 
-export type WithdrawalStatus = 'pending' | 'approved' | 'paid' | 'rejected';
+export type WithdrawalStatus = 'pending' | 'pending_review' | 'approved' | 'paid' | 'rejected';
 
 export interface WithdrawalRequest {
   id: string;
   resellerId: string;
+  resellerUid: string;
   resellerName: string;
   resellerEmail: string;
   amount: number;
@@ -95,6 +117,13 @@ export interface WithdrawalRequest {
   status: WithdrawalStatus;
   adminNotes?: string;
   payoutReference?: string;
+  walletBalanceAfterReservation?: number;
+  pendingEarningsSnapshot?: number;
+  totalLifetimeEarningsSnapshot?: number;
+  totalWithdrawalsSnapshot?: number;
+  verifiedSalesCountSnapshot?: number;
+  unitsSoldSnapshot?: number;
+  productSummarySnapshot?: Record<string, number>;
   createdAt: string;
   processedAt?: string;
 }
@@ -103,6 +132,7 @@ export interface AttributedOrder {
   orderId: string;
   orderNumber: string;
   resellerId: string;
+  resellerUid?: string;
   listingId: string;
   listingSlug: string;
   originalProductId: string;
@@ -117,4 +147,43 @@ export interface AttributedOrder {
   earningStatus: 'pending' | 'available' | 'reversed';
   createdAt: string;
   paidAt?: string;
+}
+
+export interface ResellerProductAnalytics {
+  productId: string;
+  productTitle: string;
+  verifiedOrders: number;
+  unitsSold: number;
+  grossSales: number;
+  netSales: number;
+  resellerEarnings: number;
+  earningStatus?: 'available' | 'pending' | 'reversed';
+}
+
+export interface ResellerFullAnalytics {
+  profile: ResellerProfile;
+  wallet: WalletAccount;
+  listingsCount: number;
+  totalOrders: number;
+  unitsSold: number;
+  grossSales: number;
+  netSales: number;
+  resellerEarnings: number;
+  products: ResellerProductAnalytics[];
+  recentOrders: AttributedOrder[];
+  withdrawals: WithdrawalRequest[];
+  ledger: WalletTransaction[];
+}
+
+export interface NotificationOutbox {
+  id: string;
+  eventType: 'new_reseller' | 'withdrawal_request' | 'withdrawal_status_update';
+  resellerUid: string;
+  withdrawalId?: string;
+  payload: Record<string, any>;
+  status: 'pending' | 'sent' | 'failed';
+  attemptCount: number;
+  lastError?: string;
+  createdAt: string;
+  sentAt?: string;
 }

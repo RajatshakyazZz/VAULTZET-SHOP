@@ -7,7 +7,7 @@ import { getResellerAttributedOrders } from '@/lib/resellerService';
 import { AttributedOrder } from '@/types/reseller';
 
 export default function ResellerOrdersPage() {
-  const { user } = useResellerAuth();
+  const { user, profile } = useResellerAuth();
   const [orders, setOrders] = useState<AttributedOrder[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [filter, setFilter] = useState<'all' | 'completed' | 'pending'>('all');
@@ -45,7 +45,14 @@ export default function ResellerOrdersPage() {
       {/* Header Banner */}
       <div className="p-6 sm:p-8 rounded-3xl bg-white border border-purple-100 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-xl sm:text-2xl font-black text-[#162048]">Attributed Orders</h1>
+          <div className="flex items-center gap-3">
+            <h1 className="text-xl sm:text-2xl font-black text-[#162048]">Attributed Orders</h1>
+            {profile?.resellerUid && (
+              <span className="font-mono text-xs px-2.5 py-0.5 rounded-full bg-amber-500/10 text-amber-700 border border-amber-500/20 font-bold">
+                🆔 {profile.resellerUid}
+              </span>
+            )}
+          </div>
           <p className="text-xs text-slate-500 mt-1 font-medium">
             Every customer purchase made through your custom reseller links is tracked and recorded here.
           </p>

@@ -76,9 +76,16 @@ export default function ResellerDashboardOverview() {
       {/* Welcome Banner */}
       <div className="p-6 sm:p-8 rounded-3xl bg-gradient-to-br from-[#162048] via-[#221652] to-[#3a1b63] text-white flex flex-col sm:flex-row sm:items-center justify-between gap-4 shadow-xl">
         <div className="space-y-1">
-          <div className="inline-flex items-center gap-1.5 px-3 py-0.5 rounded-full bg-white/10 text-pink-300 text-[10px] font-black uppercase tracking-wider">
-            <Sparkles className="w-3 h-3" />
-            <span>Vaultzet Partner</span>
+          <div className="flex items-center gap-2 flex-wrap">
+            <div className="inline-flex items-center gap-1.5 px-3 py-0.5 rounded-full bg-white/10 text-pink-300 text-[10px] font-black uppercase tracking-wider">
+              <Sparkles className="w-3 h-3" />
+              <span>Vaultzet Partner</span>
+            </div>
+            {profile?.resellerUid && (
+              <span className="font-mono text-[10px] font-bold px-2.5 py-0.5 rounded-full bg-amber-400/20 text-amber-300 border border-amber-400/30">
+                🆔 {profile.resellerUid}
+              </span>
+            )}
           </div>
           <h1 className="text-xl sm:text-2xl font-black tracking-tight">
             Welcome, {profile?.displayName || user?.email?.split('@')[0]}!
