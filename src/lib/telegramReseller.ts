@@ -147,12 +147,94 @@ ${productBreakdownText}
 
   const buttons: Array<Array<TelegramInlineButton>> = [
     [
+      { text: '✅ Approve', callback_data: `wdr:act:approve:${wdr.id}` },
+      { text: '⚙️ Mark Processing', callback_data: `wdr:act:processing:${wdr.id}` },
+    ],
+    [
+      { text: '❌ Reject', callback_data: `wdr:act:reject:${wdr.id}` },
+      { text: '👁 View Request', callback_data: `wdr:view:${wdr.id}` },
+    ],
+    [
       { text: `👛 Wallet: ${wdr.resellerUid}`, callback_data: `wallet_${wdr.resellerUid}` },
       { text: '📋 Admin Panel', url: 'https://vaultzet.shop/admin/resellers' },
     ],
   ];
 
   return sendTelegramMessage(text, buttons);
+}
+
+// -----------------------------------------------------------------------------
+// 2B. TELEGRAM ALERT: WITHDRAWAL STATUS UPDATE (Approved, Processing, Paid, Rejected)
+// -----------------------------------------------------------------------------
+export async function sendWithdrawalStatusTelegramAlert(params: {
+  withdrawal: WithdrawalRequest;
+  previousStatus?: string;
+  adminEmail?: string;
+}): Promise<boolean> {
+  const { withdrawal: wdr, adminEmail } = params;
+  if (!wdr) return false;
+
+  const nowIst = getIstTimestamp();
+  const fullUpi = wdr.payoutDetails?.upiId || 'N/A';
+  const recipient = wdr.payoutDetails?.accountHolderName || wdr.resellerName;
+
+  let title = '';
+  let statusBadge = '';
+  let detailsText = '';
+
+  switch (wdr.status) {
+    case 'approved':
+      title = '✅ <b>WITHDRAWAL REQUEST APPROVED</b>';
+      statusBadge = '🟢 <b>Approved</b> (Awaiting Manual Settlement)';
+      detailsText = `• Note: <i>${escapeHtml(wdr.adminNotes || 'Request verified. Ready for manual payout.')}</i>\n👉 <i>Next Step: Transfer ₹${wdr.amount} via UPI, then Mark as Paid with UTR in Admin Panel.</i>`;
+      break;
+
+    case 'processing':
+      title = '⚙️ <b>WITHDRAWAL IN PROCESSING</b>';
+      statusBadge = '🟣 <b>Processing</b> (Transfer in Progress)';
+      detailsText = `• Admin Note: <i>${escapeHtml(wdr.adminNotes || 'Admin is actively initiating manual UPI transfer')}</i>`;
+      break;
+
+    case 'paid':
+      title = '💸 <b>WITHDRAWAL PAYMENT COMPLETED</b>';
+      statusBadge = '✅ <b>Paid & Settled</b>';
+      detailsText = `• <b>Bank/UPI UTR Ref:</b> <code>${escapeHtml(wdr.payoutReference || 'Manual UPI Transfer')}</code>\n• Processed By: <b>${escapeHtml(wdr.processedBy || adminEmail || 'Admin')}</b>`;
+      break;
+
+    case 'rejected':
+      title = '❌ <b>WITHDRAWAL REQUEST REJECTED</b>';
+      statusBadge = '🔴 <b>Rejected & Refunded</b>';
+      detailsText = `• <b>Reason:</b> <i>${escapeHtml(wdr.rejectionReason || wdr.adminNotes || 'Declined by admin')}</i>\n• <b>Wallet Action:</b> ₹${wdr.amount}.00 refunded to reseller available balance.`;
+      break;
+
+    default:
+      return false;
+  }
+
+  const messageText = `${title}
+━━━━━━━━━━━━━━━━━━
+🧾 <b>Withdrawal ID:</b> <code>${escapeHtml(wdr.id)}</code>
+🆔 <b>Reseller UID:</b> <code>${escapeHtml(wdr.resellerUid)}</code>
+👤 <b>Reseller:</b> ${escapeHtml(wdr.resellerName)} (${escapeHtml(wdr.resellerEmail)})
+💰 <b>Amount:</b> <b>₹${wdr.amount}.00</b>
+💳 <b>UPI ID:</b> <code>${escapeHtml(fullUpi)}</code>
+👤 <b>Recipient:</b> ${escapeHtml(recipient)}
+
+📊 <b>STATUS UPDATE</b>
+• Current Status: ${statusBadge}
+${detailsText}
+
+🕒 <b>Timestamp:</b> ${escapeHtml(nowIst)} IST
+━━━━━━━━━━━━━━━━━━`;
+
+  const buttons: Array<Array<TelegramInlineButton>> = [
+    [
+      { text: `👛 Wallet: ${wdr.resellerUid}`, callback_data: `wallet_${wdr.resellerUid}` },
+      { text: '📋 Admin Panel', url: 'https://vaultzet.shop/admin/resellers' },
+    ],
+  ];
+
+  return sendTelegramMessage(messageText, buttons);
 }
 
 // -----------------------------------------------------------------------------

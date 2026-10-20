@@ -20,6 +20,8 @@ import {
   maskUpiId,
   getResellerWallet,
   getResellerTransactions,
+  updateWithdrawalStatus,
+  getWithdrawalRequestById,
 } from '@/lib/resellerService';
 import { db } from '@/lib/firebase';
 import { collection, getDocs, Firestore } from 'firebase/firestore';
@@ -1034,6 +1036,237 @@ Select an action to inspect or test connection:`;
 }
 
 // -----------------------------------------------------------------------------
+// 5.11 WITHDRAWAL ACTION HANDLERS (Manual Approval Workflow)
+// -----------------------------------------------------------------------------
+export async function handleTelegramWithdrawalApprove(
+  chatId: string,
+  messageId: number | undefined,
+  withdrawalId: string,
+  fromId: string
+): Promise<boolean> {
+  const result = await updateWithdrawalStatus({
+    withdrawalId,
+    status: 'approved',
+    processedBy: `telegram:${fromId}`,
+    adminNotes: 'Approved via Telegram control panel',
+  });
+
+  if (!result.success || !result.withdrawal) {
+    const errText = `⚠️ <b>FAILED TO APPROVE WITHDRAWAL</b>\n━━━━━━━━━━━━━━━━━━\n${result.error || 'Unknown error occurred.'}`;
+    const buttons: Array<Array<TelegramInlineButton>> = [
+      [{ text: '⬅️ Back to Withdrawals', callback_data: 'nav:wdr' }],
+      [{ text: '🏠 Home', callback_data: 'nav:home' }],
+    ];
+    return renderView(chatId, messageId, errText, buttons);
+  }
+
+  const w = result.withdrawal;
+  const fullUpi = w.payoutDetails?.upiId || 'N/A';
+  const recipient = w.payoutDetails?.accountHolderName || w.resellerName;
+
+  const text = `✅ <b>WITHDRAWAL REQUEST APPROVED</b>
+━━━━━━━━━━━━━━━━━━
+🧾 <b>Withdrawal ID:</b> <code>#${escapeHtml(w.id)}</code>
+🆔 <b>Reseller UID:</b> <code>${escapeHtml(w.resellerUid)}</code>
+👤 <b>Reseller:</b> ${escapeHtml(w.resellerName)}
+💰 <b>Amount:</b> <b>₹${w.amount}.00</b>
+💳 <b>Pay to UPI:</b> <code>${escapeHtml(fullUpi)}</code>
+👤 <b>Recipient:</b> ${escapeHtml(recipient)}
+
+Status: 🟢 <b>Approved</b> (Funds remain reserved)
+
+⚠️ <b>Next Step (Manual Settlement):</b>
+1. Open your UPI app (Google Pay / PhonePe / Paytm / Cred).
+2. Transfer ₹${w.amount} to UPI: <code>${escapeHtml(fullUpi)}</code>.
+3. Once completed, open the Admin Panel to mark as Paid with the Bank/UPI UTR reference number.`;
+
+  const buttons: Array<Array<TelegramInlineButton>> = [
+    [
+      { text: '⚙️ Mark Processing', callback_data: `wdr:act:processing:${w.id}` },
+      { text: '❌ Reject', callback_data: `wdr:act:reject:${w.id}` },
+    ],
+    [{ text: '🌐 Open Admin Panel (Mark Paid)', url: 'https://vaultzet.shop/admin/resellers' }],
+    [
+      { text: '⬅️ Back to Withdrawals', callback_data: 'nav:wdr' },
+      { text: '🏠 Home', callback_data: 'nav:home' },
+    ],
+  ];
+
+  return renderView(chatId, messageId, text, buttons);
+}
+
+export async function handleTelegramWithdrawalProcessing(
+  chatId: string,
+  messageId: number | undefined,
+  withdrawalId: string,
+  fromId: string
+): Promise<boolean> {
+  const result = await updateWithdrawalStatus({
+    withdrawalId,
+    status: 'processing',
+    processedBy: `telegram:${fromId}`,
+    adminNotes: 'Marked processing via Telegram control panel',
+  });
+
+  if (!result.success || !result.withdrawal) {
+    const errText = `⚠️ <b>FAILED TO UPDATE WITHDRAWAL</b>\n━━━━━━━━━━━━━━━━━━\n${result.error || 'Unknown error occurred.'}`;
+    const buttons: Array<Array<TelegramInlineButton>> = [
+      [{ text: '⬅️ Back to Withdrawals', callback_data: 'nav:wdr' }],
+      [{ text: '🏠 Home', callback_data: 'nav:home' }],
+    ];
+    return renderView(chatId, messageId, errText, buttons);
+  }
+
+  const w = result.withdrawal;
+  const fullUpi = w.payoutDetails?.upiId || 'N/A';
+
+  const text = `⚙️ <b>WITHDRAWAL MARKED PROCESSING</b>
+━━━━━━━━━━━━━━━━━━
+🧾 <b>Withdrawal ID:</b> <code>#${escapeHtml(w.id)}</code>
+🆔 <b>Reseller UID:</b> <code>${escapeHtml(w.resellerUid)}</code>
+💰 <b>Amount:</b> <b>₹${w.amount}.00</b>
+💳 <b>Pay to UPI:</b> <code>${escapeHtml(fullUpi)}</code>
+
+Status: 🟣 <b>Processing</b> (Admin is executing transfer)
+
+Transfer funds to the reseller via UPI and then record the Bank UTR reference in the Admin Panel to finalize.`;
+
+  const buttons: Array<Array<TelegramInlineButton>> = [
+    [{ text: '❌ Reject & Refund', callback_data: `wdr:act:reject:${w.id}` }],
+    [{ text: '🌐 Open Admin Panel to Mark Paid', url: 'https://vaultzet.shop/admin/resellers' }],
+    [
+      { text: '⬅️ Back to Withdrawals', callback_data: 'nav:wdr' },
+      { text: '🏠 Home', callback_data: 'nav:home' },
+    ],
+  ];
+
+  return renderView(chatId, messageId, text, buttons);
+}
+
+export async function handleTelegramWithdrawalReject(
+  chatId: string,
+  messageId: number | undefined,
+  withdrawalId: string,
+  fromId: string
+): Promise<boolean> {
+  const result = await updateWithdrawalStatus({
+    withdrawalId,
+    status: 'rejected',
+    rejectionReason: 'Declined by administrator via Telegram bot',
+    processedBy: `telegram:${fromId}`,
+  });
+
+  if (!result.success || !result.withdrawal) {
+    const errText = `⚠️ <b>FAILED TO REJECT WITHDRAWAL</b>\n━━━━━━━━━━━━━━━━━━\n${result.error || 'Unknown error occurred.'}`;
+    const buttons: Array<Array<TelegramInlineButton>> = [
+      [{ text: '⬅️ Back to Withdrawals', callback_data: 'nav:wdr' }],
+      [{ text: '🏠 Home', callback_data: 'nav:home' }],
+    ];
+    return renderView(chatId, messageId, errText, buttons);
+  }
+
+  const w = result.withdrawal;
+
+  const text = `❌ <b>WITHDRAWAL REQUEST REJECTED</b>
+━━━━━━━━━━━━━━━━━━
+🧾 <b>Withdrawal ID:</b> <code>#${escapeHtml(w.id)}</code>
+🆔 <b>Reseller UID:</b> <code>${escapeHtml(w.resellerUid)}</code>
+💰 <b>Amount:</b> <b>₹${w.amount}.00</b>
+
+Status: 🔴 <b>Rejected</b>
+🔄 <b>Wallet Action:</b> ₹${w.amount}.00 has been safely refunded to reseller's available balance.
+Reason: <i>Declined by administrator via Telegram bot</i>`;
+
+  const buttons: Array<Array<TelegramInlineButton>> = [
+    [{ text: '⬅️ Back to Withdrawals', callback_data: 'nav:wdr' }],
+    [{ text: '🏠 Home', callback_data: 'nav:home' }],
+  ];
+
+  return renderView(chatId, messageId, text, buttons);
+}
+
+export async function handleTelegramWithdrawalView(
+  chatId: string,
+  messageId: number | undefined,
+  withdrawalId: string
+): Promise<boolean> {
+  const wdr = await getWithdrawalRequestById(withdrawalId);
+  if (!wdr) {
+    const notFound = `⚠️ <b>Withdrawal request #${escapeHtml(withdrawalId)} not found.</b>`;
+    const buttons: Array<Array<TelegramInlineButton>> = [
+      [{ text: '⬅️ Back to Withdrawals', callback_data: 'nav:wdr' }],
+      [{ text: '🏠 Home', callback_data: 'nav:home' }],
+    ];
+    return renderView(chatId, messageId, notFound, buttons);
+  }
+
+  const fullUpi = wdr.payoutDetails?.upiId || 'N/A';
+  const recipient = wdr.payoutDetails?.accountHolderName || wdr.resellerName;
+  const requestedDate = wdr.createdAt ? new Date(wdr.createdAt).toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' }) : 'N/A';
+
+  let productBreakdownText = '• <i>No specific bundle data</i>';
+  if (wdr.productSummarySnapshot && Object.keys(wdr.productSummarySnapshot).length > 0) {
+    productBreakdownText = Object.entries(wdr.productSummarySnapshot)
+      .slice(0, 5)
+      .map(([title, qty]) => `• ${escapeHtml(title)}: <b>${qty} units</b>`)
+      .join('\n');
+  }
+
+  const text = `💸 <b>WITHDRAWAL REQUEST DETAILS</b>
+━━━━━━━━━━━━━━━━━━
+🧾 <b>Withdrawal ID:</b> <code>#${escapeHtml(wdr.id)}</code>
+🆔 <b>Reseller UID:</b> <code>${escapeHtml(wdr.resellerUid)}</code>
+👤 <b>Reseller:</b> ${escapeHtml(wdr.resellerName)}
+📧 <b>Email:</b> ${escapeHtml(wdr.resellerEmail)}
+
+💰 <b>WITHDRAWAL DETAILS</b>
+• Requested Amount: <b>₹${wdr.amount}.00</b>
+• UPI ID (Full): <code>${escapeHtml(fullUpi)}</code>
+• Recipient Name: <b>${escapeHtml(recipient)}</b>
+• Status: <b>${escapeHtml(wdr.status.toUpperCase())}</b>
+• Date: ${requestedDate} IST
+
+📦 <b>SALES SNAPSHOT</b>
+• Verified Orders: <b>${wdr.verifiedSalesCountSnapshot ?? 0}</b>
+• Units Sold: <b>${wdr.unitsSoldSnapshot ?? 0}</b>
+${productBreakdownText}
+━━━━━━━━━━━━━━━━━━`;
+
+  const inlineButtons: Array<Array<TelegramInlineButton>> = [];
+
+  if (wdr.status === 'pending' || wdr.status === 'pending_review') {
+    inlineButtons.push([
+      { text: '✅ Approve', callback_data: `wdr:act:approve:${wdr.id}` },
+      { text: '⚙️ Mark Processing', callback_data: `wdr:act:processing:${wdr.id}` },
+    ]);
+    inlineButtons.push([
+      { text: '❌ Reject', callback_data: `wdr:act:reject:${wdr.id}` },
+      { text: '🌐 Admin Panel', url: 'https://vaultzet.shop/admin/resellers' },
+    ]);
+  } else if (wdr.status === 'approved') {
+    inlineButtons.push([
+      { text: '⚙️ Mark Processing', callback_data: `wdr:act:processing:${wdr.id}` },
+      { text: '❌ Reject', callback_data: `wdr:act:reject:${wdr.id}` },
+    ]);
+    inlineButtons.push([{ text: '🌐 Admin Panel (Mark Paid)', url: 'https://vaultzet.shop/admin/resellers' }]);
+  } else if (wdr.status === 'processing') {
+    inlineButtons.push([
+      { text: '❌ Reject', callback_data: `wdr:act:reject:${wdr.id}` },
+      { text: '🌐 Admin Panel (Mark Paid)', url: 'https://vaultzet.shop/admin/resellers' },
+    ]);
+  } else {
+    inlineButtons.push([{ text: '🌐 View in Admin Panel', url: 'https://vaultzet.shop/admin/resellers' }]);
+  }
+
+  inlineButtons.push([
+    { text: '⬅️ Back to Withdrawals', callback_data: 'nav:wdr' },
+    { text: '🏠 Home', callback_data: 'nav:home' },
+  ]);
+
+  return renderView(chatId, messageId, text, inlineButtons);
+}
+
+// -----------------------------------------------------------------------------
 // 6. MAIN CALLBACK DISPATCHER
 // -----------------------------------------------------------------------------
 export async function handleAdminPanelCallback(
@@ -1189,6 +1422,22 @@ export async function handleAdminPanelCallback(
   if (action === 'wall:txs') return renderWalletsMenu(chatId, messageId, 'transactions');
 
   // Withdrawals callbacks
+  if (action.startsWith('wdr:act:approve:')) {
+    const wdrId = action.replace('wdr:act:approve:', '').trim();
+    return handleTelegramWithdrawalApprove(chatId, messageId, wdrId, fromId);
+  }
+  if (action.startsWith('wdr:act:processing:')) {
+    const wdrId = action.replace('wdr:act:processing:', '').trim();
+    return handleTelegramWithdrawalProcessing(chatId, messageId, wdrId, fromId);
+  }
+  if (action.startsWith('wdr:act:reject:')) {
+    const wdrId = action.replace('wdr:act:reject:', '').trim();
+    return handleTelegramWithdrawalReject(chatId, messageId, wdrId, fromId);
+  }
+  if (action.startsWith('wdr:view:')) {
+    const wdrId = action.replace('wdr:view:', '').trim();
+    return handleTelegramWithdrawalView(chatId, messageId, wdrId);
+  }
   if (action === 'wdr:pend') return renderWithdrawalsMenu(chatId, messageId, 'pending');
   if (action === 'wdr:proc') return renderWithdrawalsMenu(chatId, messageId, 'processing');
   if (action === 'wdr:done') return renderWithdrawalsMenu(chatId, messageId, 'completed');

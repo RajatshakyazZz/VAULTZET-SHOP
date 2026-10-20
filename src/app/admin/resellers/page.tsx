@@ -53,9 +53,11 @@ export default function AdminResellersManagementPage() {
   // Payout confirmation modal state
   const [payoutModalReq, setPayoutModalReq] = useState<WithdrawalRequest | null>(null);
   const [payoutRef, setPayoutRef] = useState('');
+  const [payoutAdminNote, setPayoutAdminNote] = useState('');
   const [rejectModalReq, setRejectModalReq] = useState<WithdrawalRequest | null>(null);
   const [rejectReason, setRejectReason] = useState('');
   const [revealedUpiIds, setRevealedUpiIds] = useState<Record<string, boolean>>({});
+  const [withdrawalFilter, setWithdrawalFilter] = useState<'all' | 'pending' | 'processing' | 'approved' | 'paid' | 'rejected'>('all');
 
   useEffect(() => {
     loadAll();
@@ -98,8 +100,38 @@ export default function AdminResellersManagementPage() {
     }
   };
 
+  const handleQuickStatus = async (withdrawalId: string, status: 'approved' | 'processing') => {
+    setProcessingId(withdrawalId);
+    try {
+      const res = await fetch('/api/admin/reseller/withdrawals', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          withdrawalId,
+          status,
+          adminNotes: status === 'approved' ? 'Approved by Admin — Awaiting UPI Transfer' : 'Processing manual UPI transfer',
+        }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        await loadAll();
+      } else {
+        alert(data.error || 'Failed to update status');
+      }
+    } catch (e) {
+      console.warn('Error updating status:', e);
+      alert('Network error while updating status');
+    } finally {
+      setProcessingId(null);
+    }
+  };
+
   const handleMarkPaid = async () => {
     if (!payoutModalReq) return;
+    if (!payoutRef.trim()) {
+      alert('Bank Reference / UTR Number is required to confirm payment.');
+      return;
+    }
     setProcessingId(payoutModalReq.id);
     try {
       const res = await fetch('/api/admin/reseller/withdrawals', {
@@ -108,13 +140,18 @@ export default function AdminResellersManagementPage() {
         body: JSON.stringify({
           withdrawalId: payoutModalReq.id,
           status: 'paid',
-          payoutReference: payoutRef.trim() || 'Manual UPI Transfer',
+          payoutReference: payoutRef.trim(),
+          adminNotes: payoutAdminNote.trim() || undefined,
         }),
       });
-      if (res.ok) {
+      const data = await res.json();
+      if (data.success) {
         setPayoutModalReq(null);
         setPayoutRef('');
+        setPayoutAdminNote('');
         await loadAll();
+      } else {
+        alert(data.error || 'Failed to record payment');
       }
     } catch (e) {
       console.warn('Error marking paid:', e);
@@ -125,6 +162,10 @@ export default function AdminResellersManagementPage() {
 
   const handleRejectPayout = async () => {
     if (!rejectModalReq) return;
+    if (!rejectReason.trim()) {
+      alert('Rejection reason is required.');
+      return;
+    }
     setProcessingId(rejectModalReq.id);
     try {
       const res = await fetch('/api/admin/reseller/withdrawals', {
@@ -133,13 +174,17 @@ export default function AdminResellersManagementPage() {
         body: JSON.stringify({
           withdrawalId: rejectModalReq.id,
           status: 'rejected',
-          adminNotes: rejectReason.trim() || 'Declined by admin',
+          rejectionReason: rejectReason.trim(),
+          adminNotes: rejectReason.trim(),
         }),
       });
-      if (res.ok) {
+      const data = await res.json();
+      if (data.success) {
         setRejectModalReq(null);
         setRejectReason('');
         await loadAll();
+      } else {
+        alert(data.error || 'Failed to reject request');
       }
     } catch (e) {
       console.warn('Error rejecting payout:', e);
@@ -472,124 +517,243 @@ export default function AdminResellersManagementPage() {
         {/* ========================================================================= */}
         {/* TAB 2: WITHDRAWAL MANAGEMENT QUEUE */}
         {/* ========================================================================= */}
-        {activeTab === 'withdrawals' && (
-          <div className="bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden">
-            <div className="p-6 border-b border-slate-800">
-              <h2 className="text-lg font-bold text-white flex items-center gap-2">
-                <Wallet className="w-5 h-5 text-emerald-400" />
-                Reseller Payout Queue
-              </h2>
-              <p className="text-slate-400 text-xs mt-0.5">
-                Review payout requests, inspect full UPI VPAs, and record bank/UPI settlement references.
-              </p>
-            </div>
+        {/* ========================================================================= */}
+        {/* TAB 2: WITHDRAWAL MANAGEMENT QUEUE (Manual Approval Workflow) */}
+        {/* ========================================================================= */}
+        {activeTab === 'withdrawals' && (() => {
+          const pendingCount = withdrawals.filter((w) => w.status === 'pending' || w.status === 'pending_review').length;
+          const processingCount = withdrawals.filter((w) => w.status === 'processing').length;
+          const approvedCount = withdrawals.filter((w) => w.status === 'approved').length;
+          const paidCount = withdrawals.filter((w) => w.status === 'paid').length;
+          const rejectedCount = withdrawals.filter((w) => w.status === 'rejected').length;
 
-            {withdrawals.length === 0 ? (
-              <div className="py-16 text-center text-slate-500 text-sm">
-                Zero withdrawal requests recorded yet.
+          const displayedWithdrawals = withdrawals.filter((w) => {
+            if (withdrawalFilter === 'all') return true;
+            if (withdrawalFilter === 'pending') return w.status === 'pending' || w.status === 'pending_review';
+            return w.status === withdrawalFilter;
+          });
+
+          return (
+            <div className="bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden space-y-0">
+              <div className="p-6 border-b border-slate-800 flex flex-col md:flex-row md:items-center justify-between gap-4">
+                <div>
+                  <h2 className="text-lg font-bold text-white flex items-center gap-2">
+                    <Wallet className="w-5 h-5 text-emerald-400" />
+                    Manual Reseller Withdrawal Queue
+                  </h2>
+                  <p className="text-slate-400 text-xs mt-0.5">
+                    No automatic payouts. Verify reseller sales, check risk metrics, transfer via UPI manually, and mark as Paid with Bank UTR.
+                  </p>
+                </div>
+
+                <button
+                  onClick={loadAll}
+                  className="px-3.5 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition self-start md:self-auto border border-slate-700"
+                >
+                  <RefreshCw className="w-3.5 h-3.5" />
+                  Refresh Queue
+                </button>
               </div>
-            ) : (
-              <div className="overflow-x-auto">
-                <table className="w-full text-left text-sm text-slate-300">
-                  <thead className="bg-slate-800/50 text-xs text-slate-400 uppercase font-semibold">
-                    <tr>
-                      <th className="py-3 px-6">Request ID</th>
-                      <th className="py-3 px-6">Reseller UID</th>
-                      <th className="py-3 px-6">Reseller</th>
-                      <th className="py-3 px-6">Amount</th>
-                      <th className="py-3 px-6">UPI Details</th>
-                      <th className="py-3 px-6">Status</th>
-                      <th className="py-3 px-6">Date</th>
-                      <th className="py-3 px-6 text-right">Actions</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-slate-800">
-                    {withdrawals.map((w) => {
-                      const isRevealed = Boolean(revealedUpiIds[w.id]);
-                      const fullUpi = w.payoutDetails?.upiId || 'N/A';
-                      const maskedUpi = maskUpiId(fullUpi);
 
-                      return (
-                        <tr key={w.id} className="hover:bg-slate-800/30 transition">
-                          <td className="py-4 px-6 font-mono text-xs font-bold text-white">
-                            {w.id}
-                          </td>
-                          <td className="py-4 px-6 font-mono text-xs text-amber-400">
-                            {w.resellerUid}
-                          </td>
-                          <td className="py-4 px-6">
-                            <div className="font-semibold text-white">{w.resellerName}</div>
-                            <div className="text-xs text-slate-500">{w.resellerEmail}</div>
-                          </td>
-                          <td className="py-4 px-6 font-bold text-emerald-400">
-                            ₹{w.amount.toLocaleString('en-IN')}
-                          </td>
-                          <td className="py-4 px-6">
-                            <div className="flex items-center gap-2">
-                              <span className="font-mono text-xs text-white">
-                                {isRevealed ? fullUpi : maskedUpi}
-                              </span>
+              {/* Status Filter Tab Pills */}
+              <div className="px-6 py-3 bg-slate-950/60 border-b border-slate-800 flex flex-wrap items-center gap-2">
+                {[
+                  { key: 'all', label: 'All Requests', count: withdrawals.length },
+                  { key: 'pending', label: 'Pending Review', count: pendingCount, color: 'text-amber-400' },
+                  { key: 'processing', label: 'Processing', count: processingCount, color: 'text-purple-400' },
+                  { key: 'approved', label: 'Approved (Awaiting UPI)', count: approvedCount, color: 'text-cyan-400' },
+                  { key: 'paid', label: 'Paid & Settled', count: paidCount, color: 'text-emerald-400' },
+                  { key: 'rejected', label: 'Rejected (Refunded)', count: rejectedCount, color: 'text-rose-400' },
+                ].map((tab) => (
+                  <button
+                    key={tab.key}
+                    onClick={() => setWithdrawalFilter(tab.key as any)}
+                    className={`px-3 py-1.5 rounded-xl text-xs font-semibold transition flex items-center gap-1.5 border ${
+                      withdrawalFilter === tab.key
+                        ? 'bg-slate-800 text-white border-slate-600 shadow-sm'
+                        : 'bg-slate-900/40 text-slate-400 border-slate-800/80 hover:bg-slate-800/50 hover:text-slate-300'
+                    }`}
+                  >
+                    <span>{tab.label}</span>
+                    <span className={`px-1.5 py-0.2 rounded-full text-[10px] font-mono font-bold bg-slate-950/80 border border-slate-800 ${tab.color || 'text-slate-400'}`}>
+                      {tab.count}
+                    </span>
+                  </button>
+                ))}
+              </div>
+
+              {displayedWithdrawals.length === 0 ? (
+                <div className="py-16 text-center text-slate-500 text-sm">
+                  Zero withdrawal requests matching filter &quot;{withdrawalFilter}&quot;.
+                </div>
+              ) : (
+                <div className="overflow-x-auto">
+                  <table className="w-full text-left text-sm text-slate-300">
+                    <thead className="bg-slate-800/50 text-xs text-slate-400 uppercase font-semibold">
+                      <tr>
+                        <th className="py-3 px-6">Request ID</th>
+                        <th className="py-3 px-6">Reseller UID</th>
+                        <th className="py-3 px-6">Reseller Info</th>
+                        <th className="py-3 px-6">Amount</th>
+                        <th className="py-3 px-6">UPI Details</th>
+                        <th className="py-3 px-6">Status</th>
+                        <th className="py-3 px-6">Requested</th>
+                        <th className="py-3 px-6 text-right">Verification &amp; Payout Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-slate-800">
+                      {displayedWithdrawals.map((w) => {
+                        const isRevealed = Boolean(revealedUpiIds[w.id]);
+                        const fullUpi = w.payoutDetails?.upiId || 'N/A';
+                        const maskedUpi = maskUpiId(fullUpi);
+                        const isActionable = ['pending', 'pending_review', 'processing', 'approved'].includes(w.status);
+
+                        return (
+                          <tr key={w.id} className="hover:bg-slate-800/30 transition">
+                            <td className="py-4 px-6 font-mono text-xs font-bold text-white">
+                              {w.id}
+                            </td>
+                            <td className="py-4 px-6 font-mono text-xs text-amber-400">
                               <button
-                                onClick={() => toggleRevealUpi(w.id)}
-                                className="text-slate-500 hover:text-slate-300 p-0.5"
-                                title={isRevealed ? 'Hide full UPI' : 'Reveal full UPI'}
+                                onClick={() => openResellerDetail(w.resellerUid)}
+                                className="hover:underline flex items-center gap-1 font-bold"
+                                title="Inspect reseller profile & performance"
                               >
-                                {isRevealed ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
+                                {w.resellerUid}
+                                <ExternalLink className="w-3 h-3 text-slate-500" />
                               </button>
-                            </div>
-                            <div className="text-[11px] text-slate-400 mt-0.5">
-                              Name: {w.payoutDetails?.accountHolderName || w.resellerName}
-                            </div>
-                          </td>
-                          <td className="py-4 px-6">
-                            {w.status === 'paid' ? (
-                              <span className="px-2.5 py-1 rounded-full text-xs font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
-                                Paid
-                              </span>
-                            ) : w.status === 'rejected' ? (
-                              <span className="px-2.5 py-1 rounded-full text-xs font-semibold bg-rose-500/10 text-rose-400 border border-rose-500/20">
-                                Rejected
-                              </span>
-                            ) : (
-                              <span className="px-2.5 py-1 rounded-full text-xs font-semibold bg-amber-500/10 text-amber-400 border border-amber-500/20">
-                                Pending Review
-                              </span>
-                            )}
-                          </td>
-                          <td className="py-4 px-6 text-xs text-slate-400">
-                            {new Date(w.createdAt).toLocaleDateString('en-IN')}
-                          </td>
-                          <td className="py-4 px-6 text-right">
-                            {w.status === 'pending' || w.status === 'pending_review' ? (
-                              <div className="flex items-center justify-end gap-2">
+                            </td>
+                            <td className="py-4 px-6">
+                              <div className="font-semibold text-white">{w.resellerName}</div>
+                              <div className="text-xs text-slate-500">{w.resellerEmail}</div>
+                              {w.verifiedSalesCountSnapshot !== undefined && (
+                                <div className="text-[11px] text-slate-400 mt-0.5">
+                                  Sales: <strong>{w.verifiedSalesCountSnapshot} orders</strong> ({w.unitsSoldSnapshot || w.verifiedSalesCountSnapshot} units)
+                                </div>
+                              )}
+                            </td>
+                            <td className="py-4 px-6 font-bold text-emerald-400 font-mono text-base">
+                              ₹{w.amount.toLocaleString('en-IN')}
+                            </td>
+                            <td className="py-4 px-6">
+                              <div className="flex items-center gap-2">
+                                <span className="font-mono text-xs text-white">
+                                  {isRevealed ? fullUpi : maskedUpi}
+                                </span>
                                 <button
-                                  onClick={() => setPayoutModalReq(w)}
-                                  className="px-3 py-1.5 bg-emerald-500 hover:bg-emerald-600 text-slate-950 font-bold rounded-lg text-xs transition"
+                                  onClick={() => toggleRevealUpi(w.id)}
+                                  className="text-slate-500 hover:text-slate-300 p-0.5"
+                                  title={isRevealed ? 'Hide full UPI' : 'Reveal full UPI'}
                                 >
-                                  Mark Paid
-                                </button>
-                                <button
-                                  onClick={() => setRejectModalReq(w)}
-                                  className="px-3 py-1.5 bg-rose-500/10 hover:bg-rose-500/20 border border-rose-500/30 text-rose-400 rounded-lg text-xs font-semibold transition"
-                                >
-                                  Reject
+                                  {isRevealed ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
                                 </button>
                               </div>
-                            ) : (
-                              <span className="font-mono text-xs text-slate-500">
-                                {w.payoutReference || w.adminNotes || 'Settled'}
-                              </span>
-                            )}
-                          </td>
-                        </tr>
-                      );
-                    })}
-                  </tbody>
-                </table>
-              </div>
-            )}
-          </div>
-        )}
+                              <div className="text-[11px] text-slate-400 mt-0.5">
+                                Recipient: {w.payoutDetails?.accountHolderName || w.resellerName}
+                              </div>
+                            </td>
+                            <td className="py-4 px-6">
+                              {w.status === 'paid' ? (
+                                <span className="px-2.5 py-1 rounded-full text-xs font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 inline-flex items-center gap-1">
+                                  <CheckCircle2 className="w-3 h-3" /> Paid
+                                </span>
+                              ) : w.status === 'approved' ? (
+                                <span className="px-2.5 py-1 rounded-full text-xs font-semibold bg-cyan-500/10 text-cyan-400 border border-cyan-500/20 inline-flex items-center gap-1">
+                                  <ShieldCheck className="w-3 h-3" /> Approved
+                                </span>
+                              ) : w.status === 'processing' ? (
+                                <span className="px-2.5 py-1 rounded-full text-xs font-semibold bg-purple-500/10 text-purple-400 border border-purple-500/20 inline-flex items-center gap-1">
+                                  <Clock className="w-3 h-3" /> Processing
+                                </span>
+                              ) : w.status === 'rejected' ? (
+                                <span className="px-2.5 py-1 rounded-full text-xs font-semibold bg-rose-500/10 text-rose-400 border border-rose-500/20 inline-flex items-center gap-1">
+                                  <XCircle className="w-3 h-3" /> Rejected
+                                </span>
+                              ) : (
+                                <span className="px-2.5 py-1 rounded-full text-xs font-semibold bg-amber-500/10 text-amber-400 border border-amber-500/20 inline-flex items-center gap-1">
+                                  <Clock className="w-3 h-3" /> Pending Review
+                                </span>
+                              )}
+                            </td>
+                            <td className="py-4 px-6 text-xs text-slate-400">
+                              {new Date(w.createdAt).toLocaleDateString('en-IN', {
+                                day: 'numeric',
+                                month: 'short',
+                                year: 'numeric',
+                              })}
+                            </td>
+                            <td className="py-4 px-6 text-right">
+                              {isActionable ? (
+                                <div className="flex items-center justify-end flex-wrap gap-1.5">
+                                  {(w.status === 'pending' || w.status === 'pending_review') && (
+                                    <button
+                                      onClick={() => handleQuickStatus(w.id, 'approved')}
+                                      disabled={processingId === w.id}
+                                      className="px-2.5 py-1.5 bg-cyan-500/10 hover:bg-cyan-500/20 border border-cyan-500/30 text-cyan-300 rounded-lg text-xs font-semibold transition"
+                                      title="Mark as Approved to signify request verification before manual payout"
+                                    >
+                                      Approve
+                                    </button>
+                                  )}
+                                  {w.status !== 'processing' && (
+                                    <button
+                                      onClick={() => handleQuickStatus(w.id, 'processing')}
+                                      disabled={processingId === w.id}
+                                      className="px-2.5 py-1.5 bg-purple-500/10 hover:bg-purple-500/20 border border-purple-500/30 text-purple-300 rounded-lg text-xs font-semibold transition"
+                                      title="Mark Processing while you execute manual transfer"
+                                    >
+                                      Processing
+                                    </button>
+                                  )}
+                                  <button
+                                    onClick={() => setPayoutModalReq(w)}
+                                    disabled={processingId === w.id}
+                                    className="px-3 py-1.5 bg-emerald-500 hover:bg-emerald-600 text-slate-950 font-bold rounded-lg text-xs transition shadow-sm"
+                                    title="Open modal to enter UPI UTR/bank reference and mark as Paid"
+                                  >
+                                    Mark Paid
+                                  </button>
+                                  <button
+                                    onClick={() => setRejectModalReq(w)}
+                                    disabled={processingId === w.id}
+                                    className="px-2.5 py-1.5 bg-rose-500/10 hover:bg-rose-500/20 border border-rose-500/30 text-rose-400 rounded-lg text-xs font-semibold transition"
+                                    title="Reject request and refund reserved balance to reseller"
+                                  >
+                                    Reject
+                                  </button>
+                                </div>
+                              ) : w.status === 'paid' ? (
+                                <div className="text-right">
+                                  <div className="font-mono text-xs text-emerald-400 font-bold">
+                                    UTR: {w.payoutReference || 'Settled'}
+                                  </div>
+                                  {w.adminNotes && (
+                                    <div className="text-[11px] text-slate-500 italic mt-0.5">
+                                      {w.adminNotes}
+                                    </div>
+                                  )}
+                                </div>
+                              ) : (
+                                <div className="text-right">
+                                  <div className="text-xs text-rose-400 font-medium">
+                                    {w.rejectionReason || w.adminNotes || 'Declined by admin'}
+                                  </div>
+                                  <div className="text-[10px] text-slate-500 mt-0.5">
+                                    Balance refunded to reseller
+                                  </div>
+                                </div>
+                              )}
+                            </td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </div>
+          );
+        })()}
 
         {/* ========================================================================= */}
         {/* TAB 3: PRODUCT LISTINGS MODERATION */}
@@ -950,14 +1114,27 @@ export default function AdminResellersManagementPage() {
 
               <div>
                 <label className="block text-xs font-semibold text-slate-300 mb-1">
-                  Bank Reference / UTR Number
+                  Bank Reference / UTR Number <span className="text-rose-400">*</span>
                 </label>
                 <input
                   type="text"
-                  placeholder="e.g. UPI/429182910291, IMPS-9812921"
+                  placeholder="e.g. 429182910291 (12-digit UPI UTR) or IMPS-9812921"
                   value={payoutRef}
                   onChange={(e) => setPayoutRef(e.target.value)}
                   className="w-full bg-slate-800 border border-slate-700 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-emerald-500 font-mono"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-slate-300 mb-1">
+                  Optional Admin Note (Internal Audit)
+                </label>
+                <input
+                  type="text"
+                  placeholder="e.g. Paid via PhonePe Business / ICICI UPI"
+                  value={payoutAdminNote}
+                  onChange={(e) => setPayoutAdminNote(e.target.value)}
+                  className="w-full bg-slate-800 border border-slate-700 rounded-xl px-4 py-2 text-sm text-white focus:outline-none focus:border-slate-500"
                 />
               </div>
 

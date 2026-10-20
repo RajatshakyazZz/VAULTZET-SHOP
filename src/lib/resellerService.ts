@@ -737,13 +737,11 @@ export async function getResellerWallet(userId: string): Promise<WalletAccount> 
     }
   }
 
-  if (typeof window !== 'undefined') {
-    const saved = localStorage.getItem(`vaultzet_wallet_${userId}`);
-    if (saved) {
-      try {
-        return JSON.parse(saved);
-      } catch {}
-    }
+  const saved = getLocalOrMemoryItem(`vaultzet_wallet_${userId}`);
+  if (saved) {
+    try {
+      return JSON.parse(saved);
+    } catch {}
   }
 
   return defaultWallet;
@@ -768,13 +766,11 @@ export async function getResellerTransactions(userId: string): Promise<WalletTra
     }
   }
 
-  if (typeof window !== 'undefined') {
-    const saved = localStorage.getItem(`vaultzet_transactions_${userId}`);
-    if (saved) {
-      try {
-        return JSON.parse(saved);
-      } catch {}
-    }
+  const saved = getLocalOrMemoryItem(`vaultzet_transactions_${userId}`);
+  if (saved) {
+    try {
+      return JSON.parse(saved);
+    } catch {}
   }
 
   return [];
@@ -962,9 +958,7 @@ export async function saveResellerPayoutMethod(
     }
   }
 
-  if (typeof window !== 'undefined') {
-    localStorage.setItem(`vaultzet_payout_method_${userId}`, JSON.stringify(payoutMethod));
-  }
+  setLocalOrMemoryItem(`vaultzet_payout_method_${userId}`, JSON.stringify(payoutMethod));
 
   return payoutMethod;
 }
@@ -983,13 +977,11 @@ export async function getResellerPayoutMethod(userId: string): Promise<ResellerP
     }
   }
 
-  if (typeof window !== 'undefined') {
-    const saved = localStorage.getItem(`vaultzet_payout_method_${userId}`);
-    if (saved) {
-      try {
-        return JSON.parse(saved);
-      } catch {}
-    }
+  const saved = getLocalOrMemoryItem(`vaultzet_payout_method_${userId}`);
+  if (saved) {
+    try {
+      return JSON.parse(saved);
+    } catch {}
   }
 
   // Fallback to profile payoutDetails
@@ -1042,6 +1034,17 @@ export async function requestWithdrawal(params: {
   const wallet = await getResellerWallet(userId);
   if (wallet.availableBalance < amount) {
     throw new Error(`Insufficient balance! Your available balance is ₹${wallet.availableBalance}`);
+  }
+
+  // Check for any existing active pending or processing withdrawal request
+  const existingWithdrawals = await getWithdrawalRequests(userId);
+  const activePending = existingWithdrawals.find((w) =>
+    ['pending', 'pending_review', 'processing'].includes(w.status)
+  );
+  if (activePending) {
+    throw new Error(
+      `You already have an active withdrawal request (#${activePending.id}) in progress. Please wait for it to be processed before submitting another request.`
+    );
   }
 
   const profile = await getResellerProfile(userId);
@@ -1132,39 +1135,47 @@ export async function requestWithdrawal(params: {
           createdAt: now,
         });
       });
-    } catch (err) {
-      console.warn('Error in Firestore withdrawal transaction:', err);
-      throw err;
+    } catch (err: any) {
+      if (err.message === 'Insufficient balance') {
+        throw err;
+      }
+      console.warn('Error in Firestore withdrawal transaction, falling back to memory/local:', err);
     }
   }
 
-  // Local fallback for offline / tests
-  if (typeof window !== 'undefined') {
-    const listKey = `vaultzet_withdrawals_${userId}`;
-    const list: WithdrawalRequest[] = JSON.parse(localStorage.getItem(listKey) || '[]');
-    list.unshift(withdrawal);
-    localStorage.setItem(listKey, JSON.stringify(list));
+  // Local & Memory fallback for offline / tests
+  const listKey = `vaultzet_withdrawals_${userId}`;
+  const listJson = getLocalOrMemoryItem(listKey);
+  const list: WithdrawalRequest[] = listJson ? JSON.parse(listJson) : [];
+  list.unshift(withdrawal);
+  setLocalOrMemoryItem(listKey, JSON.stringify(list));
 
-    const walletKey = `vaultzet_wallet_${userId}`;
-    wallet.availableBalance -= amount;
-    wallet.updatedAt = now;
-    localStorage.setItem(walletKey, JSON.stringify(wallet));
+  const allWdrKey = 'vaultzet_all_withdrawals';
+  const allJson = getLocalOrMemoryItem(allWdrKey);
+  const allList: WithdrawalRequest[] = allJson ? JSON.parse(allJson) : [];
+  allList.unshift(withdrawal);
+  setLocalOrMemoryItem(allWdrKey, JSON.stringify(allList));
 
-    const txKey = `vaultzet_transactions_${userId}`;
-    const txs: WalletTransaction[] = JSON.parse(localStorage.getItem(txKey) || '[]');
-    txs.unshift({
-      id: `tx_${reqId}`,
-      resellerId: userId,
-      resellerUid,
-      type: 'withdrawal_requested',
-      amount: -amount,
-      currency: 'INR',
-      status: 'pending',
-      description: `Withdrawal request to ${payoutMethod === 'upi' ? payoutDetails.upiId : payoutDetails.accountNumber}`,
-      createdAt: now,
-    });
-    localStorage.setItem(txKey, JSON.stringify(txs));
-  }
+  const walletKey = `vaultzet_wallet_${userId}`;
+  wallet.availableBalance -= amount;
+  wallet.updatedAt = now;
+  setLocalOrMemoryItem(walletKey, JSON.stringify(wallet));
+
+  const txKey = `vaultzet_transactions_${userId}`;
+  const txJson = getLocalOrMemoryItem(txKey);
+  const txs: WalletTransaction[] = txJson ? JSON.parse(txJson) : [];
+  txs.unshift({
+    id: `tx_${reqId}`,
+    resellerId: userId,
+    resellerUid,
+    type: 'withdrawal_requested',
+    amount: -amount,
+    currency: 'INR',
+    status: 'pending',
+    description: `Withdrawal request to ${payoutMethod === 'upi' ? payoutDetails.upiId : payoutDetails.accountNumber}`,
+    createdAt: now,
+  });
+  setLocalOrMemoryItem(txKey, JSON.stringify(txs));
 
   // Dispatch Telegram Alert asynchronously
   try {
@@ -1201,14 +1212,325 @@ export async function getWithdrawalRequests(userId: string): Promise<WithdrawalR
     }
   }
 
-  if (typeof window !== 'undefined') {
+  const saved = getLocalOrMemoryItem(`vaultzet_withdrawals_${userId}`);
+  if (saved) {
     try {
-      const saved = localStorage.getItem(`vaultzet_withdrawals_${userId}`);
-      if (saved) return JSON.parse(saved);
+      return JSON.parse(saved);
     } catch {}
   }
 
   return [];
+}
+
+export async function getWithdrawalRequestById(withdrawalId: string): Promise<WithdrawalRequest | null> {
+  if (!withdrawalId) return null;
+
+  if (db) {
+    try {
+      const snap = await getDoc(doc(db as Firestore, 'withdrawal_requests', withdrawalId));
+      if (snap.exists()) {
+        return snap.data() as WithdrawalRequest;
+      }
+    } catch (err) {
+      console.warn('Error fetching withdrawal by ID from Firestore:', err);
+    }
+  }
+
+  const allJson = getLocalOrMemoryItem('vaultzet_all_withdrawals');
+  if (allJson) {
+    try {
+      const all: WithdrawalRequest[] = JSON.parse(allJson);
+      const found = all.find((w) => w.id === withdrawalId);
+      if (found) return found;
+    } catch {}
+  }
+
+  return null;
+}
+
+export async function updateWithdrawalStatus(params: {
+  withdrawalId: string;
+  status: 'approved' | 'processing' | 'paid' | 'rejected';
+  payoutReference?: string;
+  adminNotes?: string;
+  rejectionReason?: string;
+  processedBy?: string;
+}): Promise<{ success: boolean; withdrawal?: WithdrawalRequest; error?: string }> {
+  const { withdrawalId, status, payoutReference, adminNotes, rejectionReason, processedBy } = params;
+
+  if (!withdrawalId) {
+    return { success: false, error: 'Withdrawal ID is required' };
+  }
+
+  const validStatuses = ['approved', 'processing', 'paid', 'rejected'];
+  if (!validStatuses.includes(status)) {
+    return { success: false, error: `Invalid status. Must be one of: ${validStatuses.join(', ')}` };
+  }
+
+  if (status === 'paid' && (!payoutReference || !payoutReference.trim())) {
+    return { success: false, error: 'Payment reference / Bank UTR is required when marking a withdrawal as Paid.' };
+  }
+
+  if (status === 'rejected' && !rejectionReason?.trim() && !adminNotes?.trim()) {
+    return { success: false, error: 'A rejection reason is required when rejecting a withdrawal request.' };
+  }
+
+  const now = new Date().toISOString();
+  let updatedWithdrawal: WithdrawalRequest | null = null;
+  let prevStatus: string = '';
+
+  // 1. If Firestore db is available, execute in atomic transaction
+  if (db) {
+    const firestore = db as Firestore;
+    try {
+      await runTransaction(firestore, async (t) => {
+        const wdrRef = doc(firestore, 'withdrawal_requests', withdrawalId);
+        const wdrSnap = await t.get(wdrRef);
+        if (!wdrSnap.exists()) {
+          throw new Error(`Withdrawal request #${withdrawalId} not found`);
+        }
+
+        const currentWdr = wdrSnap.data() as WithdrawalRequest;
+        prevStatus = currentWdr.status;
+
+        // Protection against double execution / status tampering
+        if (currentWdr.status === 'paid') {
+          throw new Error('Cannot modify an already paid withdrawal request');
+        }
+        if (currentWdr.status === 'rejected') {
+          throw new Error('Cannot modify an already rejected withdrawal request');
+        }
+
+        const updatePayload: Record<string, any> = {
+          status,
+          processedAt: now,
+          processedBy: processedBy || 'admin',
+        };
+        if (payoutReference?.trim()) updatePayload.payoutReference = payoutReference.trim();
+        if (adminNotes?.trim()) updatePayload.adminNotes = adminNotes.trim();
+        if (rejectionReason?.trim()) updatePayload.rejectionReason = rejectionReason.trim();
+
+        t.update(wdrRef, updatePayload);
+
+        // Balance adjustments
+        const walletRef = doc(firestore, 'wallet_accounts', currentWdr.resellerId);
+        const walletSnap = await t.get(walletRef);
+
+        if (status === 'rejected') {
+          // Refund reserved amount back to reseller available balance
+          if (walletSnap.exists()) {
+            const wData = walletSnap.data() as WalletAccount;
+            t.update(walletRef, {
+              availableBalance: (wData.availableBalance || 0) + currentWdr.amount,
+              updatedAt: now,
+            });
+          }
+
+          // Record immutable reversal ledger transaction
+          const txRef = doc(firestore, 'wallet_transactions', `tx_rej_${withdrawalId}`);
+          t.set(txRef, {
+            id: `tx_rej_${withdrawalId}`,
+            resellerId: currentWdr.resellerId,
+            resellerUid: currentWdr.resellerUid,
+            type: 'withdrawal_rejected',
+            amount: currentWdr.amount,
+            currency: 'INR',
+            status: 'completed',
+            description: `Refund for rejected withdrawal #${withdrawalId} (${rejectionReason || adminNotes || 'Declined by admin'})`,
+            createdAt: now,
+          });
+        } else if (status === 'paid') {
+          // Payout finalized: increment totalWithdrawn
+          if (walletSnap.exists()) {
+            const wData = walletSnap.data() as WalletAccount;
+            t.update(walletRef, {
+              totalWithdrawn: (wData.totalWithdrawn || 0) + currentWdr.amount,
+              updatedAt: now,
+            });
+          }
+
+          // Record immutable paid ledger transaction
+          const txRef = doc(firestore, 'wallet_transactions', `tx_paid_${withdrawalId}`);
+          t.set(txRef, {
+            id: `tx_paid_${withdrawalId}`,
+            resellerId: currentWdr.resellerId,
+            resellerUid: currentWdr.resellerUid,
+            type: 'withdrawal_paid',
+            amount: 0,
+            currency: 'INR',
+            status: 'completed',
+            description: `Payout completed via ${currentWdr.payoutMethod?.toUpperCase() || 'UPI'} (${currentWdr.payoutDetails?.upiId || 'UPI'}). UTR: ${payoutReference}`,
+            createdAt: now,
+          });
+        }
+
+        // Record Audit Log entry adhering to isValidAuditLog
+        const auditRef = doc(collection(firestore, 'admin_audit_logs'));
+        t.set(auditRef, {
+          adminEmail: processedBy?.includes('@') ? processedBy : 'admin@vaultzet.com',
+          action: `withdrawal_${status}`,
+          module: 'withdrawals',
+          details: {
+            withdrawalId,
+            resellerUid: currentWdr.resellerUid,
+            resellerId: currentWdr.resellerId,
+            amount: currentWdr.amount,
+            previousStatus: prevStatus,
+            newStatus: status,
+            payoutReference: payoutReference || null,
+            rejectionReason: rejectionReason || null,
+            adminNotes: adminNotes || null,
+            upiId: currentWdr.payoutDetails?.upiId || null,
+          },
+          timestamp: now,
+        });
+
+        // Durable Outbox notification
+        const outboxRef = doc(firestore, 'notification_outbox', `out_status_${withdrawalId}_${status}`);
+        t.set(outboxRef, {
+          id: `out_status_${withdrawalId}_${status}`,
+          eventType: `withdrawal_${status}`,
+          resellerUid: currentWdr.resellerUid,
+          withdrawalId,
+          payload: {
+            ...currentWdr,
+            ...updatePayload,
+          },
+          status: 'pending',
+          attemptCount: 0,
+          createdAt: now,
+        });
+
+        updatedWithdrawal = {
+          ...currentWdr,
+          ...updatePayload,
+        };
+      });
+    } catch (err: any) {
+      console.warn('Error in Firestore updateWithdrawalStatus transaction:', err);
+      if (err.message?.includes('Cannot modify') || err.message?.includes('not found')) {
+        return { success: false, error: err.message };
+      }
+    }
+  }
+
+  // 2. Memory / LocalStorage fallback
+  if (!updatedWithdrawal) {
+    const allWdrKey = 'vaultzet_all_withdrawals';
+    const allJson = getLocalOrMemoryItem(allWdrKey);
+    let allList: WithdrawalRequest[] = allJson ? JSON.parse(allJson) : [];
+    const index = allList.findIndex((w) => w.id === withdrawalId);
+
+    if (index === -1) {
+      return { success: false, error: `Withdrawal request #${withdrawalId} not found` };
+    }
+
+    const currentWdr = allList[index];
+    if (currentWdr.status === 'paid') {
+      return { success: false, error: 'Cannot modify an already paid withdrawal request' };
+    }
+    if (currentWdr.status === 'rejected') {
+      return { success: false, error: 'Cannot modify an already rejected withdrawal request' };
+    }
+
+    prevStatus = currentWdr.status;
+    const finalRejection = rejectionReason?.trim() || adminNotes?.trim();
+
+    updatedWithdrawal = {
+      ...currentWdr,
+      status,
+      processedAt: now,
+      processedBy: processedBy || 'admin',
+      ...(payoutReference?.trim() ? { payoutReference: payoutReference.trim() } : {}),
+      ...(adminNotes?.trim() ? { adminNotes: adminNotes.trim() } : {}),
+      ...(finalRejection ? { rejectionReason: finalRejection } : {}),
+    };
+
+    allList[index] = updatedWithdrawal;
+    setLocalOrMemoryItem(allWdrKey, JSON.stringify(allList));
+
+    // Also update reseller's specific list
+    const userWdrKey = `vaultzet_withdrawals_${currentWdr.resellerId}`;
+    const userJson = getLocalOrMemoryItem(userWdrKey);
+    if (userJson) {
+      try {
+        const userList: WithdrawalRequest[] = JSON.parse(userJson);
+        const uIdx = userList.findIndex((w) => w.id === withdrawalId);
+        if (uIdx !== -1) {
+          userList[uIdx] = updatedWithdrawal;
+          setLocalOrMemoryItem(userWdrKey, JSON.stringify(userList));
+        }
+      } catch {}
+    }
+
+    // Update wallet
+    const walletKey = `vaultzet_wallet_${currentWdr.resellerId}`;
+    const walletJson = getLocalOrMemoryItem(walletKey);
+    let wallet: WalletAccount = walletJson
+      ? JSON.parse(walletJson)
+      : {
+          resellerId: currentWdr.resellerId,
+          resellerUid: currentWdr.resellerUid,
+          availableBalance: 0,
+          pendingBalance: 0,
+          totalEarned: 0,
+          totalWithdrawn: 0,
+          updatedAt: now,
+        };
+
+    const txKey = `vaultzet_transactions_${currentWdr.resellerId}`;
+    const txJson = getLocalOrMemoryItem(txKey);
+    const txs: WalletTransaction[] = txJson ? JSON.parse(txJson) : [];
+
+    if (status === 'rejected') {
+      wallet.availableBalance += currentWdr.amount;
+      wallet.updatedAt = now;
+      txs.unshift({
+        id: `tx_rej_${withdrawalId}`,
+        resellerId: currentWdr.resellerId,
+        resellerUid: currentWdr.resellerUid,
+        type: 'withdrawal_rejected',
+        amount: currentWdr.amount,
+        currency: 'INR',
+        status: 'completed',
+        description: `Refund for rejected withdrawal #${withdrawalId} (${finalRejection || 'Declined by admin'})`,
+        createdAt: now,
+      });
+    } else if (status === 'paid') {
+      wallet.totalWithdrawn += currentWdr.amount;
+      wallet.updatedAt = now;
+      txs.unshift({
+        id: `tx_paid_${withdrawalId}`,
+        resellerId: currentWdr.resellerId,
+        resellerUid: currentWdr.resellerUid,
+        type: 'withdrawal_paid',
+        amount: 0,
+        currency: 'INR',
+        status: 'completed',
+        description: `Payout completed via ${currentWdr.payoutMethod?.toUpperCase() || 'UPI'} (${currentWdr.payoutDetails?.upiId || 'UPI'}). UTR: ${payoutReference}`,
+        createdAt: now,
+      });
+    }
+    setLocalOrMemoryItem(walletKey, JSON.stringify(wallet));
+    setLocalOrMemoryItem(txKey, JSON.stringify(txs));
+  }
+
+  // 3. Dispatch Telegram Status Notification
+  try {
+    if (updatedWithdrawal) {
+      import('@/lib/telegramReseller')
+        .then((m) =>
+          m.sendWithdrawalStatusTelegramAlert({
+            withdrawal: updatedWithdrawal!,
+            previousStatus: prevStatus as any,
+            adminEmail: processedBy,
+          })
+        )
+        .catch(() => {});
+    }
+  } catch {}
+
+  return { success: true, withdrawal: updatedWithdrawal };
 }
 
 // -----------------------------------------------------------------------------

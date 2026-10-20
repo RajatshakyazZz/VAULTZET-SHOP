@@ -175,8 +175,12 @@ export default function ResellerWalletPage() {
   };
 
   const reservedFunds = withdrawals
-    .filter((w) => w.status === 'pending' || w.status === 'pending_review')
+    .filter((w) => ['pending', 'pending_review', 'processing', 'approved'].includes(w.status))
     .reduce((sum, w) => sum + w.amount, 0);
+
+  const activePendingWithdrawal = withdrawals.find((w) =>
+    ['pending', 'pending_review', 'processing'].includes(w.status)
+  );
 
   return (
     <div className="space-y-8 max-w-7xl mx-auto pb-12">
@@ -185,7 +189,7 @@ export default function ResellerWalletPage() {
         <div>
           <div className="flex items-center gap-3">
             <h1 className="text-2xl sm:text-3xl font-black text-white tracking-tight">
-              Earnings Wallet & Payouts
+              Earnings Wallet &amp; Payouts
             </h1>
             {profile?.resellerUid && (
               <span className="inline-flex items-center gap-1 px-3 py-1 bg-amber-500/10 border border-amber-500/30 text-amber-400 font-mono text-xs font-bold rounded-lg tracking-wider">
@@ -204,11 +208,12 @@ export default function ResellerWalletPage() {
               setWithdrawError(null);
               setIsWithdrawModalOpen(true);
             }}
-            disabled={(wallet?.availableBalance || 0) < 200}
+            disabled={Boolean(activePendingWithdrawal) || (wallet?.availableBalance || 0) < 200}
             className="px-5 py-3 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 text-slate-950 font-bold text-sm flex items-center justify-center gap-2 shadow-lg shadow-emerald-500/20 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+            title={activePendingWithdrawal ? 'You have an active withdrawal in progress' : (wallet?.availableBalance || 0) < 200 ? 'Minimum balance required: ₹200' : 'Request payout'}
           >
             <ArrowUpRight className="w-4 h-4" />
-            Request Payout
+            {activePendingWithdrawal ? 'Withdrawal Pending' : 'Request Payout'}
           </button>
         </div>
       </div>
@@ -419,13 +424,26 @@ export default function ResellerWalletPage() {
                             <CheckCircle2 className="w-3 h-3" /> Paid
                           </span>
                         ) : w.status === 'approved' ? (
-                          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-cyan-500/10 text-cyan-400 border border-cyan-500/20">
-                            Approved
-                          </span>
+                          <div>
+                            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-cyan-500/10 text-cyan-400 border border-cyan-500/20">
+                              <ShieldCheck className="w-3 h-3" /> Approved
+                            </span>
+                            <div className="text-[10px] text-cyan-300/80 mt-0.5 font-medium">Awaiting UPI Settlement</div>
+                          </div>
+                        ) : w.status === 'processing' ? (
+                          <div>
+                            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-purple-500/10 text-purple-400 border border-purple-500/20">
+                              <Clock className="w-3 h-3" /> Processing
+                            </span>
+                            <div className="text-[10px] text-purple-300/80 mt-0.5">Transfer in progress</div>
+                          </div>
                         ) : w.status === 'rejected' ? (
-                          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-rose-500/10 text-rose-400 border border-rose-500/20">
-                            <AlertCircle className="w-3 h-3" /> Rejected
-                          </span>
+                          <div>
+                            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-rose-500/10 text-rose-400 border border-rose-500/20">
+                              <AlertCircle className="w-3 h-3" /> Rejected
+                            </span>
+                            <div className="text-[10px] text-slate-400 mt-0.5">Amount refunded to wallet</div>
+                          </div>
                         ) : (
                           <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-amber-500/10 text-amber-400 border border-amber-500/20">
                             <Clock className="w-3 h-3" /> Under Review
@@ -439,13 +457,20 @@ export default function ResellerWalletPage() {
                           year: 'numeric',
                         })}
                       </td>
-                      <td className="py-4 px-6 font-mono text-xs text-slate-400">
-                        {w.payoutReference ? (
-                          <span className="text-emerald-400 font-semibold">{w.payoutReference}</span>
+                      <td className="py-4 px-6 text-xs">
+                        {w.status === 'paid' && w.payoutReference ? (
+                          <div>
+                            <div className="text-emerald-400 font-mono font-bold">UTR: {w.payoutReference}</div>
+                            {w.adminNotes && <div className="text-[11px] text-slate-500 italic mt-0.5">{w.adminNotes}</div>}
+                          </div>
+                        ) : w.status === 'rejected' ? (
+                          <div>
+                            <span className="text-rose-400 text-xs font-medium">{w.rejectionReason || w.adminNotes || 'Declined by admin'}</span>
+                          </div>
                         ) : w.adminNotes ? (
-                          <span className="text-rose-400 italic">{w.adminNotes}</span>
+                          <span className="text-slate-400 text-xs italic">{w.adminNotes}</span>
                         ) : (
-                          <span className="text-slate-600">—</span>
+                          <span className="text-slate-600 font-mono text-xs">—</span>
                         )}
                       </td>
                     </tr>
@@ -684,7 +709,31 @@ export default function ResellerWalletPage() {
                   </div>
                 )}
 
-                <form onSubmit={handleWithdrawalSubmit} className="space-y-4">
+                {activePendingWithdrawal ? (
+                  <div className="space-y-4">
+                    <div className="p-4 rounded-xl bg-amber-500/10 border border-amber-500/20 text-xs space-y-2">
+                      <div className="font-bold flex items-center gap-1.5 text-amber-400 text-sm">
+                        <Clock className="w-4 h-4" />
+                        Withdrawal Request in Progress
+                      </div>
+                      <p className="text-slate-300 text-xs leading-relaxed">
+                        You already have an active withdrawal request (<strong>#{activePendingWithdrawal.id}</strong> for <strong>₹{activePendingWithdrawal.amount}</strong>) currently in status <strong className="text-amber-400">&quot;{activePendingWithdrawal.status}&quot;</strong>.
+                      </p>
+                      <p className="text-slate-400 text-[11px]">
+                        To ensure ledger integrity and prevent accidental double requests, only one active withdrawal can be processed at a time. The admin manually reviews each payout, transfers funds via UPI, and then marks the request as settled.
+                      </p>
+                    </div>
+
+                    <button
+                      type="button"
+                      onClick={() => setIsWithdrawModalOpen(false)}
+                      className="w-full py-3 bg-slate-800 hover:bg-slate-700 text-white font-bold rounded-xl text-xs transition border border-slate-700"
+                    >
+                      Close Window
+                    </button>
+                  </div>
+                ) : (
+                  <form onSubmit={handleWithdrawalSubmit} className="space-y-4">
                   <div className="bg-slate-800/40 border border-slate-700/60 rounded-xl p-4 space-y-1">
                     <div className="text-xs text-slate-400">Available to Withdraw:</div>
                     <div className="text-2xl font-black text-emerald-400">
@@ -761,8 +810,9 @@ export default function ResellerWalletPage() {
                     </button>
                   </div>
                 </form>
-              </div>
-            )}
+              )}
+            </div>
+          )}
           </div>
         </div>
       )}

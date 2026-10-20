@@ -115,7 +115,7 @@ export interface WalletAccount {
   updatedAt: string;
 }
 
-export type WithdrawalStatus = 'pending' | 'pending_review' | 'approved' | 'paid' | 'rejected';
+export type WithdrawalStatus = 'pending' | 'pending_review' | 'processing' | 'approved' | 'paid' | 'rejected';
 
 export interface WithdrawalRequest {
   id: string;
@@ -128,7 +128,9 @@ export interface WithdrawalRequest {
   payoutDetails: PayoutDetails;
   status: WithdrawalStatus;
   adminNotes?: string;
+  rejectionReason?: string;
   payoutReference?: string;
+  processedBy?: string;
   walletBalanceAfterReservation?: number;
   pendingEarningsSnapshot?: number;
   totalLifetimeEarningsSnapshot?: number;
