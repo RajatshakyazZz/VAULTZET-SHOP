@@ -1,0 +1,79 @@
+import { Metadata } from 'next';
+import { notFound } from 'next/navigation';
+import { getResellerListingBySlug } from '@/lib/resellerService';
+import { BUNDLE_PRODUCTS } from '@/data/bundles';
+import ResellerLandingClient from './ResellerLandingClient';
+
+interface ResellerPageProps {
+  params: Promise<{ slug: string }>;
+}
+
+export const dynamic = 'force-dynamic';
+
+export async function generateMetadata({ params }: ResellerPageProps): Promise<Metadata> {
+  const { slug } = await params;
+  const listing = await getResellerListingBySlug(slug);
+
+  if (!listing || listing.status !== 'active') {
+    return {
+      title: 'Product Unavailable | Vaultzet Store',
+      description: 'The requested product listing is currently unavailable.',
+      robots: { index: false, follow: false },
+    };
+  }
+
+  const siteUrl = (process.env.NEXT_PUBLIC_SITE_URL || 'https://vaultzet.shop').replace(/\/+$/, '');
+  const canonicalUrl = `${siteUrl}/r/${listing.slug}`;
+  const title = `${listing.customTitle} — Instant Download`;
+  const description = listing.customShortDescription || `Download ${listing.customTitle} in HD vertical MP4 format with instant Google Drive access.`;
+  const imageUrl = listing.coverImage || `${siteUrl}/icon.png`;
+
+  return {
+    title,
+    description,
+    alternates: {
+      canonical: canonicalUrl,
+    },
+    openGraph: {
+      type: 'website',
+      url: canonicalUrl,
+      title,
+      description,
+      siteName: 'Vaultzet Store',
+      images: [
+        {
+          url: imageUrl,
+          width: 1200,
+          height: 630,
+          alt: listing.customTitle,
+        },
+      ],
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title,
+      description,
+      images: [imageUrl],
+    },
+  };
+}
+
+export default async function ResellerPublicLandingPage({ params }: ResellerPageProps) {
+  const { slug } = await params;
+  const listing = await getResellerListingBySlug(slug);
+
+  if (!listing || listing.status !== 'active') {
+    notFound();
+  }
+
+  const originalProduct = BUNDLE_PRODUCTS.find(
+    (p) => p.id === listing.originalProductId || p.slug === listing.originalProductSlug
+  );
+
+  return (
+    <ResellerLandingClient
+      listing={listing}
+      originalProduct={originalProduct}
+    />
+  );
+}

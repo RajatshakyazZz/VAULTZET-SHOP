@@ -4,6 +4,7 @@ import { db } from '@/lib/firebase';
 import { doc, getDoc, updateDoc } from 'firebase/firestore';
 import { sendSaleSuccessTelegramAlert } from '@/lib/telegram';
 import { sendMetaCapiPurchase } from '@/lib/metaCapi';
+import { recordSaleEarning } from '@/lib/resellerService';
 
 export async function POST(request: Request) {
   try {
@@ -98,9 +99,28 @@ export async function POST(request: Request) {
           if (capiSentAt) {
             updatePayload.purchase_event_sent_at = capiSentAt;
           }
+          if (storedOrder?.reseller_id) {
+            updatePayload.earning_status = 'recorded';
+          }
           await updateDoc(orderRef, updatePayload);
         } catch (err) {
           console.warn('[Cashfree Webhook] Firestore update error:', err);
+        }
+      }
+
+      // Record reseller earning idempotently
+      if (storedOrder?.reseller_id && Number(storedOrder?.reseller_earning) > 0) {
+        try {
+          await recordSaleEarning({
+            orderId,
+            resellerId: storedOrder.reseller_id,
+            listingId: storedOrder.reseller_listing_id || '',
+            amount: Number(storedOrder.reseller_earning),
+            productTitle: storedOrder.items?.[0]?.title || 'Viral Reels Bundle',
+            settleImmediately: true,
+          });
+        } catch (rErr) {
+          console.error('[Cashfree Webhook] Error recording reseller earning:', rErr);
         }
       }
 

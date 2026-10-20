@@ -102,6 +102,7 @@ export default function Header() {
     { name: 'Home', href: '/' },
     { name: 'Shop', href: '/shop' },
     { name: 'Reels Feed', href: '/reels' },
+    { name: 'Resell & Earn', href: '/earn' },
     { name: 'My Orders', href: '/my-order' },
     { name: 'About Us', href: '/about-us' },
   ];
@@ -270,7 +271,7 @@ export default function Header() {
                 if (isMobileMenuOpen) setIsMobileMenuOpen(false);
               }}
               aria-label="Search"
-              className="sm:hidden w-9 h-9 rounded-xl bg-[#f5f1fd] text-[#5e2de0] flex items-center justify-center hover:bg-purple-100 transition-colors"
+              className="sm:hidden w-9 h-9 rounded-xl bg-[#f5f1fd] text-[#5e2de0] flex items-center justify-center hover:bg-purple-100 transition-colors shrink-0"
             >
               <Search className="w-4 h-4" />
             </button>
@@ -279,12 +280,13 @@ export default function Header() {
             <Link
               href="/cart"
               prefetch={false}
-              className="sm:hidden w-9 h-9 rounded-xl bg-[#f5f1fd] text-[#5e2de0] flex items-center justify-center relative hover:bg-purple-100 transition-colors"
+              className="sm:hidden px-2.5 h-9 rounded-xl bg-[#f5f1fd] text-[#5e2de0] flex items-center gap-1.5 hover:bg-purple-100 transition-colors text-xs font-bold relative shrink-0"
               aria-label="Cart"
             >
               <ShoppingCart className="w-4 h-4" />
+              <span>Cart</span>
               {cartCount > 0 && (
-                <span className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-red-600 text-[9px] font-black text-white flex items-center justify-center shadow-xs">
+                <span className="w-4 h-4 rounded-full bg-red-600 text-[9px] font-black text-white flex items-center justify-center shadow-xs">
                   {cartCount}
                 </span>
               )}
@@ -316,9 +318,10 @@ export default function Header() {
               }}
               aria-label={isMobileMenuOpen ? 'Close navigation menu' : 'Open navigation menu'}
               aria-expanded={isMobileMenuOpen}
-              className="md:hidden w-9 h-9 rounded-xl border border-gray-200 text-[#182247] flex items-center justify-center hover:bg-slate-100"
+              className="md:hidden px-2.5 h-9 rounded-xl border border-gray-200 text-[#182247] flex items-center gap-1.5 hover:bg-slate-100 text-xs font-bold shrink-0"
             >
-              {isMobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+              {isMobileMenuOpen ? <X className="w-4 h-4" /> : <Menu className="w-4 h-4" />}
+              <span>Menu</span>
             </button>
           </div>
         </div>

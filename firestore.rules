@@ -4,10 +4,11 @@ rules_version = '2';
 // Assumed Data Model & Architecture
 // ===============================================================
 //
-// Application: Vaultzet Digital Storefront & Admin Portal
+// Application: Vaultzet Digital Storefront, Admin Portal & Reseller Network
 // Context:
 //   - Customer Storefront (vaultzet.shop): Guest checkout (no Firebase Auth UID).
 //   - Admin Portal (adminp.vaultzet.shop): Master-password authenticated at app/edge layer.
+//   - Reseller Network (/reseller, /r/[slug]): Self-serve digital product reselling, custom pricing, and automated profit ledger.
 //
 // Collections:
 // 1. orders:
@@ -28,6 +29,13 @@ rules_version = '2';
 //    - purchase_client_fired: bool (optional, browser Pixel fire acknowledgement)
 //    - order_token: string (optional, <= 100 chars, order verification/access token)
 //    - cf_payment_id: string (optional, <= 100 chars, Cashfree payment reference ID)
+//    - reseller_id: string (optional, <= 100 chars, attributed reseller user ID)
+//    - reseller_listing_id: string (optional, <= 100 chars, attributed custom listing ID)
+//    - reseller_slug: string (optional, <= 100 chars, attributed listing slug)
+//    - base_price_snapshot: number (optional, 0..10,000,000, platform wholesale base price)
+//    - resale_price_snapshot: number (optional, 0..10,000,000, customer sale price)
+//    - reseller_earning: number (optional, 0..10,000,000, profit margin credited to reseller)
+//    - earning_status: string (optional, in ['pending', 'recorded', 'available', 'reversed'])
 //    - Protection: Deletion strictly denied. Crucial fields immutable on update.
 //
 // 2. products:
@@ -68,8 +76,8 @@ rules_version = '2';
 //    - Protection: Storefront & Admin read; schema validated on write; deletion permitted.
 //
 // 3. store_settings:
-//    - IDs: 'general', 'branding', 'site_mode', 'meta_pixel', 'whatsapp', 'cashfree', 'rankmath_seo', 'dnp_meta', 'mmc_analytics', 'litespeed_cache'
-//    - Safely validates settings configurations including string bounds, boolean flags (enabled, track_pageviews, cache_enabled, auto_complete_digital_orders, etc.), nested maps (modules, endpoints), lists (bypass_ips), and numeric metrics (event_health_score, active_visitors_now).
+//    - IDs: 'general', 'branding', 'site_mode', 'meta_pixel', 'whatsapp', 'cashfree', 'rankmath_seo', 'dnp_meta', 'mmc_analytics', 'litespeed_cache', 'reseller'
+//    - Safely validates settings configurations including string bounds, boolean flags (enabled, track_pageviews, cache_enabled, auto_complete_digital_orders, etc.), nested maps (modules, endpoints), lists (bypass_ips), and numeric metrics (event_health_score, active_visitors_now, min_markup, max_price).
 //    - String fields bounded to prevent resource exhaustion / DoS.
 //    - Protection: Deletion strictly denied.
 //
@@ -128,6 +136,83 @@ rules_version = '2';
 //    - aliases: list (optional, <= 50 items)
 //    - Protection: Storefront & Admin read; schema validated on write; deletion permitted.
 //
+// 8. reseller_profiles:
+//    - userId: string (required, 1..100 chars, matches document path {userId})
+//    - displayName: string (required, 1..100 chars)
+//    - email: string (required, 5..100 chars, valid email)
+//    - phone: string (optional, <= 30 chars)
+//    - status: string (optional, in ['active', 'suspended', 'pending'])
+//    - payoutMethod: string (optional, in ['upi', 'bank'])
+//    - payoutDetails: map (optional) -> { upiId?: string, accountHolderName?: string, accountNumber?: string, ifscCode?: string, bankName?: string }
+//    - termsAccepted: bool (optional)
+//    - termsAcceptedAt: string (optional, <= 100 chars)
+//    - createdAt: string (optional, <= 100 chars)
+//    - updatedAt: string (optional, <= 100 chars)
+//    - firestoreUpdatedAt: timestamp (optional)
+//    - Protection: Deletion strictly denied.
+//
+// 9. reseller_listings:
+//    - slug: string (required, 1..100 chars)
+//    - resellerId: string (required, 1..100 chars)
+//    - originalProductId: string (required, 1..100 chars)
+//    - basePrice: number (required, 0..10,000,000)
+//    - resalePrice: number (required, 0..10,000,000)
+//    - grossMargin: number (required, -10,000,000..10,000,000)
+//    - customTitle: string (required, 1..300 chars)
+//    - status: string (required, in ['active', 'paused', 'suspended', 'rejected'])
+//    - id: string (optional, <= 100 chars)
+//    - resellerName: string (optional, <= 100 chars)
+//    - originalProductSlug: string (optional, <= 150 chars)
+//    - customSubtitle: string (optional, <= 500 chars)
+//    - customShortDescription: string (optional, <= 5000 chars)
+//    - customDescription: string (optional, <= 20000 chars)
+//    - coverImage: string (optional, <= 1000 chars)
+//    - viewsCount: number (optional, 0..10,000,000)
+//    - salesCount: number (optional, 0..10,000,000)
+//    - totalRevenue: number (optional, 0..100,000,000)
+//    - totalEarned: number (optional, 0..100,000,000)
+//    - createdAt: string (optional, <= 100 chars)
+//    - updatedAt: string (optional, <= 100 chars)
+//    - firestoreCreatedAt: timestamp (optional)
+//    - Protection: Deletion strictly denied.
+//
+// 10. wallet_accounts:
+//    - resellerId: string (required, 1..100 chars, matches document path {userId})
+//    - availableBalance: number (required, 0..100,000,000)
+//    - pendingBalance: number (required, 0..100,000,000)
+//    - totalEarned: number (required, 0..100,000,000)
+//    - totalWithdrawn: number (required, 0..100,000,000)
+//    - updatedAt: string (optional, <= 100 chars)
+//    - Protection: Deletion strictly denied.
+//
+// 11. wallet_transactions:
+//    - resellerId: string (required, 1..100 chars)
+//    - type: string (required, in ['sale_available', 'sale_pending', 'withdrawal_requested', 'withdrawal_paid', 'withdrawal_rejected', 'refund_reversal', 'chargeback_reversal', 'admin_adjustment'])
+//    - amount: number (required, -100,000,000..100,000,000)
+//    - status: string (required, in ['completed', 'pending', 'reversed', 'failed'])
+//    - description: string (required, 1..1000 chars)
+//    - id: string (optional, <= 100 chars)
+//    - orderId: string (optional, <= 100 chars)
+//    - listingId: string (optional, <= 100 chars)
+//    - currency: string (optional, <= 10 chars)
+//    - createdAt: string (optional, <= 100 chars)
+//    - Protection: Append-only ledger. Updates and deletions strictly denied.
+//
+// 12. withdrawal_requests:
+//    - resellerId: string (required, 1..100 chars)
+//    - amount: number (required, 0..10,000,000)
+//    - payoutMethod: string (required, in ['upi', 'bank'])
+//    - payoutDetails: map (required) -> { upiId?: string, accountHolderName?: string, accountNumber?: string, ifscCode?: string, bankName?: string }
+//    - status: string (required, in ['pending', 'approved', 'paid', 'rejected'])
+//    - id: string (optional, <= 100 chars)
+//    - resellerName: string (optional, <= 100 chars)
+//    - resellerEmail: string (optional, <= 100 chars)
+//    - adminNotes: string (optional, <= 1000 chars)
+//    - payoutReference: string (optional, <= 200 chars)
+//    - createdAt: string (optional, <= 100 chars)
+//    - processedAt: string (optional, <= 100 chars)
+//    - Protection: Deletion strictly denied. Reseller, amount, payout method, and details immutable on update.
+//
 // ===============================================================
 
 service cloud.firestore {
@@ -178,13 +263,30 @@ service cloud.firestore {
         data[field] is map;
     }
 
+    function isValidPayoutDetails(details) {
+      return details is map &&
+        details.keys().hasOnly(['upiId', 'accountHolderName', 'accountNumber', 'ifscCode', 'bankName']) &&
+        isValidOptionalString(details, 'upiId', 100) &&
+        isValidOptionalString(details, 'accountHolderName', 100) &&
+        isValidOptionalString(details, 'accountNumber', 50) &&
+        isValidOptionalString(details, 'ifscCode', 30) &&
+        isValidOptionalString(details, 'bankName', 100);
+    }
+
     // ===============================================================
     // Domain Validators
     // ===============================================================
 
     function isValidOrder(data) {
       return data.keys().hasAll(['orderNumber', 'customer', 'items', 'totalAmount', 'paymentMethod', 'status']) &&
-        data.keys().hasOnly(['id', 'orderNumber', 'customer', 'items', 'orderBump', 'totalAmount', 'paymentMethod', 'status', 'createdAt', 'timestampIso', 'transactionId', 'purchase_event_id', 'purchase_event_status', 'purchase_event_sent_at', 'purchase_event_attempts', 'purchase_client_fired', 'order_token', 'cf_payment_id']) &&
+        data.keys().hasOnly([
+          'id', 'orderNumber', 'customer', 'items', 'orderBump', 'totalAmount',
+          'paymentMethod', 'status', 'createdAt', 'timestampIso', 'transactionId',
+          'purchase_event_id', 'purchase_event_status', 'purchase_event_sent_at',
+          'purchase_event_attempts', 'purchase_client_fired', 'order_token', 'cf_payment_id',
+          'reseller_id', 'reseller_listing_id', 'reseller_slug',
+          'base_price_snapshot', 'resale_price_snapshot', 'reseller_earning', 'earning_status'
+        ]) &&
         isValidString(data.orderNumber, 3, 60) &&
         data.customer is map &&
         data.customer.keys().hasAll(['fullName', 'email']) &&
@@ -211,7 +313,14 @@ service cloud.firestore {
         isValidOptionalNumber(data, 'purchase_event_attempts', 0, 100) &&
         isValidOptionalBool(data, 'purchase_client_fired') &&
         isValidOptionalString(data, 'order_token', 100) &&
-        isValidOptionalString(data, 'cf_payment_id', 100);
+        isValidOptionalString(data, 'cf_payment_id', 100) &&
+        isValidOptionalString(data, 'reseller_id', 100) &&
+        isValidOptionalString(data, 'reseller_listing_id', 100) &&
+        isValidOptionalString(data, 'reseller_slug', 100) &&
+        isValidOptionalNumber(data, 'base_price_snapshot', 0, 10000000) &&
+        isValidOptionalNumber(data, 'resale_price_snapshot', 0, 10000000) &&
+        isValidOptionalNumber(data, 'reseller_earning', 0, 10000000) &&
+        (!('earning_status' in data) || data.earning_status == null || data.earning_status in ['pending', 'recorded', 'available', 'reversed']);
     }
 
     function areOrderImmutableFieldsUnchanged() {
@@ -309,6 +418,8 @@ service cloud.firestore {
         isValidOptionalString(data, 'homepage_meta_description', 1000) &&
         isValidOptionalString(data, 'cdn_status', 30) &&
         isValidOptionalString(data, 'last_purge_time', 100) &&
+        isValidOptionalString(data, 'settlement_policy', 50) &&
+        isValidOptionalString(data, 'updated_at', 100) &&
         // Boolean flags
         isValidOptionalBool(data, 'enabled') &&
         isValidOptionalBool(data, 'track_pageviews') &&
@@ -327,6 +438,8 @@ service cloud.firestore {
         // Numeric metrics & scores
         isValidOptionalNumber(data, 'event_health_score', 0, 100) &&
         isValidOptionalNumber(data, 'active_visitors_now', 0, 10000000) &&
+        isValidOptionalNumber(data, 'min_markup', 0, 1000000) &&
+        isValidOptionalNumber(data, 'max_price', 0, 10000000) &&
         // Lists
         isValidOptionalList(data, 'bypass_ips', 100) &&
         // Nested Maps
@@ -405,6 +518,139 @@ service cloud.firestore {
         isValidOptionalList(data, 'aliases', 50);
     }
 
+    function isValidResellerProfile(data) {
+      return data.keys().hasAll(['userId', 'displayName', 'email']) &&
+        data.keys().hasOnly([
+          'userId', 'displayName', 'email', 'phone', 'status', 'payoutMethod',
+          'payoutDetails', 'termsAccepted', 'termsAcceptedAt', 'createdAt', 'updatedAt', 'firestoreUpdatedAt'
+        ]) &&
+        isValidString(data.userId, 1, 100) &&
+        isValidString(data.displayName, 1, 100) &&
+        isValidString(data.email, 5, 100) &&
+        isValidEmail(data.email) &&
+        isValidOptionalString(data, 'phone', 30) &&
+        (!('status' in data) || data.status == null || data.status in ['active', 'suspended', 'pending']) &&
+        (!('payoutMethod' in data) || data.payoutMethod == null || data.payoutMethod in ['upi', 'bank']) &&
+        (!('payoutDetails' in data) || data.payoutDetails == null || isValidPayoutDetails(data.payoutDetails)) &&
+        (!('termsAccepted' in data) || data.termsAccepted == null || data.termsAccepted is bool) &&
+        isValidOptionalString(data, 'termsAcceptedAt', 100) &&
+        isValidOptionalString(data, 'createdAt', 100) &&
+        isValidOptionalString(data, 'updatedAt', 100) &&
+        (!('firestoreUpdatedAt' in data) || data.firestoreUpdatedAt is timestamp);
+    }
+
+    function isValidResellerListing(data) {
+      return data.keys().hasAll(['slug', 'resellerId', 'originalProductId', 'basePrice', 'resalePrice', 'grossMargin', 'customTitle', 'status']) &&
+        data.keys().hasOnly([
+          'id', 'slug', 'resellerId', 'resellerName', 'originalProductId', 'originalProductSlug',
+          'basePrice', 'resalePrice', 'grossMargin', 'customTitle', 'customSubtitle',
+          'customShortDescription', 'customDescription', 'coverImage', 'status',
+          'viewsCount', 'salesCount', 'totalRevenue', 'totalEarned', 'createdAt', 'updatedAt', 'firestoreCreatedAt'
+        ]) &&
+        isValidString(data.slug, 1, 100) &&
+        isValidString(data.resellerId, 1, 100) &&
+        isValidOptionalString(data, 'resellerName', 100) &&
+        isValidString(data.originalProductId, 1, 100) &&
+        isValidOptionalString(data, 'originalProductSlug', 150) &&
+        data.basePrice is number &&
+        data.basePrice >= 0 &&
+        data.basePrice <= 10000000 &&
+        data.resalePrice is number &&
+        data.resalePrice >= 0 &&
+        data.resalePrice <= 10000000 &&
+        data.grossMargin is number &&
+        data.grossMargin >= -10000000 &&
+        data.grossMargin <= 10000000 &&
+        isValidString(data.customTitle, 1, 300) &&
+        isValidOptionalString(data, 'id', 100) &&
+        isValidOptionalString(data, 'customSubtitle', 500) &&
+        isValidOptionalString(data, 'customShortDescription', 5000) &&
+        isValidOptionalString(data, 'customDescription', 20000) &&
+        isValidOptionalString(data, 'coverImage', 1000) &&
+        data.status is string &&
+        data.status in ['active', 'paused', 'suspended', 'rejected'] &&
+        isValidOptionalNumber(data, 'viewsCount', 0, 10000000) &&
+        isValidOptionalNumber(data, 'salesCount', 0, 10000000) &&
+        isValidOptionalNumber(data, 'totalRevenue', 0, 100000000) &&
+        isValidOptionalNumber(data, 'totalEarned', 0, 100000000) &&
+        isValidOptionalString(data, 'createdAt', 100) &&
+        isValidOptionalString(data, 'updatedAt', 100) &&
+        (!('firestoreCreatedAt' in data) || data.firestoreCreatedAt is timestamp);
+    }
+
+    function isValidWalletAccount(data) {
+      return data.keys().hasAll(['resellerId', 'availableBalance', 'pendingBalance', 'totalEarned', 'totalWithdrawn']) &&
+        data.keys().hasOnly(['resellerId', 'availableBalance', 'pendingBalance', 'totalEarned', 'totalWithdrawn', 'updatedAt']) &&
+        isValidString(data.resellerId, 1, 100) &&
+        data.availableBalance is number &&
+        data.availableBalance >= 0 &&
+        data.availableBalance <= 100000000 &&
+        data.pendingBalance is number &&
+        data.pendingBalance >= 0 &&
+        data.pendingBalance <= 100000000 &&
+        data.totalEarned is number &&
+        data.totalEarned >= 0 &&
+        data.totalEarned <= 100000000 &&
+        data.totalWithdrawn is number &&
+        data.totalWithdrawn >= 0 &&
+        data.totalWithdrawn <= 100000000 &&
+        isValidOptionalString(data, 'updatedAt', 100);
+    }
+
+    function isValidWalletTransaction(data) {
+      return data.keys().hasAll(['resellerId', 'type', 'amount', 'status', 'description']) &&
+        data.keys().hasOnly(['id', 'resellerId', 'orderId', 'listingId', 'type', 'amount', 'currency', 'status', 'description', 'createdAt']) &&
+        isValidString(data.resellerId, 1, 100) &&
+        data.type is string &&
+        data.type in [
+          'sale_available', 'sale_pending', 'withdrawal_requested', 'withdrawal_paid',
+          'withdrawal_rejected', 'refund_reversal', 'chargeback_reversal', 'admin_adjustment'
+        ] &&
+        data.amount is number &&
+        data.amount >= -100000000 &&
+        data.amount <= 100000000 &&
+        data.status is string &&
+        data.status in ['completed', 'pending', 'reversed', 'failed'] &&
+        isValidString(data.description, 1, 1000) &&
+        isValidOptionalString(data, 'id', 100) &&
+        isValidOptionalString(data, 'orderId', 100) &&
+        isValidOptionalString(data, 'listingId', 100) &&
+        isValidOptionalString(data, 'currency', 10) &&
+        isValidOptionalString(data, 'createdAt', 100);
+    }
+
+    function isValidWithdrawalRequest(data) {
+      return data.keys().hasAll(['resellerId', 'amount', 'payoutMethod', 'payoutDetails', 'status']) &&
+        data.keys().hasOnly([
+          'id', 'resellerId', 'resellerName', 'resellerEmail', 'amount', 'payoutMethod',
+          'payoutDetails', 'status', 'adminNotes', 'payoutReference', 'createdAt', 'processedAt'
+        ]) &&
+        isValidString(data.resellerId, 1, 100) &&
+        isValidOptionalString(data, 'id', 100) &&
+        isValidOptionalString(data, 'resellerName', 100) &&
+        isValidOptionalString(data, 'resellerEmail', 100) &&
+        data.amount is number &&
+        data.amount >= 0 &&
+        data.amount <= 10000000 &&
+        data.payoutMethod is string &&
+        data.payoutMethod in ['upi', 'bank'] &&
+        isValidPayoutDetails(data.payoutDetails) &&
+        data.status is string &&
+        data.status in ['pending', 'approved', 'paid', 'rejected'] &&
+        isValidOptionalString(data, 'adminNotes', 1000) &&
+        isValidOptionalString(data, 'payoutReference', 200) &&
+        isValidOptionalString(data, 'createdAt', 100) &&
+        isValidOptionalString(data, 'processedAt', 100);
+    }
+
+    function areWithdrawalImmutableFieldsUnchanged() {
+      return request.resource.data.resellerId == resource.data.resellerId &&
+        request.resource.data.amount == resource.data.amount &&
+        request.resource.data.payoutMethod == resource.data.payoutMethod &&
+        request.resource.data.payoutDetails == resource.data.payoutDetails &&
+        (!('createdAt' in resource.data) || request.resource.data.createdAt == resource.data.createdAt);
+    }
+
     // ===============================================================
     // Collection Rules
     // ===============================================================
@@ -442,8 +688,10 @@ service cloud.firestore {
       allow read: if true;
 
       // Only recognized setting docs can be saved with bounded sizes
-      allow create, update: if settingId in ['general', 'branding', 'site_mode', 'meta_pixel', 'whatsapp', 'cashfree', 'rankmath_seo', 'dnp_meta', 'mmc_analytics', 'litespeed_cache'] &&
-                               isValidStoreSetting(request.resource.data);
+      allow create, update: if settingId in [
+        'general', 'branding', 'site_mode', 'meta_pixel', 'whatsapp', 'cashfree',
+        'rankmath_seo', 'dnp_meta', 'mmc_analytics', 'litespeed_cache', 'reseller'
+      ] && isValidStoreSetting(request.resource.data);
 
       // Settings documents cannot be deleted
       allow delete: if false;
@@ -495,6 +743,74 @@ service cloud.firestore {
 
       // Admin can remove categories
       allow delete: if true;
+    }
+
+    // 8. Reseller Profiles
+    match /reseller_profiles/{userId} {
+      // Storefront & Resellers view reseller public/dashboard profile
+      allow read: if true;
+
+      // Resellers create or update their profile with validation and binding to userId
+      allow create, update: if isValidResellerProfile(request.resource.data) &&
+                               request.resource.data.userId == userId;
+
+      // Profiles cannot be deleted
+      allow delete: if false;
+    }
+
+    // 9. Reseller Listings
+    match /reseller_listings/{listingId} {
+      // Public customer read for /r/[slug] landing pages & catalog display
+      allow read: if true;
+
+      // Resellers & Storefront create or update listings with strict validation
+      allow create, update: if isValidResellerListing(request.resource.data);
+
+      // Listings cannot be deleted
+      allow delete: if false;
+    }
+
+    // 10. Wallet Accounts
+    match /wallet_accounts/{userId} {
+      // Storefront & Resellers read wallet balances
+      allow read: if true;
+
+      // Ledger service creates or updates wallet balance with schema validation
+      allow create, update: if isValidWalletAccount(request.resource.data) &&
+                               request.resource.data.resellerId == userId;
+
+      // Wallets cannot be deleted
+      allow delete: if false;
+    }
+
+    // 11. Wallet Transactions
+    match /wallet_transactions/{txId} {
+      // Storefront & Resellers view transaction history
+      allow read: if true;
+
+      // System appends transactions with strict schema validation
+      allow create: if isValidWalletTransaction(request.resource.data);
+
+      // Transactions ledger is strictly append-only: updates and deletes denied
+      allow update, delete: if false;
+    }
+
+    // 12. Withdrawal Requests
+    match /withdrawal_requests/{reqId} {
+      // Storefront & Resellers view withdrawal requests
+      allow read: if true;
+
+      // Resellers create requests with status initialized to 'pending'
+      allow create: if isValidWithdrawalRequest(request.resource.data) &&
+                       request.resource.data.status == 'pending';
+
+      // Admin updates status to 'approved', 'paid', or 'rejected' without modifying amount/payout details
+      allow update: if isValidWithdrawalRequest(request.resource.data) &&
+                       areWithdrawalImmutableFieldsUnchanged() &&
+                       request.resource.data.status in ['approved', 'paid', 'rejected'];
+
+      // Withdrawal records cannot be deleted
+      allow delete: if false;
     }
 
     // ===============================================================

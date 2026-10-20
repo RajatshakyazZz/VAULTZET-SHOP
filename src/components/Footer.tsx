@@ -62,6 +62,7 @@ export default function Footer() {
     { label: 'Home', href: '/' },
     { label: 'All Bundles', href: '/shop' },
     { label: 'Reels Feed', href: '/reels' },
+    { label: 'Resell & Earn', href: '/earn' },
     { label: 'AI Reels', href: '/category/ai-reels' },
     { label: 'Motivational', href: '/category/motivation-reels' },
     { label: 'Cart', href: '#cart' },

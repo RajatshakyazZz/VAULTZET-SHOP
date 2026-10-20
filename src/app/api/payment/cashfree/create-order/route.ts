@@ -4,11 +4,13 @@ import { db } from '@/lib/firebase';
 import { doc, setDoc, serverTimestamp } from 'firebase/firestore';
 import { sendAbandonedOrPendingTelegramAlert } from '@/lib/telegram';
 import { generateOrderToken } from '@/lib/orderToken';
+import { getResellerListingBySlug } from '@/lib/resellerService';
+import { BUNDLE_PRODUCTS, ORDER_BUMP } from '@/data/bundles';
 
 export async function POST(request: Request) {
   try {
     const body = await request.json();
-    const { orderNumber, customer, items, orderBump, totalAmount } = body;
+    const { orderNumber, customer, items, orderBump, totalAmount, resellerSlug } = body;
 
     const cleanEmail = String(customer?.email || '').trim().toLowerCase();
     const cleanPhone = String(customer?.phone || '').replace(/\D/g, '');
@@ -42,6 +44,40 @@ export async function POST(request: Request) {
       );
     }
 
+    // Server-authoritative reseller resolution and price enforcement
+    let finalTotalAmount = Number(totalAmount);
+    let resellerAttribution: Record<string, any> = {};
+
+    if (resellerSlug) {
+      try {
+        const listing = await getResellerListingBySlug(String(resellerSlug).trim());
+        if (listing && listing.status === 'active') {
+          const originalProd = BUNDLE_PRODUCTS.find(
+            (p) => p.id === listing.originalProductId || p.slug === listing.originalProductSlug
+          );
+          const basePrice = originalProd ? Number(originalProd.personalPrice) : Number(listing.basePrice);
+          const approvedResalePrice = Number(listing.resalePrice);
+          const resellerEarning = Math.max(0, approvedResalePrice - basePrice);
+
+          // Authoritative order total
+          const bumpPrice = orderBump ? ORDER_BUMP.discountPrice : 0;
+          finalTotalAmount = approvedResalePrice + bumpPrice;
+
+          resellerAttribution = {
+            reseller_id: listing.resellerId,
+            reseller_listing_id: listing.id,
+            reseller_slug: listing.slug,
+            base_price_snapshot: basePrice,
+            resale_price_snapshot: approvedResalePrice,
+            reseller_earning: resellerEarning,
+            earning_status: 'pending',
+          };
+        }
+      } catch (rErr) {
+        console.warn('Error resolving reseller listing during order creation:', rErr);
+      }
+    }
+
     const hostHeader = request.headers.get('host') || '';
     const isLocalhost = hostHeader.includes('localhost');
     const returnBaseUrl = isLocalhost
@@ -53,7 +89,7 @@ export async function POST(request: Request) {
     // 1. Generate Cashfree Order Session with secure returnUrl
     const cashfreeOrder = await createCashfreePgOrder({
       orderId: orderNumber,
-      orderAmount: Number(totalAmount),
+      orderAmount: Number(finalTotalAmount),
       customer: {
         fullName: cleanName || 'Customer',
         email: cleanEmail,
@@ -62,7 +98,7 @@ export async function POST(request: Request) {
       returnUrl: `${returnBaseUrl}/api/payment/cashfree/return?order_id={order_id}&token=${encodeURIComponent(orderToken)}`,
     });
 
-    // 2. Persist Pending Order to Firestore (strictly matching firestore.rules schema)
+    // 2. Persist Pending Order to Firestore
     if (db) {
       try {
         const orderRef = doc(db, 'orders', orderNumber);
@@ -73,9 +109,9 @@ export async function POST(request: Request) {
             email: cleanEmail,
             phone: cleanPhone || '',
           },
-          items: items && items.length > 0 ? items : [{ id: 'bundle', title: 'Viral Reels Bundle', price: Number(totalAmount), license: 'personal' }],
+          items: items && items.length > 0 ? items : [{ id: 'bundle', title: 'Viral Reels Bundle', price: Number(finalTotalAmount), license: 'personal' }],
           orderBump: orderBump || null,
-          totalAmount: Number(totalAmount),
+          totalAmount: Number(finalTotalAmount),
           paymentMethod: 'Cashfree Gateway',
           transactionId: String(cashfreeOrder.order_id || orderNumber).slice(0, 95),
           status: 'pending',
@@ -86,6 +122,7 @@ export async function POST(request: Request) {
           purchase_event_attempts: 0,
           purchase_client_fired: false,
           order_token: orderToken,
+          ...resellerAttribution,
         });
       } catch (firestoreErr) {
         console.warn('Could not save pending order to Firestore:', firestoreErr);

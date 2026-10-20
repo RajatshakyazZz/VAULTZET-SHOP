@@ -9,6 +9,7 @@ import {
 import { BUNDLE_PRODUCTS } from '@/data/bundles';
 import { sendMetaCapiPurchase } from '@/lib/metaCapi';
 import { extractClientMetadata, verifyOrderToken, generateOrderToken } from '@/lib/orderToken';
+import { recordSaleEarning } from '@/lib/resellerService';
 
 interface ResolvedProductFiles {
   primaryLink: string;
@@ -203,9 +204,28 @@ async function handleVerify(
         if (capiSentAt) {
           updatePayload.purchase_event_sent_at = capiSentAt;
         }
+        if (storedOrder?.reseller_id) {
+          updatePayload.earning_status = 'recorded';
+        }
         await updateDoc(orderRef, updatePayload);
       } catch (err) {
         console.warn('Error updating Firestore order status:', err);
+      }
+    }
+
+    // Server-authoritative recording of reseller earning (idempotent)
+    if (storedOrder?.reseller_id && Number(storedOrder?.reseller_earning) > 0) {
+      try {
+        await recordSaleEarning({
+          orderId,
+          resellerId: storedOrder.reseller_id,
+          listingId: storedOrder.reseller_listing_id || '',
+          amount: Number(storedOrder.reseller_earning),
+          productTitle: storedOrder.items?.[0]?.title || 'Viral Reels Bundle',
+          settleImmediately: true,
+        });
+      } catch (resellerErr) {
+        console.error('[Reseller Attribution] Error recording earning in verify-order:', resellerErr);
       }
     }
 

@@ -2,6 +2,9 @@
 
 import React, { useState, useRef, useEffect } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
+import { useResellerAuth } from '@/context/ResellerAuthContext';
+import ResellerAuthModal from '@/components/reseller/ResellerAuthModal';
 import {
   ChevronRight,
   Star,
@@ -31,6 +34,7 @@ import {
   Eye,
   ArrowDownToLine,
   Check,
+  Briefcase,
 } from 'lucide-react';
 import { BUNDLE_PRODUCTS } from '@/data/bundles';
 import { useCart } from '@/context/CartContext';
@@ -45,7 +49,10 @@ interface ProductDetailClientProps {
 }
 
 export default function ProductDetailClient({ product }: ProductDetailClientProps) {
+  const router = useRouter();
   const { buyNow } = useCart();
+  const { isAuthenticated } = useResellerAuth();
+  const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
 
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const [isDescExpanded, setIsDescExpanded] = useState(false);
@@ -337,8 +344,8 @@ export default function ProductDetailClient({ product }: ProductDetailClientProp
                 </div>
               </div>
 
-              {/* Single Primary Buy Now Button */}
-              <div className="pt-1">
+              {/* Primary Buy Now Button & Secondary Resell & Earn Button */}
+              <div className="pt-1 space-y-2.5">
                 <button
                   type="button"
                   onClick={() => buyNow(product, 'personal')}
@@ -347,6 +354,30 @@ export default function ProductDetailClient({ product }: ProductDetailClientProp
                   <Zap className="w-5 h-5 fill-white" />
                   <span>Buy Now — ₹{activePrice}.00</span>
                 </button>
+
+                {/* Secondary Resell & Earn Option */}
+                <div className="p-3 rounded-2xl bg-gradient-to-r from-purple-50/90 via-pink-50/70 to-purple-50/90 border border-purple-200/80 text-center space-y-1.5">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (isAuthenticated) {
+                        router.push(`/earn/create/${product.id}`);
+                      } else {
+                        setIsAuthModalOpen(true);
+                      }
+                    }}
+                    className="w-full py-3 px-5 rounded-xl bg-white hover:bg-purple-50/50 border border-purple-300 text-[#6734f7] font-black text-sm flex items-center justify-center gap-2 shadow-xs hover:shadow-md transition-all active:scale-95 cursor-pointer"
+                  >
+                    <Briefcase className="w-4 h-4 text-[#ec288d]" />
+                    <span>Resell & Earn on This Bundle</span>
+                    <span className="px-2 py-0.5 rounded-full bg-gradient-to-r from-[#6734f7] to-[#ec288d] text-white text-[10px] font-extrabold uppercase">
+                      Keep 100% Margin
+                    </span>
+                  </button>
+                  <p className="text-[11px] text-slate-500 font-medium">
+                    Set your own selling price and earn on every successful sale.
+                  </p>
+                </div>
               </div>
 
               {/* Secure Checkout Guarantee */}
@@ -798,7 +829,7 @@ export default function ProductDetailClient({ product }: ProductDetailClientProp
 
       {/* MOBILE STICKY BOTTOM BUY BAR */}
       <div className="fixed bottom-0 left-0 right-0 z-40 md:hidden bg-white/95 backdrop-blur-md border-t border-gray-200 px-4 py-3 shadow-[0_-4px_20px_rgba(0,0,0,0.08)]">
-        <div className="flex items-center justify-between gap-3 max-w-md mx-auto">
+        <div className="flex items-center justify-between gap-2.5 max-w-md mx-auto">
           <div className="flex flex-col">
             <span className="text-[10px] text-gray-500 font-bold uppercase tracking-wider">Instant Access</span>
             <div className="flex items-baseline gap-1.5">
@@ -806,16 +837,41 @@ export default function ProductDetailClient({ product }: ProductDetailClientProp
               <span className="text-xs text-gray-400 line-through">₹{originalPrice}.00</span>
             </div>
           </div>
-          <button
-            type="button"
-            onClick={() => buyNow(product, 'personal')}
-            className="flex-1 py-3 px-5 rounded-xl btn-gradient-primary text-white font-black text-sm shadow-md active:scale-95 transition-all flex items-center justify-center gap-2 cursor-pointer"
-          >
-            <Zap className="w-4 h-4 fill-white" />
-            <span>Buy Now</span>
-          </button>
+          <div className="flex items-center gap-2 flex-1 justify-end">
+            <button
+              type="button"
+              onClick={() => {
+                if (isAuthenticated) {
+                  router.push(`/earn/create/${product.id}`);
+                } else {
+                  setIsAuthModalOpen(true);
+                }
+              }}
+              className="py-3 px-3 rounded-xl bg-purple-50 hover:bg-purple-100 border border-purple-200 text-[#6734f7] font-black text-xs flex items-center justify-center gap-1 active:scale-95 transition-all"
+            >
+              <Briefcase className="w-3.5 h-3.5 text-[#ec288d]" />
+              <span>Resell</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => buyNow(product, 'personal')}
+              className="flex-1 py-3 px-4 rounded-xl btn-gradient-primary text-white font-black text-sm shadow-md active:scale-95 transition-all flex items-center justify-center gap-1.5 cursor-pointer"
+            >
+              <Zap className="w-4 h-4 fill-white" />
+              <span>Buy Now</span>
+            </button>
+          </div>
         </div>
       </div>
+
+      {/* Reseller Auth Modal */}
+      <ResellerAuthModal
+        isOpen={isAuthModalOpen}
+        onClose={() => setIsAuthModalOpen(false)}
+        onSuccess={() => router.push(`/earn/create/${product.id}`)}
+        productTitle={product.title}
+        productId={product.id}
+      />
 
     </div>
   );

@@ -4,6 +4,7 @@ import { Suspense } from 'react';
 import './globals.css';
 import { CartProvider } from '@/context/CartContext';
 import { StoreSettingsProvider } from '@/context/StoreSettingsContext';
+import { ResellerAuthProvider } from '@/context/ResellerAuthContext';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import MobileBottomNav from '@/components/MobileBottomNav';
@@ -268,13 +269,15 @@ export default function RootLayout({
         </Suspense>
 
         <StoreSettingsProvider>
-          <CartProvider>
-            <Header />
-            <main className="flex-grow">{children}</main>
-            <Footer />
-            <CartDrawer />
-            <MobileBottomNav />
-          </CartProvider>
+          <ResellerAuthProvider>
+            <CartProvider>
+              <Header />
+              <main className="flex-grow">{children}</main>
+              <Footer />
+              <CartDrawer />
+              <MobileBottomNav />
+            </CartProvider>
+          </ResellerAuthProvider>
         </StoreSettingsProvider>
       </body>
     </html>

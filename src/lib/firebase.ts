@@ -1,4 +1,5 @@
 import { initializeApp, getApps, getApp, FirebaseApp } from 'firebase/app';
+import { getAuth, Auth } from 'firebase/auth';
 import {
   getFirestore,
   collection,
@@ -24,15 +25,17 @@ const firebaseConfig = {
 
 let app: FirebaseApp | null = null;
 let db: Firestore | null = null;
+let auth: Auth | null = null;
 
 try {
   app = getApps().length > 0 ? getApp() : initializeApp(firebaseConfig);
   db = getFirestore(app);
+  auth = getAuth(app);
 } catch (error) {
   console.warn('Firebase initialized in fallback mode:', error);
 }
 
-export { app, db };
+export { app, db, auth };
 
 export interface StoreOrder {
   id?: string;

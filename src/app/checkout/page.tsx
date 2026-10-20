@@ -31,6 +31,7 @@ function CheckoutContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const isBuyNowMode = searchParams.get('mode') === 'buynow';
+  const resellerSlug = searchParams.get('r') || (typeof window !== 'undefined' ? sessionStorage.getItem('vaultzet_reseller_slug') : null);
 
   const {
     items,
@@ -299,6 +300,7 @@ function CheckoutContent() {
           }
         : null,
       totalAmount: checkoutTotal,
+      resellerSlug: resellerSlug || undefined,
     };
 
     try {
