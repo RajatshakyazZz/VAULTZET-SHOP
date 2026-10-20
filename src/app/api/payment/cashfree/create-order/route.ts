@@ -50,8 +50,17 @@ export async function POST(request: Request) {
 
     if (resellerSlug) {
       try {
-        const listing = await getResellerListingBySlug(String(resellerSlug).trim());
-        if (listing && listing.status === 'active') {
+        const listing = await getResellerListingBySlug(String(resellerSlug).trim(), true);
+        if (listing) {
+          if (listing.status !== 'active') {
+            return NextResponse.json(
+              {
+                success: false,
+                error: `This reseller listing is currently ${listing.status}. Purchases cannot be completed.`,
+              },
+              { status: 400 }
+            );
+          }
           const originalProd = BUNDLE_PRODUCTS.find(
             (p) => p.id === listing.originalProductId || p.slug === listing.originalProductSlug
           );
@@ -74,7 +83,7 @@ export async function POST(request: Request) {
             earning_status: 'pending',
           };
         }
-      } catch (rErr) {
+      } catch (rErr: any) {
         console.warn('Error resolving reseller listing during order creation:', rErr);
       }
     }

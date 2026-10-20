@@ -74,7 +74,7 @@ export function resolveBundleSlug(
 
   // 2. Exact match in aliases
   const aliasMatch = BUNDLE_PRODUCTS.find(
-    (b) => b.aliases && b.aliases.some((a) => a.toLowerCase() === clean)
+    (b) => b.aliases && b.aliases.some((a: string) => a.toLowerCase() === clean)
   );
   if (aliasMatch) return aliasMatch;
 

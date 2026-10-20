@@ -1,4 +1,5 @@
 import { COMPETITOR_CATEGORIES } from '@/lib/categories';
+import type { BundleProduct, OrderBumpItem } from '@/types';
 
 export const CATEGORIES = COMPETITOR_CATEGORIES;
 

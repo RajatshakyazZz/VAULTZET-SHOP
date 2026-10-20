@@ -36,6 +36,7 @@ try {
 }
 
 export { app, db, auth };
+export const getFirebaseDb = () => db;
 
 export interface StoreOrder {
   id?: string;

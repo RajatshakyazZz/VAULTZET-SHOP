@@ -17,6 +17,8 @@ import {
 import {
   ResellerProfile,
   ResellerListing,
+  ListingStatus,
+  ListingThemePreset,
   WalletAccount,
   WalletTransaction,
   WithdrawalRequest,
@@ -26,6 +28,28 @@ import {
   ResellerProductAnalytics,
 } from '@/types/reseller';
 import { BUNDLE_PRODUCTS } from '@/data/bundles';
+
+// In-memory fallback store for offline, tests, and server environments
+const memoryStore = new Map<string, string>();
+
+export function getLocalOrMemoryItem(key: string): string | null {
+  if (typeof window !== 'undefined' && window.localStorage) {
+    try {
+      const val = localStorage.getItem(key);
+      if (val !== null) return val;
+    } catch {}
+  }
+  return memoryStore.get(key) || null;
+}
+
+export function setLocalOrMemoryItem(key: string, value: string): void {
+  if (typeof window !== 'undefined' && window.localStorage) {
+    try {
+      localStorage.setItem(key, value);
+    } catch {}
+  }
+  memoryStore.set(key, value);
+}
 
 // -----------------------------------------------------------------------------
 // ID GENERATORS & VALIDATORS
@@ -307,11 +331,19 @@ export interface CreateListingInput {
   resellerName: string;
   originalProductId: string;
   customTitle: string;
+  customHeadline?: string;
   customSubtitle?: string;
   customShortDescription?: string;
   customDescription?: string;
+  benefits?: string[];
+  features?: string[];
   coverImage?: string;
+  galleryImages?: string[];
+  ctaText?: string;
+  themePreset?: ListingThemePreset;
+  promoBadge?: string;
   resalePrice: number;
+  status?: ListingStatus;
 }
 
 export async function createResellerListing(input: CreateListingInput): Promise<ResellerListing> {
@@ -323,8 +355,16 @@ export async function createResellerListing(input: CreateListingInput): Promise<
   const basePrice = Number(originalProd.personalPrice);
   const resalePrice = Number(input.resalePrice);
 
+  if (isNaN(resalePrice) || resalePrice <= 0) {
+    throw new Error('Please enter a valid positive resale price');
+  }
+
   if (resalePrice <= basePrice) {
-    throw new Error(`Resale price (₹${resalePrice}) must be greater than base price (₹${basePrice})`);
+    throw new Error(`Resale price (₹${resalePrice}) must be greater than wholesale base price (₹${basePrice})`);
+  }
+
+  if (resalePrice > 10000000) {
+    throw new Error('Resale price exceeds platform maximum allowed limit');
   }
 
   const grossMargin = resalePrice - basePrice;
@@ -333,6 +373,14 @@ export async function createResellerListing(input: CreateListingInput): Promise<
   const now = new Date().toISOString();
 
   const profile = await getResellerProfile(input.userId);
+
+  const defaultBenefits = [
+    'Instant Google Drive Access directly after checkout',
+    '1080x1920 Full HD Vertical Format for Reels & Shorts',
+    'Trending Background Audios & Soundtracks Included',
+    'Zero Watermarks — 100% Commercial-Ready',
+    'Lifetime Cloud Download & Future Updates Included',
+  ];
 
   const listing: ResellerListing = {
     id: listingId,
@@ -346,13 +394,24 @@ export async function createResellerListing(input: CreateListingInput): Promise<
     resalePrice,
     grossMargin,
     customTitle: input.customTitle.trim(),
-    customSubtitle: input.customSubtitle?.trim() || '',
+    customHeadline: input.customHeadline?.trim() || originalProd.title,
+    customSubtitle: input.customSubtitle?.trim() || 'Premium Ready-to-Post HD Reels Bundle',
     customShortDescription: input.customShortDescription?.trim() || originalProd.shortDescription || '',
     customDescription: input.customDescription?.trim() || originalProd.description || '',
-    coverImage: input.coverImage || originalProd.featuredImage || '',
-    status: 'active',
+    benefits: input.benefits && input.benefits.length > 0 ? input.benefits : defaultBenefits,
+    features: input.features && input.features.length > 0 ? input.features : (originalProd.features || []),
+    coverImage: input.coverImage || originalProd.thumbnail || (originalProd as any).featuredImage || '',
+    galleryImages: input.galleryImages || (originalProd.galleryImages ? originalProd.galleryImages.slice(0, 4) : []),
+    ctaText: input.ctaText?.trim() || 'Download HD Bundle Now',
+    themePreset: input.themePreset || 'dark',
+    promoBadge: input.promoBadge?.trim() || '🔥 70% OFF TODAY',
+    status: input.status || 'active',
     viewsCount: 0,
+    uniqueVisitorsCount: 0,
+    ctaClicksCount: 0,
+    checkoutsInitiatedCount: 0,
     salesCount: 0,
+    refundsCount: 0,
     totalRevenue: 0,
     totalEarned: 0,
     createdAt: now,
@@ -370,28 +429,85 @@ export async function createResellerListing(input: CreateListingInput): Promise<
     }
   }
 
-  if (typeof window !== 'undefined') {
-    const listKey = `vaultzet_reseller_listings_${input.userId}`;
-    const existing: ResellerListing[] = JSON.parse(localStorage.getItem(listKey) || '[]');
-    existing.unshift(listing);
-    localStorage.setItem(listKey, JSON.stringify(existing));
-    localStorage.setItem(`vaultzet_r_slug_${slug}`, JSON.stringify(listing));
-  }
+  // Persist locally / in memory fallback
+  const listKey = `vaultzet_reseller_listings_${input.userId}`;
+  const existing: ResellerListing[] = JSON.parse(getLocalOrMemoryItem(listKey) || '[]');
+  existing.unshift(listing);
+  setLocalOrMemoryItem(listKey, JSON.stringify(existing));
+  setLocalOrMemoryItem(`vaultzet_r_slug_${slug}`, JSON.stringify(listing));
+  setLocalOrMemoryItem(`vaultzet_r_id_${listingId}`, JSON.stringify(listing));
 
   return listing;
 }
 
-export async function getResellerListingBySlug(slug: string): Promise<ResellerListing | null> {
+export async function getResellerListingById(listingId: string): Promise<ResellerListing | null> {
+  if (!listingId) return null;
+
+  if (db) {
+    try {
+      const snap = await getDoc(doc(db as Firestore, 'reseller_listings', listingId));
+      if (snap.exists()) {
+        return snap.data() as ResellerListing;
+      }
+    } catch (err) {
+      console.warn('Error fetching listing by ID from Firestore:', err);
+    }
+  }
+
+  const saved = getLocalOrMemoryItem(`vaultzet_r_id_${listingId}`);
+  if (saved) {
+    try {
+      return JSON.parse(saved);
+    } catch {}
+  }
+
+  // Search across user listings in localStorage and memoryStore
+  if (typeof window !== 'undefined' && window.localStorage) {
+    for (let i = 0; i < localStorage.length; i++) {
+      const key = localStorage.key(i);
+      if (key && key.startsWith('vaultzet_reseller_listings_')) {
+        try {
+          const list: ResellerListing[] = JSON.parse(localStorage.getItem(key) || '[]');
+          const found = list.find((item) => item.id === listingId);
+          if (found) return found;
+        } catch {}
+      }
+    }
+  }
+
+  for (const [key, value] of memoryStore.entries()) {
+    if (key.startsWith('vaultzet_reseller_listings_')) {
+      try {
+        const list: ResellerListing[] = JSON.parse(value || '[]');
+        const found = list.find((item) => item.id === listingId);
+        if (found) return found;
+      } catch {}
+    }
+  }
+
+  return null;
+}
+
+export async function getResellerListingBySlug(
+  slug: string,
+  allowAnyStatus: boolean = false
+): Promise<ResellerListing | null> {
   if (!slug) return null;
   const cleanSlug = slug.trim();
 
   if (db) {
     try {
-      const q = query(
+      let q = query(
         collection(db as Firestore, 'reseller_listings'),
-        where('slug', '==', cleanSlug),
-        where('status', '==', 'active')
+        where('slug', '==', cleanSlug)
       );
+      if (!allowAnyStatus) {
+        q = query(
+          collection(db as Firestore, 'reseller_listings'),
+          where('slug', '==', cleanSlug),
+          where('status', '==', 'active')
+        );
+      }
       const snap = await getDocs(q);
       if (!snap.empty) {
         return snap.docs[0].data() as ResellerListing;
@@ -401,14 +517,12 @@ export async function getResellerListingBySlug(slug: string): Promise<ResellerLi
     }
   }
 
-  if (typeof window !== 'undefined') {
-    const saved = localStorage.getItem(`vaultzet_r_slug_${cleanSlug}`);
-    if (saved) {
-      try {
-        const parsed = JSON.parse(saved);
-        if (parsed.status === 'active') return parsed;
-      } catch {}
-    }
+  const saved = getLocalOrMemoryItem(`vaultzet_r_slug_${cleanSlug}`);
+  if (saved) {
+    try {
+      const parsed = JSON.parse(saved);
+      if (allowAnyStatus || parsed.status === 'active') return parsed;
+    } catch {}
   }
 
   return null;
@@ -426,6 +540,7 @@ export async function getResellerListings(userId: string): Promise<ResellerListi
       const snap = await getDocs(q);
       if (!snap.empty) {
         const list = snap.docs.map((d) => d.data() as ResellerListing);
+        // Exclude archived by default in active views
         return list.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
       }
     } catch (err) {
@@ -433,14 +548,12 @@ export async function getResellerListings(userId: string): Promise<ResellerListi
     }
   }
 
-  if (typeof window !== 'undefined') {
-    const listKey = `vaultzet_reseller_listings_${userId}`;
-    const existing = localStorage.getItem(listKey);
-    if (existing) {
-      try {
-        return JSON.parse(existing);
-      } catch {}
-    }
+  const listKey = `vaultzet_reseller_listings_${userId}`;
+  const existing = getLocalOrMemoryItem(listKey);
+  if (existing) {
+    try {
+      return JSON.parse(existing);
+    } catch {}
   }
 
   return [];
@@ -454,30 +567,147 @@ export async function updateResellerListing(
   updates: Partial<ResellerListing>
 ): Promise<boolean> {
   const now = new Date().toISOString();
+
+  // Load existing listing to verify ownership and immutable invariants
+  const existing = await getResellerListingById(listingId);
+  if (!existing) {
+    throw new Error('Listing not found');
+  }
+
+  if (existing.resellerId !== userId) {
+    throw new Error('Unauthorized: You can only edit your own listings');
+  }
+
+  // Sanitize updates: protect immutable fields
+  const safeUpdates: Partial<ResellerListing> = { ...updates };
+  delete (safeUpdates as any).id;
+  delete (safeUpdates as any).slug;
+  delete (safeUpdates as any).resellerId;
+  delete (safeUpdates as any).resellerUid;
+  delete (safeUpdates as any).originalProductId;
+  delete (safeUpdates as any).originalProductSlug;
+  delete (safeUpdates as any).basePrice;
+  delete (safeUpdates as any).createdAt;
+
+  // Revalidate price if updated
+  if (safeUpdates.resalePrice !== undefined) {
+    const newPrice = Number(safeUpdates.resalePrice);
+    if (isNaN(newPrice) || newPrice <= 0) {
+      throw new Error('Please enter a valid positive resale price');
+    }
+    if (newPrice <= existing.basePrice) {
+      throw new Error(`Resale price (₹${newPrice}) must be greater than base price (₹${existing.basePrice})`);
+    }
+    if (newPrice > 10000000) {
+      throw new Error('Resale price exceeds maximum allowed limit');
+    }
+    safeUpdates.resalePrice = newPrice;
+    safeUpdates.grossMargin = newPrice - existing.basePrice;
+  }
+
   if (db) {
     try {
       await updateDoc(doc(db as Firestore, 'reseller_listings', listingId), {
-        ...updates,
+        ...safeUpdates,
         updatedAt: now,
       });
-      return true;
     } catch (err) {
       console.warn('Error updating listing in Firestore:', err);
     }
   }
 
-  if (typeof window !== 'undefined') {
-    const listKey = `vaultzet_reseller_listings_${userId}`;
-    const list: ResellerListing[] = JSON.parse(localStorage.getItem(listKey) || '[]');
-    const idx = list.findIndex((l) => l.id === listingId);
-    if (idx !== -1) {
-      list[idx] = { ...list[idx], ...updates, updatedAt: now };
-      localStorage.setItem(listKey, JSON.stringify(list));
-      localStorage.setItem(`vaultzet_r_slug_${list[idx].slug}`, JSON.stringify(list[idx]));
-      return true;
+  const listKey = `vaultzet_reseller_listings_${userId}`;
+  const list: ResellerListing[] = JSON.parse(getLocalOrMemoryItem(listKey) || '[]');
+  const idx = list.findIndex((l) => l.id === listingId);
+  if (idx !== -1) {
+    list[idx] = { ...list[idx], ...safeUpdates, updatedAt: now };
+    setLocalOrMemoryItem(listKey, JSON.stringify(list));
+    setLocalOrMemoryItem(`vaultzet_r_slug_${list[idx].slug}`, JSON.stringify(list[idx]));
+    setLocalOrMemoryItem(`vaultzet_r_id_${listingId}`, JSON.stringify(list[idx]));
+  } else {
+    const byId = getLocalOrMemoryItem(`vaultzet_r_id_${listingId}`);
+    if (byId) {
+      try {
+        const parsed = JSON.parse(byId);
+        const updated = { ...parsed, ...safeUpdates, updatedAt: now };
+        setLocalOrMemoryItem(`vaultzet_r_id_${listingId}`, JSON.stringify(updated));
+        setLocalOrMemoryItem(`vaultzet_r_slug_${updated.slug}`, JSON.stringify(updated));
+      } catch {}
     }
   }
+
+  return true;
+}
+
+export async function archiveResellerListing(listingId: string, userId: string): Promise<boolean> {
+  return updateResellerListing(listingId, userId, { status: 'archived' });
+}
+
+export async function trackResellerListingEvent(
+  slug: string,
+  eventType: 'page_view' | 'cta_click' | 'checkout_initiate',
+  isUniqueVisitor: boolean = false
+): Promise<boolean> {
+  if (!slug) return false;
+  const listing = await getResellerListingBySlug(slug, true);
+  if (!listing) return false;
+
+  const now = new Date().toISOString();
+
+  if (db) {
+    try {
+      const updatePayload: Record<string, any> = { updatedAt: now };
+      if (eventType === 'page_view') {
+        updatePayload.viewsCount = increment(1);
+        if (isUniqueVisitor) {
+          updatePayload.uniqueVisitorsCount = increment(1);
+        }
+      } else if (eventType === 'cta_click') {
+        updatePayload.ctaClicksCount = increment(1);
+      } else if (eventType === 'checkout_initiate') {
+        updatePayload.checkoutsInitiatedCount = increment(1);
+      }
+      await updateDoc(doc(db as Firestore, 'reseller_listings', listing.id), updatePayload);
+      return true;
+    } catch (err) {
+      console.warn('Error incrementing listing event:', err);
+    }
+  }
+
+  const saved = getLocalOrMemoryItem(`vaultzet_r_slug_${slug}`);
+  if (saved) {
+    try {
+      const item: ResellerListing = JSON.parse(saved);
+      if (eventType === 'page_view') {
+        item.viewsCount = (item.viewsCount || 0) + 1;
+        if (isUniqueVisitor) {
+          item.uniqueVisitorsCount = (item.uniqueVisitorsCount || 0) + 1;
+        }
+      } else if (eventType === 'cta_click') {
+        item.ctaClicksCount = (item.ctaClicksCount || 0) + 1;
+      } else if (eventType === 'checkout_initiate') {
+        item.checkoutsInitiatedCount = (item.checkoutsInitiatedCount || 0) + 1;
+      }
+      item.updatedAt = now;
+      setLocalOrMemoryItem(`vaultzet_r_slug_${slug}`, JSON.stringify(item));
+      setLocalOrMemoryItem(`vaultzet_r_id_${item.id}`, JSON.stringify(item));
+      return true;
+    } catch {}
+  }
+
   return false;
+}
+
+export function generateShareText(listing: ResellerListing, baseUrl: string): string {
+  const url = `${baseUrl.replace(/\/+$/, '')}/r/${listing.slug}`;
+  const headline = listing.customHeadline || listing.customTitle;
+  const badge = listing.promoBadge ? `${listing.promoBadge} ` : '';
+  return `⚡ ${badge}*${listing.customTitle}*\n\n${headline}\n\n🏷️ Instant Download Price: ₹${listing.resalePrice} only!\n📁 Delivery: Instant Google Drive link with lifetime HD MP4 access.\n\n👉 Get it here now:\n${url}`;
+}
+
+export function getWhatsAppShareUrl(listing: ResellerListing, baseUrl: string): string {
+  const text = generateShareText(listing, baseUrl);
+  return `https://api.whatsapp.com/send?text=${encodeURIComponent(text)}`;
 }
 
 // -----------------------------------------------------------------------------

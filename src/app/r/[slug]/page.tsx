@@ -12,20 +12,30 @@ export const dynamic = 'force-dynamic';
 
 export async function generateMetadata({ params }: ResellerPageProps): Promise<Metadata> {
   const { slug } = await params;
-  const listing = await getResellerListingBySlug(slug);
+  const listing = await getResellerListingBySlug(slug, true);
 
-  if (!listing || listing.status !== 'active') {
+  if (!listing || listing.status === 'archived') {
     return {
-      title: 'Product Unavailable | Vaultzet Store',
+      title: 'Product Not Found | Vaultzet Store',
       description: 'The requested product listing is currently unavailable.',
+      robots: { index: false, follow: false },
+    };
+  }
+
+  if (listing.status !== 'active') {
+    return {
+      title: `${listing.customTitle} (Unavailable) | Vaultzet Store`,
+      description: 'This product listing is temporarily paused by the seller.',
       robots: { index: false, follow: false },
     };
   }
 
   const siteUrl = (process.env.NEXT_PUBLIC_SITE_URL || 'https://vaultzet.shop').replace(/\/+$/, '');
   const canonicalUrl = `${siteUrl}/r/${listing.slug}`;
-  const title = `${listing.customTitle} — Instant Download`;
-  const description = listing.customShortDescription || `Download ${listing.customTitle} in HD vertical MP4 format with instant Google Drive access.`;
+  const title = `${listing.customHeadline || listing.customTitle} — Instant Download`;
+  const description =
+    listing.customShortDescription ||
+    `Download ${listing.customTitle} in 1080x1920 HD vertical MP4 format with instant Google Drive access.`;
   const imageUrl = listing.coverImage || `${siteUrl}/icon.png`;
 
   return {
@@ -60,9 +70,9 @@ export async function generateMetadata({ params }: ResellerPageProps): Promise<M
 
 export default async function ResellerPublicLandingPage({ params }: ResellerPageProps) {
   const { slug } = await params;
-  const listing = await getResellerListingBySlug(slug);
+  const listing = await getResellerListingBySlug(slug, true);
 
-  if (!listing || listing.status !== 'active') {
+  if (!listing || listing.status === 'archived') {
     notFound();
   }
 

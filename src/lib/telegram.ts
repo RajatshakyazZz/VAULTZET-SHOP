@@ -241,9 +241,10 @@ export async function sendSaleSuccessTelegramAlert(data: OrderAlertData): Promis
   const itemsWithLinks =
     items.length > 0
       ? items.map((it) => {
+          const itAny = it as any;
           const filesList: Array<{ id?: string; name: string; file_url?: string; url?: string }> =
-            Array.isArray(it.files) && it.files.length > 0
-              ? it.files
+            Array.isArray(itAny.files) && itAny.files.length > 0
+              ? itAny.files
               : [{ name: it.title || 'Google Drive Access', file_url: resolveDriveLinkForItem(it) }];
 
           return {

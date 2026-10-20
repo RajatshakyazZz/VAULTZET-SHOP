@@ -1,6 +1,7 @@
 export type ResellerStatus = 'active' | 'suspended' | 'pending';
 export type PayoutMethod = 'upi' | 'bank';
-export type ListingStatus = 'active' | 'paused' | 'suspended' | 'rejected';
+export type ListingStatus = 'active' | 'paused' | 'suspended' | 'archived' | 'rejected';
+export type ListingThemePreset = 'dark' | 'midnight' | 'neon' | 'sunset' | 'emerald' | 'minimal';
 
 export interface PayoutDetails {
   upiId?: string;
@@ -54,13 +55,24 @@ export interface ResellerListing {
   resalePrice: number;
   grossMargin: number;
   customTitle: string;
+  customHeadline?: string;
   customSubtitle?: string;
   customShortDescription?: string;
   customDescription?: string;
+  benefits?: string[];
+  features?: string[];
   coverImage?: string;
+  galleryImages?: string[];
+  ctaText?: string;
+  themePreset?: ListingThemePreset;
+  promoBadge?: string;
   status: ListingStatus;
   viewsCount: number;
+  uniqueVisitorsCount?: number;
+  ctaClicksCount?: number;
+  checkoutsInitiatedCount?: number;
   salesCount: number;
+  refundsCount?: number;
   totalRevenue: number;
   totalEarned: number;
   createdAt: string;

@@ -14,7 +14,7 @@ export default function SelectProductToResellPage() {
     return (
       p.title.toLowerCase().includes(q) ||
       p.category.toLowerCase().includes(q) ||
-      (p.tags && p.tags.some((t) => t.toLowerCase().includes(q)))
+      (p.tags && p.tags.some((t: string) => t.toLowerCase().includes(q)))
     );
   });
 

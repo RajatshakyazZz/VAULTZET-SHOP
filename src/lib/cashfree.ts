@@ -297,7 +297,7 @@ export function verifyCashfreeWebhookSignature(
   rawBody: string,
   signature: string,
   timestamp: string,
-  secretKey: string
+  secretKey: string = process.env.CASHFREE_SECRET_KEY || ''
 ): boolean {
   if (!signature || !timestamp || !secretKey) return false;
   try {

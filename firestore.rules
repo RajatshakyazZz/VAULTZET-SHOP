@@ -162,16 +162,27 @@ rules_version = '2';
 //    - resalePrice: number (required, 0..10,000,000)
 //    - grossMargin: number (required, -10,000,000..10,000,000)
 //    - customTitle: string (required, 1..300 chars)
-//    - status: string (required, in ['active', 'paused', 'suspended', 'rejected'])
+//    - status: string (required, in ['active', 'paused', 'suspended', 'archived', 'rejected'])
 //    - id: string (optional, <= 100 chars)
 //    - resellerName: string (optional, <= 100 chars)
 //    - originalProductSlug: string (optional, <= 150 chars)
+//    - customHeadline: string (optional, <= 500 chars)
 //    - customSubtitle: string (optional, <= 500 chars)
 //    - customShortDescription: string (optional, <= 5000 chars)
 //    - customDescription: string (optional, <= 20000 chars)
 //    - coverImage: string (optional, <= 1000 chars)
+//    - galleryImages: list (optional, <= 10 items)
+//    - benefits: list (optional, <= 20 items)
+//    - features: list (optional, <= 20 items)
+//    - ctaText: string (optional, <= 100 chars)
+//    - themePreset: string (optional, in ['dark', 'midnight', 'neon', 'sunset', 'emerald', 'minimal'])
+//    - promoBadge: string (optional, <= 100 chars)
 //    - viewsCount: number (optional, 0..10,000,000)
+//    - uniqueVisitorsCount: number (optional, 0..10,000,000)
+//    - ctaClicksCount: number (optional, 0..10,000,000)
+//    - checkoutsInitiatedCount: number (optional, 0..10,000,000)
 //    - salesCount: number (optional, 0..10,000,000)
+//    - refundsCount: number (optional, 0..10,000,000)
 //    - totalRevenue: number (optional, 0..100,000,000)
 //    - totalEarned: number (optional, 0..100,000,000)
 //    - createdAt: string (optional, <= 100 chars)
@@ -581,7 +592,9 @@ service cloud.firestore {
           'id', 'slug', 'resellerId', 'resellerUid', 'resellerName', 'originalProductId', 'originalProductSlug',
           'basePrice', 'resalePrice', 'grossMargin', 'customTitle', 'customSubtitle',
           'customShortDescription', 'customDescription', 'coverImage', 'status',
-          'viewsCount', 'salesCount', 'totalRevenue', 'totalEarned', 'createdAt', 'updatedAt', 'firestoreCreatedAt'
+          'viewsCount', 'salesCount', 'totalRevenue', 'totalEarned', 'createdAt', 'updatedAt', 'firestoreCreatedAt',
+          'customHeadline', 'benefits', 'features', 'galleryImages', 'ctaText', 'themePreset', 'promoBadge',
+          'uniqueVisitorsCount', 'ctaClicksCount', 'checkoutsInitiatedCount', 'refundsCount'
         ]) &&
         isValidString(data.slug, 1, 100) &&
         isValidString(data.resellerId, 1, 100) &&
@@ -600,13 +613,24 @@ service cloud.firestore {
         data.grossMargin <= 10000000 &&
         isValidString(data.customTitle, 1, 300) &&
         isValidOptionalString(data, 'id', 100) &&
+        isValidOptionalString(data, 'customHeadline', 500) &&
         isValidOptionalString(data, 'customSubtitle', 500) &&
         isValidOptionalString(data, 'customShortDescription', 5000) &&
         isValidOptionalString(data, 'customDescription', 20000) &&
         isValidOptionalString(data, 'coverImage', 1000) &&
+        isValidOptionalList(data, 'benefits', 20) &&
+        isValidOptionalList(data, 'features', 20) &&
+        isValidOptionalList(data, 'galleryImages', 10) &&
+        isValidOptionalString(data, 'ctaText', 100) &&
+        (!('themePreset' in data) || data.themePreset in ['dark', 'midnight', 'neon', 'sunset', 'emerald', 'minimal']) &&
+        isValidOptionalString(data, 'promoBadge', 100) &&
         data.status is string &&
-        data.status in ['active', 'paused', 'suspended', 'rejected'] &&
+        data.status in ['active', 'paused', 'suspended', 'archived', 'rejected'] &&
         isValidOptionalNumber(data, 'viewsCount', 0, 10000000) &&
+        isValidOptionalNumber(data, 'uniqueVisitorsCount', 0, 10000000) &&
+        isValidOptionalNumber(data, 'ctaClicksCount', 0, 10000000) &&
+        isValidOptionalNumber(data, 'checkoutsInitiatedCount', 0, 10000000) &&
+        isValidOptionalNumber(data, 'refundsCount', 0, 10000000) &&
         isValidOptionalNumber(data, 'salesCount', 0, 10000000) &&
         isValidOptionalNumber(data, 'totalRevenue', 0, 100000000) &&
         isValidOptionalNumber(data, 'totalEarned', 0, 100000000) &&
