@@ -45,13 +45,13 @@ export default function ResellerProductsPage() {
   useEffect(() => {
     if (!user) return;
     loadListings();
-  }, [user]);
+  }, [user, profile?.resellerUid]);
 
   const loadListings = async () => {
     if (!user) return;
     setIsLoading(true);
     try {
-      const data = await getResellerListingsByUser(user.uid);
+      const data = await getResellerListingsByUser(user.uid, profile?.resellerUid);
       setListings(data);
     } catch (e) {
       console.warn('Error loading listings:', e);

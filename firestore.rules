@@ -145,7 +145,7 @@ rules_version = '2';
 //    - phone: string (optional, <= 30 chars)
 //    - status: string (optional, in ['active', 'suspended', 'pending'])
 //    - payoutMethod: string (optional, in ['upi', 'bank'])
-//    - payoutDetails: map (optional) -> { upiId?: string, accountHolderName?: string, accountNumber?: string, ifscCode?: string, bankName?: string }
+//    - payoutDetails: map (optional) -> { upiId?: string, accountHolderName?: string, accountNumber?: string, ifscCode?: string, bankName?: string, label?: string }
 //    - termsAccepted: bool (optional)
 //    - termsAcceptedAt: string (optional, <= 100 chars)
 //    - createdAt: string (optional, <= 100 chars)
@@ -310,12 +310,13 @@ service cloud.firestore {
 
     function isValidPayoutDetails(details) {
       return details is map &&
-        details.keys().hasOnly(['upiId', 'accountHolderName', 'accountNumber', 'ifscCode', 'bankName']) &&
+        details.keys().hasOnly(['upiId', 'accountHolderName', 'accountNumber', 'ifscCode', 'bankName', 'label']) &&
         isValidOptionalString(details, 'upiId', 100) &&
         isValidOptionalString(details, 'accountHolderName', 100) &&
         isValidOptionalString(details, 'accountNumber', 50) &&
         isValidOptionalString(details, 'ifscCode', 30) &&
-        isValidOptionalString(details, 'bankName', 100);
+        isValidOptionalString(details, 'bankName', 100) &&
+        isValidOptionalString(details, 'label', 100);
     }
 
     // ===============================================================

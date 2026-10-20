@@ -141,6 +141,8 @@ export function maskUpiId(upiId: string): string {
 
 export async function getResellerProfile(userId: string): Promise<ResellerProfile | null> {
   if (!userId) return null;
+
+  // 1. Check Firestore
   if (db) {
     try {
       const snap = await getDoc(doc(db as Firestore, 'reseller_profiles', userId));
@@ -151,7 +153,10 @@ export async function getResellerProfile(userId: string): Promise<ResellerProfil
           data.resellerUid = generateResellerUid();
           await updateDoc(doc(db as Firestore, 'reseller_profiles', userId), {
             resellerUid: data.resellerUid,
-          });
+          }).catch(() => {});
+        }
+        if (typeof window !== 'undefined') {
+          localStorage.setItem(`vaultzet_reseller_profile_${userId}`, JSON.stringify(data));
         }
         return data;
       }
@@ -160,7 +165,27 @@ export async function getResellerProfile(userId: string): Promise<ResellerProfil
     }
   }
 
-  // Local storage fallback for resilient offline / demo usage
+  // 2. Query Server API for cross-device synchronization
+  if (typeof window !== 'undefined') {
+    try {
+      const res = await fetch(`/api/reseller/profile?userId=${encodeURIComponent(userId)}`);
+      if (res.ok) {
+        const json = await res.json();
+        if (json.success && json.profile) {
+          localStorage.setItem(`vaultzet_reseller_profile_${userId}`, JSON.stringify(json.profile));
+          return json.profile;
+        }
+      }
+    } catch {}
+  } else {
+    try {
+      const { serverFindResellerProfile } = await import('./serverResellerStore');
+      const p = await serverFindResellerProfile({ userId });
+      if (p) return p;
+    } catch {}
+  }
+
+  // 3. Local storage fallback for resilient offline / demo usage
   if (typeof window !== 'undefined') {
     const saved = localStorage.getItem(`vaultzet_reseller_profile_${userId}`);
     if (saved) {
@@ -174,6 +199,87 @@ export async function getResellerProfile(userId: string): Promise<ResellerProfil
       } catch {}
     }
   }
+
+  const memVal = memoryStore.get(`vaultzet_reseller_profile_${userId}`);
+  if (memVal) {
+    try {
+      return JSON.parse(memVal);
+    } catch {}
+  }
+
+  return null;
+}
+
+export async function getResellerProfileByEmail(email: string): Promise<ResellerProfile | null> {
+  const cleanEmail = String(email || '').toLowerCase().trim();
+  if (!cleanEmail) return null;
+
+  // 1. Query Firestore by normalized email
+  if (db) {
+    try {
+      const q = query(
+        collection(db as Firestore, 'reseller_profiles'),
+        where('email', '==', cleanEmail)
+      );
+      const snap = await getDocs(q);
+      if (!snap.empty) {
+        const data = snap.docs[0].data() as ResellerProfile;
+        if (typeof window !== 'undefined') {
+          localStorage.setItem(`vaultzet_reseller_profile_${data.userId}`, JSON.stringify(data));
+        }
+        return data;
+      }
+    } catch (err) {
+      console.warn('Error querying reseller by email from Firestore:', err);
+    }
+  }
+
+  // 2. Query Server API
+  if (typeof window !== 'undefined') {
+    try {
+      const res = await fetch(`/api/reseller/profile?email=${encodeURIComponent(cleanEmail)}`);
+      if (res.ok) {
+        const json = await res.json();
+        if (json.success && json.profile) {
+          localStorage.setItem(`vaultzet_reseller_profile_${json.profile.userId}`, JSON.stringify(json.profile));
+          return json.profile;
+        }
+      }
+    } catch {}
+  } else {
+    try {
+      const { serverFindResellerProfile } = await import('./serverResellerStore');
+      const p = await serverFindResellerProfile({ email: cleanEmail });
+      if (p) return p;
+    } catch {}
+  }
+
+  // 3. Local storage fallback
+  if (typeof window !== 'undefined' && window.localStorage) {
+    for (let i = 0; i < localStorage.length; i++) {
+      const key = localStorage.key(i);
+      if (key?.startsWith('vaultzet_reseller_profile_')) {
+        try {
+          const prof: ResellerProfile = JSON.parse(localStorage.getItem(key) || '{}');
+          if (prof.email?.toLowerCase().trim() === cleanEmail) {
+            return prof;
+          }
+        } catch {}
+      }
+    }
+  }
+
+  for (const [key, val] of memoryStore.entries()) {
+    if (key.startsWith('vaultzet_reseller_profile_')) {
+      try {
+        const prof: ResellerProfile = JSON.parse(val || '{}');
+        if (prof.email?.toLowerCase().trim() === cleanEmail) {
+          return prof;
+        }
+      } catch {}
+    }
+  }
+
   return null;
 }
 
@@ -193,6 +299,19 @@ export async function getResellerProfileByUid(resellerUid: string): Promise<Rese
     }
   }
 
+  // Server API
+  if (typeof window !== 'undefined') {
+    try {
+      const res = await fetch(`/api/reseller/profile?resellerUid=${encodeURIComponent(cleanUid)}`);
+      if (res.ok) {
+        const json = await res.json();
+        if (json.success && json.profile) {
+          return json.profile;
+        }
+      }
+    } catch {}
+  }
+
   // Local storage fallback
   if (typeof window !== 'undefined') {
     for (let i = 0; i < localStorage.length; i++) {
@@ -207,17 +326,75 @@ export async function getResellerProfileByUid(resellerUid: string): Promise<Rese
       }
     }
   }
+
+  for (const [key, val] of memoryStore.entries()) {
+    if (key.startsWith('vaultzet_reseller_profile_')) {
+      try {
+        const prof: ResellerProfile = JSON.parse(val || '{}');
+        if (prof.resellerUid?.toUpperCase() === cleanUid) {
+          return prof;
+        }
+      } catch {}
+    }
+  }
+
   return null;
+}
+
+/**
+ * Self-healing reconciliation: Re-binds an account to its canonical profile and permanent UID
+ */
+export async function reconcileResellerAccount(email: string, currentUserId: string): Promise<ResellerProfile | null> {
+  const cleanEmail = String(email || '').toLowerCase().trim();
+  if (!cleanEmail || !currentUserId) return null;
+
+  // 1. Look up existing profile by email across devices
+  const existing = await getResellerProfileByEmail(cleanEmail);
+  if (!existing) return null;
+
+  // If already bound to currentUserId, return it
+  if (existing.userId === currentUserId) return existing;
+
+  // Link currentUserId to canonical profile while strictly keeping existing.resellerUid
+  const reconciled = await createOrUpdateResellerProfile({
+    ...existing,
+    userId: currentUserId,
+    email: cleanEmail,
+    resellerUid: existing.resellerUid, // NEVER mutate permanent UID
+  });
+
+  // Notify server reconcile
+  if (typeof window !== 'undefined') {
+    try {
+      fetch('/api/reseller/profile', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'reconcile', userId: currentUserId, email: cleanEmail }),
+      }).catch(() => {});
+    } catch {}
+  }
+
+  return reconciled;
 }
 
 export async function createOrUpdateResellerProfile(
   profile: Partial<ResellerProfile> & { userId: string; email: string }
 ): Promise<ResellerProfile> {
   const now = new Date().toISOString();
-  const existing = await getResellerProfile(profile.userId);
+  const cleanEmail = profile.email.toLowerCase().trim();
 
-  // Permanent Reseller UID assignment: preserved for life, never changed
+  // 1. Lookup existing by userId first
+  let existing = await getResellerProfile(profile.userId);
+
+  // 2. If not found by userId, lookup existing by email to prevent duplicate accounts!
+  if (!existing && cleanEmail) {
+    existing = await getResellerProfileByEmail(cleanEmail);
+  }
+
+  // Permanent Reseller UID assignment: preserved for life, never changed across devices
   let assignedUid = existing?.resellerUid || profile.resellerUid;
+  const isBrandNew = !existing && !assignedUid;
+
   if (!assignedUid) {
     assignedUid = generateResellerUid();
     // Verify uniqueness in Firestore
@@ -238,13 +415,11 @@ export async function createOrUpdateResellerProfile(
     }
   }
 
-  const isBrandNew = !existing;
-
   const merged: ResellerProfile = {
     userId: profile.userId,
     resellerUid: assignedUid,
-    displayName: profile.displayName || existing?.displayName || profile.email.split('@')[0],
-    email: profile.email.toLowerCase().trim(),
+    displayName: profile.displayName || existing?.displayName || cleanEmail.split('@')[0],
+    email: cleanEmail,
     phone: profile.phone || existing?.phone || '',
     status: existing?.status || 'active',
     payoutMethod: profile.payoutMethod || existing?.payoutMethod || 'upi',
@@ -283,29 +458,41 @@ export async function createOrUpdateResellerProfile(
     }
   }
 
+  // Cross-device sync via Server API
   if (typeof window !== 'undefined') {
-    localStorage.setItem(`vaultzet_reseller_profile_${profile.userId}`, JSON.stringify(merged));
-    const walletKey = `vaultzet_wallet_${profile.userId}`;
-    if (!localStorage.getItem(walletKey)) {
-      localStorage.setItem(
-        walletKey,
-        JSON.stringify({
-          resellerId: profile.userId,
-          resellerUid: assignedUid,
-          availableBalance: 0,
-          pendingBalance: 0,
-          totalEarned: 0,
-          totalWithdrawn: 0,
-          updatedAt: now,
-        })
-      );
-    }
+    fetch('/api/reseller/profile', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(merged),
+    }).catch(() => {});
+  } else {
+    try {
+      const { serverSaveResellerProfile } = await import('./serverResellerStore');
+      await serverSaveResellerProfile(merged);
+    } catch {}
+  }
+
+  // Local & Memory persistence
+  setLocalOrMemoryItem(`vaultzet_reseller_profile_${profile.userId}`, JSON.stringify(merged));
+  const walletKey = `vaultzet_wallet_${profile.userId}`;
+  if (!getLocalOrMemoryItem(walletKey)) {
+    setLocalOrMemoryItem(
+      walletKey,
+      JSON.stringify({
+        resellerId: profile.userId,
+        resellerUid: assignedUid,
+        availableBalance: 0,
+        pendingBalance: 0,
+        totalEarned: 0,
+        totalWithdrawn: 0,
+        updatedAt: now,
+      })
+    );
   }
 
   // Trigger server alert if brand new registration
   if (isBrandNew) {
     try {
-      // Call server endpoint or alert dispatcher asynchronously
       if (typeof window !== 'undefined') {
         fetch('/api/reseller/register-alert', {
           method: 'POST',
@@ -313,7 +500,6 @@ export async function createOrUpdateResellerProfile(
           body: JSON.stringify({ userId: profile.userId, resellerUid: assignedUid }),
         }).catch(() => {});
       } else {
-        // Server side: invoke directly
         import('@/lib/telegramReseller').then((m) => m.sendNewResellerTelegramAlert(merged)).catch(() => {});
       }
     } catch {}
@@ -373,6 +559,11 @@ export async function createResellerListing(input: CreateListingInput): Promise<
   const now = new Date().toISOString();
 
   const profile = await getResellerProfile(input.userId);
+  let assignedResellerUid = profile?.resellerUid || '';
+  if (!assignedResellerUid && profile?.email) {
+    const profByEmail = await getResellerProfileByEmail(profile.email);
+    assignedResellerUid = profByEmail?.resellerUid || '';
+  }
 
   const defaultBenefits = [
     'Instant Google Drive Access directly after checkout',
@@ -386,7 +577,7 @@ export async function createResellerListing(input: CreateListingInput): Promise<
     id: listingId,
     slug,
     resellerId: input.userId,
-    resellerUid: profile?.resellerUid || '',
+    resellerUid: assignedResellerUid,
     resellerName: input.resellerName,
     originalProductId: originalProd.id,
     originalProductSlug: originalProd.slug,
@@ -427,6 +618,20 @@ export async function createResellerListing(input: CreateListingInput): Promise<
     } catch (err) {
       console.warn('Could not save listing to Firestore:', err);
     }
+  }
+
+  // Cross-device sync via Server API
+  if (typeof window !== 'undefined') {
+    fetch('/api/reseller/listings', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(listing),
+    }).catch(() => {});
+  } else {
+    try {
+      const { serverSaveResellerListing } = await import('./serverResellerStore');
+      await serverSaveResellerListing(listing);
+    } catch {}
   }
 
   // Persist locally / in memory fallback
@@ -528,35 +733,142 @@ export async function getResellerListingBySlug(
   return null;
 }
 
-export async function getResellerListings(userId: string): Promise<ResellerListing[]> {
-  if (!userId) return [];
+export async function getResellerListings(
+  userId: string,
+  targetResellerUid?: string
+): Promise<ResellerListing[]> {
+  if (!userId && !targetResellerUid) return [];
 
-  if (db) {
+  const listingsMap = new Map<string, ResellerListing>();
+
+  // Determine targetUid if not explicitly provided
+  let resellerUid = targetResellerUid;
+  if (!resellerUid && userId) {
+    const prof = await getResellerProfile(userId);
+    if (prof?.resellerUid) {
+      resellerUid = prof.resellerUid;
+    }
+  }
+
+  // 1. Query Firestore by resellerId
+  if (db && userId) {
     try {
       const q = query(
         collection(db as Firestore, 'reseller_listings'),
         where('resellerId', '==', userId)
       );
       const snap = await getDocs(q);
-      if (!snap.empty) {
-        const list = snap.docs.map((d) => d.data() as ResellerListing);
-        // Exclude archived by default in active views
-        return list.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
-      }
+      snap.forEach((d) => {
+        const item = d.data() as ResellerListing;
+        listingsMap.set(item.id, item);
+      });
     } catch (err) {
-      console.warn('Error fetching listings from Firestore:', err);
+      console.warn('Error fetching listings by userId from Firestore:', err);
     }
   }
 
-  const listKey = `vaultzet_reseller_listings_${userId}`;
-  const existing = getLocalOrMemoryItem(listKey);
-  if (existing) {
+  // 2. Query Firestore by resellerUid (preserves products across device logins / session ID changes!)
+  if (db && resellerUid) {
     try {
-      return JSON.parse(existing);
+      const q = query(
+        collection(db as Firestore, 'reseller_listings'),
+        where('resellerUid', '==', resellerUid)
+      );
+      const snap = await getDocs(q);
+      snap.forEach((d) => {
+        const item = d.data() as ResellerListing;
+        listingsMap.set(item.id, item);
+      });
+    } catch (err) {
+      console.warn('Error fetching listings by resellerUid from Firestore:', err);
+    }
+  }
+
+  // 3. Query Server API for cross-device persistence
+  if (typeof window !== 'undefined') {
+    try {
+      const res = await fetch(
+        `/api/reseller/listings?userId=${encodeURIComponent(userId || '')}&resellerUid=${encodeURIComponent(
+          resellerUid || ''
+        )}`
+      );
+      if (res.ok) {
+        const json = await res.json();
+        if (json.success && Array.isArray(json.listings)) {
+          json.listings.forEach((item: ResellerListing) => {
+            listingsMap.set(item.id, item);
+          });
+        }
+      }
+    } catch {}
+  } else {
+    try {
+      const { serverGetResellerListings } = await import('./serverResellerStore');
+      const items = await serverGetResellerListings({ userId, resellerUid });
+      items.forEach((item) => listingsMap.set(item.id, item));
     } catch {}
   }
 
-  return [];
+  // 4. Local storage fallback
+  if (userId) {
+    const listKey = `vaultzet_reseller_listings_${userId}`;
+    const existing = getLocalOrMemoryItem(listKey);
+    if (existing) {
+      try {
+        const parsed: ResellerListing[] = JSON.parse(existing);
+        parsed.forEach((item) => {
+          if (!listingsMap.has(item.id)) listingsMap.set(item.id, item);
+        });
+      } catch {}
+    }
+  }
+
+  // Also check memoryStore and all localStorage
+  if (typeof window !== 'undefined' && window.localStorage) {
+    for (let i = 0; i < localStorage.length; i++) {
+      const key = localStorage.key(i);
+      if (key?.startsWith('vaultzet_reseller_listings_')) {
+        try {
+          const list: ResellerListing[] = JSON.parse(localStorage.getItem(key) || '[]');
+          list.forEach((item) => {
+            if (
+              (userId && item.resellerId === userId) ||
+              (resellerUid && item.resellerUid === resellerUid)
+            ) {
+              if (!listingsMap.has(item.id)) listingsMap.set(item.id, item);
+            }
+          });
+        } catch {}
+      }
+    }
+  }
+
+  for (const [key, value] of memoryStore.entries()) {
+    if (key.startsWith('vaultzet_reseller_listings_')) {
+      try {
+        const list: ResellerListing[] = JSON.parse(value || '[]');
+        list.forEach((item) => {
+          if (
+            (userId && item.resellerId === userId) ||
+            (resellerUid && item.resellerUid === resellerUid)
+          ) {
+            if (!listingsMap.has(item.id)) listingsMap.set(item.id, item);
+          }
+        });
+      } catch {}
+    }
+  }
+
+  const results = Array.from(listingsMap.values()).sort(
+    (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+  );
+
+  // Warm local cache with complete listings
+  if (userId && results.length > 0) {
+    setLocalOrMemoryItem(`vaultzet_reseller_listings_${userId}`, JSON.stringify(results));
+  }
+
+  return results;
 }
 
 export const getResellerListingsByUser = getResellerListings;
@@ -732,6 +1044,19 @@ export async function getResellerWallet(userId: string): Promise<WalletAccount> 
       if (snap.exists()) {
         return snap.data() as WalletAccount;
       }
+
+      // Cross-device query by resellerUid if user profile has one
+      const prof = await getResellerProfile(userId);
+      if (prof?.resellerUid) {
+        const q = query(
+          collection(db as Firestore, 'wallet_accounts'),
+          where('resellerUid', '==', prof.resellerUid)
+        );
+        const uSnap = await getDocs(q);
+        if (!uSnap.empty) {
+          return uSnap.docs[0].data() as WalletAccount;
+        }
+      }
     } catch (err) {
       console.warn('Error getting wallet from Firestore:', err);
     }
@@ -744,22 +1069,67 @@ export async function getResellerWallet(userId: string): Promise<WalletAccount> 
     } catch {}
   }
 
+  // Cross-search storage for wallet with matching resellerUid
+  const prof = await getResellerProfile(userId);
+  if (prof?.resellerUid) {
+    if (typeof window !== 'undefined' && window.localStorage) {
+      for (let i = 0; i < localStorage.length; i++) {
+        const key = localStorage.key(i);
+        if (key?.startsWith('vaultzet_wallet_')) {
+          try {
+            const w: WalletAccount = JSON.parse(localStorage.getItem(key) || '{}');
+            if (w.resellerUid === prof.resellerUid) {
+              return w;
+            }
+          } catch {}
+        }
+      }
+    }
+
+    for (const [key, val] of memoryStore.entries()) {
+      if (key.startsWith('vaultzet_wallet_')) {
+        try {
+          const w: WalletAccount = JSON.parse(val || '{}');
+          if (w.resellerUid === prof.resellerUid) {
+            return w;
+          }
+        } catch {}
+      }
+    }
+  }
+
   return defaultWallet;
 }
 
 export async function getResellerTransactions(userId: string): Promise<WalletTransaction[]> {
   if (!userId) return [];
 
+  const txMap = new Map<string, WalletTransaction>();
+  const prof = await getResellerProfile(userId);
+  const targetUid = prof?.resellerUid;
+
   if (db) {
     try {
-      const q = query(
+      const qUser = query(
         collection(db as Firestore, 'wallet_transactions'),
         where('resellerId', '==', userId)
       );
-      const snap = await getDocs(q);
-      if (!snap.empty) {
-        const list = snap.docs.map((d) => d.data() as WalletTransaction);
-        return list.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+      const snapUser = await getDocs(qUser);
+      snapUser.forEach((d) => {
+        const item = d.data() as WalletTransaction;
+        txMap.set(item.id, item);
+      });
+
+      if (targetUid) {
+        const qUid = query(
+          collection(db as Firestore, 'wallet_transactions'),
+          where('resellerUid', '==', targetUid)
+        );
+        const snapUid = await getDocs(qUid);
+        snapUid.forEach((d) => {
+          const item = d.data() as WalletTransaction;
+          txMap.set(item.id, item);
+        });
       }
     } catch (err) {
       console.warn('Error fetching wallet transactions from Firestore:', err);
@@ -769,11 +1139,16 @@ export async function getResellerTransactions(userId: string): Promise<WalletTra
   const saved = getLocalOrMemoryItem(`vaultzet_transactions_${userId}`);
   if (saved) {
     try {
-      return JSON.parse(saved);
+      const items: WalletTransaction[] = JSON.parse(saved);
+      items.forEach((item) => {
+        if (!txMap.has(item.id)) txMap.set(item.id, item);
+      });
     } catch {}
   }
 
-  return [];
+  return Array.from(txMap.values()).sort(
+    (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+  );
 }
 
 export async function recordSaleEarning(params: {
@@ -1540,53 +1915,79 @@ export async function updateWithdrawalStatus(params: {
 export async function getResellerAttributedOrders(userId: string): Promise<AttributedOrder[]> {
   if (!userId) return [];
 
+  const ordersMap = new Map<string, AttributedOrder>();
+  const prof = await getResellerProfile(userId);
+  const targetUid = prof?.resellerUid;
+
+  const mapDocToAttributedOrder = (d: any): AttributedOrder => {
+    const data = typeof d.data === 'function' ? d.data() : d;
+    const docId = d.id || data.orderId || data.id;
+    const item0 = data.items?.[0] || {};
+    return {
+      orderId: docId,
+      orderNumber: data.orderNumber || docId,
+      resellerId: data.reseller_id,
+      resellerUid: data.reseller_uid || '',
+      listingId: data.reseller_listing_id || '',
+      listingSlug: data.reseller_slug || '',
+      originalProductId: item0.id || '',
+      productTitle: item0.title || 'Viral Reels Bundle',
+      basePrice: data.base_price_snapshot || 0,
+      resalePrice: data.resale_price_snapshot || data.totalAmount || 0,
+      earningAmount: data.reseller_earning || 0,
+      customerName: data.customer?.fullName || 'Customer',
+      customerEmail: data.customer?.email || '',
+      customerPhone: data.customer?.phone || '',
+      orderStatus: data.status || 'pending',
+      earningStatus: data.status === 'completed' ? 'available' : 'pending',
+      createdAt: data.timestampIso || new Date().toISOString(),
+      paidAt: data.status === 'completed' ? data.timestampIso : undefined,
+    };
+  };
+
   if (db) {
     try {
-      const q = query(
+      const qUser = query(
         collection(db as Firestore, 'orders'),
         where('reseller_id', '==', userId)
       );
-      const snap = await getDocs(q);
-      if (!snap.empty) {
-        const list: AttributedOrder[] = snap.docs.map((d) => {
-          const data = d.data();
-          const item0 = data.items?.[0] || {};
-          return {
-            orderId: d.id,
-            orderNumber: data.orderNumber || d.id,
-            resellerId: data.reseller_id,
-            resellerUid: data.reseller_uid || '',
-            listingId: data.reseller_listing_id || '',
-            listingSlug: data.reseller_slug || '',
-            originalProductId: item0.id || '',
-            productTitle: item0.title || 'Viral Reels Bundle',
-            basePrice: data.base_price_snapshot || 0,
-            resalePrice: data.resale_price_snapshot || data.totalAmount || 0,
-            earningAmount: data.reseller_earning || 0,
-            customerName: data.customer?.fullName || 'Customer',
-            customerEmail: data.customer?.email || '',
-            customerPhone: data.customer?.phone || '',
-            orderStatus: data.status || 'pending',
-            earningStatus: data.status === 'completed' ? 'available' : 'pending',
-            createdAt: data.timestampIso || new Date().toISOString(),
-            paidAt: data.status === 'completed' ? data.timestampIso : undefined,
-          };
+      const snapUser = await getDocs(qUser);
+      snapUser.forEach((d) => {
+        const item = mapDocToAttributedOrder(d);
+        ordersMap.set(item.orderId, item);
+      });
+
+      if (targetUid) {
+        const qUid = query(
+          collection(db as Firestore, 'orders'),
+          where('reseller_uid', '==', targetUid)
+        );
+        const snapUid = await getDocs(qUid);
+        snapUid.forEach((d) => {
+          const item = mapDocToAttributedOrder(d);
+          ordersMap.set(item.orderId, item);
         });
-        return list.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
       }
     } catch (err) {
-      console.warn('Error fetching attributed orders:', err);
+      console.warn('Error fetching attributed orders from Firestore:', err);
     }
   }
 
   if (typeof window !== 'undefined') {
     try {
       const saved = localStorage.getItem(`vaultzet_attributed_orders_${userId}`);
-      if (saved) return JSON.parse(saved);
+      if (saved) {
+        const items: AttributedOrder[] = JSON.parse(saved);
+        items.forEach((item) => {
+          if (!ordersMap.has(item.orderId)) ordersMap.set(item.orderId, item);
+        });
+      }
     } catch {}
   }
 
-  return [];
+  return Array.from(ordersMap.values()).sort(
+    (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+  );
 }
 
 // -----------------------------------------------------------------------------

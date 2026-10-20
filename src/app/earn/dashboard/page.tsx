@@ -45,7 +45,7 @@ export default function ResellerDashboardOverview() {
       try {
         const [w, l, o, t] = await Promise.all([
           getResellerWallet(user!.uid),
-          getResellerListingsByUser(user!.uid),
+          getResellerListingsByUser(user!.uid, profile?.resellerUid),
           getResellerAttributedOrders(user!.uid),
           getResellerTransactions(user!.uid),
         ]);
@@ -60,7 +60,7 @@ export default function ResellerDashboardOverview() {
       }
     }
     loadData();
-  }, [user]);
+  }, [user, profile?.resellerUid]);
 
   const copyToClipboard = (slug: string) => {
     const url = `${window.location.origin}/r/${slug}`;
