@@ -2,12 +2,17 @@ import { NextResponse } from 'next/server';
 import {
   TELEGRAM_BOT_TOKEN,
   OWNER_CHAT_ID,
+  AUTHORIZED_TELEGRAM_ADMINS,
   sendStoreCommandReport,
 } from '@/lib/telegram';
 import {
   isAuthorizedTelegramAdmin,
   handleAdminTelegramCommand,
 } from '@/lib/telegramReseller';
+import {
+  handleAdminPanelCallback,
+  handleAdminPanelMessage,
+} from '@/lib/telegramAdminPanel';
 
 async function answerCallbackQuery(callbackQueryId: string, text?: string) {
   try {
@@ -25,7 +30,7 @@ async function answerCallbackQuery(callbackQueryId: string, text?: string) {
 /**
  * POST /api/telegram/webhook
  * Receives live commands & button clicks from Telegram
- * Strictly authorized to configured Admin / Owner chat IDs
+ * Strictly authorized to configured Admin user IDs (5950203511 and 6206169480)
  */
 export async function POST(request: Request) {
   try {
@@ -43,16 +48,30 @@ export async function POST(request: Request) {
       const cb = update.callback_query;
       const fromId = String(cb.from?.id || '');
       const chatId = String(cb.message?.chat?.id || '');
+      const messageId = cb.message?.message_id;
 
       if (!isAuthorizedTelegramAdmin(fromId, chatId)) {
-        await answerCallbackQuery(cb.id, '⛔ Unauthorized: Admin only.');
+        await answerCallbackQuery(cb.id, '⛔ Unauthorized: Restricted to authorized administrators.');
         return NextResponse.json({ ok: true });
       }
 
       const action = String(cb.data || '');
+
+      // 1A. First pass to Interactive Admin Panel Callback Engine
+      const handledByPanel = await handleAdminPanelCallback(
+        action,
+        cb.id,
+        fromId,
+        chatId,
+        messageId
+      );
+      if (handledByPanel) {
+        return NextResponse.json({ ok: true });
+      }
+
       await answerCallbackQuery(cb.id);
 
-      // Reseller dynamic callbacks (e.g. reseller_RSL-..., products_RSL-..., wallet_RSL-...)
+      // 1B. Reseller legacy callbacks (e.g. reseller_RSL-..., products_RSL-..., wallet_RSL-...)
       if (action.startsWith('reseller_')) {
         const uid = action.replace('reseller_', '');
         await handleAdminTelegramCommand(`/reseller ${uid}`, fromId, chatId);
@@ -77,7 +96,7 @@ export async function POST(request: Request) {
         return NextResponse.json({ ok: true });
       }
 
-      // Existing store commands
+      // 1C. Store commands fallback
       if (action === 'cmd_today') {
         await sendStoreCommandReport('today');
       } else if (action === 'cmd_orders') {
@@ -93,7 +112,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ ok: true });
     }
 
-    // 2. Handle Text Commands
+    // 2. Handle Text Commands & Footer Keyboard Button Clicks
     const msg = update.message || update.edited_message;
     if (!msg) {
       return NextResponse.json({ ok: true });
@@ -104,20 +123,29 @@ export async function POST(request: Request) {
 
     // Strict authorized admin check
     if (!isAuthorizedTelegramAdmin(fromId, chatId)) {
+      console.warn(`[Telegram Webhook] Rejected unauthorized message from fromId=${fromId}, chatId=${chatId}`);
       return NextResponse.json({ ok: true });
     }
 
     const rawText = String(msg.text || '').trim();
-    const parts = rawText.split(/\s+/);
-    const cmd = parts[0].toLowerCase().split('@')[0];
 
-    // First attempt reseller-specific admin commands (/reseller, /sales, /products, /wallet, /withdrawals, /topresellers, /report)
-    const handled = await handleAdminTelegramCommand(rawText, fromId, chatId);
-    if (handled) {
+    // 2A. Primary: Route through Premium Interactive Admin Panel Engine
+    // (Handles 5-row persistent footer buttons, conversational search, and all 10 sections)
+    const handledByAdminPanel = await handleAdminPanelMessage(rawText, fromId, chatId);
+    if (handledByAdminPanel) {
       return NextResponse.json({ ok: true });
     }
 
-    // Existing store commands
+    // 2B. Legacy Reseller Commands Fallback
+    const handledByReseller = await handleAdminTelegramCommand(rawText, fromId, chatId);
+    if (handledByReseller) {
+      return NextResponse.json({ ok: true });
+    }
+
+    // 2C. Legacy Store Commands Fallback
+    const parts = rawText.split(/\s+/);
+    const cmd = parts[0].toLowerCase().split('@')[0];
+
     if (cmd === '/today' || cmd === 'today') {
       await sendStoreCommandReport('today');
     } else if (cmd === '/orders' || cmd === 'orders') {

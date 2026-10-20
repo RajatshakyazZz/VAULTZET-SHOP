@@ -8,6 +8,7 @@ import { BUNDLE_PRODUCTS } from '@/data/bundles';
 export const TELEGRAM_BOT_TOKEN =
   process.env.TELEGRAM_BOT_TOKEN || '8995964034:AAHo5Sy8ziH00VzNvY8G33oAAc2m9ZT77jQ';
 export const OWNER_CHAT_ID = '5950203511';
+export const AUTHORIZED_TELEGRAM_ADMINS: string[] = ['5950203511', '6206169480'];
 
 export type TelegramInlineButton =
   | { text: string; url: string }
@@ -58,17 +59,70 @@ export function buildWhatsAppFollowUpUrl(phone: string, message: string): string
 export async function sendTelegramMessage(
   htmlText: string,
   inlineButtons?: Array<Array<TelegramInlineButton>>,
-  targetChatId: string = OWNER_CHAT_ID
+  targetChatId?: string,
+  replyMarkup?: any
 ): Promise<boolean> {
-  // Strictly lock all store notifications and command responses to owner ID 5950203511
-  if (String(targetChatId) !== OWNER_CHAT_ID) {
+  // Support both authorized admins: 5950203511 and 6206169480
+  const targets = targetChatId ? [String(targetChatId)] : AUTHORIZED_TELEGRAM_ADMINS;
+  const validTargets = targets.filter((id) => AUTHORIZED_TELEGRAM_ADMINS.includes(id));
+  if (validTargets.length === 0) {
+    return false;
+  }
+
+  let successCount = 0;
+  for (const chatId of validTargets) {
+    try {
+      const endpoint = `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`;
+      const payload: Record<string, any> = {
+        chat_id: chatId,
+        text: htmlText,
+        parse_mode: 'HTML',
+        disable_web_page_preview: true,
+      };
+
+      if (replyMarkup) {
+        payload.reply_markup = replyMarkup;
+      } else if (inlineButtons && inlineButtons.length > 0) {
+        payload.reply_markup = {
+          inline_keyboard: inlineButtons,
+        };
+      }
+
+      const res = await fetch(endpoint, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+
+      if (res.ok) {
+        successCount++;
+      } else {
+        const errText = await res.text();
+        console.warn(`Telegram API error for chat ${chatId}:`, errText);
+      }
+    } catch (err) {
+      console.warn(`Failed to dispatch Telegram alert to ${chatId}:`, err);
+    }
+  }
+
+  return successCount > 0;
+}
+
+export async function editTelegramMessage(
+  chatId: string,
+  messageId: number | string,
+  htmlText: string,
+  inlineButtons?: Array<Array<TelegramInlineButton>>
+): Promise<boolean> {
+  if (!AUTHORIZED_TELEGRAM_ADMINS.includes(String(chatId))) {
     return false;
   }
 
   try {
-    const endpoint = `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`;
+    const endpoint = `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/editMessageText`;
     const payload: Record<string, any> = {
-      chat_id: OWNER_CHAT_ID,
+      chat_id: chatId,
+      message_id: messageId,
       text: htmlText,
       parse_mode: 'HTML',
       disable_web_page_preview: true,
@@ -88,13 +142,40 @@ export async function sendTelegramMessage(
 
     if (!res.ok) {
       const errText = await res.text();
-      console.warn('Telegram API non-200 response:', errText);
-      return false;
+      // If message is not modified, treat as success
+      if (errText.includes('message is not modified')) {
+        return true;
+      }
+      console.warn('editMessageText failed, falling back to sendMessage:', errText);
+      return await sendTelegramMessage(htmlText, inlineButtons, chatId);
     }
 
     return true;
   } catch (err) {
-    console.warn('Failed to dispatch Telegram alert:', err);
+    console.warn('editTelegramMessage exception, falling back:', err);
+    return await sendTelegramMessage(htmlText, inlineButtons, chatId);
+  }
+}
+
+export async function answerTelegramCallback(
+  callbackQueryId: string,
+  text?: string,
+  showAlert: boolean = false
+): Promise<boolean> {
+  if (!callbackQueryId) return false;
+  try {
+    const endpoint = `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/answerCallbackQuery`;
+    const res = await fetch(endpoint, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        callback_query_id: callbackQueryId,
+        text: text || undefined,
+        show_alert: showAlert,
+      }),
+    });
+    return res.ok;
+  } catch {
     return false;
   }
 }
@@ -430,7 +511,7 @@ export async function sendProductAddedTelegramAlert(product: {
  * 5. Fetch Live Firestore Orders (excluding deleted/cancelled tombstones) for Bot Commands & Night Summary
  *    100% synced with Admin Panel (store_settings/meta_pixel + status === 'cancelled')
  */
-async function fetchActiveFirestoreOrders(): Promise<any[]> {
+export async function fetchActiveFirestoreOrders(): Promise<any[]> {
   if (!db) return [];
   try {
     const deletedSet = new Set<string>();

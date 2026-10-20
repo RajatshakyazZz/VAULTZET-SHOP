@@ -2,6 +2,7 @@
 import {
   TELEGRAM_BOT_TOKEN,
   OWNER_CHAT_ID,
+  AUTHORIZED_TELEGRAM_ADMINS,
   sendTelegramMessage,
   getIstTimestamp,
   TelegramInlineButton,
@@ -14,20 +15,21 @@ import {
 } from '@/lib/resellerService';
 import { ResellerProfile, WithdrawalRequest } from '@/types/reseller';
 
-// Allowed Telegram User IDs (Owner / Admin)
+export { AUTHORIZED_TELEGRAM_ADMINS };
+
+// Allowed Telegram User IDs (Owner / Admin: 5950203511 and 6206169480)
 export function getAuthorizedTelegramUserIds(): string[] {
   const envList = process.env.TELEGRAM_ALLOWED_USER_IDS
     ? process.env.TELEGRAM_ALLOWED_USER_IDS.split(',').map((s) => s.trim())
     : [];
-  const adminChat = process.env.TELEGRAM_ADMIN_CHAT_ID || OWNER_CHAT_ID;
-  const list = Array.from(new Set([OWNER_CHAT_ID, adminChat, ...envList].filter(Boolean)));
+  const list = Array.from(new Set([...AUTHORIZED_TELEGRAM_ADMINS, ...envList].filter(Boolean)));
   return list;
 }
 
 export function isAuthorizedTelegramAdmin(fromId?: string | number, chatId?: string | number): boolean {
   const authorized = getAuthorizedTelegramUserIds();
-  const fId = String(fromId || '');
-  const cId = String(chatId || '');
+  const fId = String(fromId || '').trim();
+  const cId = String(chatId || '').trim();
   return authorized.includes(fId) || authorized.includes(cId);
 }
 
