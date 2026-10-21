@@ -70,8 +70,12 @@ export async function GET(request: Request) {
         await sendSaleSuccessTelegramAlert(alertPayload);
       }
 
+      const resellerQuery = storedOrder?.reseller_slug
+        ? `&r=${encodeURIComponent(storedOrder.reseller_slug)}`
+        : '';
+
       return NextResponse.redirect(
-        `${baseUrl}/order-success?orderId=${encodeURIComponent(orderId)}&token=${encodeURIComponent(orderToken)}`
+        `${baseUrl}/order-success?orderId=${encodeURIComponent(orderId)}&token=${encodeURIComponent(orderToken)}${resellerQuery}`
       );
     } else {
       if (db && storedOrder?.status === 'pending') {
@@ -90,8 +94,12 @@ export async function GET(request: Request) {
         await sendAbandonedOrPendingTelegramAlert(alertPayload, 'payment_abandoned');
       }
 
+      const resellerQuery = storedOrder?.reseller_slug
+        ? `&r=${encodeURIComponent(storedOrder.reseller_slug)}`
+        : '';
+
       return NextResponse.redirect(
-        `${baseUrl}/checkout?error=payment_${verification.order_status?.toLowerCase() || 'incomplete'}&orderId=${encodeURIComponent(orderId)}`
+        `${baseUrl}/checkout?error=payment_${verification.order_status?.toLowerCase() || 'incomplete'}&orderId=${encodeURIComponent(orderId)}${resellerQuery}`
       );
     }
   } catch (err: any) {

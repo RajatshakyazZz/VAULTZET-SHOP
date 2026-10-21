@@ -48,6 +48,14 @@ function OrderSuccessContent() {
   const [copiedKey, setCopiedKey] = useState<string | null>(null);
   const [upsellTab, setUpsellTab] = useState<'personal' | 'reseller'>('reseller');
 
+  const isResellerOrder = Boolean(
+    searchParams.get('r') ||
+    searchParams.get('reseller_slug') ||
+    verifiedData?.reseller_id ||
+    verifiedData?.reseller_slug ||
+    (typeof window !== 'undefined' && sessionStorage.getItem('vaultzet_reseller_slug'))
+  );
+
   useEffect(() => {
     let targetId = rawOrderId;
     if (!targetId && typeof window !== 'undefined') {
@@ -305,8 +313,193 @@ function OrderSuccessContent() {
           </div>
         )}
 
-        {/* 3. STATE: VERIFIED & PAID (REELSUNDLES FULL BRANDING) */}
-        {status === 'paid' && (
+        {/* 3. STATE: VERIFIED & PAID (RESELLER DEDICATED CLEAN & MINIMAL SUCCESS UI) */}
+        {status === 'paid' && isResellerOrder && (
+          <div className="max-w-2xl mx-auto space-y-6 sm:space-y-8 animate-fadeIn">
+            {/* Top Minimal Brand Bar */}
+            <div className="flex items-center justify-between pb-4 border-b border-purple-100 text-xs text-slate-500">
+              <span className="font-bold text-slate-700">Vaultzet Order Confirmation</span>
+              <span className="font-mono text-[11px] bg-purple-50 text-purple-700 px-2.5 py-1 rounded-full font-bold">
+                Order #{verifiedData?.orderNumber || orderId}
+              </span>
+            </div>
+
+            {/* Celebratory Hero Card */}
+            <div className="rounded-3xl p-6 sm:p-8 bg-gradient-to-br from-emerald-50 via-white to-purple-50/40 border border-emerald-200/80 shadow-lg text-center space-y-4">
+              <div className="relative w-20 h-20 rounded-full bg-emerald-500 text-white flex items-center justify-center mx-auto shadow-lg shadow-emerald-500/25">
+                <Check className="w-10 h-10 stroke-[3.5]" />
+                <div className="absolute -inset-1 rounded-full border-2 border-emerald-400/50 animate-ping pointer-events-none" />
+              </div>
+
+              <div className="space-y-1.5">
+                <span className="text-xs font-black uppercase tracking-wider text-emerald-600 bg-emerald-100/80 px-3 py-1 rounded-full">
+                  Payment Verified & Completed
+                </span>
+                <h1 className="text-2xl sm:text-3xl font-black text-[#17214a] pt-1">
+                  Thank You for Your Order!
+                </h1>
+                <p className="text-xs sm:text-sm text-slate-600 font-medium max-w-md mx-auto leading-relaxed">
+                  Your payment was confirmed. Your reels bundle is ready for instant access below
+                  {verifiedData?.customer?.email && (
+                    <> and has been sent to <strong className="text-slate-900">{verifiedData.customer.email}</strong></>
+                  )}.
+                </p>
+              </div>
+
+              {/* Direct Instant Download / Open Drive CTA */}
+              <div className="pt-2 space-y-2.5">
+                <a
+                  href={verifiedData?.items?.[0]?.googleDriveLink || 'https://drive.google.com'}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="w-full sm:w-auto inline-flex items-center justify-center gap-2.5 px-8 py-4 rounded-2xl bg-gradient-to-r from-emerald-600 via-teal-600 to-indigo-600 hover:from-emerald-500 hover:to-indigo-500 text-white font-black text-sm shadow-xl shadow-emerald-600/25 transition-transform hover:scale-[1.02] active:scale-[0.98]"
+                >
+                  <Download className="w-5 h-5 stroke-[2.5]" />
+                  <span>Open Google Drive & Access Reels Now</span>
+                  <ExternalLink className="w-4 h-4 opacity-80" />
+                </a>
+
+                {verifiedData?.items?.[0]?.googleDriveLink && (
+                  <div>
+                    <button
+                      type="button"
+                      onClick={() => handleCopyLink(verifiedData.items[0].googleDriveLink, 'reseller-drive-link')}
+                      className="inline-flex items-center gap-1.5 text-xs font-bold text-slate-500 hover:text-slate-800 transition-colors py-1"
+                    >
+                      {copiedKey === 'reseller-drive-link' ? (
+                        <>
+                          <Check className="w-3.5 h-3.5 text-emerald-600" />
+                          <span className="text-emerald-700">Google Drive Link Copied!</span>
+                        </>
+                      ) : (
+                        <>
+                          <Copy className="w-3.5 h-3.5" />
+                          <span>Copy Google Drive Link</span>
+                        </>
+                      )}
+                    </button>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Purchased Items Card */}
+            <div className="rounded-3xl p-6 bg-white border border-slate-200 shadow-sm space-y-4">
+              <h2 className="text-sm font-black uppercase tracking-wider text-slate-700 pb-3 border-b border-slate-100 flex items-center justify-between">
+                <span>Purchased Bundle</span>
+                <span className="text-xs text-emerald-600 font-bold bg-emerald-50 px-2.5 py-0.5 rounded-full border border-emerald-100">
+                  Instant Access Unlocked
+                </span>
+              </h2>
+
+              <div className="space-y-3">
+                {verifiedData?.items?.map((item: any, idx: number) => (
+                  <div
+                    key={idx}
+                    className="flex flex-col sm:flex-row gap-4 p-4 rounded-2xl bg-slate-50 border border-slate-100 items-start sm:items-center justify-between"
+                  >
+                    <div className="flex gap-3 items-center min-w-0">
+                      {item.thumbnail && (
+                        <img
+                          src={item.thumbnail}
+                          alt={item.title}
+                          className="w-14 h-16 object-cover rounded-xl shrink-0 border border-slate-200"
+                        />
+                      )}
+                      <div className="min-w-0 space-y-1">
+                        <h4 className="font-bold text-xs sm:text-sm text-[#17214a] leading-snug">
+                          {item.title}
+                        </h4>
+                        <div className="flex flex-wrap items-center gap-1.5 text-[11px] text-slate-500">
+                          <span className="bg-purple-100 text-purple-700 font-bold px-2 py-0.5 rounded">
+                            1080x1920 HD
+                          </span>
+                          <span className="bg-emerald-100 text-emerald-800 font-bold px-2 py-0.5 rounded">
+                            Zero Watermarks
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+
+                    <a
+                      href={item.googleDriveLink || 'https://drive.google.com'}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="w-full sm:w-auto px-4 py-2.5 rounded-xl bg-purple-600 hover:bg-purple-700 text-white text-xs font-bold flex items-center justify-center gap-1.5 shrink-0 transition-colors"
+                    >
+                      <FolderOpen className="w-4 h-4" />
+                      <span>Open Folder</span>
+                    </a>
+                  </div>
+                ))}
+              </div>
+
+              {/* Order Meta details */}
+              <div className="pt-3 border-t border-slate-100 grid grid-cols-2 sm:grid-cols-3 gap-3 text-xs">
+                <div className="p-3 rounded-xl bg-slate-50">
+                  <span className="text-[11px] text-slate-400 font-bold block">Total Amount</span>
+                  <strong className="text-sm font-black text-slate-800">
+                    ₹{verifiedData?.order_amount || verifiedData?.totalAmount || 0}.00
+                  </strong>
+                </div>
+                <div className="p-3 rounded-xl bg-slate-50">
+                  <span className="text-[11px] text-slate-400 font-bold block">Payment Gateway</span>
+                  <strong className="text-xs font-bold text-slate-800">
+                    Cashfree Verified
+                  </strong>
+                </div>
+                <div className="p-3 rounded-xl bg-slate-50 col-span-2 sm:col-span-1">
+                  <span className="text-[11px] text-slate-400 font-bold block">License Type</span>
+                  <strong className="text-xs font-bold text-purple-700">
+                    Lifetime Commercial
+                  </strong>
+                </div>
+              </div>
+            </div>
+
+            {/* Simple Step-by-Step Instructions */}
+            <div className="rounded-3xl p-6 bg-white border border-slate-200 shadow-sm space-y-3">
+              <h3 className="text-xs font-black uppercase tracking-wider text-slate-700">
+                How to use your reels
+              </h3>
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
+                <div className="p-3 rounded-xl bg-purple-50/60 border border-purple-100 space-y-1">
+                  <span className="text-purple-700 font-black block">1. Open Google Drive</span>
+                  <p className="text-slate-600 text-[11px]">Click the button above to view your folder of high quality vertical videos.</p>
+                </div>
+                <div className="p-3 rounded-xl bg-purple-50/60 border border-purple-100 space-y-1">
+                  <span className="text-purple-700 font-black block">2. Save to Phone/PC</span>
+                  <p className="text-slate-600 text-[11px]">Download individual reels or entire folders with 1 click without watermarks.</p>
+                </div>
+                <div className="p-3 rounded-xl bg-purple-50/60 border border-purple-100 space-y-1">
+                  <span className="text-purple-700 font-black block">3. Post & Grow</span>
+                  <p className="text-slate-600 text-[11px]">Upload to Instagram, YouTube Shorts, or Facebook. Edit or add trending audio as desired.</p>
+                </div>
+              </div>
+            </div>
+
+            {/* Quick WhatsApp Support */}
+            <div className="p-5 rounded-2xl bg-slate-100 text-center space-y-2">
+              <p className="text-xs text-slate-600 font-medium">
+                Need any help with your download? Our support team is here to assist you.
+              </p>
+              <a
+                href={`https://wa.me/917895317940?text=${encodeURIComponent(
+                  `Hi Vaultzet, I purchased order #${verifiedData?.orderNumber || orderId} and need assistance.`
+                )}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-2 px-5 py-2 rounded-full bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold shadow-md transition-colors"
+              >
+                <MessageCircle className="w-4 h-4" />
+                <span>Chat with WhatsApp Support</span>
+              </a>
+            </div>
+          </div>
+        )}
+
+        {/* 4. STATE: VERIFIED & PAID (REELSUNDLES FULL BRANDING) */}
+        {status === 'paid' && !isResellerOrder && (
           <div className="space-y-6 sm:space-y-8 animate-fadeIn">
             
             {/* Top Breadcrumb Kicker */}

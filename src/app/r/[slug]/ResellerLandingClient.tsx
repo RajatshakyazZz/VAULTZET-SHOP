@@ -24,6 +24,7 @@ import {
 } from 'lucide-react';
 import { ResellerListing, ListingThemePreset } from '@/types/reseller';
 import { BundleProduct } from '@/types';
+import { useCart } from '@/context/CartContext';
 import { track } from '@/lib/analytics';
 
 interface ResellerLandingClientProps {
@@ -133,6 +134,7 @@ export default function ResellerLandingClient({
   originalProduct,
 }: ResellerLandingClientProps) {
   const router = useRouter();
+  const { setBuyNowItem } = useCart();
   const [openFaq, setOpenFaq] = useState<number | null>(0);
   const [activeImage, setActiveImage] = useState<string>(
     listing.coverImage || originalProduct?.thumbnail || (originalProduct as any)?.featuredImage || ''
@@ -247,13 +249,21 @@ export default function ResellerLandingClient({
         features: listing.features && listing.features.length > 0 ? listing.features : originalProduct?.features || [],
         faqs: originalProduct?.faqs || [],
       },
-      license: 'personal',
+      license: 'personal' as const,
       price: Number(listing.resalePrice),
     };
 
+    // 1. Immediately update CartContext state
+    setBuyNowItem(buyNowPayload as any);
+
+    // 2. Persist in storage for seamless cross-navigation and hard refresh
     try {
       sessionStorage.setItem('vaultzet_buynow_item', JSON.stringify(buyNowPayload));
+      localStorage.setItem('vaultzet_buynow_item', JSON.stringify(buyNowPayload));
       sessionStorage.setItem('vaultzet_reseller_slug', listing.slug);
+      localStorage.setItem('vaultzet_reseller_slug', listing.slug);
+      sessionStorage.setItem('vaultzet_reseller_listing', JSON.stringify(listing));
+      localStorage.setItem('vaultzet_reseller_listing', JSON.stringify(listing));
     } catch {}
 
     router.push(`/checkout?r=${listing.slug}&mode=buynow`);

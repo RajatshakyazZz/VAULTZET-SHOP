@@ -9,8 +9,13 @@ export default function MobileBottomNav() {
   const pathname = usePathname();
   const { cartCount, total } = useCart();
 
-  // Hide on checkout or thankyou pages
-  if (pathname.includes('/checkout') || pathname.includes('/order-success')) {
+  // Hide on checkout, thankyou, or reseller landing pages
+  if (
+    pathname?.startsWith('/r/') ||
+    pathname === '/r' ||
+    pathname.includes('/checkout') ||
+    pathname.includes('/order-success')
+  ) {
     return null;
   }
 

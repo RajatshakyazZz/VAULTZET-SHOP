@@ -2,12 +2,14 @@
 
 import React from 'react';
 import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 import { X, Trash2, ArrowRight, ShieldCheck, Zap } from 'lucide-react';
 import { useCart } from '@/context/CartContext';
 import { ORDER_BUMP } from '@/data/bundles';
 import { optimizeImageUrl } from '@/lib/imageOptimized';
 
 export default function CartDrawer() {
+  const pathname = usePathname();
   const {
     items,
     removeFromCart,
@@ -19,6 +21,7 @@ export default function CartDrawer() {
     toggleOrderBump,
   } = useCart();
 
+  if (pathname?.startsWith('/r/') || pathname === '/r') return null;
   if (!isCartOpen) return null;
 
   return (

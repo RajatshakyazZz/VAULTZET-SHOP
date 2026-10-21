@@ -309,6 +309,37 @@ export async function serverGetResellerListings(params: {
   );
 }
 
+import { getResellerListingBySlug } from './resellerService';
+
+/**
+ * Resolves a reseller listing by slug with in-memory cache and Firestore query
+ */
+export async function serverGetResellerListingBySlug(slug: string): Promise<ResellerListing | null> {
+  if (!slug) return null;
+  const cleanSlug = slug.trim();
+  const state = getServerState();
+
+  // 1. In-memory check
+  for (const listing of state.listingsById.values()) {
+    if (listing.slug === cleanSlug) {
+      return listing;
+    }
+  }
+
+  // 2. Delegate to resilient getResellerListingBySlug (handles direct Firestore & cross-device sync orders)
+  try {
+    const listing = await getResellerListingBySlug(cleanSlug, true);
+    if (listing) {
+      state.listingsById.set(listing.id, listing);
+      return listing;
+    }
+  } catch (err) {
+    console.warn('serverGetResellerListingBySlug error:', err);
+  }
+
+  return null;
+}
+
 /**
  * Saves a listing durably in server memory and Firestore with both resellerId and resellerUid
  */

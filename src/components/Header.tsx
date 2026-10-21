@@ -20,6 +20,28 @@ export default function Header() {
   const [isMobileSearchOpen, setIsMobileSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const [isResellerRoute, setIsResellerRoute] = useState(false);
+
+  // Completely hide store header on reseller landing pages (/r/[slug])
+  // or on reseller checkout/order-success flows
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const isR = pathname?.startsWith('/r/') || pathname === '/r';
+      const params = new URLSearchParams(window.location.search);
+      const hasResellerParam = Boolean(
+        params.get('r') ||
+        params.get('reseller_slug') ||
+        sessionStorage.getItem('vaultzet_reseller_slug')
+      );
+      const isResellerCheckoutOrSuccess =
+        (pathname === '/checkout' || pathname === '/order-success') && hasResellerParam;
+      setIsResellerRoute(isR || isResellerCheckoutOrSuccess);
+    }
+  }, [pathname]);
+
+  if (pathname?.startsWith('/r/') || pathname === '/r' || isResellerRoute) {
+    return null;
+  }
 
   const desktopSearchRef = useRef<HTMLDivElement>(null);
   const searchQueryRef = useRef(searchQuery);

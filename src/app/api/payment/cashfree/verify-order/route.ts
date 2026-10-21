@@ -263,6 +263,9 @@ async function handleVerify(
       purchase_event_id: `purchase_${orderId}`,
       eligible_for_browser_event: eligibleForBrowserEvent,
       order_token: storedOrder?.order_token || validToken,
+      reseller_id: storedOrder?.reseller_id || null,
+      reseller_slug: storedOrder?.reseller_slug || null,
+      reseller_name: storedOrder?.reseller_name || null,
     };
   } else {
     if (storedOrder?.status === 'pending') {

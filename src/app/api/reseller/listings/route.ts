@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import {
   serverGetResellerListings,
+  serverGetResellerListingBySlug,
   serverSaveResellerListing,
   serverDeleteResellerListing,
 } from '@/lib/serverResellerStore';
@@ -8,12 +9,26 @@ import {
 export async function GET(request: Request) {
   try {
     const { searchParams } = new URL(request.url);
+    const slug = searchParams.get('slug');
+
+    // Public lookup by listing slug
+    if (slug) {
+      const listing = await serverGetResellerListingBySlug(slug);
+      if (!listing) {
+        return NextResponse.json(
+          { success: false, error: 'Listing not found' },
+          { status: 404 }
+        );
+      }
+      return NextResponse.json({ success: true, listing });
+    }
+
     const userId = searchParams.get('userId') || undefined;
     const resellerUid = searchParams.get('resellerUid') || undefined;
 
     if (!userId && !resellerUid) {
       return NextResponse.json(
-        { success: false, error: 'userId or resellerUid is required' },
+        { success: false, error: 'slug, userId or resellerUid is required' },
         { status: 400 }
       );
     }

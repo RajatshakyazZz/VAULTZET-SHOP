@@ -36,6 +36,7 @@ function CheckoutContent() {
   const {
     items,
     buyNowItem,
+    setBuyNowItem,
     removeFromCart,
     clearBuyNowItem,
     orderBumpAdded,
@@ -43,6 +44,99 @@ function CheckoutContent() {
     subtotal,
     total,
   } = useCart();
+
+  const [isLoadingBundle, setIsLoadingBundle] = useState<boolean>(() => {
+    if ((isBuyNowMode || resellerSlug) && !buyNowItem) return true;
+    return false;
+  });
+
+  // Dynamic client hydration to guarantee reseller checkout is NEVER empty
+  useEffect(() => {
+    if (buyNowItem || (!isBuyNowMode && !resellerSlug && items.length > 0)) {
+      setIsLoadingBundle(false);
+      return;
+    }
+
+    let isMounted = true;
+
+    async function hydrateBundle() {
+      // 1. Try reading from session / local storage
+      if (typeof window !== 'undefined') {
+        try {
+          const stored =
+            sessionStorage.getItem('vaultzet_buynow_item') ||
+            localStorage.getItem('vaultzet_buynow_item');
+          if (stored) {
+            const parsed = JSON.parse(stored);
+            if (parsed && parsed.product) {
+              setBuyNowItem(parsed);
+              if (isMounted) setIsLoadingBundle(false);
+              return;
+            }
+          }
+        } catch {}
+      }
+
+      // 2. If resellerSlug is present in URL or storage, fetch listing directly from API
+      if (resellerSlug) {
+        try {
+          const res = await fetch(`/api/reseller/listings?slug=${encodeURIComponent(resellerSlug)}`);
+          const data = await res.json();
+          if (data?.success && data?.listing) {
+            const l = data.listing;
+            const constructedItem = {
+              product: {
+                id: l.originalProductId || l.id,
+                slug: l.originalProductSlug || l.slug,
+                title: l.customTitle,
+                shortDescription: l.customShortDescription || '',
+                category: 'Viral Reels Bundle',
+                categorySlug: 'reels',
+                reelCount: 1000,
+                personalPrice: Number(l.resalePrice),
+                personalOriginalPrice: Math.round(Number(l.resalePrice) * 1.6),
+                resellerPrice: Number(l.resalePrice),
+                resellerOriginalPrice: Math.round(Number(l.resalePrice) * 1.6),
+                thumbnail: l.coverImage || '/logo.webp',
+                galleryImages: l.galleryImages || [],
+                resolution: '1080x1920 (9:16 Vertical)',
+                aspectRatio: '9:16',
+                format: 'MP4',
+                audioIncluded: true,
+                tags: ['reels', 'viral', 'instagram'],
+                rating: 4.9,
+                reviewCount: 340,
+                features: l.features || [],
+                faqs: [],
+              },
+              license: 'personal' as const,
+              price: Number(l.resalePrice),
+            };
+
+            setBuyNowItem(constructedItem);
+            try {
+              sessionStorage.setItem('vaultzet_buynow_item', JSON.stringify(constructedItem));
+              localStorage.setItem('vaultzet_buynow_item', JSON.stringify(constructedItem));
+              sessionStorage.setItem('vaultzet_reseller_slug', l.slug);
+              localStorage.setItem('vaultzet_reseller_slug', l.slug);
+            } catch {}
+            if (isMounted) setIsLoadingBundle(false);
+            return;
+          }
+        } catch (e) {
+          console.warn('Could not fetch reseller listing for checkout:', e);
+        }
+      }
+
+      if (isMounted) setIsLoadingBundle(false);
+    }
+
+    hydrateBundle();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [buyNowItem, isBuyNowMode, resellerSlug, items.length]);
 
   // Strictly separate Buy Now (single product only) vs Cart Checkout (all added cart items)
   const checkoutItems = isBuyNowMode ? (buyNowItem ? [buyNowItem] : []) : items;
@@ -370,7 +464,43 @@ function CheckoutContent() {
     }
   };
 
+  // 1. Sleek loading state while bundle hydrates
+  if (isLoadingBundle) {
+    return (
+      <div className="min-h-[70vh] flex flex-col items-center justify-center p-6 text-center space-y-4 bg-[#faf9ff]">
+        <div className="w-16 h-16 rounded-full bg-purple-100 flex items-center justify-center text-rb-purple animate-pulse">
+          <Loader2 className="w-8 h-8 animate-spin" />
+        </div>
+        <h2 className="text-xl font-black text-[#182247]">Loading Your Checkout...</h2>
+        <p className="text-xs text-slate-500 max-w-sm">
+          Preparing bundle details and secure Cashfree payment gateway.
+        </p>
+      </div>
+    );
+  }
+
+  // 2. Empty checkout fallback
   if (checkoutItems.length === 0 && !orderBumpAdded) {
+    if (resellerSlug) {
+      return (
+        <div className="max-w-2xl mx-auto px-4 py-20 text-center space-y-4">
+          <div className="w-16 h-16 rounded-full bg-purple-100 text-rb-purple flex items-center justify-center mx-auto text-2xl">
+            📦
+          </div>
+          <h1 className="text-2xl font-black text-[#182247]">Bundle Not Found</h1>
+          <p className="text-sm text-slate-500">
+            We couldn't retrieve the requested bundle details. Please visit the link again.
+          </p>
+          <Link
+            href={`/r/${resellerSlug}`}
+            className="inline-block px-6 py-3 rounded-full btn-gradient-primary text-white text-xs font-bold"
+          >
+            ← Return to Product Page
+          </Link>
+        </div>
+      );
+    }
+
     return (
       <div className="max-w-2xl mx-auto px-4 py-20 text-center space-y-4">
         <div className="w-16 h-16 rounded-full bg-purple-100 text-rb-purple flex items-center justify-center mx-auto text-2xl">
@@ -400,21 +530,48 @@ function CheckoutContent() {
       <div className="py-8 sm:py-12 pb-36 lg:pb-12 bg-[#faf9ff]">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
           
-          {/* Checkout Header */}
-          <div className="flex items-center justify-between pb-6 mb-8 border-b border-purple-100">
-            <div>
-              <h1 className="text-2xl sm:text-3xl font-black text-[#182247] tracking-tight">
-                {isBuyNowMode ? 'Instant Buy Now Checkout' : 'Express Checkout'}
-              </h1>
-              <p className="text-xs sm:text-sm text-[#6e7696] font-medium mt-1">
-                Zero hassle: Fill your details, pay securely via Cashfree, and get instant Google Drive access.
-              </p>
+          {/* Checkout Header (Clean & Minimal for Resellers, Standard for Store) */}
+          {resellerSlug ? (
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-6 mb-8 border-b border-purple-100 gap-4">
+              <div>
+                <div className="flex items-center gap-2 mb-1.5">
+                  <Link
+                    href={`/r/${resellerSlug}`}
+                    className="inline-flex items-center gap-1 text-xs font-bold text-rb-purple hover:underline"
+                  >
+                    ← Back to Product
+                  </Link>
+                  <span className="text-slate-300">•</span>
+                  <span className="text-[11px] font-bold text-slate-500">Authorized Partner Checkout</span>
+                </div>
+                <h1 className="text-2xl sm:text-3xl font-black text-[#182247] tracking-tight">
+                  Secure Cashfree Checkout
+                </h1>
+                <p className="text-xs sm:text-sm text-[#6e7696] font-medium mt-1">
+                  Fill your details below, pay securely via Cashfree, and get instant Google Drive access.
+                </p>
+              </div>
+              <div className="flex items-center gap-2 text-xs font-bold text-emerald-700 bg-emerald-50 px-3.5 py-1.5 rounded-full border border-emerald-200 self-start sm:self-center shrink-0">
+                <Lock className="w-3.5 h-3.5 text-emerald-600" />
+                <span>256-bit Secure Encryption</span>
+              </div>
             </div>
-            <div className="hidden sm:flex items-center gap-2 text-xs font-bold text-emerald-700 bg-emerald-50 px-3.5 py-1.5 rounded-full border border-emerald-200">
-              <Lock className="w-3.5 h-3.5" />
-              <span>256-bit Secure Encryption</span>
+          ) : (
+            <div className="flex items-center justify-between pb-6 mb-8 border-b border-purple-100">
+              <div>
+                <h1 className="text-2xl sm:text-3xl font-black text-[#182247] tracking-tight">
+                  {isBuyNowMode ? 'Instant Buy Now Checkout' : 'Express Checkout'}
+                </h1>
+                <p className="text-xs sm:text-sm text-[#6e7696] font-medium mt-1">
+                  Zero hassle: Fill your details, pay securely via Cashfree, and get instant Google Drive access.
+                </p>
+              </div>
+              <div className="hidden sm:flex items-center gap-2 text-xs font-bold text-emerald-700 bg-emerald-50 px-3.5 py-1.5 rounded-full border border-emerald-200">
+                <Lock className="w-3.5 h-3.5" />
+                <span>256-bit Secure Encryption</span>
+              </div>
             </div>
-          </div>
+          )}
 
           {/* Error Banner */}
           {errorMessage && (

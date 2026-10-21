@@ -9,6 +9,7 @@ import { track } from '@/lib/analytics';
 interface CartContextType {
   items: CartItem[];
   buyNowItem: CartItem | null;
+  setBuyNowItem: (item: CartItem | null) => void;
   addToCart: (product: BundleProduct, license?: LicenseType) => void;
   buyNow: (product: BundleProduct, license?: LicenseType) => void;
   removeFromCart: (productId: string, license: LicenseType) => void;
@@ -28,10 +29,23 @@ const CartContext = createContext<CartContextType | undefined>(undefined);
 
 export function CartProvider({ children }: { children: React.ReactNode }) {
   const [items, setItems] = useState<CartItem[]>([]);
-  const [buyNowItem, setBuyNowItem] = useState<CartItem | null>(null);
+  const [buyNowItem, setBuyNowItemState] = useState<CartItem | null>(null);
   const [orderBumpAdded, setOrderBumpAdded] = useState(false);
   const [isCartOpen, setIsCartOpen] = useState(false);
   const router = useRouter();
+
+  const setBuyNowItem = (item: CartItem | null) => {
+    setBuyNowItemState(item);
+    try {
+      if (item) {
+        sessionStorage.setItem('vaultzet_buynow_item', JSON.stringify(item));
+        localStorage.setItem('vaultzet_buynow_item', JSON.stringify(item));
+      } else {
+        sessionStorage.removeItem('vaultzet_buynow_item');
+        localStorage.removeItem('vaultzet_buynow_item');
+      }
+    } catch {}
+  };
 
   const isHydrated = React.useRef(false);
 
@@ -47,9 +61,9 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
           setItems(parsed);
         }
       }
-      const savedBuyNow = sessionStorage.getItem('vaultzet_buynow_item');
+      const savedBuyNow = sessionStorage.getItem('vaultzet_buynow_item') || localStorage.getItem('vaultzet_buynow_item');
       if (savedBuyNow && savedBuyNow !== 'null') {
-        setBuyNowItem(JSON.parse(savedBuyNow));
+        setBuyNowItemState(JSON.parse(savedBuyNow));
       }
       const savedBump = localStorage.getItem('vaultzet_bump');
       if (savedBump === 'true') {
@@ -175,6 +189,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
       value={{
         items,
         buyNowItem,
+        setBuyNowItem,
         addToCart,
         buyNow,
         removeFromCart,

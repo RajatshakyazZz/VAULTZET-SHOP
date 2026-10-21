@@ -20,9 +20,30 @@ export default function Footer() {
   const pathname = usePathname();
   const { settings } = useStoreSettings();
   const { setIsCartOpen } = useCart();
+  const [isResellerRoute, setIsResellerRoute] = React.useState(false);
 
-  // Hide footer on reels page
-  if (pathname?.startsWith('/reels')) {
+  React.useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const isR = pathname?.startsWith('/r/') || pathname === '/r';
+      const params = new URLSearchParams(window.location.search);
+      const hasResellerParam = Boolean(
+        params.get('r') ||
+        params.get('reseller_slug') ||
+        sessionStorage.getItem('vaultzet_reseller_slug')
+      );
+      const isResellerCheckoutOrSuccess =
+        (pathname === '/checkout' || pathname === '/order-success') && hasResellerParam;
+      setIsResellerRoute(isR || isResellerCheckoutOrSuccess);
+    }
+  }, [pathname]);
+
+  // Hide footer on reels page and reseller landing / checkout / success pages
+  if (
+    pathname?.startsWith('/reels') ||
+    pathname?.startsWith('/r/') ||
+    pathname === '/r' ||
+    isResellerRoute
+  ) {
     return null;
   }
   const highlights = [
