@@ -19,6 +19,7 @@ import {
   Check,
   ExternalLink,
   Store,
+  Home,
 } from 'lucide-react';
 import { useResellerAuth } from '@/context/ResellerAuthContext';
 
@@ -77,6 +78,15 @@ export default function ResellerLayout({ children }: { children: React.ReactNode
     { name: 'Orders', href: '/earn/orders', icon: ShoppingBag },
     { name: 'Wallet', href: '/earn/wallet', icon: Wallet },
     { name: 'Settings', href: '/earn/settings', icon: Settings },
+  ];
+
+  const mobileDockLinks = [
+    { name: 'Home', href: '/', icon: Home, isHome: true },
+    { name: 'Overview', href: '/earn/dashboard', icon: LayoutDashboard },
+    { name: 'My Links', href: '/earn/products', icon: Package },
+    { name: 'Create', href: '/earn/create', icon: PlusCircle, isCreate: true },
+    { name: 'Orders', href: '/earn/orders', icon: ShoppingBag },
+    { name: 'Wallet', href: '/earn/wallet', icon: Wallet },
   ];
 
   const handleCopyUid = () => {
@@ -233,23 +243,39 @@ export default function ResellerLayout({ children }: { children: React.ReactNode
       {/* ------------------------------------------------------------- */}
       {/* MOBILE STICKY BOTTOM NAVIGATION DOCK (Instant 1-Tap App Nav) */}
       {/* ------------------------------------------------------------- */}
-      <nav className="lg:hidden fixed bottom-3 left-3 right-3 z-40 bg-white/90 backdrop-blur-xl border border-purple-100 shadow-[0_8px_30px_rgb(0,0,0,0.12)] rounded-3xl py-2 px-2 flex items-center justify-around">
-        {navLinks.map((item) => {
-          const isActive = pathname === item.href || (item.href !== '/earn/dashboard' && pathname.startsWith(item.href));
+      <nav className="lg:hidden fixed bottom-2.5 left-2 right-2 z-50 bg-white/95 backdrop-blur-2xl border border-purple-200/90 shadow-[0_12px_40px_rgba(103,52,247,0.18)] rounded-3xl py-1.5 px-1 flex items-center justify-around">
+        {mobileDockLinks.map((item) => {
+          const isActive = pathname === item.href || (item.href !== '/' && item.href !== '/earn/dashboard' && pathname.startsWith(item.href));
           const Icon = item.icon;
-          const isCreate = item.href === '/earn/create';
 
-          if (isCreate) {
+          if (item.isCreate) {
             return (
               <Link
                 key={item.name}
                 href={item.href}
                 className="flex flex-col items-center justify-center -mt-6 group"
+                title="Create New Reseller Link"
               >
-                <div className="w-12 h-12 rounded-2xl bg-gradient-to-r from-[#6734f7] to-[#ec288d] text-white flex items-center justify-center shadow-lg shadow-purple-500/35 group-active:scale-95 transition-transform">
-                  <PlusCircle className="w-6 h-6" />
+                <div className="w-12 h-12 rounded-2xl bg-gradient-to-r from-[#6734f7] to-[#ec288d] text-white flex items-center justify-center shadow-lg shadow-purple-500/40 group-active:scale-95 transition-transform">
+                  <PlusCircle className="w-6 h-6 stroke-[2.2]" />
                 </div>
-                <span className="text-[10px] font-black text-[#6734f7] mt-1">New Link</span>
+                <span className="text-[10px] font-black text-[#6734f7] mt-0.5">New Link</span>
+              </Link>
+            );
+          }
+
+          if (item.isHome) {
+            return (
+              <Link
+                key={item.name}
+                href={item.href}
+                className="flex flex-col items-center justify-center py-1 px-1.5 rounded-2xl transition-all text-slate-500 hover:text-[#6734f7] active:scale-95 group"
+                title="Main Store Home"
+              >
+                <div className="w-5 h-5 flex items-center justify-center group-hover:scale-110 transition-transform">
+                  <Home className="w-5 h-5 stroke-[2] text-slate-600 group-hover:text-[#6734f7]" />
+                </div>
+                <span className="text-[10px] mt-0.5 font-bold tracking-tight text-slate-600 group-hover:text-[#6734f7]">Home</span>
               </Link>
             );
           }
@@ -258,7 +284,7 @@ export default function ResellerLayout({ children }: { children: React.ReactNode
             <Link
               key={item.name}
               href={item.href}
-              className={`flex flex-col items-center justify-center py-1 px-2.5 rounded-2xl transition-all ${
+              className={`flex flex-col items-center justify-center py-1 px-1.5 rounded-2xl transition-all active:scale-95 ${
                 isActive ? 'text-[#6734f7] font-black' : 'text-slate-400 hover:text-slate-600 font-medium'
               }`}
             >
