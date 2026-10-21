@@ -25,10 +25,15 @@ export default function WhatsAppButton({
   isResellerPage = false,
 }: WhatsAppButtonProps) {
   const pathname = usePathname();
+  const [mounted, setMounted] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
   const [hasInteracted, setHasInteracted] = useState(false);
   const [showTooltip, setShowTooltip] = useState(false);
   const [customMsg, setCustomMsg] = useState('');
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   // If this is the global root layout instance, hide on reseller /r/ landing pages
   // so ResellerLandingClient can authoritatively manage its own reseller-specific WhatsApp toggle
@@ -111,7 +116,7 @@ export default function WhatsAppButton({
   ];
 
   return (
-    <div className={`fixed z-50 ${position} print:hidden select-none font-sans`}>
+    <div className={`fixed z-[9999] pointer-events-auto ${position} print:hidden select-none font-sans`}>
       {/* 1. REALISTIC WHATSAPP CHAT POPUP WINDOW */}
       {isOpen && (
         <div
@@ -281,7 +286,7 @@ export default function WhatsAppButton({
       <button
         onClick={handleFloatingClick}
         aria-label="Chat on WhatsApp"
-        className="relative group w-14 h-14 sm:w-16 sm:h-16 rounded-full bg-gradient-to-tr from-[#128C7E] to-[#25D366] text-white flex items-center justify-center shadow-xl hover:shadow-2xl hover:scale-105 active:scale-95 transition-all duration-300 focus:outline-none"
+        className="relative group w-14 h-14 sm:w-16 sm:h-16 rounded-full bg-gradient-to-tr from-[#128C7E] to-[#25D366] text-white flex items-center justify-center shadow-xl hover:shadow-2xl hover:scale-105 active:scale-95 transition-all duration-300 focus:outline-none cursor-pointer"
         style={{
           boxShadow: '0 8px 24px -4px rgba(37, 211, 102, 0.45), 0 4px 10px -2px rgba(0,0,0,0.1)',
         }}
