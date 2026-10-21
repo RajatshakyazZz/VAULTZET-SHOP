@@ -9,7 +9,8 @@ import {
 import { BUNDLE_PRODUCTS } from '@/data/bundles';
 import { sendMetaCapiPurchase } from '@/lib/metaCapi';
 import { extractClientMetadata, verifyOrderToken, generateOrderToken } from '@/lib/orderToken';
-import { recordSaleEarning } from '@/lib/resellerService';
+import { recordSaleEarning, getResellerProfile, getResellerWallet } from '@/lib/resellerService';
+import { sendResellerSaleTelegramAlert } from '@/lib/telegramReseller';
 
 interface ResolvedProductFiles {
   primaryLink: string;
@@ -231,6 +232,31 @@ async function handleVerify(
 
     if (isFirstPaidTransition) {
       await sendSaleSuccessTelegramAlert(alertPayload);
+
+      // Dedicated rich Reseller Telegram Alert
+      if (storedOrder?.reseller_id) {
+        try {
+          const profile = await getResellerProfile(storedOrder.reseller_id);
+          const wallet = await getResellerWallet(storedOrder.reseller_id);
+          await sendResellerSaleTelegramAlert({
+            orderNumber: orderId,
+            resellerId: storedOrder.reseller_id,
+            resellerUid: profile?.resellerUid || storedOrder.reseller_uid || 'RSL-VAULTZET',
+            resellerName: profile?.displayName || storedOrder.reseller_name || 'Reseller',
+            resellerEmail: profile?.email || '',
+            resellerPhone: profile?.phone || '',
+            productTitle: storedOrder.items?.[0]?.title || 'Viral Reels Bundle',
+            totalAmount: Number(storedOrder.totalAmount || verification.order_amount || 0),
+            basePrice: Number(storedOrder.base_price_snapshot || (Number(storedOrder.totalAmount || 0) - Number(storedOrder.reseller_earning || 0))),
+            resellerEarning: Number(storedOrder.reseller_earning || 0),
+            customer: alertPayload.customer,
+            availableBalance: wallet?.availableBalance ?? Number(storedOrder.reseller_earning || 0),
+            totalEarned: wallet?.totalEarned ?? Number(storedOrder.reseller_earning || 0),
+          });
+        } catch (resellerAlertErr) {
+          console.warn('Error dispatching reseller sale Telegram alert:', resellerAlertErr);
+        }
+      }
     }
 
     // Resolve secure download links exclusively for paid orders
@@ -316,6 +342,9 @@ export async function GET(request: Request) {
         purchase_event_id: verification.purchase_event_id,
         eligible_for_browser_event: verification.eligible_for_browser_event,
         order_token: verification.order_token,
+        reseller_id: verification.reseller_id || null,
+        reseller_slug: verification.reseller_slug || null,
+        reseller_name: verification.reseller_name || null,
       });
     }
 
@@ -388,6 +417,9 @@ export async function POST(request: Request) {
         purchase_event_id: verification.purchase_event_id,
         eligible_for_browser_event: verification.eligible_for_browser_event,
         order_token: verification.order_token,
+        reseller_id: verification.reseller_id || null,
+        reseller_slug: verification.reseller_slug || null,
+        reseller_name: verification.reseller_name || null,
       });
     }
 

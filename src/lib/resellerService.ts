@@ -440,6 +440,20 @@ export async function fetchWithdrawalsFromFirestoreOrders(params?: {
   const userId = params?.userId ? params.userId.trim() : '';
 
   try {
+    // 0. Fetch deleted withdrawal IDs
+    const deletedWdrIds = new Set<string>();
+    try {
+      const qDel = query(
+        collection(db as Firestore, 'orders'),
+        where('paymentMethod', '==', 'system_sync_withdrawal_deleted')
+      );
+      const delSnap = await getDocs(qDel);
+      delSnap.forEach((d) => {
+        const wId = d.data().reseller_listing_id;
+        if (wId) deletedWdrIds.add(wId);
+      });
+    } catch {}
+
     // 1. Fetch status updates
     const statusMap = new Map<string, { status: string; details: any }>();
     const qStatus = query(
@@ -492,6 +506,17 @@ export async function fetchWithdrawalsFromFirestoreOrders(params?: {
         try {
           const parsed = JSON.parse(data.items[0].googleDriveLink) as WithdrawalRequest;
           if (parsed && parsed.id) {
+            // Skip deleted withdrawals or mock test data
+            if (deletedWdrIds.has(parsed.id)) return;
+            if (
+              parsed.id.includes('TEST') ||
+              parsed.id.includes('UVMS') ||
+              parsed.resellerId?.includes('audit') ||
+              parsed.resellerEmail?.includes('audit')
+            ) {
+              return;
+            }
+
             // Merge status update if any
             const statusUpdate = statusMap.get(parsed.id);
             if (statusUpdate) {
@@ -515,6 +540,50 @@ export async function fetchWithdrawalsFromFirestoreOrders(params?: {
     console.warn('fetchWithdrawalsFromFirestoreOrders warning:', err);
   }
   return [];
+}
+
+export async function deleteWithdrawalRequest(
+  withdrawalId: string
+): Promise<{ success: boolean; error?: string }> {
+  if (!withdrawalId) return { success: false, error: 'withdrawalId required' };
+
+  try {
+    // 1. Sync deletion to orders ledger so all serverless instances and bot know it's deleted
+    if (db) {
+      const payload = {
+        orderNumber: `VZ-SYNC-WDR-DEL-${Date.now()}`,
+        paymentMethod: 'system_sync_withdrawal_deleted',
+        reseller_listing_id: withdrawalId,
+        status: 'cancelled',
+        totalAmount: 0,
+        createdAt: new Date().toISOString(),
+      };
+      await addDoc(collection(db as Firestore, 'orders'), payload).catch(() => {});
+
+      try {
+        await deleteDoc(doc(db as Firestore, 'withdrawal_requests', withdrawalId));
+      } catch {}
+    }
+
+    // 2. Remove from server memory store
+    try {
+      const { serverDeleteWithdrawal } = await import('./serverResellerStore');
+      await serverDeleteWithdrawal(withdrawalId);
+    } catch {}
+
+    // 3. Remove from local / memory stores
+    const allWdrKey = 'vaultzet_all_withdrawals';
+    const allJson = getLocalOrMemoryItem(allWdrKey);
+    if (allJson) {
+      const allList: WithdrawalRequest[] = JSON.parse(allJson);
+      const filtered = allList.filter((w) => w.id !== withdrawalId);
+      setLocalOrMemoryItem(allWdrKey, JSON.stringify(filtered));
+    }
+
+    return { success: true };
+  } catch (err: any) {
+    return { success: false, error: err.message };
+  }
 }
 
 export async function syncSettingsToFirestoreOrders(settings: any): Promise<void> {
@@ -2130,8 +2199,8 @@ export async function requestWithdrawal(params: {
 }): Promise<WithdrawalRequest> {
   const { userId, resellerName, resellerEmail, amount, payoutMethod, payoutDetails } = params;
 
-  if (amount < 200) {
-    throw new Error('Minimum withdrawal amount is ₹200');
+  if (amount < 1) {
+    throw new Error('Minimum withdrawal amount is ₹1');
   }
 
   // Payout validation
@@ -2353,9 +2422,22 @@ export async function getAllWithdrawals(): Promise<WithdrawalRequest[]> {
     } catch {}
   }
 
-  return Array.from(map.values()).sort(
-    (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
-  );
+  return Array.from(map.values())
+    .filter((w) => {
+      const id = String(w.id || '');
+      const rid = String(w.resellerId || '');
+      const email = String(w.resellerEmail || '');
+      const ruid = String(w.resellerUid || '');
+      return (
+        !id.includes('TEST') &&
+        !id.includes('UVMS') &&
+        !rid.includes('audit') &&
+        !email.includes('audit') &&
+        !ruid.includes('TEST') &&
+        !['RSL-5SZ62ZCN', 'RSL-MESD7YBE', 'RSL-ULTFP73S', 'RSL-TEST9999', 'RSL-DELTEST'].includes(ruid)
+      );
+    })
+    .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
 }
 
 export async function getWithdrawalRequests(userId: string): Promise<WithdrawalRequest[]> {
@@ -2398,9 +2480,22 @@ export async function getWithdrawalRequests(userId: string): Promise<WithdrawalR
     } catch {}
   }
 
-  return Array.from(map.values()).sort(
-    (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
-  );
+  return Array.from(map.values())
+    .filter((w) => {
+      const id = String(w.id || '');
+      const rid = String(w.resellerId || '');
+      const email = String(w.resellerEmail || '');
+      const ruid = String(w.resellerUid || '');
+      return (
+        !id.includes('TEST') &&
+        !id.includes('UVMS') &&
+        !rid.includes('audit') &&
+        !email.includes('audit') &&
+        !ruid.includes('TEST') &&
+        !['RSL-5SZ62ZCN', 'RSL-MESD7YBE', 'RSL-ULTFP73S', 'RSL-TEST9999', 'RSL-DELTEST'].includes(ruid)
+      );
+    })
+    .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
 }
 
 export async function getWithdrawalRequestById(withdrawalId: string): Promise<WithdrawalRequest | null> {
@@ -2928,6 +3023,22 @@ export async function getAllResellersAnalytics(): Promise<
 
   const addProfile = (p: ResellerProfile) => {
     if (!p || !p.resellerUid) return;
+    const uid = String(p.userId || '');
+    const email = String(p.email || '');
+    const name = String(p.displayName || '');
+    const ruid = String(p.resellerUid || '');
+    if (
+      uid.startsWith('usr_reseller_audit') ||
+      uid.startsWith('usr_cross_device') ||
+      uid.startsWith('usr_del_test') ||
+      uid.startsWith('usr_test') ||
+      email.includes('reseller_audit') ||
+      name.toLowerCase().includes('reseller audit') ||
+      ruid.includes('TEST') ||
+      ['RSL-5SZ62ZCN', 'RSL-MESD7YBE', 'RSL-ULTFP73S', 'RSL-TEST9999', 'RSL-DELTEST'].includes(ruid)
+    ) {
+      return;
+    }
     const cur = profilesMap.get(p.resellerUid);
     if (!cur) {
       profilesMap.set(p.resellerUid, p);
@@ -3003,7 +3114,21 @@ export async function getAllResellersAnalytics(): Promise<
     }
   }
 
-  const profiles = Array.from(profilesMap.values());
+  const profiles = Array.from(profilesMap.values()).filter((p) => {
+    const uid = p.userId || '';
+    const email = p.email || '';
+    const name = p.displayName || '';
+    if (
+      uid.startsWith('usr_reseller_audit') ||
+      uid.startsWith('usr_cross_device') ||
+      email.includes('reseller_audit') ||
+      name.toLowerCase().includes('reseller audit') ||
+      p.resellerUid.includes('TEST')
+    ) {
+      return false;
+    }
+    return true;
+  });
 
   const results = await Promise.all(
     profiles.map(async (prof) => {

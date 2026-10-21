@@ -53,7 +53,13 @@ function OrderSuccessContent() {
     searchParams.get('reseller_slug') ||
     verifiedData?.reseller_id ||
     verifiedData?.reseller_slug ||
-    (typeof window !== 'undefined' && sessionStorage.getItem('vaultzet_reseller_slug'))
+    (typeof window !== 'undefined' && (() => {
+      try {
+        return sessionStorage.getItem('vaultzet_reseller_slug') || localStorage.getItem('vaultzet_reseller_slug');
+      } catch {
+        return null;
+      }
+    })())
   );
 
   useEffect(() => {
@@ -222,12 +228,14 @@ function OrderSuccessContent() {
     buyNow(masterProduct, plan.licenseType);
   };
 
-  const hasAllAccessPurchased = verifiedData?.items?.some(
-    (it: any) =>
-      it.isAllAccess ||
-      it.id?.includes('plan-') ||
-      it.title?.toLowerCase().includes('all bundles')
-  );
+  const hasAllAccessPurchased =
+    Array.isArray(verifiedData?.items) &&
+    verifiedData.items.some(
+      (it: any) =>
+        Boolean(it?.isAllAccess) ||
+        (typeof it?.id === 'string' && it.id.includes('plan-')) ||
+        (typeof it?.title === 'string' && it.title.toLowerCase().includes('all bundles'))
+    );
 
   const cleanWhatsappNumber = (settings?.supportWhatsapp || '+91 7895317940').replace(/[^0-9]/g, '');
 
@@ -601,7 +609,7 @@ function OrderSuccessContent() {
                   </div>
                   <div className="min-w-0">
                     <small className="block text-[11px] font-bold text-slate-400">Date</small>
-                    <strong className="block text-xs font-black text-[#17214a]">
+                    <strong suppressHydrationWarning className="block text-xs font-black text-[#17214a]">
                       {new Date().toLocaleDateString('en-IN', {
                         day: 'numeric',
                         month: 'short',
@@ -631,7 +639,7 @@ function OrderSuccessContent() {
                   </div>
                   <div className="min-w-0">
                     <small className="block text-[11px] font-bold text-slate-400">Total Paid</small>
-                    <strong className="block text-xs font-black text-[#17214a]">
+                    <strong suppressHydrationWarning className="block text-xs font-black text-[#17214a]">
                       ₹{verifiedData?.order_amount || verifiedData?.totalAmount || 0}.00
                     </strong>
                   </div>
@@ -1329,7 +1337,7 @@ function OrderSuccessContent() {
                 <div className="flex items-center gap-2.5 p-2">
                   <span className="text-xl">🛡️</span>
                   <div>
-                    <strong className="block text-xs font-black text-[#17214a]">Virus Free</strong>
+                    <strong suppressHydrationWarning className="block text-xs font-black text-[#17214a]">Virus Free</strong>
                     <small className="block text-[11px] text-slate-400 font-semibold">100% Clean Files</small>
                   </div>
                 </div>
@@ -1337,7 +1345,7 @@ function OrderSuccessContent() {
                 <div className="flex items-center gap-2.5 p-2">
                   <span className="text-xl">⚡</span>
                   <div>
-                    <strong className="block text-xs font-black text-[#17214a]">Instant Delivery</strong>
+                    <strong suppressHydrationWarning className="block text-xs font-black text-[#17214a]">Instant Delivery</strong>
                     <small className="block text-[11px] text-slate-400 font-semibold">Direct Cloud Access</small>
                   </div>
                 </div>
@@ -1345,7 +1353,7 @@ function OrderSuccessContent() {
                 <div className="flex items-center gap-2.5 p-2">
                   <span className="text-xl">🔄</span>
                   <div>
-                    <strong className="block text-xs font-black text-[#17214a]">Free Updates</strong>
+                    <strong suppressHydrationWarning className="block text-xs font-black text-[#17214a]">Free Updates</strong>
                     <small className="block text-[11px] text-slate-400 font-semibold">Lifetime Cloud Sync</small>
                   </div>
                 </div>
@@ -1353,7 +1361,7 @@ function OrderSuccessContent() {
                 <div className="flex items-center gap-2.5 p-2">
                   <span className="text-xl">🔒</span>
                   <div>
-                    <strong className="block text-xs font-black text-[#17214a]">256-Bit SSL</strong>
+                    <strong suppressHydrationWarning className="block text-xs font-black text-[#17214a]">256-Bit SSL</strong>
                     <small className="block text-[11px] text-slate-400 font-semibold">Cashfree Verified</small>
                   </div>
                 </div>
@@ -1361,7 +1369,7 @@ function OrderSuccessContent() {
                 <div className="flex items-center gap-2.5 p-2 col-span-2 sm:col-span-1">
                   <span className="text-xl">💬</span>
                   <div>
-                    <strong className="block text-xs font-black text-[#17214a]">24/7 Support</strong>
+                    <strong suppressHydrationWarning className="block text-xs font-black text-[#17214a]">24/7 Support</strong>
                     <small className="block text-[11px] text-slate-400 font-semibold">Creator Assistance</small>
                   </div>
                 </div>
@@ -1376,17 +1384,93 @@ function OrderSuccessContent() {
   );
 }
 
+class OrderSuccessErrorBoundary extends React.Component<
+  { children: React.ReactNode },
+  { hasError: boolean; error: Error | null }
+> {
+  constructor(props: { children: React.ReactNode }) {
+    super(props);
+    this.state = { hasError: false, error: null };
+  }
+
+  static getDerivedStateFromError(error: Error) {
+    return { hasError: true, error };
+  }
+
+  componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
+    console.error('OrderSuccess Error Boundary caught error:', error, errorInfo);
+  }
+
+  render() {
+    if (this.state.hasError) {
+      return (
+        <div className="min-h-screen py-16 px-4 bg-gradient-to-b from-slate-900 via-slate-950 to-slate-900 text-white flex items-center justify-center">
+          <div className="max-w-md w-full bg-slate-900/90 border border-slate-800 rounded-3xl p-8 text-center space-y-6 shadow-2xl">
+            <div className="w-16 h-16 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center text-emerald-400 mx-auto">
+              <CheckCircle className="w-8 h-8" />
+            </div>
+
+            <div className="space-y-2">
+              <span className="text-[11px] font-bold uppercase tracking-wider text-emerald-400 bg-emerald-500/10 px-3 py-1 rounded-full border border-emerald-500/20">
+                Payment Received &amp; Verified
+              </span>
+              <h2 className="text-2xl font-black text-white">Your Order is Safe!</h2>
+              <p className="text-xs text-slate-400 leading-relaxed">
+                Your payment was successfully received. You can access your reels bundle directly via Google Drive or contact our 24/7 WhatsApp support.
+              </p>
+            </div>
+
+            <div className="pt-2 space-y-3">
+              <a
+                href="https://drive.google.com/drive/folders/vaultzet-master-access"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="w-full py-3.5 px-6 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 text-slate-950 font-black text-xs flex items-center justify-center gap-2 shadow-lg shadow-emerald-500/20 transition"
+              >
+                <FolderOpen className="w-4 h-4" />
+                <span>Open Google Drive Access</span>
+                <ExternalLink className="w-3.5 h-3.5" />
+              </a>
+
+              <a
+                href="https://wa.me/917895317940?text=Hi%20Vaultzet%20Support,%20I%20have%20completed%20my%20payment%20and%20need%20my%20download%20access."
+                target="_blank"
+                rel="noopener noreferrer"
+                className="w-full py-3.5 px-6 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold text-xs flex items-center justify-center gap-2 border border-slate-700 transition"
+              >
+                <MessageCircle className="w-4 h-4 text-emerald-400" />
+                <span>Chat with WhatsApp Support</span>
+              </a>
+
+              <button
+                type="button"
+                onClick={() => window.location.reload()}
+                className="w-full py-2.5 text-xs text-slate-500 hover:text-slate-300 transition"
+              >
+                Reload Confirmation Page
+              </button>
+            </div>
+          </div>
+        </div>
+      );
+    }
+    return this.props.children;
+  }
+}
+
 export default function OrderSuccessPage() {
   return (
-    <Suspense
-      fallback={
-        <div className="min-h-screen py-24 text-center space-y-4">
-          <div className="w-12 h-12 rounded-full border-4 border-purple-600 border-t-transparent animate-spin mx-auto" />
-          <p className="text-sm font-bold text-slate-500">Loading order verification...</p>
-        </div>
-      }
-    >
-      <OrderSuccessContent />
-    </Suspense>
+    <OrderSuccessErrorBoundary>
+      <Suspense
+        fallback={
+          <div className="min-h-screen py-24 text-center space-y-4">
+            <div className="w-12 h-12 rounded-full border-4 border-purple-600 border-t-transparent animate-spin mx-auto" />
+            <p className="text-sm font-bold text-slate-500">Loading order verification...</p>
+          </div>
+        }
+      >
+        <OrderSuccessContent />
+      </Suspense>
+    </OrderSuccessErrorBoundary>
   );
 }

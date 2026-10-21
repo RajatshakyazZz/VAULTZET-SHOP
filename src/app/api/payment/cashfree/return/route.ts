@@ -6,6 +6,8 @@ import {
   sendSaleSuccessTelegramAlert,
   sendAbandonedOrPendingTelegramAlert,
 } from '@/lib/telegram';
+import { sendResellerSaleTelegramAlert } from '@/lib/telegramReseller';
+import { getResellerProfile, getResellerWallet } from '@/lib/resellerService';
 import { generateOrderToken } from '@/lib/orderToken';
 
 export async function GET(request: Request) {
@@ -13,7 +15,9 @@ export async function GET(request: Request) {
   const orderId = url.searchParams.get('order_id');
   const tokenParam = url.searchParams.get('token');
   const isLocalhost = url.host.includes('localhost');
-  const baseUrl = isLocalhost ? `${url.protocol}//${url.host}` : 'https://vaultzet.shop';
+  const baseUrl = isLocalhost
+    ? `${url.protocol}//${url.host}`
+    : (url.origin && !url.origin.includes('0.0.0.0') ? url.origin : 'https://www.vaultzet.shop');
 
   if (!orderId) {
     return NextResponse.redirect(`${baseUrl}/checkout?error=missing_order_id`);
@@ -67,11 +71,39 @@ export async function GET(request: Request) {
 
       // Send celebratory Sale Telegram Alert only if not already sent
       if (!isAlreadyCompleted) {
-        await sendSaleSuccessTelegramAlert(alertPayload);
+        if (storedOrder?.reseller_id) {
+          try {
+            const profile = await getResellerProfile(storedOrder.reseller_id);
+            const wallet = await getResellerWallet(storedOrder.reseller_id);
+            await sendResellerSaleTelegramAlert({
+              orderNumber: orderId,
+              resellerId: storedOrder.reseller_id,
+              resellerUid: profile?.resellerUid || storedOrder.reseller_uid || 'RSL-VAULTZET',
+              resellerName: profile?.displayName || storedOrder.reseller_name || 'Reseller',
+              resellerEmail: profile?.email || '',
+              resellerPhone: profile?.phone || '',
+              productTitle: storedOrder.items?.[0]?.title || 'Viral Reels Bundle',
+              totalAmount: Number(storedOrder.totalAmount || verification.order_amount || 0),
+              basePrice: Number(
+                storedOrder.base_price_snapshot ||
+                  (Number(storedOrder.totalAmount || 0) - Number(storedOrder.reseller_earning || 0))
+              ),
+              resellerEarning: Number(storedOrder.reseller_earning || 0),
+              customer: alertPayload.customer,
+              availableBalance: wallet?.availableBalance ?? Number(storedOrder.reseller_earning || 0),
+              totalEarned: wallet?.totalEarned ?? Number(storedOrder.reseller_earning || 0),
+            });
+          } catch (e) {
+            console.warn('Error dispatching reseller alert in return route:', e);
+            await sendSaleSuccessTelegramAlert(alertPayload);
+          }
+        } else {
+          await sendSaleSuccessTelegramAlert(alertPayload);
+        }
       }
 
       const resellerQuery = storedOrder?.reseller_slug
-        ? `&r=${encodeURIComponent(storedOrder.reseller_slug)}`
+        ? `&r=${encodeURIComponent(storedOrder.reseller_slug)}&reseller_slug=${encodeURIComponent(storedOrder.reseller_slug)}`
         : '';
 
       return NextResponse.redirect(
@@ -95,7 +127,7 @@ export async function GET(request: Request) {
       }
 
       const resellerQuery = storedOrder?.reseller_slug
-        ? `&r=${encodeURIComponent(storedOrder.reseller_slug)}`
+        ? `&r=${encodeURIComponent(storedOrder.reseller_slug)}&reseller_slug=${encodeURIComponent(storedOrder.reseller_slug)}`
         : '';
 
       return NextResponse.redirect(

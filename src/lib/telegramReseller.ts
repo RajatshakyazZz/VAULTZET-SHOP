@@ -238,6 +238,91 @@ ${detailsText}
 }
 
 // -----------------------------------------------------------------------------
+// 2C. TELEGRAM ALERT: RESELLER SALE NOTIFICATION
+// -----------------------------------------------------------------------------
+export async function sendResellerSaleTelegramAlert(params: {
+  orderNumber: string;
+  resellerId: string;
+  resellerUid?: string;
+  resellerName?: string;
+  resellerEmail?: string;
+  resellerPhone?: string;
+  productTitle: string;
+  totalAmount: number;
+  basePrice?: number;
+  resellerEarning: number;
+  customer: {
+    fullName: string;
+    email: string;
+    phone?: string;
+  };
+  availableBalance?: number;
+  totalEarned?: number;
+  verifiedSalesCount?: number;
+}): Promise<boolean> {
+  const {
+    orderNumber,
+    resellerId,
+    resellerUid = 'RSL-VAULTZET',
+    resellerName = 'Reseller',
+    resellerEmail = '',
+    resellerPhone = '',
+    productTitle,
+    totalAmount,
+    basePrice = 0,
+    resellerEarning,
+    customer,
+    availableBalance = resellerEarning,
+    totalEarned = resellerEarning,
+    verifiedSalesCount = 1,
+  } = params;
+
+  const nowIst = getIstTimestamp();
+  const calculatedBase = basePrice > 0 ? basePrice : Math.max(0, totalAmount - resellerEarning);
+
+  const text = `🎉 <b>NEW RESELLER SALE COMPLETED!</b>
+━━━━━━━━━━━━━━━━━━
+🧾 <b>Order ID:</b> <code>${escapeHtml(orderNumber)}</code>
+📦 <b>Reels Bundle:</b> ${escapeHtml(productTitle)}
+💰 <b>Customer Paid:</b> <b>₹${totalAmount}.00</b>
+🏷️ <b>Vaultzet Base Cost:</b> ₹${calculatedBase}.00
+💵 <b>Reseller Commission:</b> <b>+₹${resellerEarning}.00</b> (Instant Credit)
+
+👤 <b>RESELLER DETAILS</b>
+• Reseller UID: <code>${escapeHtml(resellerUid)}</code>
+• Name: <b>${escapeHtml(resellerName)}</b>
+• Email: ${escapeHtml(resellerEmail || 'N/A')}
+${resellerPhone ? `• Phone: <code>${escapeHtml(resellerPhone)}</code>\n` : ''}• Account: <b>✅ ACTIVE</b>
+
+👛 <b>RESELLER WALLET SNAPSHOT</b>
+• Available Balance: <b>₹${availableBalance}.00</b>
+• Lifetime Earned: <b>₹${totalEarned}.00</b>
+• Total Verified Sales: <b>${verifiedSalesCount}</b>
+
+👤 <b>CUSTOMER DETAILS</b>
+• Name: ${escapeHtml(customer?.fullName || 'Customer')}
+• Email: <code>${escapeHtml(customer?.email || 'N/A')}</code>
+${customer?.phone ? `• Phone: <code>${escapeHtml(customer.phone)}</code>\n` : ''}• Payment Gateway: <b>Cashfree UPI / Card (PAID)</b>
+
+🕒 <b>Time:</b> ${escapeHtml(nowIst)} IST
+━━━━━━━━━━━━━━━━━━
+🔎 <i>Manage Resellers in Admin:</i> https://vaultzet.shop/admin/resellers`;
+
+  const buttons: Array<Array<TelegramInlineButton>> = [
+    [
+      { text: `👤 Reseller: ${resellerUid}`, callback_data: `reseller_${resellerUid}` },
+      { text: `👛 Wallet: ${resellerUid}`, callback_data: `wallet_${resellerUid}` },
+    ],
+    [
+      { text: `📦 Order #${orderNumber}`, callback_data: `order_${orderNumber}` },
+      { text: '📋 Admin Panel', url: 'https://vaultzet.shop/admin/resellers' },
+    ],
+  ];
+
+  return sendTelegramMessage(text, buttons);
+}
+
+// -----------------------------------------------------------------------------
 // 3. ADMIN TELEGRAM COMMAND DISPATCHER
 // -----------------------------------------------------------------------------
 

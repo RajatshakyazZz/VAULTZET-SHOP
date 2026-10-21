@@ -22,6 +22,8 @@ import {
   FileSpreadsheet,
   ArrowUpDown,
   Filter,
+  Trash2,
+  ArrowLeft,
 } from 'lucide-react';
 import { ResellerListing, WithdrawalRequest, ResellerFullAnalytics } from '@/types/reseller';
 import { maskUpiId } from '@/lib/resellerService';
@@ -193,6 +195,29 @@ export default function AdminResellersManagementPage() {
     }
   };
 
+  const handleDeleteWithdrawal = async (id: string) => {
+    if (!confirm(`Are you sure you want to permanently delete withdrawal #${id}? This will remove it from the Admin Panel and Telegram Bot.`)) {
+      return;
+    }
+    setProcessingId(id);
+    try {
+      const res = await fetch(`/api/admin/reseller/withdrawals?id=${encodeURIComponent(id)}`, {
+        method: 'DELETE',
+      });
+      const data = await res.json();
+      if (data.success) {
+        await loadAll();
+      } else {
+        alert(data.error || 'Failed to delete withdrawal');
+      }
+    } catch (e) {
+      console.warn('Error deleting withdrawal:', e);
+      alert('Network error while deleting withdrawal');
+    } finally {
+      setProcessingId(null);
+    }
+  };
+
   const toggleListingStatus = async (listingId: string, currentStatus: string) => {
     const nextStatus = currentStatus === 'active' ? 'paused' : 'active';
     setProcessingId(listingId);
@@ -315,7 +340,14 @@ export default function AdminResellersManagementPage() {
               Resell & Earn Ecosystem
             </h1>
           </div>
-          <div className="flex items-center gap-3">
+          <div className="flex items-center flex-wrap gap-3">
+            <Link
+              href="/admin"
+              className="px-4 py-2 bg-slate-900 hover:bg-slate-800 border border-slate-700/80 rounded-xl text-xs font-bold text-slate-200 flex items-center gap-1.5 transition hover:text-white"
+            >
+              <ArrowLeft className="w-3.5 h-3.5" />
+              <span>Dashboard</span>
+            </Link>
             <button
               onClick={loadAll}
               className="px-4 py-2 bg-slate-900 hover:bg-slate-800 border border-slate-800 rounded-xl text-xs font-semibold text-slate-300 flex items-center gap-2 transition"
@@ -721,26 +753,54 @@ export default function AdminResellersManagementPage() {
                                   >
                                     Reject
                                   </button>
+                                  <button
+                                    onClick={() => handleDeleteWithdrawal(w.id)}
+                                    disabled={processingId === w.id}
+                                    className="p-1.5 bg-slate-800 hover:bg-rose-900/40 text-slate-400 hover:text-rose-400 border border-slate-700/80 rounded-lg text-xs transition ml-1"
+                                    title="Permanently delete withdrawal request"
+                                  >
+                                    <Trash2 className="w-3.5 h-3.5" />
+                                  </button>
                                 </div>
                               ) : w.status === 'paid' ? (
-                                <div className="text-right">
-                                  <div className="font-mono text-xs text-emerald-400 font-bold">
-                                    UTR: {w.payoutReference || 'Settled'}
-                                  </div>
-                                  {w.adminNotes && (
-                                    <div className="text-[11px] text-slate-500 italic mt-0.5">
-                                      {w.adminNotes}
+                                <div className="flex items-center justify-end gap-3 text-right">
+                                  <div>
+                                    <div className="font-mono text-xs text-emerald-400 font-bold">
+                                      UTR: {w.payoutReference || 'Settled'}
                                     </div>
-                                  )}
+                                    {w.adminNotes && (
+                                      <div className="text-[11px] text-slate-500 italic mt-0.5">
+                                        {w.adminNotes}
+                                      </div>
+                                    )}
+                                  </div>
+                                  <button
+                                    onClick={() => handleDeleteWithdrawal(w.id)}
+                                    disabled={processingId === w.id}
+                                    className="p-1.5 bg-slate-800 hover:bg-rose-900/40 text-slate-400 hover:text-rose-400 border border-slate-700/80 rounded-lg text-xs transition"
+                                    title="Permanently delete withdrawal record"
+                                  >
+                                    <Trash2 className="w-3.5 h-3.5" />
+                                  </button>
                                 </div>
                               ) : (
-                                <div className="text-right">
-                                  <div className="text-xs text-rose-400 font-medium">
-                                    {w.rejectionReason || w.adminNotes || 'Declined by admin'}
+                                <div className="flex items-center justify-end gap-3 text-right">
+                                  <div>
+                                    <div className="text-xs text-rose-400 font-medium">
+                                      {w.rejectionReason || w.adminNotes || 'Declined by admin'}
+                                    </div>
+                                    <div className="text-[10px] text-slate-500 mt-0.5">
+                                      Balance refunded to reseller
+                                    </div>
                                   </div>
-                                  <div className="text-[10px] text-slate-500 mt-0.5">
-                                    Balance refunded to reseller
-                                  </div>
+                                  <button
+                                    onClick={() => handleDeleteWithdrawal(w.id)}
+                                    disabled={processingId === w.id}
+                                    className="p-1.5 bg-slate-800 hover:bg-rose-900/40 text-slate-400 hover:text-rose-400 border border-slate-700/80 rounded-lg text-xs transition"
+                                    title="Permanently delete withdrawal record"
+                                  >
+                                    <Trash2 className="w-3.5 h-3.5" />
+                                  </button>
                                 </div>
                               )}
                             </td>

@@ -417,9 +417,27 @@ export async function serverGetAllProfiles(): Promise<ResellerProfile[]> {
     }
   }
 
-  return Array.from(state.profilesByUserId.values()).sort(
-    (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
-  );
+  return Array.from(state.profilesByUserId.values())
+    .filter((p) => {
+      const uid = p.userId || '';
+      const email = p.email || '';
+      return (
+        !uid.startsWith('usr_reseller_audit') &&
+        !uid.startsWith('usr_cross_device') &&
+        !email.includes('reseller_audit') &&
+        !p.resellerUid.includes('TEST')
+      );
+    })
+    .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+}
+
+/**
+ * Deletes a withdrawal request from server memory cache
+ */
+export async function serverDeleteWithdrawal(withdrawalId: string): Promise<boolean> {
+  const state = getServerState();
+  state.withdrawalsById.delete(withdrawalId);
+  return true;
 }
 
 /**

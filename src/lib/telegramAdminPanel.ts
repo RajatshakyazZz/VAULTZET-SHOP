@@ -225,7 +225,21 @@ Select a section from the persistent menu below to manage your business.`;
 export async function renderResellersMenu(chatId: string, messageId?: number): Promise<boolean> {
   clearSessionAction(chatId);
   const todayKey = getIstDateKey();
-  const resellers = await getAllResellersAnalytics();
+  const allResellers = await getAllResellersAnalytics();
+
+  // Filter out any automated test accounts
+  const resellers = allResellers.filter((r) => {
+    const uid = r.profile.userId || '';
+    const email = r.profile.email || '';
+    const name = r.profile.displayName || '';
+    return (
+      !uid.startsWith('usr_reseller_audit') &&
+      !uid.startsWith('usr_cross_device') &&
+      !email.includes('reseller_audit') &&
+      !name.toLowerCase().includes('reseller audit') &&
+      !r.profile.resellerUid.includes('TEST')
+    );
+  });
 
   const total = resellers.length;
   const activeCount = resellers.filter((r) => r.profile.status === 'active').length;
@@ -237,43 +251,52 @@ export async function renderResellersMenu(chatId: string, messageId?: number): P
   const sorted = [...resellers].sort(
     (a, b) => b.resellerEarnings - a.resellerEarnings || b.totalOrders - a.totalOrders
   );
-  const topList = sorted.slice(0, 3);
 
-  let topSummary = '• <i>No active sales recorded yet</i>';
-  if (topList.length > 0) {
-    topSummary = topList
+  let listSummary = '• <i>No registered resellers yet</i>';
+  if (sorted.length > 0) {
+    listSummary = sorted
+      .slice(0, 5)
       .map(
         (r, idx) =>
-          `${idx + 1}. <b>${escapeHtml(r.profile.resellerUid)}</b> (${escapeHtml(r.profile.displayName)})\n   • Sales: <b>${r.totalOrders}</b> | Earned: <b>${formatInr(r.resellerEarnings)}</b>`
+          `${idx + 1}. <b>${escapeHtml(r.profile.displayName)}</b> (<code>${escapeHtml(r.profile.resellerUid)}</code>)\n   • Balance: <b>₹${formatInr(r.wallet.availableBalance)}.00</b> | Sales: <b>${r.totalOrders}</b> | Earned: <b>₹${formatInr(r.resellerEarnings)}.00</b>`
       )
-      .join('\n');
+      .join('\n\n');
   }
 
-  const text = `👥 <b>RESELLER MANAGEMENT</b>
+  const text = `👥 <b>REGISTERED RESELLERS DIRECTORY</b>
 ━━━━━━━━━━━━━━━━━━
-Overview of your digital partner network:
+Overview of verified store partners:
 
 • Total Registered: <b>${total} Resellers</b>
 • Active Resellers: <b>${activeCount}</b>
-• Suspended / Pending: <b>${suspendedCount}</b>
-• New Today (IST): <b>${todayCount}</b>
+• Suspended / Inactive: <b>${suspendedCount}</b>
+• New Registered Today: <b>${todayCount}</b>
 
-🏆 <b>TOP PERFORMERS:</b>
-${topSummary}
+🏆 <b>ACTIVE PARTNERS OVERVIEW:</b>
+${listSummary}
 ━━━━━━━━━━━━━━━━━━
-Select an action to inspect or search resellers:`;
+👇 <b>Tap any partner button below to view full details (Balance, Sales, Withdrawals, UPI):</b>`;
 
-  const inlineButtons: Array<Array<TelegramInlineButton>> = [
-    [
-      { text: '🔎 Search by UID', callback_data: 'res:search' },
-      { text: '🆕 New Resellers', callback_data: 'res:new' },
-    ],
-    [
-      { text: '🏆 Top Resellers', callback_data: 'res:top' },
-      { text: '📋 Recent Resellers', callback_data: 'res:recent' },
-    ],
-    [{ text: '🏠 Home', callback_data: 'nav:home' }],
-  ];
+  // Dynamic animated buttons for each real registered reseller
+  const inlineButtons: Array<Array<TelegramInlineButton>> = [];
+
+  sorted.forEach((r) => {
+    inlineButtons.push([
+      {
+        text: `👤 ${r.profile.displayName || 'Partner'} • ${r.profile.resellerUid}`,
+        callback_data: `res:view:${r.profile.resellerUid}`,
+      },
+    ]);
+  });
+
+  inlineButtons.push([
+    { text: '🔎 Search by UID', callback_data: 'res:search' },
+    { text: '🏆 Leaderboard', callback_data: 'res:top' },
+  ]);
+
+  inlineButtons.push([
+    { text: '🏠 Main Dashboard', callback_data: 'nav:home' },
+  ]);
 
   return renderView(chatId, messageId, text, inlineButtons);
 }
@@ -287,12 +310,13 @@ export async function promptResellerUidSearch(chatId: string, messageId?: number
 ━━━━━━━━━━━━━━━━━━
 Please type and send the permanent <b>Reseller UID</b> to inspect.
 
-<i>Example:</i> <code>RSL-8K4M2P9X</code> or <code>RSL-7Q3N5W2B</code>
+<i>Example:</i> <code>RSL-ZB47ZAK9</code> or <code>RSL-8K4M2P9X</code>
 
 Type your search or click Cancel below:`;
 
   const inlineButtons: Array<Array<TelegramInlineButton>> = [
     [{ text: '❌ Cancel Search', callback_data: 'nav:res' }],
+    [{ text: '🏠 Main Dashboard', callback_data: 'nav:home' }],
   ];
 
   return renderView(chatId, messageId, text, inlineButtons);
@@ -313,11 +337,11 @@ export async function renderResellerDetail(
 ━━━━━━━━━━━━━━━━━━
 No reseller matches UID: <code>${escapeHtml(cleanUid)}</code>
 
-Please verify the UID format (e.g. <code>RSL-8K4M2P9X</code>).`;
+Please verify the UID format (e.g. <code>RSL-ZB47ZAK9</code>).`;
     const buttons: Array<Array<TelegramInlineButton>> = [
       [{ text: '🔎 Search Again', callback_data: 'res:search' }],
       [{ text: '⬅️ Back to Resellers', callback_data: 'nav:res' }],
-      [{ text: '🏠 Home', callback_data: 'nav:home' }],
+      [{ text: '🏠 Main Dashboard', callback_data: 'nav:home' }],
     ];
     return renderView(chatId, messageId, errorText, buttons);
   }
@@ -327,35 +351,289 @@ Please verify the UID format (e.g. <code>RSL-8K4M2P9X</code>).`;
     ? new Date(profile.createdAt).toLocaleDateString('en-IN', { timeZone: 'Asia/Kolkata' })
     : 'N/A';
 
-  const text = `🆔 <b>Reseller:</b> <code>${escapeHtml(profile.resellerUid)}</code>
-👤 <b>Name:</b> ${escapeHtml(profile.displayName)}
-📧 <b>Email:</b> ${escapeHtml(profile.email)}
-${profile.phone ? `📱 <b>Phone:</b> <code>${escapeHtml(profile.phone)}</code>\n` : ''}📅 <b>Registered:</b> ${escapeHtml(regDate)} (IST)
-📌 <b>Status:</b> <b>${escapeHtml(profile.status.toUpperCase())}</b>
+  const upiId = profile.payoutDetails?.upiId || 'Not Saved';
+  const recipient = profile.payoutDetails?.accountHolderName || profile.displayName || 'N/A';
 
-📦 <b>Verified orders:</b> <b>${totalOrders}</b> (Units: ${unitsSold})
-💵 <b>Gross sales:</b> <b>${formatInr(grossSales)}.00</b>
-💰 <b>Net sales:</b> <b>${formatInr(netSales)}.00</b>
-💎 <b>Reseller margin:</b> <b>${formatInr(resellerEarnings)}.00</b>
-👛 <b>Available balance:</b> <b>${formatInr(wallet.availableBalance)}.00</b>
-━━━━━━━━━━━━━━━━━━`;
+  // Fetch recent withdrawals for this reseller
+  let wdrLines = '• <i>No payout requests made yet</i>';
+  try {
+    const { getWithdrawalRequests } = await import('@/lib/resellerService');
+    const wdrs = await getWithdrawalRequests(profile.userId);
+    if (wdrs.length > 0) {
+      wdrLines = wdrs
+        .slice(0, 3)
+        .map((w) => {
+          const badge = w.status === 'paid' ? '✅ Paid' : w.status === 'rejected' ? '❌ Rejected' : '⏳ ' + w.status.toUpperCase();
+          return `• <code>${escapeHtml(w.id)}</code>: <b>₹${w.amount}.00</b> (${badge})`;
+        })
+        .join('\n');
+    }
+  } catch {}
+
+  const text = `🆔 <b>RESELLER PROFILE:</b> <code>${escapeHtml(profile.resellerUid)}</code>
+━━━━━━━━━━━━━━━━━━
+👤 <b>Partner Name:</b> ${escapeHtml(profile.displayName)}
+📧 <b>Email:</b> ${escapeHtml(profile.email)}
+${profile.phone ? `📱 <b>Phone:</b> <code>${escapeHtml(profile.phone)}</code>\n` : ''}📅 <b>Registered At:</b> ${escapeHtml(regDate)} (IST)
+🛡️ <b>Account Status:</b> <b>✅ ${escapeHtml(profile.status.toUpperCase())}</b>
+
+👛 <b>WALLET OVERVIEW</b>
+• Available to Withdraw: <b>₹${formatInr(wallet.availableBalance)}.00</b>
+• Pending Clearance: <b>₹${formatInr(wallet.pendingBalance)}.00</b>
+• Total Profit Earned: <b>₹${formatInr(resellerEarnings)}.00</b>
+• Total Withdrawn: <b>₹${formatInr(wallet.totalWithdrawn)}.00</b>
+
+🏦 <b>PAYOUT UPI DETAILS</b>
+• UPI ID: <code>${escapeHtml(upiId)}</code>
+• Recipient: <b>${escapeHtml(recipient)}</b>
+
+📊 <b>SALES & REVENUE STATS</b>
+• Verified Orders: <b>${totalOrders}</b> (Units Sold: <b>${unitsSold}</b>)
+• Gross Sales Volume: <b>₹${formatInr(grossSales)}.00</b>
+• Net Sales Revenue: <b>₹${formatInr(netSales)}.00</b>
+
+💸 <b>RECENT WITHDRAWALS:</b>
+${wdrLines}
+━━━━━━━━━━━━━━━━━━
+Choose a section below to audit or manage:`;
 
   const inlineButtons: Array<Array<TelegramInlineButton>> = [
     [
-      { text: '📊 Sales', callback_data: `res:sales:${profile.resellerUid}` },
+      { text: '👛 Audit Wallet', callback_data: `res:wall:${profile.resellerUid}` },
+      { text: '📦 View Orders', callback_data: `res:sales:${profile.resellerUid}` },
+    ],
+    [
+      { text: '💸 Withdrawals', callback_data: `res:wdr:${profile.resellerUid}` },
       { text: '🛍 Products', callback_data: `res:prod:${profile.resellerUid}` },
     ],
     [
-      { text: '👛 Wallet', callback_data: `res:wall:${profile.resellerUid}` },
-      { text: '💸 Withdrawals', callback_data: `res:wdr:${profile.resellerUid}` },
-    ],
-    [
       { text: '⬅️ Back to Resellers', callback_data: 'nav:res' },
-      { text: '🏠 Home', callback_data: 'nav:home' },
+      { text: '🏠 Main Dashboard', callback_data: 'nav:home' },
     ],
   ];
 
   return renderView(chatId, messageId, text, inlineButtons);
+}
+
+// --- 5.2.3 RESELLER WALLET DETAIL VIEW ---
+export async function renderResellerWalletDetail(
+  uid: string,
+  chatId: string,
+  messageId?: number
+): Promise<boolean> {
+  const cleanUid = uid.trim().toUpperCase();
+  const data = await getResellerAnalytics(cleanUid);
+  if (!data) return renderResellerDetail(cleanUid, chatId, messageId);
+
+  const { profile, wallet } = data;
+  const txs = await getResellerTransactions(profile.userId);
+
+  let txLines = '• <i>No ledger transactions recorded yet</i>';
+  if (txs.length > 0) {
+    txLines = txs
+      .slice(0, 6)
+      .map((t) => {
+        const sign = t.amount >= 0 ? '+' : '';
+        const dateStr = new Date(t.createdAt).toLocaleDateString('en-IN');
+        return `• <b>${sign}₹${t.amount}.00</b> — ${escapeHtml(t.description || t.type)} <small>(${dateStr})</small>`;
+      })
+      .join('\n');
+  }
+
+  const text = `👛 <b>WALLET RECONCILIATION:</b> <code>${escapeHtml(profile.resellerUid)}</code>
+━━━━━━━━━━━━━━━━━━
+👤 <b>Partner:</b> ${escapeHtml(profile.displayName)}
+📧 <b>Email:</b> ${escapeHtml(profile.email)}
+
+💰 <b>BALANCE SNAPSHOT:</b>
+• Available to Withdraw: <b>₹${formatInr(wallet.availableBalance)}.00</b>
+• Pending Balance: <b>₹${formatInr(wallet.pendingBalance)}.00</b>
+• Lifetime Profit Earned: <b>₹${formatInr(wallet.totalEarned)}.00</b>
+• Total Payouts Completed: <b>₹${formatInr(wallet.totalWithdrawn)}.00</b>
+
+🏦 <b>REGISTERED PAYOUT METHOD:</b>
+• UPI ID: <code>${escapeHtml(profile.payoutDetails?.upiId || 'Not Saved')}</code>
+• Recipient: <b>${escapeHtml(profile.payoutDetails?.accountHolderName || profile.displayName)}</b>
+
+📜 <b>RECENT LEDGER TRANSACTIONS:</b>
+${txLines}
+━━━━━━━━━━━━━━━━━━`;
+
+  const buttons: Array<Array<TelegramInlineButton>> = [
+    [
+      { text: '💸 Withdrawals', callback_data: `res:wdr:${profile.resellerUid}` },
+      { text: '📦 View Orders', callback_data: `res:sales:${profile.resellerUid}` },
+    ],
+    [
+      { text: `⬅️ Back to ${profile.resellerUid}`, callback_data: `res:view:${profile.resellerUid}` },
+      { text: '👥 All Resellers', callback_data: 'nav:res' },
+    ],
+    [{ text: '🏠 Main Dashboard', callback_data: 'nav:home' }],
+  ];
+
+  return renderView(chatId, messageId, text, buttons);
+}
+
+// --- 5.2.4 RESELLER SALES DETAIL VIEW ---
+export async function renderResellerSalesDetail(
+  uid: string,
+  chatId: string,
+  messageId?: number
+): Promise<boolean> {
+  const cleanUid = uid.trim().toUpperCase();
+  const data = await getResellerAnalytics(cleanUid);
+  if (!data) return renderResellerDetail(cleanUid, chatId, messageId);
+
+  const { profile, totalOrders, unitsSold, grossSales, resellerEarnings, recentOrders } = data;
+
+  let orderLines = '• <i>No verified orders yet</i>';
+  if (recentOrders && recentOrders.length > 0) {
+    orderLines = recentOrders
+      .slice(0, 6)
+      .map((o) => {
+        const dateStr = new Date(o.createdAt).toLocaleDateString('en-IN');
+        return `• <code>${escapeHtml(o.orderId)}</code>: <b>${escapeHtml(o.productTitle)}</b>\n   Sold at <b>₹${o.resalePrice}.00</b> | Reseller Profit: <b>+₹${o.earningAmount}.00</b> (${dateStr})`;
+      })
+      .join('\n\n');
+  }
+
+  const text = `📦 <b>ATTRIBUTED SALES:</b> <code>${escapeHtml(profile.resellerUid)}</code>
+━━━━━━━━━━━━━━━━━━
+👤 <b>Partner:</b> ${escapeHtml(profile.displayName)}
+📧 <b>Email:</b> ${escapeHtml(profile.email)}
+
+📊 <b>PERFORMANCE METRICS:</b>
+• Total Verified Orders: <b>${totalOrders}</b>
+• Total Units Sold: <b>${unitsSold}</b>
+• Gross Sales Volume: <b>₹${formatInr(grossSales)}.00</b>
+• Net Reseller Commission: <b>₹${formatInr(resellerEarnings)}.00</b>
+
+🛍 <b>RECENT ORDERS LIST:</b>
+${orderLines}
+━━━━━━━━━━━━━━━━━━`;
+
+  const buttons: Array<Array<TelegramInlineButton>> = [
+    [
+      { text: '👛 Audit Wallet', callback_data: `res:wall:${profile.resellerUid}` },
+      { text: '💸 Withdrawals', callback_data: `res:wdr:${profile.resellerUid}` },
+    ],
+    [
+      { text: `⬅️ Back to ${profile.resellerUid}`, callback_data: `res:view:${profile.resellerUid}` },
+      { text: '👥 All Resellers', callback_data: 'nav:res' },
+    ],
+    [{ text: '🏠 Main Dashboard', callback_data: 'nav:home' }],
+  ];
+
+  return renderView(chatId, messageId, text, buttons);
+}
+
+// --- 5.2.5 RESELLER WITHDRAWALS DETAIL VIEW ---
+export async function renderResellerWithdrawalsDetail(
+  uid: string,
+  chatId: string,
+  messageId?: number
+): Promise<boolean> {
+  const cleanUid = uid.trim().toUpperCase();
+  const data = await getResellerAnalytics(cleanUid);
+  if (!data) return renderResellerDetail(cleanUid, chatId, messageId);
+
+  const { profile, wallet } = data;
+  let wdrs: any[] = [];
+  try {
+    const { getWithdrawalRequests } = await import('@/lib/resellerService');
+    wdrs = await getWithdrawalRequests(profile.userId);
+  } catch {}
+
+  let wdrLines = '• <i>No payout requests submitted yet</i>';
+  if (wdrs.length > 0) {
+    wdrLines = wdrs
+      .slice(0, 6)
+      .map((w) => {
+        const badge = w.status === 'paid' ? '✅ PAID' : w.status === 'rejected' ? '❌ REJECTED' : '⏳ ' + w.status.toUpperCase();
+        const dateStr = new Date(w.createdAt).toLocaleDateString('en-IN');
+        return `• <code>${escapeHtml(w.id)}</code>: <b>₹${w.amount}.00</b> — <b>${badge}</b>\n   UPI: <code>${escapeHtml(w.payoutDetails?.upiId || 'N/A')}</code> (${dateStr})`;
+      })
+      .join('\n\n');
+  }
+
+  const text = `💸 <b>PAYOUT REQUESTS:</b> <code>${escapeHtml(profile.resellerUid)}</code>
+━━━━━━━━━━━━━━━━━━
+👤 <b>Partner:</b> ${escapeHtml(profile.displayName)}
+📧 <b>Email:</b> ${escapeHtml(profile.email)}
+
+💰 <b>WALLET STATUS:</b>
+• Available to Withdraw: <b>₹${formatInr(wallet.availableBalance)}.00</b>
+• Total Successfully Paid: <b>₹${formatInr(wallet.totalWithdrawn)}.00</b>
+• Registered UPI: <code>${escapeHtml(profile.payoutDetails?.upiId || 'Not Saved')}</code>
+
+📋 <b>WITHDRAWAL HISTORY:</b>
+${wdrLines}
+━━━━━━━━━━━━━━━━━━`;
+
+  const buttons: Array<Array<TelegramInlineButton>> = [
+    [
+      { text: '👛 Audit Wallet', callback_data: `res:wall:${profile.resellerUid}` },
+      { text: '📦 View Orders', callback_data: `res:sales:${profile.resellerUid}` },
+    ],
+    [
+      { text: `⬅️ Back to ${profile.resellerUid}`, callback_data: `res:view:${profile.resellerUid}` },
+      { text: '👥 All Resellers', callback_data: 'nav:res' },
+    ],
+    [{ text: '🏠 Main Dashboard', callback_data: 'nav:home' }],
+  ];
+
+  return renderView(chatId, messageId, text, buttons);
+}
+
+// --- 5.2.6 RESELLER PRODUCTS DETAIL VIEW ---
+export async function renderResellerProductsDetail(
+  uid: string,
+  chatId: string,
+  messageId?: number
+): Promise<boolean> {
+  const cleanUid = uid.trim().toUpperCase();
+  const data = await getResellerAnalytics(cleanUid);
+  if (!data) return renderResellerDetail(cleanUid, chatId, messageId);
+
+  const { profile } = data;
+  let listings: any[] = [];
+  try {
+    const { getResellerListingsByUser } = await import('@/lib/resellerService');
+    listings = await getResellerListingsByUser(profile.userId);
+  } catch {}
+
+  let listLines = '• <i>No bundles published yet</i>';
+  if (listings.length > 0) {
+    listLines = listings
+      .slice(0, 6)
+      .map((l) => {
+        return `• <b>${escapeHtml(l.customTitle)}</b>\n   Resale: <b>₹${l.resalePrice}.00</b> | Slug: <code>${escapeHtml(l.slug)}</code>\n   Sales: <b>${l.salesCount || 0}</b> | Earned: <b>₹${l.totalEarned || 0}.00</b>`;
+      })
+      .join('\n\n');
+  }
+
+  const text = `🛍 <b>PUBLISHED BUNDLES:</b> <code>${escapeHtml(profile.resellerUid)}</code>
+━━━━━━━━━━━━━━━━━━
+👤 <b>Partner:</b> ${escapeHtml(profile.displayName)}
+📧 <b>Email:</b> ${escapeHtml(profile.email)}
+
+📦 <b>RESELLER LISTINGS:</b>
+${listLines}
+━━━━━━━━━━━━━━━━━━`;
+
+  const buttons: Array<Array<TelegramInlineButton>> = [
+    [
+      { text: '👛 Audit Wallet', callback_data: `res:wall:${profile.resellerUid}` },
+      { text: '📦 View Orders', callback_data: `res:sales:${profile.resellerUid}` },
+    ],
+    [
+      { text: `⬅️ Back to ${profile.resellerUid}`, callback_data: `res:view:${profile.resellerUid}` },
+      { text: '👥 All Resellers', callback_data: 'nav:res' },
+    ],
+    [{ text: '🏠 Main Dashboard', callback_data: 'nav:home' }],
+  ];
+
+  return renderView(chatId, messageId, text, buttons);
 }
 
 // --- 5.3 SALES VIEW ---
@@ -1378,22 +1656,26 @@ export async function handleAdminPanelCallback(
     return renderView(chatId, messageId, text, buttons);
   }
 
-  // Reseller detail contextual callbacks: res:sales:UID, res:prod:UID, res:wall:UID, res:wdr:UID
+  // Reseller dynamic detail & contextual callbacks
+  if (action.startsWith('res:view:')) {
+    const uid = action.replace('res:view:', '');
+    return renderResellerDetail(uid, chatId, messageId);
+  }
   if (action.startsWith('res:sales:')) {
     const uid = action.replace('res:sales:', '');
-    return renderSalesMenu(chatId, messageId, 'all');
+    return renderResellerSalesDetail(uid, chatId, messageId);
   }
   if (action.startsWith('res:prod:')) {
     const uid = action.replace('res:prod:', '');
-    return renderProductsMenu(chatId, messageId, 'top');
+    return renderResellerProductsDetail(uid, chatId, messageId);
   }
   if (action.startsWith('res:wall:')) {
     const uid = action.replace('res:wall:', '');
-    return renderWalletsMenu(chatId, messageId, 'summary');
+    return renderResellerWalletDetail(uid, chatId, messageId);
   }
   if (action.startsWith('res:wdr:')) {
     const uid = action.replace('res:wdr:', '');
-    return renderWithdrawalsMenu(chatId, messageId, 'pending');
+    return renderResellerWithdrawalsDetail(uid, chatId, messageId);
   }
 
   // Sales callbacks
