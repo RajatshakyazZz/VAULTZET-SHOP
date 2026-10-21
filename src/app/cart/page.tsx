@@ -19,15 +19,40 @@ export default function CartPage() {
   const router = useRouter();
   const { items, removeFromCart, subtotal, total } = useCart();
   const [couponCode, setCouponCode] = useState('');
-  const [couponStatus, setCouponStatus] = useState<string | null>(null);
+  const [couponStatus, setCouponStatus] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
+  const [isApplying, setIsApplying] = useState(false);
 
-  const handleApplyCoupon = (e: React.FormEvent) => {
+  const handleApplyCoupon = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!couponCode.trim()) return;
-    setCouponStatus('Coupon code is invalid or expired.');
-    setTimeout(() => {
-      setCouponStatus(null);
-    }, 4000);
+    const clean = couponCode.trim().toUpperCase();
+    if (!clean) return;
+    setIsApplying(true);
+    setCouponStatus(null);
+
+    try {
+      const res = await fetch('/api/coupon/validate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ code: clean, subtotal }),
+      });
+      const data = await res.json();
+      if (!res.ok || !data.success) {
+        setCouponStatus({ type: 'error', message: data.error || 'Coupon code is invalid or expired.' });
+      } else {
+        sessionStorage.setItem('vaultzet_applied_coupon', data.code);
+        setCouponStatus({
+          type: 'success',
+          message: `Coupon "${data.code}" applied! You save ₹${data.discountAmount}. Proceeding to checkout...`,
+        });
+        setTimeout(() => {
+          router.push('/checkout');
+        }, 1200);
+      }
+    } catch {
+      setCouponStatus({ type: 'error', message: 'Could not apply coupon. Please try again.' });
+    } finally {
+      setIsApplying(false);
+    }
   };
 
   return (
@@ -288,8 +313,12 @@ export default function CartPage() {
                   </form>
 
                   {couponStatus && (
-                    <p className="text-xs font-semibold text-rose-600 mt-2">
-                      {couponStatus}
+                    <p
+                      className={`text-xs font-semibold mt-2 ${
+                        couponStatus.type === 'success' ? 'text-emerald-600' : 'text-rose-600'
+                      }`}
+                    >
+                      {couponStatus.message}
                     </p>
                   )}
                 </div>

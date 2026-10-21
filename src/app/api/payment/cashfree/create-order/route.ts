@@ -6,11 +6,12 @@ import { sendAbandonedOrPendingTelegramAlert } from '@/lib/telegram';
 import { generateOrderToken } from '@/lib/orderToken';
 import { getResellerListingBySlug } from '@/lib/resellerService';
 import { BUNDLE_PRODUCTS, ORDER_BUMP } from '@/data/bundles';
+import { calculateCouponDiscount } from '@/app/api/coupon/validate/route';
 
 export async function POST(request: Request) {
   try {
     const body = await request.json();
-    const { orderNumber, customer, items, orderBump, totalAmount, resellerSlug } = body;
+    const { orderNumber, customer, items, orderBump, totalAmount, resellerSlug, couponCode } = body;
 
     const cleanEmail = String(customer?.email || '').trim().toLowerCase();
     const cleanPhone = String(customer?.phone || '').replace(/\D/g, '');
@@ -47,6 +48,7 @@ export async function POST(request: Request) {
     // Server-authoritative price calculation and anti-tampering enforcement
     let finalTotalAmount = Number(totalAmount);
     let resellerAttribution: Record<string, any> = {};
+    let appliedCouponDetails: any = null;
 
     if (resellerSlug) {
       const cleanSlug = String(resellerSlug).trim();
@@ -133,6 +135,21 @@ export async function POST(request: Request) {
         expectedCatalogTotal += Number(ORDER_BUMP.discountPrice);
       }
 
+      // Apply validated coupon discount if couponCode is provided
+      let appliedCouponDetails: any = null;
+      if (couponCode && typeof couponCode === 'string') {
+        const couponRes = await calculateCouponDiscount(couponCode, expectedCatalogTotal);
+        if (couponRes.valid && couponRes.discountAmount && couponRes.discountAmount > 0) {
+          appliedCouponDetails = {
+            code: couponRes.code,
+            discount_amount: couponRes.discountAmount,
+            discount_type: couponRes.discountType,
+            discount_percent: couponRes.discountPercent || null,
+          };
+          expectedCatalogTotal = Math.max(1, expectedCatalogTotal - couponRes.discountAmount);
+        }
+      }
+
       // If catalog items were identified, prevent client-side undercutting
       if (expectedCatalogTotal > 0) {
         if (finalTotalAmount < expectedCatalogTotal - 1) {
@@ -200,6 +217,8 @@ export async function POST(request: Request) {
           purchase_event_attempts: 0,
           purchase_client_fired: false,
           order_token: orderToken,
+          applied_coupon: appliedCouponDetails || null,
+          discount_amount: appliedCouponDetails?.discount_amount || 0,
           ...resellerAttribution,
         });
       } catch (firestoreErr) {
