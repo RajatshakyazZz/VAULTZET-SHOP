@@ -2,13 +2,20 @@
 
 import React, { useState } from 'react';
 import Link from 'next/link';
-import { Search, Sparkles, ArrowRight, FolderKanban } from 'lucide-react';
+import { Search, Sparkles, ArrowRight, FolderKanban, Flame, Tag } from 'lucide-react';
 import { BUNDLE_PRODUCTS } from '@/data/bundles';
 
 export default function SelectProductToResellPage() {
   const [searchQuery, setSearchQuery] = useState('');
+  const [selectedCategory, setSelectedCategory] = useState<string>('All');
+
+  // Extract unique categories
+  const categories = ['All', ...Array.from(new Set(BUNDLE_PRODUCTS.map((p) => p.category)))];
 
   const filtered = BUNDLE_PRODUCTS.filter((p) => {
+    const matchesCategory = selectedCategory === 'All' || p.category === selectedCategory;
+    if (!matchesCategory) return false;
+
     if (!searchQuery.trim()) return true;
     const q = searchQuery.toLowerCase();
     return (
@@ -19,80 +26,128 @@ export default function SelectProductToResellPage() {
   });
 
   return (
-    <div className="space-y-6">
-      <div className="p-6 sm:p-8 rounded-3xl bg-white border border-purple-100 shadow-xs space-y-3">
+    <div className="space-y-6 pb-20 sm:pb-8">
+      {/* Header Banner */}
+      <div className="p-6 sm:p-8 rounded-3xl bg-white border border-purple-100 shadow-xs space-y-4">
         <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-purple-100 text-[#6734f7] text-[10px] font-black uppercase tracking-wider">
           <Sparkles className="w-3.5 h-3.5" />
-          <span>Step 1: Choose Product</span>
+          <span>Step 1: Choose Bundle</span>
         </div>
-        <h1 className="text-xl sm:text-2xl font-black text-[#162048]">
-          Select a Reels Bundle to Resell
-        </h1>
-        <p className="text-xs text-slate-500 font-medium max-w-xl">
-          Pick any high-converting bundle from our catalog. You can set your own price, write your own marketing copy, and start earning instantly.
-        </p>
+        <div className="space-y-1">
+          <h1 className="text-xl sm:text-3xl font-black text-[#162048] tracking-tight">
+            Select a Viral Reels Bundle to Resell
+          </h1>
+          <p className="text-xs sm:text-sm text-slate-500 font-medium max-w-2xl leading-relaxed">
+            Pick any high-converting bundle from our catalog. You can set your own price, write your own marketing copy, and start earning instantly.
+          </p>
+        </div>
 
-        {/* Search Input */}
-        <div className="pt-2 max-w-md">
-          <div className="relative">
+        {/* Search Input & Category Pills */}
+        <div className="pt-2 space-y-3">
+          <div className="relative max-w-md">
             <Search className="absolute left-3.5 top-3 w-4 h-4 text-gray-400" />
             <input
               type="text"
               placeholder="Search by title, niche, or topic (e.g. AI, Gym, Devotional)..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-10 pr-4 py-2.5 rounded-2xl border border-gray-200 text-xs font-medium focus:outline-none focus:border-[#6734f7] focus:ring-2 focus:ring-purple-100"
+              className="w-full pl-10 pr-4 py-2.5 rounded-2xl bg-slate-50/70 border border-purple-100 text-xs font-medium text-[#162048] focus:outline-none focus:border-[#6734f7] focus:ring-2 focus:ring-purple-100 shadow-2xs"
             />
+          </div>
+
+          {/* Category Filter Pills */}
+          <div className="flex items-center gap-2 overflow-x-auto pb-1 text-xs font-bold scrollbar-none">
+            {categories.map((cat) => (
+              <button
+                key={cat}
+                type="button"
+                onClick={() => setSelectedCategory(cat)}
+                className={`px-3.5 py-1.5 rounded-xl transition-all shrink-0 ${
+                  selectedCategory === cat
+                    ? 'bg-[#6734f7] text-white shadow-xs'
+                    : 'bg-white border border-purple-100 text-slate-600 hover:bg-purple-50/50'
+                }`}
+              >
+                {cat}
+              </button>
+            ))}
           </div>
         </div>
       </div>
 
       {/* Products Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-        {filtered.map((product) => (
-          <div
-            key={product.id}
-            className="p-4 rounded-3xl bg-white border border-purple-100 shadow-xs flex flex-col justify-between hover:shadow-md hover:border-purple-200 transition-all group"
-          >
-            <div className="space-y-3">
-              <div className="relative aspect-video rounded-2xl overflow-hidden bg-slate-900">
-                <img
-                  src={product.thumbnail}
-                  alt={product.title}
-                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                />
-                <div className="absolute top-2 left-2 px-2 py-0.5 rounded-lg bg-black/70 backdrop-blur-xs text-[10px] font-bold text-white">
-                  {product.category}
+      {filtered.length === 0 ? (
+        <div className="p-12 text-center bg-white rounded-3xl border border-purple-100 shadow-xs space-y-2">
+          <FolderKanban className="w-10 h-10 text-purple-200 mx-auto" />
+          <h3 className="text-sm font-black text-[#162048]">No Reels Bundles Found</h3>
+          <p className="text-xs text-slate-400 font-medium">
+            Try adjusting your search query or selecting a different category filter.
+          </p>
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5">
+          {filtered.map((product) => {
+            const basePrice = Number(product.personalPrice || 299);
+            const suggestedResale = basePrice + 200;
+
+            return (
+              <div
+                key={product.id}
+                className="p-4 sm:p-5 rounded-3xl bg-white border border-purple-100/90 shadow-xs flex flex-col justify-between hover:shadow-md hover:border-purple-200 transition-all group"
+              >
+                <div className="space-y-3">
+                  <div className="relative aspect-video rounded-2xl overflow-hidden bg-slate-900 shadow-inner">
+                    <img
+                      src={product.thumbnail}
+                      alt={product.title}
+                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                    />
+                    <div className="absolute top-2 left-2 px-2.5 py-1 rounded-lg bg-black/75 backdrop-blur-md text-[10px] font-bold text-white flex items-center gap-1">
+                      <Tag className="w-2.5 h-2.5 text-pink-400" />
+                      <span>{product.category}</span>
+                    </div>
+
+                    <div className="absolute bottom-2 right-2 px-2 py-0.5 rounded-md bg-emerald-500/90 backdrop-blur-md text-[10px] font-black text-white">
+                      Instant Delivery
+                    </div>
+                  </div>
+
+                  <div>
+                    <h3 className="text-sm font-black text-[#162048] line-clamp-1 group-hover:text-[#6734f7] transition-colors">
+                      {product.title}
+                    </h3>
+                    <p className="text-[11px] text-slate-500 line-clamp-2 mt-1 font-medium leading-relaxed">
+                      {product.shortDescription}
+                    </p>
+                  </div>
+                </div>
+
+                <div className="pt-4 border-t border-purple-50 mt-4 flex items-center justify-between">
+                  <div>
+                    <span className="text-[10px] text-slate-400 block font-bold uppercase tracking-wider">
+                      Base Store Price
+                    </span>
+                    <div className="flex items-center gap-1.5">
+                      <span className="text-base font-black text-[#162048]">₹{basePrice}</span>
+                      <span className="text-[10px] font-bold text-emerald-600 bg-emerald-50 border border-emerald-100 px-1.5 py-0.2 rounded-md">
+                        Earn ₹200+
+                      </span>
+                    </div>
+                  </div>
+
+                  <Link
+                    href={`/earn/create/${product.id}`}
+                    className="px-4 py-2.5 rounded-xl bg-gradient-to-r from-[#6734f7] to-[#ec288d] text-white text-xs font-black flex items-center gap-1.5 shadow-md shadow-purple-500/20 hover:scale-[1.03] active:scale-[0.97] transition-all"
+                  >
+                    <span>Resell This</span>
+                    <ArrowRight className="w-3.5 h-3.5" />
+                  </Link>
                 </div>
               </div>
-
-              <div>
-                <h3 className="text-sm font-black text-[#162048] line-clamp-1 group-hover:text-[#6734f7] transition-colors">
-                  {product.title}
-                </h3>
-                <p className="text-[11px] text-gray-400 line-clamp-2 mt-0.5 font-medium">
-                  {product.shortDescription}
-                </p>
-              </div>
-            </div>
-
-            <div className="pt-4 border-t border-purple-50 mt-4 flex items-center justify-between">
-              <div>
-                <span className="text-[10px] text-gray-400 block font-bold uppercase">Base Price</span>
-                <span className="text-sm font-black text-[#162048]">₹{product.personalPrice}</span>
-              </div>
-
-              <Link
-                href={`/earn/create/${product.id}`}
-                className="px-3.5 py-2 rounded-xl bg-gradient-to-r from-[#6734f7] to-[#ec288d] text-white text-xs font-black flex items-center gap-1.5 shadow-sm hover:scale-105 active:scale-95 transition-transform"
-              >
-                <span>Resell This</span>
-                <ArrowRight className="w-3.5 h-3.5" />
-              </Link>
-            </div>
-          </div>
-        ))}
-      </div>
+            );
+          })}
+        </div>
+      )}
     </div>
   );
 }
