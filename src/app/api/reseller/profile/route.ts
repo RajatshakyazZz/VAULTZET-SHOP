@@ -25,7 +25,9 @@ export async function GET(request: Request) {
       return NextResponse.json({ success: false, error: 'Reseller profile not found' }, { status: 404 });
     }
 
-    return NextResponse.json({ success: true, profile });
+    // Strip sensitive cryptographic credential fields before sending to client
+    const { passwordHash: _ph, ...safeProfile } = profile;
+    return NextResponse.json({ success: true, profile: safeProfile });
   } catch (err: any) {
     return NextResponse.json({ success: false, error: err.message }, { status: 500 });
   }
@@ -45,26 +47,36 @@ export async function POST(request: Request) {
         );
       }
       const reconciled = await serverReconcileAccount({ email: normalizeEmail(email), currentUserId: userId });
-      return NextResponse.json({ success: true, profile: reconciled });
+      const { passwordHash: _rph, ...safeReconciled } = reconciled || {};
+      return NextResponse.json({ success: true, profile: safeReconciled });
     }
 
     if (!userId || !email) {
       return NextResponse.json({ success: false, error: 'userId and email are required' }, { status: 400 });
     }
 
+    // Check if existing profile already has a passwordHash to prevent unauthorized overwrites
+    const cleanEmail = normalizeEmail(email);
+    const existing = await serverFindResellerProfile({ userId, email: cleanEmail });
+    let finalPasswordHash = passwordHash;
+    if (existing?.passwordHash && !passwordHash) {
+      finalPasswordHash = existing.passwordHash;
+    }
+
     // Idempotent save
     const profile = await serverSaveResellerProfile({
       userId,
-      email: normalizeEmail(email),
+      email: cleanEmail,
       displayName,
       phone,
       payoutMethod,
       payoutDetails,
       resellerUid,
-      passwordHash,
+      passwordHash: finalPasswordHash,
     });
 
-    return NextResponse.json({ success: true, profile });
+    const { passwordHash: _ph, ...safeProfile } = profile;
+    return NextResponse.json({ success: true, profile: safeProfile });
   } catch (err: any) {
     return NextResponse.json({ success: false, error: err.message }, { status: 500 });
   }

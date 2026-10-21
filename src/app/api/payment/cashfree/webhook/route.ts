@@ -57,6 +57,25 @@ export async function POST(request: Request) {
         }
       }
 
+      const expectedAmount = Number(storedOrder?.totalAmount || 0);
+      const paidAmount = Number(orderData.order_amount || paymentData.payment_amount || 0);
+
+      // CRITICAL SECURITY ENFORCEMENT: Verify paid amount matches expected order amount
+      if (expectedAmount > 0 && paidAmount < expectedAmount - 1) {
+        console.error(
+          `[Webhook Security Alert] Underpaid order detected for #${orderId}! Expected: ₹${expectedAmount}, Received: ₹${paidAmount}`
+        );
+        if (orderRef) {
+          try {
+            await updateDoc(orderRef, {
+              status: 'failed_underpaid',
+              security_tamper_flag: true,
+            });
+          } catch {}
+        }
+        return NextResponse.json({ error: 'Order underpaid or tampered' }, { status: 400 });
+      }
+
       const isAlreadyCompleted = storedOrder?.status === 'completed';
       const isCapiDelivered = storedOrder?.purchase_event_status === 'delivered';
 
@@ -68,7 +87,7 @@ export async function POST(request: Request) {
         try {
           const capiResult = await sendMetaCapiPurchase({
             orderId,
-            totalAmount: Number(storedOrder?.totalAmount || orderData.order_amount || paymentData.payment_amount || 0),
+            totalAmount: Number(storedOrder?.totalAmount || paidAmount || 0),
             currency: 'INR',
             items: storedOrder?.items || [],
             customer: storedOrder?.customer,
@@ -108,19 +127,26 @@ export async function POST(request: Request) {
         }
       }
 
-      // Record reseller earning idempotently
-      if (storedOrder?.reseller_id && Number(storedOrder?.reseller_earning) > 0) {
-        try {
-          await recordSaleEarning({
-            orderId,
-            resellerId: storedOrder.reseller_id,
-            listingId: storedOrder.reseller_listing_id || '',
-            amount: Number(storedOrder.reseller_earning),
-            productTitle: storedOrder.items?.[0]?.title || 'Viral Reels Bundle',
-            settleImmediately: true,
-          });
-        } catch (rErr) {
-          console.error('[Cashfree Webhook] Error recording reseller earning:', rErr);
+      // Record reseller earning idempotently & margin-capped
+      if (storedOrder?.reseller_id) {
+        const baseSnapshot = Number(storedOrder.base_price_snapshot || 0);
+        const resaleSnapshot = Number(storedOrder.resale_price_snapshot || storedOrder.totalAmount || 0);
+        const maxPossibleEarning = Math.max(0, resaleSnapshot - baseSnapshot);
+        const safeEarning = Math.min(Number(storedOrder.reseller_earning || 0), maxPossibleEarning);
+
+        if (safeEarning > 0) {
+          try {
+            await recordSaleEarning({
+              orderId,
+              resellerId: storedOrder.reseller_id,
+              listingId: storedOrder.reseller_listing_id || '',
+              amount: safeEarning,
+              productTitle: storedOrder.items?.[0]?.title || 'Viral Reels Bundle',
+              settleImmediately: true,
+            });
+          } catch (rErr) {
+            console.error('[Cashfree Webhook] Error recording reseller earning:', rErr);
+          }
         }
       }
 

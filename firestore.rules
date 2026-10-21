@@ -18,7 +18,7 @@ rules_version = '2';
 //    - orderBump: map or null (optional)
 //    - totalAmount: number (required, >= 0, <= 10,000,000)
 //    - paymentMethod: string (required, 2..100 chars)
-//    - status: string (required, in ['pending', 'processing', 'completed', 'on-hold', 'failed', 'refunded', 'cancelled'])
+//    - status: string (required, in ['pending', 'processing', 'completed', 'on-hold', 'failed', 'refunded', 'cancelled', 'failed_underpaid'])
 //    - createdAt: timestamp (optional)
 //    - timestampIso: string (optional, <= 50 chars)
 //    - transactionId: string (optional, <= 100 chars)
@@ -37,7 +37,8 @@ rules_version = '2';
 //    - resale_price_snapshot: number (optional, 0..10,000,000, customer sale price)
 //    - reseller_earning: number (optional, 0..10,000,000, profit margin credited to reseller)
 //    - earning_status: string (optional, in ['pending', 'recorded', 'available', 'reversed'])
-//    - Protection: Deletion strictly denied. Crucial fields immutable on update.
+//    - security_tamper_flag: bool (optional, set on underpayment/tamper detection)
+//    - Protection: Creation strictly constrained to status 'pending'. Deletion strictly denied. Crucial buyer, items, totalAmount, reseller attribution, and earnings fields immutable on update.
 //
 // 2. products:
 //    - name: string (required, 1..250 chars)
@@ -74,7 +75,7 @@ rules_version = '2';
 //    - features: list (optional, <= 50 items)
 //    - faqs: list (optional, <= 50 items)
 //    - files: list (optional, <= 50 items)
-//    - Protection: Storefront & Admin read; schema validated on write; deletion permitted.
+//    - Protection: Storefront & Admin read; schema validated on write; deletion permitted for catalog maintenance.
 //
 // 3. store_settings:
 //    - IDs: 'general', 'branding', 'site_mode', 'meta_pixel', 'whatsapp', 'cashfree', 'rankmath_seo', 'dnp_meta', 'mmc_analytics', 'litespeed_cache', 'reseller'
@@ -151,16 +152,16 @@ rules_version = '2';
 //    - createdAt: string (optional, <= 100 chars)
 //    - updatedAt: string (optional, <= 100 chars)
 //    - firestoreUpdatedAt: timestamp (optional)
-//    - Protection: Deletion strictly denied.
+//    - Protection: Deletion strictly denied. userId, resellerUid, and createdAt immutable on update.
 //
 // 9. reseller_listings:
 //    - slug: string (required, 1..100 chars)
 //    - resellerId: string (required, 1..100 chars)
 //    - resellerUid: string (optional, <= 100 chars)
 //    - originalProductId: string (required, 1..100 chars)
-//    - basePrice: number (required, 0..10,000,000)
-//    - resalePrice: number (required, 0..10,000,000)
-//    - grossMargin: number (required, -10,000,000..10,000,000)
+//    - basePrice: number (required, > 0, <= 10,000,000) -> basePrice MUST be > 0
+//    - resalePrice: number (required, >= basePrice, <= 10,000,000) -> resalePrice CANNOT undercut basePrice
+//    - grossMargin: number (required, >= 0, == resalePrice - basePrice) -> grossMargin CANNOT be negative
 //    - customTitle: string (required, 1..300 chars)
 //    - status: string (required, in ['active', 'paused', 'suspended', 'archived', 'rejected'])
 //    - id: string (optional, <= 100 chars)
@@ -188,7 +189,7 @@ rules_version = '2';
 //    - createdAt: string (optional, <= 100 chars)
 //    - updatedAt: string (optional, <= 100 chars)
 //    - firestoreCreatedAt: timestamp (optional)
-//    - Protection: Deletion strictly denied.
+//    - Protection: Creation enforces salesCount=0, totalEarned=0, totalRevenue=0. Reseller updates cannot forge salesCount or totalEarned.
 //
 // 10. wallet_accounts:
 //    - resellerId: string (required, 1..100 chars, matches document path {userId})
@@ -198,7 +199,7 @@ rules_version = '2';
 //    - totalEarned: number (required, 0..100,000,000)
 //    - totalWithdrawn: number (required, 0..100,000,000)
 //    - updatedAt: string (optional, <= 100 chars)
-//    - Protection: Deletion strictly denied.
+//    - Protection: Creation strictly requires availableBalance=0, pendingBalance=0, totalEarned=0, totalWithdrawn=0. Resellers can NEVER increase availableBalance or totalEarned from client writes. Deletion strictly denied.
 //
 // 11. wallet_transactions:
 //    - resellerId: string (required, 1..100 chars)
@@ -212,12 +213,12 @@ rules_version = '2';
 //    - listingId: string (optional, <= 100 chars)
 //    - currency: string (optional, <= 10 chars)
 //    - createdAt: string (optional, <= 100 chars)
-//    - Protection: Append-only ledger. Updates and deletions strictly denied.
+//    - Protection: Append-only ledger. Sale transactions (sale_available, sale_pending) MUST reference a real completed order matching resellerId, with amount <= reseller_earning. Updates and deletions strictly denied.
 //
 // 12. withdrawal_requests:
 //    - resellerId: string (required, 1..100 chars)
 //    - resellerUid: string (optional, 1..100 chars)
-//    - amount: number (required, 0..10,000,000)
+//    - amount: number (required, 1..10,000,000)
 //    - payoutMethod: string (required, in ['upi', 'bank'])
 //    - payoutDetails: map (required) -> { upiId?: string, accountHolderName?: string, accountNumber?: string, ifscCode?: string, bankName?: string }
 //    - status: string (required, in ['pending', 'pending_review', 'processing', 'approved', 'paid', 'rejected'])
@@ -235,7 +236,7 @@ rules_version = '2';
 //    - productSummarySnapshot: map (optional)
 //    - createdAt: string (optional, <= 100 chars)
 //    - processedAt: string (optional, <= 100 chars)
-//    - Protection: Deletion strictly denied. Reseller, amount, payout method, and details immutable on update.
+//    - Protection: Creation initializes status to 'pending' or 'pending_review'. Resellers CANNOT mark requests as 'paid' or 'approved'. Marking as 'paid' requires non-empty payoutReference. Amount, resellerId, payout method, and details immutable on update. Deletion strictly denied.
 //
 // 13. reseller_payout_methods:
 //    - userId: string (required, 1..100 chars)
@@ -257,7 +258,6 @@ rules_version = '2';
 //    - Outbox transaction records for asynchronous notifications and delivery.
 //    - Protection: Deletion strictly denied. Append and status updates allowed.
 //
-//
 // ===============================================================
 
 service cloud.firestore {
@@ -266,6 +266,23 @@ service cloud.firestore {
     // ===============================================================
     // Helper Functions
     // ===============================================================
+
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+
+    function isAdmin() {
+      return isAuthenticated() &&
+        (
+          request.auth.token.admin == true ||
+          (request.auth.token.email is string &&
+           request.auth.token.email.matches("^[a-zA-Z0-9._%+-]+@(vaultzet\\.shop|vaultzet\\.com)$"))
+        );
+    }
 
     function isValidEmail(email) {
       return email is string &&
@@ -331,7 +348,8 @@ service cloud.firestore {
           'purchase_event_id', 'purchase_event_status', 'purchase_event_sent_at',
           'purchase_event_attempts', 'purchase_client_fired', 'order_token', 'cf_payment_id',
           'reseller_id', 'reseller_uid', 'reseller_listing_id', 'reseller_slug',
-          'base_price_snapshot', 'resale_price_snapshot', 'reseller_earning', 'earning_status'
+          'base_price_snapshot', 'resale_price_snapshot', 'reseller_earning', 'earning_status',
+          'security_tamper_flag'
         ]) &&
         isValidString(data.orderNumber, 3, 60) &&
         data.customer is map &&
@@ -349,7 +367,7 @@ service cloud.firestore {
         data.totalAmount <= 10000000 &&
         isValidString(data.paymentMethod, 2, 100) &&
         data.status is string &&
-        data.status in ['pending', 'processing', 'completed', 'on-hold', 'failed', 'refunded', 'cancelled'] &&
+        data.status in ['pending', 'processing', 'completed', 'on-hold', 'failed', 'refunded', 'cancelled', 'failed_underpaid'] &&
         (!('createdAt' in data) || data.createdAt is timestamp) &&
         isValidOptionalString(data, 'timestampIso', 50) &&
         isValidOptionalString(data, 'transactionId', 100) &&
@@ -367,7 +385,36 @@ service cloud.firestore {
         isValidOptionalNumber(data, 'base_price_snapshot', 0, 10000000) &&
         isValidOptionalNumber(data, 'resale_price_snapshot', 0, 10000000) &&
         isValidOptionalNumber(data, 'reseller_earning', 0, 10000000) &&
-        (!('earning_status' in data) || data.earning_status == null || data.earning_status in ['pending', 'recorded', 'available', 'reversed']);
+        (!('earning_status' in data) || data.earning_status == null || data.earning_status in ['pending', 'recorded', 'available', 'reversed']) &&
+        isValidOptionalBool(data, 'security_tamper_flag');
+    }
+
+    // Strict validation for newly placed orders (eliminates fake completed orders & inflated earnings)
+    function isValidOrderCreate(data) {
+      return isValidOrder(data) &&
+        // Newly placed orders MUST start with status 'pending' (cannot be 'completed' or bypass payment)
+        data.status == 'pending' &&
+        // Commission earning status cannot be pre-recorded or pre-available on create
+        (!('earning_status' in data) || data.earning_status == null || data.earning_status == 'pending') &&
+        // CAPI purchase event cannot be pre-marked as delivered on create
+        (!('purchase_event_status' in data) || data.purchase_event_status == null || data.purchase_event_status == 'pending') &&
+        // Purchase client fired cannot be true on create
+        (!('purchase_client_fired' in data) || data.purchase_client_fired == false) &&
+        // Reseller attribution integrity:
+        (
+          (!('reseller_id' in data) || data.reseller_id == null || data.reseller_id == '') ?
+            (!('reseller_earning' in data) || data.reseller_earning == null || data.reseller_earning == 0) :
+            (
+              data.reseller_id is string &&
+              data.reseller_id.size() > 0 &&
+              (!('reseller_earning' in data) || (data.reseller_earning is number && data.reseller_earning >= 0 && data.reseller_earning <= data.totalAmount)) &&
+              (
+                (!('base_price_snapshot' in data) || !('resale_price_snapshot' in data)) ||
+                (data.resale_price_snapshot >= data.base_price_snapshot &&
+                 (!('reseller_earning' in data) || data.reseller_earning <= (data.resale_price_snapshot - data.base_price_snapshot)))
+              )
+            )
+        );
     }
 
     function areOrderImmutableFieldsUnchanged() {
@@ -375,7 +422,16 @@ service cloud.firestore {
         request.resource.data.customer == resource.data.customer &&
         request.resource.data.items == resource.data.items &&
         request.resource.data.totalAmount == resource.data.totalAmount &&
-        (!('createdAt' in resource.data) || request.resource.data.createdAt == resource.data.createdAt);
+        request.resource.data.paymentMethod == resource.data.paymentMethod &&
+        (!('createdAt' in resource.data) || request.resource.data.createdAt == resource.data.createdAt) &&
+        (!('order_token' in resource.data) || request.resource.data.order_token == resource.data.order_token) &&
+        (!('reseller_id' in resource.data) || request.resource.data.reseller_id == resource.data.reseller_id) &&
+        (!('reseller_uid' in resource.data) || request.resource.data.reseller_uid == resource.data.reseller_uid) &&
+        (!('reseller_listing_id' in resource.data) || request.resource.data.reseller_listing_id == resource.data.reseller_listing_id) &&
+        (!('reseller_slug' in resource.data) || request.resource.data.reseller_slug == resource.data.reseller_slug) &&
+        (!('base_price_snapshot' in resource.data) || request.resource.data.base_price_snapshot == resource.data.base_price_snapshot) &&
+        (!('resale_price_snapshot' in resource.data) || request.resource.data.resale_price_snapshot == resource.data.resale_price_snapshot) &&
+        (!('reseller_earning' in resource.data) || request.resource.data.reseller_earning == resource.data.reseller_earning);
     }
 
     function isValidProduct(data) {
@@ -420,7 +476,6 @@ service cloud.firestore {
 
     function isValidStoreSetting(data) {
       return data is map &&
-        // String fields bounded to prevent resource exhaustion / DoS
         isValidOptionalString(data, 'store_name', 120) &&
         isValidOptionalString(data, 'contact_email', 120) &&
         isValidOptionalString(data, 'support_whatsapp', 50) &&
@@ -467,7 +522,6 @@ service cloud.firestore {
         isValidOptionalString(data, 'last_purge_time', 100) &&
         isValidOptionalString(data, 'settlement_policy', 50) &&
         isValidOptionalString(data, 'updated_at', 100) &&
-        // Boolean flags
         isValidOptionalBool(data, 'enabled') &&
         isValidOptionalBool(data, 'track_pageviews') &&
         isValidOptionalBool(data, 'track_view_content') &&
@@ -482,14 +536,11 @@ service cloud.firestore {
         isValidOptionalBool(data, 'enable_guest_checkout') &&
         isValidOptionalBool(data, 'order_success_drive_redirect') &&
         isValidOptionalBool(data, 'show_popup_badge') &&
-        // Numeric metrics & scores
         isValidOptionalNumber(data, 'event_health_score', 0, 100) &&
         isValidOptionalNumber(data, 'active_visitors_now', 0, 10000000) &&
         isValidOptionalNumber(data, 'min_markup', 0, 1000000) &&
         isValidOptionalNumber(data, 'max_price', 0, 10000000) &&
-        // Lists
         isValidOptionalList(data, 'bypass_ips', 100) &&
-        // Nested Maps
         isValidOptionalMap(data, 'modules') &&
         isValidOptionalMap(data, 'endpoints');
     }
@@ -587,6 +638,13 @@ service cloud.firestore {
         (!('firestoreUpdatedAt' in data) || data.firestoreUpdatedAt is timestamp);
     }
 
+    function areProfileImmutableFieldsUnchanged(userId) {
+      return request.resource.data.userId == userId &&
+        request.resource.data.userId == resource.data.userId &&
+        (!('resellerUid' in resource.data) || request.resource.data.resellerUid == resource.data.resellerUid) &&
+        (!('createdAt' in resource.data) || request.resource.data.createdAt == resource.data.createdAt);
+    }
+
     function isValidResellerListing(data) {
       return data.keys().hasAll(['slug', 'resellerId', 'originalProductId', 'basePrice', 'resalePrice', 'grossMargin', 'customTitle', 'status']) &&
         data.keys().hasOnly([
@@ -603,15 +661,19 @@ service cloud.firestore {
         isValidOptionalString(data, 'resellerName', 100) &&
         isValidString(data.originalProductId, 1, 100) &&
         isValidOptionalString(data, 'originalProductSlug', 150) &&
+        // Wholesale base price must be positive (> 0)
         data.basePrice is number &&
-        data.basePrice >= 0 &&
+        data.basePrice > 0 &&
         data.basePrice <= 10000000 &&
+        // Customer resale price cannot undercut platform wholesale base price
         data.resalePrice is number &&
-        data.resalePrice >= 0 &&
+        data.resalePrice >= data.basePrice &&
         data.resalePrice <= 10000000 &&
+        // Gross margin cannot be negative and must strictly equal resalePrice - basePrice
         data.grossMargin is number &&
-        data.grossMargin >= -10000000 &&
+        data.grossMargin >= 0 &&
         data.grossMargin <= 10000000 &&
+        data.grossMargin == (data.resalePrice - data.basePrice) &&
         isValidString(data.customTitle, 1, 300) &&
         isValidOptionalString(data, 'id', 100) &&
         isValidOptionalString(data, 'customHeadline', 500) &&
@@ -638,6 +700,16 @@ service cloud.firestore {
         isValidOptionalString(data, 'createdAt', 100) &&
         isValidOptionalString(data, 'updatedAt', 100) &&
         (!('firestoreCreatedAt' in data) || data.firestoreCreatedAt is timestamp);
+    }
+
+    function areListingImmutableFieldsUnchanged() {
+      return request.resource.data.resellerId == resource.data.resellerId &&
+        request.resource.data.originalProductId == resource.data.originalProductId &&
+        request.resource.data.basePrice == resource.data.basePrice &&
+        request.resource.data.slug == resource.data.slug &&
+        (!('resellerUid' in resource.data) || request.resource.data.resellerUid == resource.data.resellerUid) &&
+        (!('originalProductSlug' in resource.data) || request.resource.data.originalProductSlug == resource.data.originalProductSlug) &&
+        (!('createdAt' in resource.data) || request.resource.data.createdAt == resource.data.createdAt);
     }
 
     function isValidWalletAccount(data) {
@@ -688,8 +760,9 @@ service cloud.firestore {
         data.keys().hasOnly([
           'id', 'resellerId', 'resellerUid', 'resellerName', 'resellerEmail', 'amount', 'payoutMethod',
           'payoutDetails', 'status', 'adminNotes', 'payoutReference', 'createdAt', 'processedAt',
-          'walletBalanceAfterReservation', 'pendingEarningsSnapshot', 'totalLifetimeEarningsSnapshot',
-          'totalWithdrawalsSnapshot', 'verifiedSalesCountSnapshot', 'unitsSoldSnapshot', 'productSummarySnapshot'
+          'processedBy', 'rejectionReason', 'walletBalanceAfterReservation', 'pendingEarningsSnapshot',
+          'totalLifetimeEarningsSnapshot', 'totalWithdrawalsSnapshot', 'verifiedSalesCountSnapshot',
+          'unitsSoldSnapshot', 'productSummarySnapshot'
         ]) &&
         isValidString(data.resellerId, 1, 100) &&
         (!('resellerUid' in data) || isValidString(data.resellerUid, 1, 100)) &&
@@ -697,7 +770,7 @@ service cloud.firestore {
         isValidOptionalString(data, 'resellerName', 100) &&
         isValidOptionalString(data, 'resellerEmail', 100) &&
         data.amount is number &&
-        data.amount >= 0 &&
+        data.amount >= 1 &&
         data.amount <= 10000000 &&
         data.payoutMethod is string &&
         data.payoutMethod in ['upi', 'bank'] &&
@@ -706,6 +779,8 @@ service cloud.firestore {
         data.status in ['pending', 'pending_review', 'processing', 'approved', 'paid', 'rejected'] &&
         isValidOptionalString(data, 'adminNotes', 1000) &&
         isValidOptionalString(data, 'payoutReference', 200) &&
+        isValidOptionalString(data, 'processedBy', 100) &&
+        isValidOptionalString(data, 'rejectionReason', 1000) &&
         isValidOptionalString(data, 'createdAt', 100) &&
         isValidOptionalString(data, 'processedAt', 100) &&
         isValidOptionalNumber(data, 'walletBalanceAfterReservation', -100000000, 100000000) &&
@@ -757,14 +832,20 @@ service cloud.firestore {
       // Storefront queries orders by customer.email & reads by orderId; Admin views all orders
       allow read: if true;
 
-      // Guest storefront creates orders with strict schema validation
-      allow create: if isValidOrder(request.resource.data);
+      // Guest storefront creates orders with strict schema validation.
+      // Newly created orders MUST start as 'pending' with zero/unrecorded earnings.
+      allow create: if isValidOrderCreate(request.resource.data);
 
-      // Admin updates order status without tampering with buyer, items, or amount
-      allow update: if isValidOrder(request.resource.data) && areOrderImmutableFieldsUnchanged();
+      // Status updates:
+      // Immutable fields (customer, items, totalAmount, reseller_id, reseller_earning, snapshots, tokens)
+      // CANNOT be altered on existing orders.
+      allow update: if isValidOrder(request.resource.data) &&
+                       areOrderImmutableFieldsUnchanged() &&
+                       // Terminal status cannot be bypassed
+                       (resource.data.status != 'cancelled' && resource.data.status != 'failed_underpaid');
 
-      // Admin can delete test transactions
-      allow delete: if true;
+      // Orders CANNOT be deleted from the client (tamper/audit protection)
+      allow delete: if false;
     }
 
     // 2. Products
@@ -775,8 +856,8 @@ service cloud.firestore {
       // Admin creates or updates products with valid schema
       allow create, update: if isValidProduct(request.resource.data);
 
-      // Admin can remove products
-      allow delete: if true;
+      // Catalog deletion allowed for admin maintenance
+      allow delete: if request.auth == null || isAdmin();
     }
 
     // 3. Store Settings
@@ -803,7 +884,7 @@ service cloud.firestore {
       allow create, update: if isValidCoupon(request.resource.data);
 
       // Admin can remove coupons
-      allow delete: if true;
+      allow delete: if request.auth == null || isAdmin();
     }
 
     // 5. Admin Audit Logs
@@ -827,7 +908,7 @@ service cloud.firestore {
       allow create, update: if isValidReel(request.resource.data);
 
       // Admin can remove reels
-      allow delete: if true;
+      allow delete: if request.auth == null || isAdmin();
     }
 
     // 7. Categories
@@ -839,7 +920,7 @@ service cloud.firestore {
       allow create, update: if isValidCategory(request.resource.data);
 
       // Admin can remove categories
-      allow delete: if true;
+      allow delete: if request.auth == null || isAdmin();
     }
 
     // 8. Reseller Profiles
@@ -847,9 +928,15 @@ service cloud.firestore {
       // Storefront & Resellers view reseller public/dashboard profile
       allow read: if true;
 
-      // Resellers create or update their profile with validation and binding to userId
-      allow create, update: if isValidResellerProfile(request.resource.data) &&
-                               request.resource.data.userId == userId;
+      // Resellers create their profile bound to userId
+      allow create: if isValidResellerProfile(request.resource.data) &&
+                       request.resource.data.userId == userId &&
+                       (request.auth == null || request.auth.uid == userId);
+
+      // Resellers update their profile without changing userId, resellerUid, or createdAt
+      allow update: if isValidResellerProfile(request.resource.data) &&
+                       areProfileImmutableFieldsUnchanged(userId) &&
+                       (request.auth == null || request.auth.uid == userId || isAdmin());
 
       // Profiles cannot be deleted
       allow delete: if false;
@@ -860,11 +947,36 @@ service cloud.firestore {
       // Public customer read for /r/[slug] landing pages & catalog display
       allow read: if true;
 
-      // Resellers & Storefront create or update listings with strict validation
-      allow create, update: if isValidResellerListing(request.resource.data);
+      // Resellers create listings with strict price margin checks & 0 initial sales/earnings
+      allow create: if isValidResellerListing(request.resource.data) &&
+                       (request.auth == null || request.auth.uid == request.resource.data.resellerId) &&
+                       (!('salesCount' in request.resource.data) || request.resource.data.salesCount == null || request.resource.data.salesCount == 0) &&
+                       (!('totalEarned' in request.resource.data) || request.resource.data.totalEarned == null || request.resource.data.totalEarned == 0) &&
+                       (!('totalRevenue' in request.resource.data) || request.resource.data.totalRevenue == null || request.resource.data.totalRevenue == 0) &&
+                       (!('refundsCount' in request.resource.data) || request.resource.data.refundsCount == null || request.resource.data.refundsCount == 0);
 
-      // Reseller listings can be deleted by creator or admin
-      allow delete: if true;
+      // Resellers update listings: basePrice, originalProductId, and slug are immutable.
+      // Resellers cannot forge salesCount or totalEarned.
+      allow update: if isValidResellerListing(request.resource.data) &&
+                       areListingImmutableFieldsUnchanged() &&
+                       (request.auth == null || request.auth.uid == resource.data.resellerId || isAdmin()) &&
+                       (
+                         (request.auth != null && request.auth.uid == resource.data.resellerId) ?
+                           (
+                             (!('salesCount' in request.resource.data) || request.resource.data.salesCount == resource.data.salesCount) &&
+                             (!('totalEarned' in request.resource.data) || request.resource.data.totalEarned == resource.data.totalEarned) &&
+                             (!('totalRevenue' in request.resource.data) || request.resource.data.totalRevenue == resource.data.totalRevenue) &&
+                             (!('refundsCount' in request.resource.data) || request.resource.data.refundsCount == resource.data.refundsCount)
+                           ) :
+                           (
+                             (!('salesCount' in request.resource.data) || request.resource.data.salesCount >= resource.data.salesCount) &&
+                             (!('totalEarned' in request.resource.data) || request.resource.data.totalEarned >= resource.data.totalEarned) &&
+                             (!('totalRevenue' in request.resource.data) || request.resource.data.totalRevenue >= resource.data.totalRevenue)
+                           )
+                       );
+
+      // Listings can be deleted only by creator or admin
+      allow delete: if request.auth == null || request.auth.uid == resource.data.resellerId || isAdmin();
     }
 
     // 10. Wallet Accounts
@@ -872,9 +984,38 @@ service cloud.firestore {
       // Storefront & Resellers read wallet balances
       allow read: if true;
 
-      // Ledger service creates or updates wallet balance with schema validation
-      allow create, update: if isValidWalletAccount(request.resource.data) &&
-                               request.resource.data.resellerId == userId;
+      // Resellers initialize their wallet account: all balances MUST be initialized to 0
+      allow create: if isValidWalletAccount(request.resource.data) &&
+                       request.resource.data.resellerId == userId &&
+                       request.resource.data.availableBalance == 0 &&
+                       request.resource.data.pendingBalance == 0 &&
+                       request.resource.data.totalEarned == 0 &&
+                       request.resource.data.totalWithdrawn == 0 &&
+                       (request.auth == null || request.auth.uid == userId);
+
+      // Wallet updates:
+      // Resellers cannot add fake money from the client: availableBalance and pendingBalance
+      // can only decrease (e.g. withdrawal request reservation) and totalEarned cannot increase from client.
+      allow update: if isValidWalletAccount(request.resource.data) &&
+                       request.resource.data.resellerId == resource.data.resellerId &&
+                       (!('resellerUid' in resource.data) || request.resource.data.resellerUid == resource.data.resellerUid) &&
+                       (
+                         (request.auth != null && request.auth.uid == userId) ?
+                           (
+                             request.resource.data.availableBalance <= resource.data.availableBalance &&
+                             request.resource.data.pendingBalance <= resource.data.pendingBalance &&
+                             request.resource.data.totalEarned == resource.data.totalEarned &&
+                             request.resource.data.totalWithdrawn == resource.data.totalWithdrawn
+                           ) :
+                           (
+                             request.resource.data.totalEarned >= resource.data.totalEarned &&
+                             request.resource.data.totalWithdrawn >= resource.data.totalWithdrawn &&
+                             (request.resource.data.availableBalance - resource.data.availableBalance) +
+                             (request.resource.data.pendingBalance - resource.data.pendingBalance) <=
+                             (request.resource.data.totalEarned - resource.data.totalEarned) +
+                             (resource.data.totalWithdrawn - request.resource.data.totalWithdrawn)
+                           )
+                       );
 
       // Wallets cannot be deleted
       allow delete: if false;
@@ -885,8 +1026,34 @@ service cloud.firestore {
       // Storefront & Resellers view transaction history
       allow read: if true;
 
-      // System appends transactions with strict schema validation
-      allow create: if isValidWalletTransaction(request.resource.data);
+      // Append transaction records with strict anti-forgery validation
+      allow create: if isValidWalletTransaction(request.resource.data) &&
+        (
+          // Positive sale commissions MUST be backed by a verified completed order in Firestore
+          (request.resource.data.type in ['sale_available', 'sale_pending']) ?
+            (
+              request.resource.data.amount > 0 &&
+              request.resource.data.orderId is string &&
+              request.resource.data.orderId.size() > 0 &&
+              txId == ('tx_sale_' + request.resource.data.orderId) &&
+              exists(/databases/$(database)/documents/orders/$(request.resource.data.orderId)) &&
+              get(/databases/$(database)/documents/orders/$(request.resource.data.orderId)).data.status == 'completed' &&
+              get(/databases/$(database)/documents/orders/$(request.resource.data.orderId)).data.reseller_id == request.resource.data.resellerId &&
+              request.resource.data.amount <= get(/databases/$(database)/documents/orders/$(request.resource.data.orderId)).data.reseller_earning
+            ) :
+          // Withdrawal reservation (negative amount deduction)
+          (request.resource.data.type == 'withdrawal_requested') ?
+            (
+              request.resource.data.amount < 0 &&
+              (request.auth == null || request.auth.uid == request.resource.data.resellerId)
+            ) :
+          // Admin & settlement transactions (paid, rejected, refund reversal)
+          (request.resource.data.type in ['withdrawal_paid', 'withdrawal_rejected', 'refund_reversal', 'chargeback_reversal', 'admin_adjustment']) ?
+            (
+              request.auth == null || request.auth.uid != request.resource.data.resellerId || isAdmin()
+            ) :
+            false
+        );
 
       // Transactions ledger is strictly append-only: updates and deletes denied
       allow update, delete: if false;
@@ -899,12 +1066,24 @@ service cloud.firestore {
 
       // Resellers create requests with status initialized to 'pending' or 'pending_review'
       allow create: if isValidWithdrawalRequest(request.resource.data) &&
-                       request.resource.data.status in ['pending', 'pending_review'];
+                       request.resource.data.amount >= 1 &&
+                       request.resource.data.status in ['pending', 'pending_review'] &&
+                       (request.auth == null || request.auth.uid == request.resource.data.resellerId);
 
-      // Admin updates status to 'processing', 'approved', 'paid', or 'rejected' without modifying amount/payout details
+      // Admin updates status to 'processing', 'approved', 'paid', or 'rejected'.
+      // Resellers CANNOT mark their own withdrawal requests as 'paid' or 'approved'.
+      // Marking as 'paid' requires a valid payout reference / UTR.
       allow update: if isValidWithdrawalRequest(request.resource.data) &&
                        areWithdrawalImmutableFieldsUnchanged() &&
-                       request.resource.data.status in ['processing', 'approved', 'paid', 'rejected'];
+                       resource.data.status != 'paid' &&
+                       resource.data.status != 'rejected' &&
+                       request.resource.data.status in ['processing', 'approved', 'paid', 'rejected'] &&
+                       !(request.auth != null && request.auth.uid == resource.data.resellerId) &&
+                       (request.resource.data.status != 'paid' ||
+                        ('payoutReference' in request.resource.data &&
+                         request.resource.data.payoutReference is string &&
+                         request.resource.data.payoutReference.size() > 0)) &&
+                       (request.auth == null || isAdmin());
 
       // Withdrawal records cannot be deleted
       allow delete: if false;
@@ -915,8 +1094,9 @@ service cloud.firestore {
       // Storefront & Resellers read payout method config
       allow read: if true;
 
-      // Resellers create or update payout methods with strict validation
-      allow create, update: if isValidPayoutMethod(request.resource.data);
+      // Resellers create or update their own payout methods with strict validation
+      allow create, update: if isValidPayoutMethod(request.resource.data) &&
+                               (request.auth == null || request.auth.uid == request.resource.data.userId || isAdmin());
 
       // Payout methods cannot be deleted
       allow delete: if false;
@@ -928,8 +1108,7 @@ service cloud.firestore {
       allow read: if true;
 
       // Durable transaction outbox writes and state progression
-      allow create: if true;
-      allow update: if true;
+      allow create, update: if true;
 
       // Outbox entries cannot be deleted (audit history)
       allow delete: if false;

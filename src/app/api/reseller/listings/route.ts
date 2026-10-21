@@ -5,6 +5,7 @@ import {
   serverSaveResellerListing,
   serverDeleteResellerListing,
 } from '@/lib/serverResellerStore';
+import { BUNDLE_PRODUCTS } from '@/data/bundles';
 
 export async function GET(request: Request) {
   try {
@@ -50,7 +51,47 @@ export async function POST(request: Request) {
       );
     }
 
-    const saved = await serverSaveResellerListing(listing);
+    // Server-authoritative catalog validation: Match original bundle product
+    const matchedProd = BUNDLE_PRODUCTS.find(
+      (p) => p.id === listing.originalProductId || p.slug === listing.originalProductSlug
+    );
+
+    if (!matchedProd) {
+      return NextResponse.json(
+        { success: false, error: 'Original product not found in authorized catalog' },
+        { status: 400 }
+      );
+    }
+
+    const basePrice = Number(matchedProd.personalPrice);
+    const resalePrice = Number(listing.resalePrice);
+
+    if (isNaN(resalePrice) || resalePrice < basePrice) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: `Resale price (₹${resalePrice}) cannot be lower than platform base price (₹${basePrice})`,
+        },
+        { status: 400 }
+      );
+    }
+
+    // Sanitize and enforce authoritative fields
+    const sanitizedListing = {
+      ...listing,
+      basePrice,
+      resalePrice,
+      grossMargin: Math.max(0, resalePrice - basePrice),
+      originalProductId: matchedProd.id,
+      originalProductSlug: matchedProd.slug,
+      salesCount: Number(listing.salesCount) || 0,
+      totalEarned: Number(listing.totalEarned) || 0,
+      totalRevenue: Number(listing.totalRevenue) || 0,
+      status: listing.status === 'paused' ? 'paused' : 'active',
+      updatedAt: new Date().toISOString(),
+    };
+
+    const saved = await serverSaveResellerListing(sanitizedListing);
     return NextResponse.json({ success: true, listing: saved });
   } catch (err: any) {
     return NextResponse.json({ success: false, error: err.message }, { status: 500 });

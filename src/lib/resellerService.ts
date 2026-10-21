@@ -1830,9 +1830,9 @@ export async function getResellerWallet(userId: string): Promise<WalletAccount> 
     const totalWithdrawn = paidWithdrawals.reduce((sum, w) => sum + (w.amount || 0), 0);
     const reservedForWithdrawal = pendingWithdrawals.reduce((sum, w) => sum + (w.amount || 0), 0);
 
-    // If live verified order earnings exceed baseWallet snapshot, use live authoritative numbers
-    const finalTotalEarned = Math.max(totalEarned, baseWallet.totalEarned || 0);
-    const finalTotalWithdrawn = Math.max(totalWithdrawn, baseWallet.totalWithdrawn || 0);
+    // Authoritative total earned is derived strictly from real verified orders
+    const finalTotalEarned = totalEarned;
+    const finalTotalWithdrawn = totalWithdrawn;
     const finalAvailableBalance = Math.max(0, finalTotalEarned - finalTotalWithdrawn - reservedForWithdrawal);
 
     const prof = await getResellerProfile(userId);
@@ -2863,12 +2863,21 @@ export async function getResellerAttributedOrders(userId: string): Promise<Attri
       orderNum.startsWith('VZ-SYNC') ||
       orderNum.startsWith('VZ-DEL') ||
       orderNum.startsWith('VZ-LISTING') ||
-      String(data.customer?.email || '').toLowerCase().includes('test')
+      String(data.customer?.email || '').toLowerCase().includes('test') ||
+      data.status === 'failed_underpaid' ||
+      data.security_tamper_flag === true
     ) {
       return null;
     }
     const docId = d.id || data.orderId || data.id;
     const item0 = data.items?.[0] || {};
+    const basePrice = Number(data.base_price_snapshot || 0);
+    const resalePrice = Number(data.resale_price_snapshot || data.totalAmount || 0);
+    const maxMargin = Math.max(0, resalePrice - basePrice);
+    const rawEarning = Number(data.reseller_earning || 0);
+    // Anti-fraud clamp: earning cannot exceed genuine resale price minus base price
+    const earningAmount = maxMargin > 0 ? Math.min(rawEarning, maxMargin) : rawEarning;
+
     return {
       orderId: docId,
       orderNumber: data.orderNumber || docId,
@@ -2878,9 +2887,9 @@ export async function getResellerAttributedOrders(userId: string): Promise<Attri
       listingSlug: data.reseller_slug || '',
       originalProductId: item0.id || '',
       productTitle: item0.title || 'Viral Reels Bundle',
-      basePrice: data.base_price_snapshot || 0,
-      resalePrice: data.resale_price_snapshot || data.totalAmount || 0,
-      earningAmount: data.reseller_earning || 0,
+      basePrice,
+      resalePrice,
+      earningAmount,
       customerName: data.customer?.fullName || 'Customer',
       customerEmail: data.customer?.email || '',
       customerPhone: data.customer?.phone || '',

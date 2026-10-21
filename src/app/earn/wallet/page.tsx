@@ -264,17 +264,29 @@ export default function ResellerWalletPage() {
         } catch {}
       }
 
-      const wdr = await requestWithdrawal({
-        userId: uid,
-        resellerName: profile?.displayName || user?.displayName || recipientName,
-        resellerEmail: profile?.email || user?.email || '',
-        amount: Math.floor(amount),
-        payoutMethod: 'upi',
-        payoutDetails: {
-          upiId: activeUpi,
-          accountHolderName: recipientName,
-        },
+      // Submit via server-authoritative API
+      const res = await fetch('/api/reseller/wallet/withdraw', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          userId: uid,
+          resellerName: profile?.displayName || user?.displayName || recipientName,
+          resellerEmail: profile?.email || user?.email || '',
+          amount: Math.floor(amount),
+          payoutMethod: 'upi',
+          payoutDetails: {
+            upiId: activeUpi,
+            accountHolderName: recipientName,
+          },
+        }),
       });
+
+      const resData = await res.json();
+      if (!res.ok || !resData.success) {
+        throw new Error(resData.error || 'Failed to submit withdrawal request');
+      }
+
+      const wdr = resData.withdrawal;
 
       fetch('/api/reseller/withdrawal-alert', {
         method: 'POST',

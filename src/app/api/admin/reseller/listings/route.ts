@@ -4,18 +4,23 @@ import { collection, getDocs, doc, updateDoc, Firestore } from 'firebase/firesto
 import { fetchListingsFromFirestoreOrders, getResellerListingById, syncListingToFirestoreOrders } from '@/lib/resellerService';
 import { serverGetAllListings, serverSaveResellerListing } from '@/lib/serverResellerStore';
 import { ResellerListing } from '@/types/reseller';
+import { isAuthorizedAdmin } from '@/lib/adminAuth';
 
 const CORS_HEADERS = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Methods': 'GET, POST, PATCH, DELETE, OPTIONS',
-  'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+  'Access-Control-Allow-Headers': 'Content-Type, Authorization, x-admin-key',
 };
 
 export async function OPTIONS() {
   return new Response(null, { status: 204, headers: CORS_HEADERS });
 }
 
-export async function GET() {
+export async function GET(request: Request) {
+  if (!isAuthorizedAdmin(request)) {
+    return NextResponse.json({ success: false, error: 'Unauthorized access' }, { status: 401, headers: CORS_HEADERS });
+  }
+
   try {
     const listingsMap = new Map<string, ResellerListing>();
 
@@ -69,6 +74,10 @@ export async function GET() {
 }
 
 export async function PATCH(request: Request) {
+  if (!isAuthorizedAdmin(request)) {
+    return NextResponse.json({ success: false, error: 'Unauthorized access' }, { status: 401, headers: CORS_HEADERS });
+  }
+
   try {
     const body = await request.json();
     const { listingId, status } = body;

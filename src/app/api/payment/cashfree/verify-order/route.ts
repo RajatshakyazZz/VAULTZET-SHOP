@@ -160,6 +160,32 @@ async function handleVerify(
   };
 
   if (verification.paid) {
+    // CRITICAL SECURITY ENFORCEMENT: Verify paid amount matches expected order amount
+    const expectedAmount = Number(storedOrder?.totalAmount || 0);
+    const paidAmount = Number(verification.order_amount || 0);
+
+    if (expectedAmount > 0 && paidAmount < expectedAmount - 1) {
+      console.error(
+        `[Security Warning] Underpaid order detected for #${orderId}! Expected: ₹${expectedAmount}, Received: ₹${paidAmount}`
+      );
+      if (db) {
+        try {
+          const orderRef = doc(db, 'orders', orderId);
+          await updateDoc(orderRef, {
+            status: 'failed_underpaid',
+            security_tamper_flag: true,
+          });
+        } catch {}
+      }
+      return {
+        ...verification,
+        paid: false,
+        order_status: 'FAILED_UNDERPAID',
+        items: [],
+        error: 'Security verification failed: Paid amount does not match order amount',
+      };
+    }
+
     const isFirstPaidTransition = storedOrder?.status !== 'completed';
     const isCapiDelivered = storedOrder?.purchase_event_status === 'delivered';
     const isClientFired = storedOrder?.purchase_client_fired === true;
@@ -214,19 +240,26 @@ async function handleVerify(
       }
     }
 
-    // Server-authoritative recording of reseller earning (idempotent)
-    if (storedOrder?.reseller_id && Number(storedOrder?.reseller_earning) > 0) {
-      try {
-        await recordSaleEarning({
-          orderId,
-          resellerId: storedOrder.reseller_id,
-          listingId: storedOrder.reseller_listing_id || '',
-          amount: Number(storedOrder.reseller_earning),
-          productTitle: storedOrder.items?.[0]?.title || 'Viral Reels Bundle',
-          settleImmediately: true,
-        });
-      } catch (resellerErr) {
-        console.error('[Reseller Attribution] Error recording earning in verify-order:', resellerErr);
+    // Server-authoritative recording of reseller earning (idempotent & margin-capped)
+    if (storedOrder?.reseller_id) {
+      const baseSnapshot = Number(storedOrder.base_price_snapshot || 0);
+      const resaleSnapshot = Number(storedOrder.resale_price_snapshot || storedOrder.totalAmount || 0);
+      const maxPossibleEarning = Math.max(0, resaleSnapshot - baseSnapshot);
+      const safeEarning = Math.min(Number(storedOrder.reseller_earning || 0), maxPossibleEarning);
+
+      if (safeEarning > 0) {
+        try {
+          await recordSaleEarning({
+            orderId,
+            resellerId: storedOrder.reseller_id,
+            listingId: storedOrder.reseller_listing_id || '',
+            amount: safeEarning,
+            productTitle: storedOrder.items?.[0]?.title || 'Viral Reels Bundle',
+            settleImmediately: true,
+          });
+        } catch (resellerErr) {
+          console.error('[Reseller Attribution] Error recording earning in verify-order:', resellerErr);
+        }
       }
     }
 

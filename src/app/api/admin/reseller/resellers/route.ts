@@ -1,10 +1,11 @@
 import { NextResponse } from 'next/server';
 import { getAllResellersAnalytics, getResellerAnalytics } from '@/lib/resellerService';
+import { isAuthorizedAdmin } from '@/lib/adminAuth';
 
 const CORS_HEADERS = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Methods': 'GET, POST, PATCH, DELETE, OPTIONS',
-  'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+  'Access-Control-Allow-Headers': 'Content-Type, Authorization, x-admin-key',
 };
 
 export async function OPTIONS() {
@@ -12,6 +13,10 @@ export async function OPTIONS() {
 }
 
 export async function GET(request: Request) {
+  if (!isAuthorizedAdmin(request)) {
+    return NextResponse.json({ success: false, error: 'Unauthorized access' }, { status: 401, headers: CORS_HEADERS });
+  }
+
   try {
     const { searchParams } = new URL(request.url);
     const uid = searchParams.get('uid');

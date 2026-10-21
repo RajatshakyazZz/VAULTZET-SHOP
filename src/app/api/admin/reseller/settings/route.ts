@@ -3,18 +3,23 @@ import { db } from '@/lib/firebase';
 import { doc, getDoc, setDoc, Firestore } from 'firebase/firestore';
 import { syncSettingsToFirestoreOrders, fetchSettingsFromFirestoreOrders } from '@/lib/resellerService';
 import { serverGetSettings, serverSaveSettings } from '@/lib/serverResellerStore';
+import { isAuthorizedAdmin } from '@/lib/adminAuth';
 
 const CORS_HEADERS = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Methods': 'GET, POST, PATCH, DELETE, OPTIONS',
-  'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+  'Access-Control-Allow-Headers': 'Content-Type, Authorization, x-admin-key',
 };
 
 export async function OPTIONS() {
   return new Response(null, { status: 204, headers: CORS_HEADERS });
 }
 
-export async function GET() {
+export async function GET(request: Request) {
+  if (!isAuthorizedAdmin(request)) {
+    return NextResponse.json({ success: false, error: 'Unauthorized access' }, { status: 401, headers: CORS_HEADERS });
+  }
+
   try {
     let settings = {
       enabled: true,
@@ -59,6 +64,10 @@ export async function GET() {
 }
 
 export async function POST(request: Request) {
+  if (!isAuthorizedAdmin(request)) {
+    return NextResponse.json({ success: false, error: 'Unauthorized access' }, { status: 401, headers: CORS_HEADERS });
+  }
+
   try {
     const body = await request.json();
     const { enabled, min_markup, max_price, settlement_policy } = body;

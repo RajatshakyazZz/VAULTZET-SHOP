@@ -44,48 +44,116 @@ export async function POST(request: Request) {
       );
     }
 
-    // Server-authoritative reseller resolution and price enforcement
+    // Server-authoritative price calculation and anti-tampering enforcement
     let finalTotalAmount = Number(totalAmount);
     let resellerAttribution: Record<string, any> = {};
 
     if (resellerSlug) {
+      const cleanSlug = String(resellerSlug).trim();
+      let listing: any = null;
       try {
-        const listing = await getResellerListingBySlug(String(resellerSlug).trim(), true);
-        if (listing) {
-          if (listing.status !== 'active') {
-            return NextResponse.json(
-              {
-                success: false,
-                error: `This reseller listing is currently ${listing.status}. Purchases cannot be completed.`,
-              },
-              { status: 400 }
-            );
-          }
-          const originalProd = BUNDLE_PRODUCTS.find(
-            (p) => p.id === listing.originalProductId || p.slug === listing.originalProductSlug
-          );
-          const basePrice = originalProd ? Number(originalProd.personalPrice) : Number(listing.basePrice);
-          const approvedResalePrice = Number(listing.resalePrice);
-          const resellerEarning = Math.max(0, approvedResalePrice - basePrice);
-
-          // Authoritative order total
-          const bumpPrice = orderBump ? ORDER_BUMP.discountPrice : 0;
-          finalTotalAmount = approvedResalePrice + bumpPrice;
-
-          resellerAttribution = {
-            reseller_id: listing.resellerId,
-            reseller_uid: listing.resellerUid || '',
-            reseller_listing_id: listing.id,
-            reseller_slug: listing.slug,
-            base_price_snapshot: basePrice,
-            resale_price_snapshot: approvedResalePrice,
-            reseller_earning: resellerEarning,
-            earning_status: 'pending',
-          };
-        }
+        listing = await getResellerListingBySlug(cleanSlug, true);
       } catch (rErr: any) {
         console.warn('Error resolving reseller listing during order creation:', rErr);
       }
+
+      if (!listing) {
+        return NextResponse.json(
+          {
+            success: false,
+            error: 'Reseller listing not found or expired. Please verify the URL.',
+          },
+          { status: 400 }
+        );
+      }
+
+      if (listing.status !== 'active') {
+        return NextResponse.json(
+          {
+            success: false,
+            error: `This reseller listing is currently ${listing.status}. Purchases cannot be completed.`,
+          },
+          { status: 400 }
+        );
+      }
+
+      const originalProd = BUNDLE_PRODUCTS.find(
+        (p) => p.id === listing.originalProductId || p.slug === listing.originalProductSlug
+      );
+      const basePrice = originalProd ? Number(originalProd.personalPrice) : Number(listing.basePrice || 0);
+      const approvedResalePrice = Number(listing.resalePrice || 0);
+
+      // Security check: Resale price CANNOT be lower than platform base price
+      if (approvedResalePrice < basePrice || approvedResalePrice <= 0) {
+        return NextResponse.json(
+          {
+            success: false,
+            error: 'Invalid listing price configuration. Purchase cannot proceed.',
+          },
+          { status: 400 }
+        );
+      }
+
+      const resellerEarning = Math.max(0, approvedResalePrice - basePrice);
+
+      // Authoritative order total derived strictly server-side
+      const bumpPrice = orderBump ? ORDER_BUMP.discountPrice : 0;
+      finalTotalAmount = approvedResalePrice + bumpPrice;
+
+      resellerAttribution = {
+        reseller_id: listing.resellerId,
+        reseller_uid: listing.resellerUid || '',
+        reseller_listing_id: listing.id,
+        reseller_slug: listing.slug,
+        base_price_snapshot: basePrice,
+        resale_price_snapshot: approvedResalePrice,
+        reseller_earning: resellerEarning,
+        earning_status: 'pending',
+      };
+    } else {
+      // Normal store checkout: compute authoritative price from verified catalog
+      let expectedCatalogTotal = 0;
+      if (Array.isArray(items) && items.length > 0) {
+        for (const item of items) {
+          const matchedProd = BUNDLE_PRODUCTS.find(
+            (p) => p.id === item.id || p.slug === item.slug || p.id === item.productId
+          );
+          if (matchedProd) {
+            const itemPrice = item.license === 'reseller'
+              ? Number(matchedProd.resellerPrice)
+              : Number(matchedProd.personalPrice);
+            expectedCatalogTotal += itemPrice;
+          } else {
+            expectedCatalogTotal += Math.max(0, Number(item.price || 0));
+          }
+        }
+      }
+
+      if (orderBump) {
+        expectedCatalogTotal += Number(ORDER_BUMP.discountPrice);
+      }
+
+      // If catalog items were identified, prevent client-side undercutting
+      if (expectedCatalogTotal > 0) {
+        if (finalTotalAmount < expectedCatalogTotal - 1) {
+          return NextResponse.json(
+            {
+              success: false,
+              error: `Invalid checkout total amount. Expected: ₹${expectedCatalogTotal}`,
+            },
+            { status: 400 }
+          );
+        }
+        finalTotalAmount = expectedCatalogTotal;
+      }
+    }
+
+    // Absolute minimum order check: Cannot create zero or negative orders
+    if (finalTotalAmount < 1) {
+      return NextResponse.json(
+        { success: false, error: 'Invalid order amount (minimum ₹1 required).' },
+        { status: 400 }
+      );
     }
 
     const hostHeader = request.headers.get('host') || '';

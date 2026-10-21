@@ -55,6 +55,28 @@ export async function GET(request: Request) {
       paymentMethod: 'Cashfree UPI / Card',
     };
 
+    const expectedAmount = Number(storedOrder?.totalAmount || 0);
+    const paidAmount = Number(verification.order_amount || 0);
+
+    // CRITICAL SECURITY ENFORCEMENT: Verify paid amount matches expected order amount
+    if (verification.paid && expectedAmount > 0 && paidAmount < expectedAmount - 1) {
+      console.error(
+        `[Security Warning] Underpaid order on return: #${orderId}! Expected: ₹${expectedAmount}, Paid: ₹${paidAmount}`
+      );
+      if (db) {
+        try {
+          const orderRef = doc(db, 'orders', orderId);
+          await updateDoc(orderRef, {
+            status: 'failed_underpaid',
+            security_tamper_flag: true,
+          });
+        } catch {}
+      }
+      return NextResponse.redirect(
+        `${baseUrl}/checkout?error=payment_amount_tampered&orderId=${encodeURIComponent(orderId)}`
+      );
+    }
+
     if (verification.paid) {
       const isAlreadyCompleted = storedOrder?.status === 'completed';
 
