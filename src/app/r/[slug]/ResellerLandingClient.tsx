@@ -26,6 +26,7 @@ import { ResellerListing, ListingThemePreset } from '@/types/reseller';
 import { BundleProduct } from '@/types';
 import { useCart } from '@/context/CartContext';
 import { track } from '@/lib/analytics';
+import WhatsAppButton from '@/components/WhatsAppButton';
 
 interface ResellerLandingClientProps {
   listing: ResellerListing;
@@ -685,6 +686,18 @@ export default function ResellerLandingClient({
           <span>{listing.ctaText || 'Download Now'}</span>
         </button>
       </div>
+
+      {/* Floating WhatsApp Support Button (Controlled by Reseller's Landing Page Setting) */}
+      {listing.whatsappButtonEnabled !== false && (
+        <WhatsAppButton
+          isResellerPage={true}
+          phoneNumber={listing.whatsappNumber || '917895317940'}
+          storeName={listing.resellerName ? `${listing.resellerName} • VaultZet Partner` : 'VaultZet Support'}
+          productTitle={listing.customTitle}
+          defaultMessage={`Hi! I am browsing "${listing.customTitle}" on VaultZet. Can you please assist me?`}
+          positionClassName="bottom-20 md:bottom-6 right-4 sm:right-6"
+        />
+      )}
     </div>
   );
 }

@@ -1073,6 +1073,8 @@ export interface CreateListingInput {
   ctaText?: string;
   themePreset?: ListingThemePreset;
   promoBadge?: string;
+  whatsappButtonEnabled?: boolean;
+  whatsappNumber?: string;
   resalePrice: number;
   status?: ListingStatus;
 }
@@ -1141,6 +1143,8 @@ export async function createResellerListing(input: CreateListingInput): Promise<
     ctaText: input.ctaText?.trim() || 'Download HD Bundle Now',
     themePreset: input.themePreset || 'dark',
     promoBadge: input.promoBadge?.trim() || '🔥 70% OFF TODAY',
+    whatsappButtonEnabled: input.whatsappButtonEnabled !== false,
+    whatsappNumber: input.whatsappNumber?.trim() || '',
     status: input.status || 'active',
     viewsCount: 0,
     uniqueVisitorsCount: 0,

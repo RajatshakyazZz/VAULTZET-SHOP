@@ -39,6 +39,7 @@ import {
   getWhatsAppShareUrl,
   generateShareText,
 } from '@/lib/resellerService';
+import { WhatsAppSvgIcon } from '@/components/WhatsAppButton';
 
 interface ResellerLandingBuilderProps {
   originalProduct: BundleProduct;
@@ -88,6 +89,12 @@ export default function ResellerLandingBuilder({
   const [coverImage, setCoverImage] = useState(
     initialListing?.coverImage || originalProduct.thumbnail || (originalProduct as any)?.featuredImage || ''
   );
+  const [whatsappButtonEnabled, setWhatsappButtonEnabled] = useState<boolean>(
+    initialListing?.whatsappButtonEnabled !== false
+  );
+  const [whatsappNumber, setWhatsappNumber] = useState<string>(
+    initialListing?.whatsappNumber || ''
+  );
 
   const defaultBenefits = [
     'Instant Google Drive Access directly after checkout',
@@ -124,7 +131,7 @@ export default function ResellerLandingBuilder({
 
   // UI state
   const [previewMode, setPreviewMode] = useState<'desktop' | 'mobile'>('desktop');
-  const [activeTab, setActiveTab] = useState<'pricing' | 'content' | 'visuals' | 'benefits'>('pricing');
+  const [activeTab, setActiveTab] = useState<'pricing' | 'content' | 'visuals' | 'benefits' | 'whatsapp'>('pricing');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [publishedListing, setPublishedListing] = useState<ResellerListing | null>(null);
@@ -147,6 +154,8 @@ export default function ResellerLandingBuilder({
     coverImage,
     benefits,
     features,
+    whatsappButtonEnabled,
+    whatsappNumber,
   ]);
 
   // Unsaved changes warning
@@ -238,6 +247,8 @@ export default function ResellerLandingBuilder({
           themePreset,
           promoBadge: promoBadge.trim(),
           resalePrice: Number(resalePrice),
+          whatsappButtonEnabled,
+          whatsappNumber: whatsappNumber.trim(),
           status: targetStatus,
         });
         setIsDirty(false);
@@ -257,6 +268,8 @@ export default function ResellerLandingBuilder({
           themePreset,
           promoBadge: promoBadge.trim(),
           resalePrice: Number(resalePrice),
+          whatsappButtonEnabled,
+          whatsappNumber: whatsappNumber.trim(),
           status: targetStatus,
         });
         setIsDirty(false);
@@ -276,6 +289,8 @@ export default function ResellerLandingBuilder({
           promoBadge,
           resalePrice: Number(resalePrice),
           grossMargin: Number(resalePrice) - basePrice,
+          whatsappButtonEnabled,
+          whatsappNumber: whatsappNumber.trim(),
           status: targetStatus,
         });
       }
@@ -428,7 +443,7 @@ export default function ResellerLandingBuilder({
         {/* LEFT COLUMN: CUSTOMIZATION TABS & FIELDS */}
         <div className="lg:col-span-5 space-y-4">
           {/* Tab Navigation */}
-          <div className="grid grid-cols-4 p-1 rounded-2xl bg-white border border-purple-100 text-xs font-bold">
+          <div className="grid grid-cols-5 p-1 rounded-2xl bg-white border border-purple-100 text-[11px] sm:text-xs font-bold">
             <button
               onClick={() => setActiveTab('pricing')}
               className={`py-2 rounded-xl transition-all ${
@@ -460,6 +475,14 @@ export default function ResellerLandingBuilder({
               }`}
             >
               Features
+            </button>
+            <button
+              onClick={() => setActiveTab('whatsapp')}
+              className={`py-2 rounded-xl transition-all flex items-center justify-center gap-1 ${
+                activeTab === 'whatsapp' ? 'bg-[#25D366] text-white shadow-xs' : 'text-slate-500 hover:text-slate-900'
+              }`}
+            >
+              <span>WhatsApp</span>
             </button>
           </div>
 
@@ -774,6 +797,82 @@ export default function ResellerLandingBuilder({
                 </div>
               </div>
             )}
+
+            {/* TAB 5: WHATSAPP SUPPORT BUTTON CONFIGURATION */}
+            {activeTab === 'whatsapp' && (
+              <div className="space-y-4">
+                <div className="p-4 rounded-2xl bg-gradient-to-r from-emerald-50 to-teal-50 border border-emerald-200/70 flex items-start gap-3">
+                  <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-[#128C7E] to-[#25D366] text-white flex items-center justify-center shrink-0 shadow-sm">
+                    <WhatsAppSvgIcon className="w-5 h-5 fill-current" />
+                  </div>
+                  <div>
+                    <h4 className="text-xs font-black text-emerald-950">WhatsApp Customer Chat Button</h4>
+                    <p className="text-[11px] text-slate-600 mt-0.5 leading-relaxed font-medium">
+                      Control the floating WhatsApp widget on your landing page. You can customize your own contact number, use VaultZet support, or remove it completely.
+                    </p>
+                  </div>
+                </div>
+
+                {/* Main Toggle Switch: Enable / Remove */}
+                <div className="p-4 rounded-2xl border border-purple-100 bg-white flex items-center justify-between shadow-xs">
+                  <div>
+                    <span className="text-xs font-black text-[#162048] block">
+                      Show WhatsApp Button on Landing Page
+                    </span>
+                    <span className="text-[11px] text-slate-500 block mt-0.5 font-medium">
+                      {whatsappButtonEnabled ? (
+                        <span className="text-emerald-600 font-bold">● Active — Floating chat button is visible to buyers</span>
+                      ) : (
+                        <span className="text-red-500 font-bold">○ Removed — No WhatsApp button will appear on your page</span>
+                      )}
+                    </span>
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={() => setWhatsappButtonEnabled(!whatsappButtonEnabled)}
+                    className={`w-12 h-6 flex items-center rounded-full p-1 cursor-pointer transition-colors duration-200 ${
+                      whatsappButtonEnabled ? 'bg-[#25D366]' : 'bg-slate-300'
+                    }`}
+                    aria-label="Toggle WhatsApp button visibility"
+                  >
+                    <div
+                      className={`bg-white w-4 h-4 rounded-full shadow-md transform transition-transform duration-200 ${
+                        whatsappButtonEnabled ? 'translate-x-6' : 'translate-x-0'
+                      }`}
+                    />
+                  </button>
+                </div>
+
+                {/* Custom Number Config (Visible when button is active) */}
+                {whatsappButtonEnabled ? (
+                  <div className="p-4 rounded-2xl border border-emerald-100 bg-emerald-50/40 space-y-3">
+                    <div>
+                      <label className="text-xs font-black text-[#162048] block mb-1">
+                        Your WhatsApp Number (Optional)
+                      </label>
+                      <div className="relative">
+                        <span className="absolute left-3.5 top-2.5 text-xs font-bold text-slate-400">+91</span>
+                        <input
+                          type="text"
+                          value={whatsappNumber}
+                          onChange={(e) => setWhatsappNumber(e.target.value.replace(/\D/g, '').slice(0, 10))}
+                          placeholder="7895317940"
+                          className="w-full pl-11 pr-4 py-2.5 rounded-xl border border-emerald-200 bg-white text-xs font-black text-[#162048] focus:border-[#25D366] focus:outline-none"
+                        />
+                      </div>
+                      <p className="text-[10px] text-slate-500 mt-1.5 font-medium leading-relaxed">
+                        💡 <strong>Smart Fallback:</strong> If you leave this empty, buyers will be connected to the VaultZet 24/7 Store Support desk (<strong className="text-slate-800">+91 7895317940</strong>) who will assist the customer and close the sale for you!
+                      </p>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="p-3.5 rounded-2xl bg-slate-50 border border-slate-200 text-center text-xs text-slate-500 font-medium">
+                    WhatsApp button is currently <strong className="text-slate-700">disabled / removed</strong> for your landing page. Buyers will not see any chat bubble.
+                  </div>
+                )}
+              </div>
+            )}
           </div>
         </div>
 
@@ -901,6 +1000,19 @@ export default function ResellerLandingBuilder({
                 <div className="p-3 rounded-xl bg-white/[0.02] border border-white/5 text-[9px] text-center text-white/40">
                   Authorized Vaultzet Reseller Listing • Instant Cloud Delivery
                 </div>
+
+                {/* Floating WhatsApp Live Preview Badge */}
+                {whatsappButtonEnabled && (
+                  <div className="flex items-center justify-between p-2.5 rounded-xl bg-gradient-to-r from-[#128C7E]/20 to-[#25D366]/20 border border-[#25D366]/40 text-white text-[11px] font-bold">
+                    <span className="flex items-center gap-1.5 text-emerald-300">
+                      <WhatsAppSvgIcon className="w-4 h-4 fill-current" />
+                      <span>WhatsApp Chat Badge: Active</span>
+                    </span>
+                    <span className="text-[10px] text-white/60">
+                      {whatsappNumber ? `+91 ${whatsappNumber}` : 'VaultZet (+91 7895317940)'}
+                    </span>
+                  </div>
+                )}
               </div>
             </div>
           </div>

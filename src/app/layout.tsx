@@ -10,6 +10,7 @@ import Footer from '@/components/Footer';
 import MobileBottomNav from '@/components/MobileBottomNav';
 import CartDrawer from '@/components/CartDrawer';
 import AnalyticsTracker from '@/components/AnalyticsTracker';
+import WhatsAppButton from '@/components/WhatsAppButton';
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://www.vaultzet.shop';
 const GTM_ID = process.env.NEXT_PUBLIC_GTM_ID || 'GTM-TD8N9SDD';
@@ -276,6 +277,7 @@ export default function RootLayout({
               <Footer />
               <CartDrawer />
               <MobileBottomNav />
+              <WhatsAppButton />
             </CartProvider>
           </ResellerAuthProvider>
         </StoreSettingsProvider>

@@ -87,6 +87,8 @@ export async function POST(request: Request) {
       salesCount: Number(listing.salesCount) || 0,
       totalEarned: Number(listing.totalEarned) || 0,
       totalRevenue: Number(listing.totalRevenue) || 0,
+      whatsappButtonEnabled: listing.whatsappButtonEnabled !== false,
+      whatsappNumber: listing.whatsappNumber ? String(listing.whatsappNumber).trim() : '',
       status: listing.status === 'paused' ? 'paused' : 'active',
       updatedAt: new Date().toISOString(),
     };
