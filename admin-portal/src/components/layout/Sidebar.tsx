@@ -46,6 +46,7 @@ export default function Sidebar({ isOpen = false, onClose }: SidebarProps) {
         { name: 'Products & Files', href: '/products', icon: Package },
         { name: 'Orders & Delivery', href: '/orders', icon: ShoppingCart },
         { name: 'Customers', href: '/customers', icon: Users },
+        { name: 'Resellers & Payouts', href: '/resellers', icon: Users, badge: 'Live' },
         { name: 'Coupons', href: '/coupons', icon: Ticket },
       ],
     },

@@ -4,6 +4,16 @@ import { doc, getDoc, setDoc, Firestore } from 'firebase/firestore';
 import { syncSettingsToFirestoreOrders, fetchSettingsFromFirestoreOrders } from '@/lib/resellerService';
 import { serverGetSettings, serverSaveSettings } from '@/lib/serverResellerStore';
 
+const CORS_HEADERS = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Methods': 'GET, POST, PATCH, DELETE, OPTIONS',
+  'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+};
+
+export async function OPTIONS() {
+  return new Response(null, { status: 204, headers: CORS_HEADERS });
+}
+
 export async function GET() {
   try {
     let settings = {
@@ -20,7 +30,7 @@ export async function GET() {
         const snap = await getDoc(doc(firestore, 'store_settings', 'reseller'));
         if (snap.exists()) {
           settings = { ...settings, ...snap.data() };
-          return NextResponse.json({ success: true, settings });
+          return NextResponse.json({ success: true, settings }, { headers: CORS_HEADERS });
         }
       } catch {}
     }
@@ -30,7 +40,7 @@ export async function GET() {
       const synced = await fetchSettingsFromFirestoreOrders();
       if (synced) {
         settings = { ...settings, ...synced };
-        return NextResponse.json({ success: true, settings });
+        return NextResponse.json({ success: true, settings }, { headers: CORS_HEADERS });
       }
     } catch {}
 
@@ -42,9 +52,9 @@ export async function GET() {
       }
     } catch {}
 
-    return NextResponse.json({ success: true, settings });
+    return NextResponse.json({ success: true, settings }, { headers: CORS_HEADERS });
   } catch (err: any) {
-    return NextResponse.json({ success: false, error: err.message }, { status: 500 });
+    return NextResponse.json({ success: false, error: err.message }, { status: 500, headers: CORS_HEADERS });
   }
 }
 
@@ -75,8 +85,8 @@ export async function POST(request: Request) {
     // 3. Server memory cache
     await serverSaveSettings(payload).catch(() => {});
 
-    return NextResponse.json({ success: true, settings: payload });
+    return NextResponse.json({ success: true, settings: payload }, { headers: CORS_HEADERS });
   } catch (err: any) {
-    return NextResponse.json({ success: false, error: err.message }, { status: 500 });
+    return NextResponse.json({ success: false, error: err.message }, { status: 500, headers: CORS_HEADERS });
   }
 }

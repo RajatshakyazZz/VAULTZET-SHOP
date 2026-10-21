@@ -5,6 +5,16 @@ import { fetchListingsFromFirestoreOrders, getResellerListingById, syncListingTo
 import { serverGetAllListings, serverSaveResellerListing } from '@/lib/serverResellerStore';
 import { ResellerListing } from '@/types/reseller';
 
+const CORS_HEADERS = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Methods': 'GET, POST, PATCH, DELETE, OPTIONS',
+  'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+};
+
+export async function OPTIONS() {
+  return new Response(null, { status: 204, headers: CORS_HEADERS });
+}
+
 export async function GET() {
   try {
     const listingsMap = new Map<string, ResellerListing>();
@@ -52,9 +62,9 @@ export async function GET() {
       (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
     );
 
-    return NextResponse.json({ success: true, listings });
+    return NextResponse.json({ success: true, listings }, { headers: CORS_HEADERS });
   } catch (err: any) {
-    return NextResponse.json({ success: false, error: err.message }, { status: 500 });
+    return NextResponse.json({ success: false, error: err.message }, { status: 500, headers: CORS_HEADERS });
   }
 }
 
@@ -64,7 +74,7 @@ export async function PATCH(request: Request) {
     const { listingId, status } = body;
 
     if (!listingId || !['active', 'paused', 'suspended', 'rejected'].includes(status)) {
-      return NextResponse.json({ success: false, error: 'Invalid parameters' }, { status: 400 });
+      return NextResponse.json({ success: false, error: 'Invalid parameters' }, { status: 400, headers: CORS_HEADERS });
     }
 
     const now = new Date().toISOString();
@@ -94,8 +104,8 @@ export async function PATCH(request: Request) {
       await serverSaveResellerListing(updated).catch(() => {});
     }
 
-    return NextResponse.json({ success: true, listingId, status });
+    return NextResponse.json({ success: true, listingId, status }, { headers: CORS_HEADERS });
   } catch (err: any) {
-    return NextResponse.json({ success: false, error: err.message }, { status: 500 });
+    return NextResponse.json({ success: false, error: err.message }, { status: 500, headers: CORS_HEADERS });
   }
 }

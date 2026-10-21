@@ -39,10 +39,6 @@ export default function Header() {
     }
   }, [pathname]);
 
-  if (pathname?.startsWith('/r/') || pathname === '/r' || isResellerRoute) {
-    return null;
-  }
-
   const desktopSearchRef = useRef<HTMLDivElement>(null);
   const searchQueryRef = useRef(searchQuery);
   searchQueryRef.current = searchQuery;
@@ -129,8 +125,13 @@ export default function Header() {
     { name: 'About Us', href: '/about-us' },
   ];
 
-  // Hide header on full-screen reels page
-  if (pathname?.startsWith('/reels')) {
+  // Hide header on full-screen reels page or reseller landing / checkout / success pages
+  if (
+    pathname?.startsWith('/reels') ||
+    pathname?.startsWith('/r/') ||
+    pathname === '/r' ||
+    isResellerRoute
+  ) {
     return null;
   }
 

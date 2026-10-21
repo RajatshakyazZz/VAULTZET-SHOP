@@ -25,6 +25,7 @@ import Themes from './pages/Themes';
 import Connector from './pages/Connector';
 import SettingsIntegrations from './pages/SettingsIntegrations';
 import AuditLogs from './pages/AuditLogs';
+import Resellers from './pages/Resellers';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -54,6 +55,7 @@ export default function App() {
                   <Route path="products" element={<Products />} />
                   <Route path="orders" element={<Orders />} />
                   <Route path="customers" element={<Customers />} />
+                  <Route path="resellers" element={<Resellers />} />
                   <Route path="coupons" element={<Coupons />} />
                   <Route path="content" element={<Content />} />
                   <Route path="branding" element={<Branding />} />

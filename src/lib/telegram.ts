@@ -80,12 +80,12 @@ export async function sendTelegramMessage(
         disable_web_page_preview: true,
       };
 
-      if (replyMarkup) {
-        payload.reply_markup = replyMarkup;
-      } else if (inlineButtons && inlineButtons.length > 0) {
+      if (inlineButtons && inlineButtons.length > 0) {
         payload.reply_markup = {
           inline_keyboard: inlineButtons,
         };
+      } else if (replyMarkup) {
+        payload.reply_markup = replyMarkup;
       }
 
       const res = await fetch(endpoint, {
