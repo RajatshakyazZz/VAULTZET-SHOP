@@ -183,6 +183,7 @@ export async function serverSaveResellerProfile(
     displayName: profileData.displayName || existing?.displayName || cleanEmail.split('@')[0],
     email: cleanEmail,
     phone: profileData.phone || existing?.phone || '',
+    passwordHash: profileData.passwordHash || existing?.passwordHash,
     status: existing?.status || 'active',
     payoutMethod: profileData.payoutMethod || existing?.payoutMethod || 'upi',
     payoutDetails: profileData.payoutDetails || existing?.payoutDetails || {},

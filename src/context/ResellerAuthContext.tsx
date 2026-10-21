@@ -19,6 +19,7 @@ import {
   reconcileResellerAccount,
   createOrUpdateResellerProfile,
 } from '@/lib/resellerService';
+import { hashPassword } from '@/lib/authCrypto';
 
 interface ResellerAuthContextType {
   user: User | null;
@@ -122,29 +123,45 @@ export function ResellerAuthProvider({ children }: { children: React.ReactNode }
     const cleanEmail = email.toLowerCase().trim();
     const cleanName = name.trim();
 
-    if (!cleanEmail || !pass || pass.length < 6) {
+    if (!cleanEmail || !cleanEmail.includes('@')) {
       setIsLoading(false);
-      throw new Error('Password must be at least 6 characters');
+      throw new Error('Please enter a valid email address.');
     }
+    if (!pass || pass.length < 6) {
+      setIsLoading(false);
+      throw new Error('Password must be at least 6 characters.');
+    }
+    if (!cleanName) {
+      setIsLoading(false);
+      throw new Error('Please enter your full name.');
+    }
+
+    // 1. Strict duplicate check: verify if email already exists in system
+    try {
+      const existing = await getResellerProfileByEmail(cleanEmail);
+      if (existing) {
+        setIsLoading(false);
+        throw new Error('This email is already registered. Please go to the Sign In page to log in.');
+      }
+    } catch (checkErr: any) {
+      if (checkErr?.message?.includes('already registered')) {
+        throw checkErr;
+      }
+    }
+
+    const passwordHash = await hashPassword(cleanEmail, pass);
+    let firebaseUid: string | null = null;
 
     if (auth) {
       try {
         const cred = await createUserWithEmailAndPassword(auth, cleanEmail, pass);
         if (cred.user) {
+          firebaseUid = cred.user.uid;
           await updateFirebaseProfile(cred.user, { displayName: cleanName });
-          const newProf = await createOrUpdateResellerProfile({
-            userId: cred.user.uid,
-            email: cleanEmail,
-            displayName: cleanName,
-            phone: phone || '',
-          });
           setUser(cred.user);
-          setProfile(newProf);
         }
-        setIsLoading(false);
-        return;
       } catch (err: any) {
-        console.warn('Firebase createUser error:', err?.code || err?.message);
+        console.warn('Firebase createUser warning:', err?.code || err?.message);
         if (err.code === 'auth/email-already-in-use') {
           setIsLoading(false);
           throw new Error('This email is already registered. Please sign in instead.');
@@ -152,23 +169,27 @@ export function ResellerAuthProvider({ children }: { children: React.ReactNode }
           setIsLoading(false);
           throw new Error('Please enter a valid email address.');
         }
-        // If Firebase Auth API key is not valid, fall through to deterministic server/local registration
       }
     }
 
-    // Local & Server fallback: Deterministic userId based on cleanEmail (never timestamp!)
-    const demoUid = `usr_${cleanEmail.replace(/[^a-z0-9]/g, '_')}`;
-    const demoUser = { uid: demoUid, email: cleanEmail, displayName: cleanName };
+    // Deterministic userId
+    const finalUid = firebaseUid || `usr_${cleanEmail.replace(/[^a-z0-9]/g, '_')}`;
+    const demoUser = { uid: finalUid, email: cleanEmail, displayName: cleanName };
     if (typeof window !== 'undefined') {
       localStorage.setItem('vaultzet_demo_reseller', JSON.stringify(demoUser));
     }
+
     const prof = await createOrUpdateResellerProfile({
-      userId: demoUid,
+      userId: finalUid,
       email: cleanEmail,
       displayName: cleanName,
       phone: phone || '',
+      passwordHash,
     });
-    setUser(demoUser as any);
+
+    if (!firebaseUid) {
+      setUser(demoUser as any);
+    }
     setProfile(prof);
     setIsLoading(false);
   };
@@ -177,65 +198,143 @@ export function ResellerAuthProvider({ children }: { children: React.ReactNode }
     setIsLoading(true);
     const cleanEmail = email.toLowerCase().trim();
 
+    if (!cleanEmail || !cleanEmail.includes('@')) {
+      setIsLoading(false);
+      throw new Error('Please enter a valid email address.');
+    }
+    if (!pass) {
+      setIsLoading(false);
+      throw new Error('Please enter your password.');
+    }
+
+    // 1. LOOK UP EXISTING PROFILE BY EMAIL FIRST!
+    // If no account exists for this email, we MUST NOT create a new account!
+    let existingProfile: ResellerProfile | null = null;
+    try {
+      existingProfile = await getResellerProfileByEmail(cleanEmail);
+    } catch (e) {
+      console.warn('Error fetching profile during signIn:', e);
+    }
+
+    const expectedHash = await hashPassword(cleanEmail, pass);
+
+    // 2. ATTEMPT FIREBASE AUTH (if active)
+    let firebaseSuccess = false;
+    let firebaseUser: User | null = null;
+    let firebaseError: any = null;
+
     if (auth) {
       try {
         const cred = await signInWithEmailAndPassword(auth, cleanEmail, pass);
-        setUser(cred.user);
-        let p = await getResellerProfile(cred.user.uid);
-        if (!p && cred.user.email) {
-          p = await getResellerProfileByEmail(cred.user.email);
-          if (p && p.userId !== cred.user.uid) {
-            p = await reconcileResellerAccount(cred.user.email, cred.user.uid);
-          }
+        if (cred.user) {
+          firebaseSuccess = true;
+          firebaseUser = cred.user;
         }
-        if (!p) {
-          p = await createOrUpdateResellerProfile({
-            userId: cred.user.uid,
-            email: cleanEmail,
-            displayName: cred.user.displayName || cleanEmail.split('@')[0],
-          });
-        }
-        setProfile(p);
-        setIsLoading(false);
-        return;
       } catch (err: any) {
-        console.warn('Firebase signIn attempt:', err?.code || err?.message);
-        if (err.code === 'auth/wrong-password') {
-          setIsLoading(false);
-          throw new Error('Incorrect password. Please try again.');
-        }
-        if (err.code === 'auth/user-not-found') {
-          setIsLoading(false);
-          throw new Error('No account found with this email. Please sign up first.');
-        }
+        firebaseError = err;
+        console.warn('Firebase signIn attempt error:', err?.code, err?.message);
       }
     }
 
-    // Local & Server fallback with deterministic userId based on cleanEmail
-    const demoUid = `usr_${cleanEmail.replace(/[^a-z0-9]/g, '_')}`;
-    const demoUser = { uid: demoUid, email: cleanEmail, displayName: cleanEmail.split('@')[0] };
+    // 3. EVALUATE FIREBASE SUCCESS
+    if (firebaseSuccess && firebaseUser) {
+      setUser(firebaseUser);
+      let p = existingProfile || (await getResellerProfile(firebaseUser.uid));
+      if (!p) {
+        p = await createOrUpdateResellerProfile({
+          userId: firebaseUser.uid,
+          email: cleanEmail,
+          displayName: firebaseUser.displayName || cleanEmail.split('@')[0],
+          passwordHash: expectedHash,
+        });
+      } else if (!p.passwordHash) {
+        // Backfill password hash
+        try {
+          await createOrUpdateResellerProfile({
+            ...p,
+            passwordHash: expectedHash,
+          });
+          p.passwordHash = expectedHash;
+        } catch {}
+      }
+      setProfile(p);
+      setIsLoading(false);
+      return;
+    }
+
+    // 4. HANDLE EXPLICIT FIREBASE AUTH CREDENTIAL ERRORS
+    if (firebaseError) {
+      const code = firebaseError.code;
+      // In modern Firebase Auth, invalid-credential is used for wrong password or missing user
+      if (
+        code === 'auth/wrong-password' ||
+        ((code === 'auth/invalid-credential' || code === 'auth/invalid-login-credentials') && existingProfile)
+      ) {
+        setIsLoading(false);
+        throw new Error('Incorrect password. Please try again.');
+      }
+      if (
+        code === 'auth/user-not-found' ||
+        ((code === 'auth/invalid-credential' || code === 'auth/invalid-login-credentials') && !existingProfile)
+      ) {
+        setIsLoading(false);
+        throw new Error('No account found with this email. Please check your email or create an account.');
+      }
+      if (code === 'auth/too-many-requests') {
+        setIsLoading(false);
+        throw new Error('Too many failed login attempts. Please reset your password or try again later.');
+      }
+      if (code === 'auth/user-disabled') {
+        setIsLoading(false);
+        throw new Error('This reseller account has been suspended. Please contact support.');
+      }
+      if (code === 'auth/invalid-email') {
+        setIsLoading(false);
+        throw new Error('Please enter a valid email address.');
+      }
+    }
+
+    // 5. STORED CREDENTIAL VERIFICATION (Strict Zero-Account-Creation on Sign In)
+    // Check if account exists at all:
+    if (!existingProfile) {
+      setIsLoading(false);
+      throw new Error('No account found with this email. Please check your email or create an account.');
+    }
+
+    // Account exists! Verify password:
+    if (existingProfile.passwordHash) {
+      if (existingProfile.passwordHash !== expectedHash) {
+        setIsLoading(false);
+        throw new Error('Incorrect password. Please try again.');
+      }
+    } else {
+      // Legacy profile created before password hashing was enabled:
+      // Minimum password length check
+      if (pass.length < 6) {
+        setIsLoading(false);
+        throw new Error('Incorrect password. Please try again.');
+      }
+      // Lock in password for future sign-ins
+      try {
+        await createOrUpdateResellerProfile({
+          ...existingProfile,
+          passwordHash: expectedHash,
+        });
+        existingProfile.passwordHash = expectedHash;
+      } catch {}
+    }
+
+    // Authenticated successfully:
+    const demoUser = {
+      uid: existingProfile.userId,
+      email: cleanEmail,
+      displayName: existingProfile.displayName || cleanEmail.split('@')[0],
+    };
     if (typeof window !== 'undefined') {
       localStorage.setItem('vaultzet_demo_reseller', JSON.stringify(demoUser));
     }
-
-    // Check existing profile by email first, then by demoUid, then reconcile
-    let prof = await getResellerProfileByEmail(cleanEmail);
-    if (!prof) {
-      prof = await getResellerProfile(demoUid);
-    }
-    if (!prof) {
-      prof = await reconcileResellerAccount(cleanEmail, demoUid);
-    }
-    if (!prof) {
-      prof = await createOrUpdateResellerProfile({
-        userId: demoUid,
-        email: cleanEmail,
-        displayName: cleanEmail.split('@')[0],
-      });
-    }
-
     setUser(demoUser as any);
-    setProfile(prof);
+    setProfile(existingProfile);
     setIsLoading(false);
   };
 
@@ -244,19 +343,26 @@ export function ResellerAuthProvider({ children }: { children: React.ReactNode }
     const clean = identifier.trim();
     if (!clean) {
       setIsLoading(false);
-      throw new Error('Please enter your email or Reseller UID');
+      throw new Error('Please enter your permanent Reseller UID (e.g. RSL-8K4M2P9X)');
     }
 
-    let foundProfile: ResellerProfile | null = null;
+    // Security: Do not allow email in UID sync to prevent password bypass
     if (clean.includes('@')) {
-      foundProfile = await getResellerProfileByEmail(clean.toLowerCase());
-    } else {
-      foundProfile = await getResellerProfileByUid(clean.toUpperCase());
+      setIsLoading(false);
+      throw new Error("Please use the 'Email & Password' tab to sign in with your email address.");
     }
+
+    const cleanUid = clean.toUpperCase();
+    if (!cleanUid.startsWith('RSL-')) {
+      setIsLoading(false);
+      throw new Error("Invalid UID format. Reseller UID starts with 'RSL-' (e.g. RSL-8K4M2P9X).");
+    }
+
+    const foundProfile = await getResellerProfileByUid(cleanUid);
 
     if (!foundProfile) {
       setIsLoading(false);
-      throw new Error(`No reseller account found for "${clean}". Please verify your email or UID.`);
+      throw new Error(`No reseller account found for UID "${cleanUid}". Please verify your UID or use Email & Password.`);
     }
 
     const demoUser = {
@@ -298,7 +404,7 @@ export function ResellerAuthProvider({ children }: { children: React.ReactNode }
     const updated = await createOrUpdateResellerProfile({
       ...updates,
       userId: user.uid,
-      email: user.email || '',
+      email: profile?.email || user.email || '',
     });
     setProfile(updated);
   };
@@ -306,7 +412,7 @@ export function ResellerAuthProvider({ children }: { children: React.ReactNode }
   const refreshProfile = async () => {
     if (!user) return;
     const p = await getResellerProfile(user.uid);
-    setProfile(p);
+    if (p) setProfile(p);
   };
 
   return (
@@ -314,7 +420,7 @@ export function ResellerAuthProvider({ children }: { children: React.ReactNode }
       value={{
         user,
         profile,
-        isAuthenticated: Boolean(user),
+        isAuthenticated: !!user || !!profile,
         isLoading,
         signUp,
         signIn,

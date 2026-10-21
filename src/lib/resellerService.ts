@@ -961,6 +961,7 @@ export async function createOrUpdateResellerProfile(
     displayName: profile.displayName || existing?.displayName || cleanEmail.split('@')[0],
     email: cleanEmail,
     phone: profile.phone || existing?.phone || '',
+    passwordHash: profile.passwordHash || existing?.passwordHash,
     status: existing?.status || 'active',
     payoutMethod: profile.payoutMethod || existing?.payoutMethod || 'upi',
     payoutDetails: profile.payoutDetails || existing?.payoutDetails || {},

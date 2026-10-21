@@ -34,13 +34,7 @@ function SignupContent() {
         router.push(redirectUrl);
       } catch (signUpErr: any) {
         if (signUpErr?.message?.toLowerCase().includes('already registered')) {
-          try {
-            await signIn(email, password);
-            router.push(redirectUrl);
-            return;
-          } catch {
-            throw new Error('This email is already registered. Please sign in with your password or use your Reseller UID.');
-          }
+          throw new Error('This email is already registered. Please sign in with your password.');
         }
         throw signUpErr;
       }

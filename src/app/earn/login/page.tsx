@@ -31,7 +31,7 @@ function LoginContent() {
         if (!password) throw new Error('Please enter your password');
         await signIn(email, password);
       } else {
-        if (!uidInput.trim()) throw new Error('Please enter your Reseller UID or Email');
+        if (!uidInput.trim()) throw new Error('Please enter your permanent Reseller UID (e.g. RSL-8K4M2P9X)');
         await connectAccount(uidInput);
       }
       router.push(redirectUrl);
@@ -152,20 +152,20 @@ function LoginContent() {
             </>
           ) : (
             <div className="space-y-2">
-              <label className="block text-xs font-bold text-gray-700">Permanent Reseller UID or Email</label>
+              <label className="block text-xs font-bold text-gray-700">Permanent Reseller UID</label>
               <div className="relative">
                 <KeyRound className="absolute left-3 top-3 w-4 h-4 text-gray-400" />
                 <input
                   type="text"
                   required
-                  placeholder="e.g. RSL-8K4M2P9X or rahul@gmail.com"
+                  placeholder="e.g. RSL-8K4M2P9X"
                   value={uidInput}
                   onChange={(e) => setUidInput(e.target.value)}
                   className="w-full pl-9 pr-3 py-2.5 rounded-xl border border-gray-200 text-sm font-mono focus:outline-none focus:border-[#6734f7] focus:ring-2 focus:ring-purple-100 uppercase"
                 />
               </div>
               <p className="text-[11px] text-gray-500 font-medium">
-                Enter your permanent UID from your first device to immediately sync your wallet, links, and earnings here!
+                Enter your secret permanent UID (starts with RSL-) to sync your wallet and links. If using an email address, please switch to Email &amp; Password tab.
               </p>
             </div>
           )}

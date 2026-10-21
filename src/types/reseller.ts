@@ -34,6 +34,7 @@ export interface ResellerProfile {
   displayName: string;
   email: string;
   phone?: string;
+  passwordHash?: string; // SHA-256 password hash for secure authentication
   status: ResellerStatus;
   payoutMethod?: PayoutMethod;
   payoutDetails?: PayoutDetails;
