@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import {
   serverGetResellerListings,
   serverSaveResellerListing,
+  serverDeleteResellerListing,
 } from '@/lib/serverResellerStore';
 
 export async function GET(request: Request) {
@@ -36,6 +37,25 @@ export async function POST(request: Request) {
 
     const saved = await serverSaveResellerListing(listing);
     return NextResponse.json({ success: true, listing: saved });
+  } catch (err: any) {
+    return NextResponse.json({ success: false, error: err.message }, { status: 500 });
+  }
+}
+
+export async function DELETE(request: Request) {
+  try {
+    const { searchParams } = new URL(request.url);
+    const listingId = searchParams.get('id') || searchParams.get('listingId');
+
+    if (!listingId) {
+      return NextResponse.json(
+        { success: false, error: 'Listing id is required' },
+        { status: 400 }
+      );
+    }
+
+    await serverDeleteResellerListing(listingId);
+    return NextResponse.json({ success: true, deletedId: listingId });
   } catch (err: any) {
     return NextResponse.json({ success: false, error: err.message }, { status: 500 });
   }

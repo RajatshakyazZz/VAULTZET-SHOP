@@ -1,39 +1,10 @@
 import { NextResponse } from 'next/server';
-import { db } from '@/lib/firebase';
-import { collection, getDocs, Firestore } from 'firebase/firestore';
 import { WithdrawalRequest } from '@/types/reseller';
-import { updateWithdrawalStatus, getLocalOrMemoryItem } from '@/lib/resellerService';
+import { updateWithdrawalStatus, getAllWithdrawals } from '@/lib/resellerService';
 
 export async function GET() {
   try {
-    const withdrawals: WithdrawalRequest[] = [];
-    if (db) {
-      try {
-        const firestore = db as Firestore;
-        const snap = await getDocs(collection(firestore, 'withdrawal_requests'));
-        snap.forEach((d) => {
-          withdrawals.push({ id: d.id, ...d.data() } as WithdrawalRequest);
-        });
-      } catch (err) {
-        console.warn('Error fetching withdrawals from Firestore:', err);
-      }
-    }
-
-    // Memory / Local fallback if empty
-    if (withdrawals.length === 0) {
-      const allJson = getLocalOrMemoryItem('vaultzet_all_withdrawals');
-      if (allJson) {
-        try {
-          const list: WithdrawalRequest[] = JSON.parse(allJson);
-          withdrawals.push(...list);
-        } catch {}
-      }
-    }
-
-    withdrawals.sort(
-      (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
-    );
-
+    const withdrawals = await getAllWithdrawals();
     return NextResponse.json({ success: true, withdrawals });
   } catch (err: any) {
     return NextResponse.json({ success: false, error: err.message }, { status: 500 });

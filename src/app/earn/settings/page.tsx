@@ -71,14 +71,14 @@ export default function ResellerSettingsPage() {
       </div>
 
       {/* Permanent Reseller UID Banner */}
-      <div className="p-5 rounded-3xl bg-amber-50 border border-amber-200 text-amber-950 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-xs">
+      <div className="p-5 sm:p-6 rounded-3xl bg-amber-50 border border-amber-200 text-amber-950 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-xs">
         <div>
           <div className="text-[10px] font-black uppercase tracking-wider text-amber-700">Permanent Reseller UID</div>
           <div className="font-mono text-lg font-black text-amber-950 mt-0.5">
             🆔 {profile?.resellerUid || 'Generating...'}
           </div>
           <p className="text-[11px] text-amber-800 mt-0.5">
-            Permanent unique identifier linked to your account. Use this for commission inquiries.
+            Permanent unique identifier linked to your account. Use this exact UID to link or restore on other phones & devices.
           </p>
         </div>
         {profile?.resellerUid && (
@@ -88,11 +88,44 @@ export default function ResellerSettingsPage() {
               navigator.clipboard.writeText(profile.resellerUid);
               alert(`Copied Reseller UID: ${profile.resellerUid}`);
             }}
-            className="px-4 py-2 bg-amber-200/80 hover:bg-amber-300 text-amber-950 font-bold rounded-xl text-xs transition shrink-0"
+            className="px-4 py-2 bg-amber-200/80 hover:bg-amber-300 text-amber-950 font-bold rounded-xl text-xs transition shrink-0 active:scale-95"
           >
             Copy UID
           </button>
         )}
+      </div>
+
+      {/* Cross-Device Sync Status Card */}
+      <div className="p-5 rounded-3xl bg-white border border-purple-100 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 rounded-2xl bg-green-50 text-green-600 flex items-center justify-center shrink-0">
+            <ShieldCheck className="w-5 h-5" />
+          </div>
+          <div>
+            <div className="flex items-center gap-2">
+              <h4 className="text-xs font-black text-[#162048]">Cross-Device Cloud Sync</h4>
+              <span className="px-2 py-0.5 rounded-full bg-green-100 text-green-700 text-[9px] font-extrabold uppercase">
+                Active
+              </span>
+            </div>
+            <p className="text-[11px] text-gray-500 mt-0.5">
+              Your wallet balance, products, and UID are automatically mirrored across all your phones and computers.
+            </p>
+          </div>
+        </div>
+
+        <button
+          type="button"
+          onClick={async () => {
+            if (user?.uid) {
+              await updateProfileData({});
+              alert('Cloud sync refreshed successfully!');
+            }
+          }}
+          className="px-4 py-2 rounded-xl bg-purple-50 hover:bg-purple-100 text-[#6734f7] text-xs font-bold shrink-0 transition"
+        >
+          Sync Now
+        </button>
       </div>
 
       {error && (

@@ -29,8 +29,21 @@ function SignupContent() {
       if (!email.trim() || !email.includes('@')) throw new Error('Please enter a valid email address');
       if (password.length < 6) throw new Error('Password must be at least 6 characters');
 
-      await signUp(email, password, name, phone);
-      router.push(redirectUrl);
+      try {
+        await signUp(email, password, name, phone);
+        router.push(redirectUrl);
+      } catch (signUpErr: any) {
+        if (signUpErr?.message?.toLowerCase().includes('already registered')) {
+          try {
+            await signIn(email, password);
+            router.push(redirectUrl);
+            return;
+          } catch {
+            throw new Error('This email is already registered. Please sign in with your password or use your Reseller UID.');
+          }
+        }
+        throw signUpErr;
+      }
     } catch (err: any) {
       setError(err?.message || 'Registration failed. Please try again.');
     } finally {
@@ -39,7 +52,7 @@ function SignupContent() {
   };
 
   return (
-    <div className="min-h-[80vh] flex items-center justify-center px-4 py-12">
+    <div className="min-h-[80vh] flex items-center justify-center px-4 py-8 sm:py-12 pb-24">
       <div className="w-full max-w-md bg-white rounded-3xl border border-purple-100 shadow-xl overflow-hidden">
         
         {/* Banner */}

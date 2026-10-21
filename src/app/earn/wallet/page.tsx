@@ -183,7 +183,7 @@ export default function ResellerWalletPage() {
   );
 
   return (
-    <div className="space-y-8 max-w-7xl mx-auto pb-12">
+    <div className="space-y-8 max-w-7xl mx-auto pb-24 sm:pb-12">
       {/* Header with Reseller UID */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-slate-900 border border-slate-800 p-6 rounded-2xl">
         <div>

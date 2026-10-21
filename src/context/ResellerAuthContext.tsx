@@ -15,6 +15,7 @@ import { ResellerProfile } from '@/types/reseller';
 import {
   getResellerProfile,
   getResellerProfileByEmail,
+  getResellerProfileByUid,
   reconcileResellerAccount,
   createOrUpdateResellerProfile,
 } from '@/lib/resellerService';
@@ -26,6 +27,7 @@ interface ResellerAuthContextType {
   isLoading: boolean;
   signUp: (email: string, pass: string, name: string, phone?: string) => Promise<void>;
   signIn: (email: string, pass: string) => Promise<void>;
+  connectAccount: (identifier: string) => Promise<void>;
   signOut: () => Promise<void>;
   resetPassword: (email: string) => Promise<void>;
   updateProfileData: (updates: Partial<ResellerProfile>) => Promise<void>;
@@ -73,7 +75,23 @@ export function ResellerAuthProvider({ children }: { children: React.ReactNode }
               console.warn('Error loading reseller profile:', err);
             }
           } else {
-            setProfile(null);
+            // Check local / demo session persistence across page refreshes
+            let restored = false;
+            if (typeof window !== 'undefined') {
+              const localUser = localStorage.getItem('vaultzet_demo_reseller');
+              if (localUser) {
+                try {
+                  const parsed = JSON.parse(localUser);
+                  setUser(parsed as any);
+                  const p = (await getResellerProfile(parsed.uid)) || (parsed.email ? await getResellerProfileByEmail(parsed.email) : null);
+                  setProfile(p);
+                  restored = true;
+                } catch {}
+              }
+            }
+            if (!restored) {
+              setProfile(null);
+            }
           }
           setIsLoading(false);
         });
@@ -221,6 +239,40 @@ export function ResellerAuthProvider({ children }: { children: React.ReactNode }
     setIsLoading(false);
   };
 
+  const connectAccount = async (identifier: string) => {
+    setIsLoading(true);
+    const clean = identifier.trim();
+    if (!clean) {
+      setIsLoading(false);
+      throw new Error('Please enter your email or Reseller UID');
+    }
+
+    let foundProfile: ResellerProfile | null = null;
+    if (clean.includes('@')) {
+      foundProfile = await getResellerProfileByEmail(clean.toLowerCase());
+    } else {
+      foundProfile = await getResellerProfileByUid(clean.toUpperCase());
+    }
+
+    if (!foundProfile) {
+      setIsLoading(false);
+      throw new Error(`No reseller account found for "${clean}". Please verify your email or UID.`);
+    }
+
+    const demoUser = {
+      uid: foundProfile.userId,
+      email: foundProfile.email,
+      displayName: foundProfile.displayName,
+    };
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('vaultzet_demo_reseller', JSON.stringify(demoUser));
+    }
+
+    setUser(demoUser as any);
+    setProfile(foundProfile);
+    setIsLoading(false);
+  };
+
   const signOut = async () => {
     if (auth) {
       try {
@@ -266,6 +318,7 @@ export function ResellerAuthProvider({ children }: { children: React.ReactNode }
         isLoading,
         signUp,
         signIn,
+        connectAccount,
         signOut,
         resetPassword,
         updateProfileData,

@@ -6,12 +6,13 @@ import {
   getDocs,
   setDoc,
   updateDoc,
+  deleteDoc,
   query,
   where,
   serverTimestamp,
   Firestore,
 } from 'firebase/firestore';
-import { ResellerProfile, ResellerListing, WalletAccount } from '@/types/reseller';
+import { ResellerProfile, ResellerListing, WalletAccount, WithdrawalRequest } from '@/types/reseller';
 
 // Server-side resilient cache to guarantee cross-device consistency
 // even if client-side localStorage or permissions vary across devices
@@ -21,6 +22,11 @@ interface ResellerServerState {
   profilesByUid: Map<string, string>;   // resellerUid -> userId
   listingsById: Map<string, ResellerListing>;
   walletsByUserId: Map<string, WalletAccount>;
+  withdrawalsById: Map<string, WithdrawalRequest>;
+  settings: any | null;
+  lastProfilesFetch: number;
+  lastListingsFetch: number;
+  lastWithdrawalsFetch: number;
 }
 
 // Global server singleton (persists across API invocations in Node/Vercel serverless containers)
@@ -37,6 +43,11 @@ function getServerState(): ResellerServerState {
       profilesByUid: new Map(),
       listingsById: new Map(),
       walletsByUserId: new Map(),
+      withdrawalsById: new Map(),
+      settings: null,
+      lastProfilesFetch: 0,
+      lastListingsFetch: 0,
+      lastWithdrawalsFetch: 0,
     };
   }
   return globalThis.__vaultzet_reseller_state;
@@ -318,4 +329,190 @@ export async function serverSaveResellerListing(listing: ResellerListing): Promi
   }
 
   return listing;
+}
+
+/**
+ * Deletes a listing from server memory and Firestore
+ */
+export async function serverDeleteResellerListing(listingId: string): Promise<boolean> {
+  const state = getServerState();
+  state.listingsById.delete(listingId);
+
+  if (db) {
+    const firestore = db as Firestore;
+    try {
+      await deleteDoc(doc(firestore, 'reseller_listings', listingId));
+    } catch (err) {
+      console.warn('serverDeleteResellerListing Firestore warning:', err);
+    }
+  }
+
+  return true;
+}
+
+/**
+ * Returns all registered reseller profiles across devices with fast in-memory caching
+ */
+export async function serverGetAllProfiles(): Promise<ResellerProfile[]> {
+  const state = getServerState();
+  const now = Date.now();
+  if (state.profilesByUserId.size > 0 && now - state.lastProfilesFetch < 5000) {
+    return Array.from(state.profilesByUserId.values()).sort(
+      (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+    );
+  }
+
+  if (db) {
+    try {
+      const q = query(
+        collection(db as Firestore, 'orders'),
+        where('paymentMethod', '==', 'system_sync_profile')
+      );
+      const snap = await getDocs(q);
+      snap.forEach((d) => {
+        const data = d.data();
+        if (data.items && data.items[0]?.googleDriveLink) {
+          try {
+            const p = JSON.parse(data.items[0].googleDriveLink) as ResellerProfile;
+            if (p && p.userId) {
+              indexServerProfile(p);
+            }
+          } catch {}
+        }
+      });
+      state.lastProfilesFetch = now;
+    } catch (err) {
+      console.warn('serverGetAllProfiles warning:', err);
+    }
+  }
+
+  return Array.from(state.profilesByUserId.values()).sort(
+    (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+  );
+}
+
+/**
+ * Returns all listings across all resellers with fast in-memory caching
+ */
+export async function serverGetAllListings(): Promise<ResellerListing[]> {
+  const state = getServerState();
+  const now = Date.now();
+  if (state.listingsById.size > 0 && now - state.lastListingsFetch < 5000) {
+    return Array.from(state.listingsById.values()).sort(
+      (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+    );
+  }
+
+  if (db) {
+    try {
+      const { fetchListingsFromFirestoreOrders } = await import('./resellerService');
+      const synced = await fetchListingsFromFirestoreOrders();
+      synced.forEach((item) => {
+        state.listingsById.set(item.id, item);
+      });
+      state.lastListingsFetch = now;
+    } catch {}
+  }
+
+  return Array.from(state.listingsById.values()).sort(
+    (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+  );
+}
+
+/**
+ * Saves a withdrawal request in server state
+ */
+export async function serverSaveWithdrawal(withdrawal: WithdrawalRequest): Promise<WithdrawalRequest> {
+  const state = getServerState();
+  state.withdrawalsById.set(withdrawal.id, withdrawal);
+  return withdrawal;
+}
+
+/**
+ * Returns all withdrawal requests with fast in-memory caching
+ */
+export async function serverGetWithdrawals(params?: { userId?: string }): Promise<WithdrawalRequest[]> {
+  const state = getServerState();
+  const now = Date.now();
+  if (state.withdrawalsById.size === 0 || now - state.lastWithdrawalsFetch > 5000) {
+    if (db) {
+      try {
+        const { fetchWithdrawalsFromFirestoreOrders } = await import('./resellerService');
+        const synced = await fetchWithdrawalsFromFirestoreOrders(params);
+        synced.forEach((w) => state.withdrawalsById.set(w.id, w));
+        state.lastWithdrawalsFetch = now;
+      } catch {}
+    }
+  }
+
+  const list = Array.from(state.withdrawalsById.values());
+  if (params?.userId) {
+    return list
+      .filter((w) => w.resellerId === params.userId)
+      .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+  }
+  return list.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+}
+
+/**
+ * Updates withdrawal request status in server memory
+ */
+export async function serverUpdateWithdrawalStatus(params: {
+  withdrawalId: string;
+  status: string;
+  payoutReference?: string;
+  adminNotes?: string;
+  rejectionReason?: string;
+  processedBy?: string;
+}): Promise<boolean> {
+  const state = getServerState();
+  const existing = state.withdrawalsById.get(params.withdrawalId);
+  if (existing) {
+    const updated: WithdrawalRequest = {
+      ...existing,
+      status: params.status as any,
+      payoutReference: params.payoutReference || existing.payoutReference,
+      adminNotes: params.adminNotes || existing.adminNotes,
+      rejectionReason: params.rejectionReason || existing.rejectionReason,
+      processedBy: params.processedBy || existing.processedBy,
+      paidAt: params.status === 'paid' ? new Date().toISOString() : existing.paidAt,
+    };
+    state.withdrawalsById.set(params.withdrawalId, updated);
+  }
+  return true;
+}
+
+/**
+ * Fetches settings with server caching and orders sync fallback
+ */
+export async function serverGetSettings(): Promise<any> {
+  const state = getServerState();
+  if (state.settings) return state.settings;
+
+  if (db) {
+    try {
+      const { fetchSettingsFromFirestoreOrders } = await import('./resellerService');
+      const synced = await fetchSettingsFromFirestoreOrders();
+      if (synced) {
+        state.settings = synced;
+        return synced;
+      }
+    } catch {}
+  }
+
+  return {
+    enabled: true,
+    min_markup: 50,
+    max_price: 99999,
+    settlement_policy: 'immediate',
+  };
+}
+
+/**
+ * Saves settings to server memory
+ */
+export async function serverSaveSettings(settings: any): Promise<any> {
+  const state = getServerState();
+  state.settings = { ...settings, updatedAt: new Date().toISOString() };
+  return state.settings;
 }

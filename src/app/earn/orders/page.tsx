@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { ShoppingBag, ArrowUpRight, CheckCircle2, Clock, ShieldCheck, Search } from 'lucide-react';
+import { ShoppingBag, ArrowUpRight, CheckCircle2, Clock, ShieldCheck, Search, Package } from 'lucide-react';
 import { useResellerAuth } from '@/context/ResellerAuthContext';
 import { getResellerAttributedOrders } from '@/lib/resellerService';
 import { AttributedOrder } from '@/types/reseller';
@@ -41,11 +41,11 @@ export default function ResellerOrdersPage() {
     .reduce((sum, o) => sum + (o.earningAmount || 0), 0);
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 pb-24 sm:pb-8">
       {/* Header Banner */}
-      <div className="p-6 sm:p-8 rounded-3xl bg-white border border-purple-100 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <div className="p-5 sm:p-8 rounded-3xl bg-white border border-purple-100 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2.5 flex-wrap">
             <h1 className="text-xl sm:text-2xl font-black text-[#162048]">Attributed Orders</h1>
             {profile?.resellerUid && (
               <span className="font-mono text-xs px-2.5 py-0.5 rounded-full bg-amber-500/10 text-amber-700 border border-amber-500/20 font-bold">
@@ -58,18 +58,18 @@ export default function ResellerOrdersPage() {
           </p>
         </div>
 
-        <div className="p-3.5 rounded-2xl bg-gradient-to-br from-purple-50 to-pink-50 border border-purple-100 text-right">
+        <div className="p-3.5 rounded-2xl bg-gradient-to-br from-purple-50 to-pink-50 border border-purple-100 flex items-center justify-between sm:block sm:text-right">
           <span className="text-[10px] text-gray-400 font-bold uppercase tracking-wider block">Total Commissions</span>
           <span className="text-xl font-black text-green-600">₹{totalCommissionsEarned.toLocaleString('en-IN')}</span>
         </div>
       </div>
 
       {/* Filter Tabs */}
-      <div className="flex items-center gap-2">
+      <div className="flex items-center gap-2 overflow-x-auto pb-1">
         <button
           type="button"
           onClick={() => setFilter('all')}
-          className={`px-4 py-2 rounded-xl text-xs font-bold transition-all ${
+          className={`px-4 py-2 rounded-xl text-xs font-bold transition-all shrink-0 ${
             filter === 'all'
               ? 'bg-[#6734f7] text-white shadow-sm'
               : 'bg-white border border-gray-200 text-gray-600 hover:bg-gray-50'
@@ -80,7 +80,7 @@ export default function ResellerOrdersPage() {
         <button
           type="button"
           onClick={() => setFilter('completed')}
-          className={`px-4 py-2 rounded-xl text-xs font-bold transition-all ${
+          className={`px-4 py-2 rounded-xl text-xs font-bold transition-all shrink-0 ${
             filter === 'completed'
               ? 'bg-green-600 text-white shadow-sm'
               : 'bg-white border border-gray-200 text-gray-600 hover:bg-gray-50'
@@ -91,7 +91,7 @@ export default function ResellerOrdersPage() {
         <button
           type="button"
           onClick={() => setFilter('pending')}
-          className={`px-4 py-2 rounded-xl text-xs font-bold transition-all ${
+          className={`px-4 py-2 rounded-xl text-xs font-bold transition-all shrink-0 ${
             filter === 'pending'
               ? 'bg-amber-600 text-white shadow-sm'
               : 'bg-white border border-gray-200 text-gray-600 hover:bg-gray-50'
@@ -101,10 +101,10 @@ export default function ResellerOrdersPage() {
         </button>
       </div>
 
-      {/* Orders Table */}
-      <div className="p-6 rounded-3xl bg-white border border-purple-100 shadow-xs space-y-4">
+      {/* Orders Container */}
+      <div className="rounded-3xl bg-white border border-purple-100 shadow-xs overflow-hidden">
         {filteredOrders.length === 0 ? (
-          <div className="p-12 text-center space-y-3">
+          <div className="p-10 sm:p-14 text-center space-y-3">
             <ShoppingBag className="w-12 h-12 text-purple-200 mx-auto" />
             <h3 className="text-sm font-black text-[#162048]">No Attributed Orders Found</h3>
             <p className="text-xs text-slate-500 max-w-sm mx-auto font-medium">
@@ -112,65 +112,109 @@ export default function ResellerOrdersPage() {
             </p>
           </div>
         ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full text-left text-xs">
-              <thead>
-                <tr className="border-b border-purple-100 text-gray-400 font-extrabold uppercase text-[10px]">
-                  <th className="py-3">Order Number</th>
-                  <th className="py-3">Product</th>
-                  <th className="py-3">Customer</th>
-                  <th className="py-3">Sale Price</th>
-                  <th className="py-3">Your Commission</th>
-                  <th className="py-3">Order Status</th>
-                  <th className="py-3 text-right">Date</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-purple-50">
-                {filteredOrders.map((ord) => (
-                  <tr key={ord.orderId} className="hover:bg-purple-50/30 transition-colors">
-                    <td className="py-3.5 font-bold font-mono text-[#162048]">
-                      #{ord.orderNumber}
-                    </td>
+          <div>
+            {/* Mobile Cards (block md:hidden) */}
+            <div className="block md:hidden divide-y divide-purple-50">
+              {filteredOrders.map((ord) => (
+                <div key={ord.orderId} className="p-4 space-y-2.5">
+                  <div className="flex items-center justify-between">
+                    <span className="font-mono text-xs font-bold text-[#162048]">#{ord.orderNumber}</span>
+                    <span
+                      className={`px-2 py-0.5 rounded-full text-[9px] font-extrabold uppercase tracking-wider ${
+                        ord.orderStatus === 'completed'
+                          ? 'bg-green-50 text-green-700 border border-green-200'
+                          : 'bg-amber-50 text-amber-700 border border-amber-200'
+                      }`}
+                    >
+                      {ord.orderStatus}
+                    </span>
+                  </div>
 
-                    <td className="py-3.5 max-w-xs pr-2">
-                      <span className="font-bold text-[#162048] line-clamp-1 block">{ord.productTitle}</span>
-                      <span className="text-[10px] text-gray-400 font-mono">/r/{ord.listingSlug}</span>
-                    </td>
+                  <div>
+                    <h4 className="font-bold text-xs text-[#162048]">{ord.productTitle}</h4>
+                    <span className="text-[10px] text-gray-400 font-mono">/r/{ord.listingSlug}</span>
+                  </div>
 
-                    <td className="py-3.5">
-                      <span className="font-bold text-gray-700 block">{ord.customerName}</span>
-                      <span className="text-[10px] text-gray-400">
-                        {ord.customerEmail
-                          ? ord.customerEmail.replace(/(.{2})(.*)(@.*)/, '$1***$3')
-                          : 'Customer'}
-                      </span>
-                    </td>
+                  <div className="grid grid-cols-2 p-2.5 rounded-xl bg-purple-50/50 border border-purple-100 text-xs">
+                    <div>
+                      <span className="text-gray-400 text-[10px] block font-bold">Customer</span>
+                      <span className="font-medium text-[#162048] truncate block">{ord.customerName}</span>
+                    </div>
+                    <div className="text-right">
+                      <span className="text-gray-400 text-[10px] block font-bold">Your Commission</span>
+                      <span className="font-black text-green-600">+₹{ord.earningAmount}</span>
+                    </div>
+                  </div>
 
-                    <td className="py-3.5 font-black text-[#162048]">₹{ord.resalePrice}</td>
+                  <div className="flex items-center justify-between text-[11px] text-gray-400 pt-1">
+                    <span>Sale Price: ₹{ord.resalePrice}</span>
+                    <span>{new Date(ord.createdAt).toLocaleDateString()}</span>
+                  </div>
+                </div>
+              ))}
+            </div>
 
-                    <td className="py-3.5 font-black text-green-600">
-                      +₹{ord.earningAmount}
-                    </td>
-
-                    <td className="py-3.5">
-                      <span
-                        className={`px-2.5 py-0.5 rounded-full text-[9px] font-extrabold uppercase tracking-wider ${
-                          ord.orderStatus === 'completed'
-                            ? 'bg-green-50 text-green-700 border border-green-200'
-                            : 'bg-amber-50 text-amber-700 border border-amber-200'
-                        }`}
-                      >
-                        {ord.orderStatus}
-                      </span>
-                    </td>
-
-                    <td className="py-3.5 text-right font-medium text-gray-500 whitespace-nowrap">
-                      {new Date(ord.createdAt).toLocaleDateString()}
-                    </td>
+            {/* Desktop Table (hidden md:block) */}
+            <div className="hidden md:block overflow-x-auto">
+              <table className="w-full text-left text-xs">
+                <thead>
+                  <tr className="border-b border-purple-100 text-gray-400 font-extrabold uppercase text-[10px] bg-purple-50/30">
+                    <th className="py-3.5 px-4">Order Number</th>
+                    <th className="py-3.5 px-3">Product</th>
+                    <th className="py-3.5 px-3">Customer</th>
+                    <th className="py-3.5 px-3">Sale Price</th>
+                    <th className="py-3.5 px-3">Your Commission</th>
+                    <th className="py-3.5 px-3">Order Status</th>
+                    <th className="py-3.5 px-4 text-right">Date</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+                <tbody className="divide-y divide-purple-50">
+                  {filteredOrders.map((ord) => (
+                    <tr key={ord.orderId} className="hover:bg-purple-50/30 transition-colors">
+                      <td className="py-3.5 px-4 font-bold font-mono text-[#162048]">
+                        #{ord.orderNumber}
+                      </td>
+
+                      <td className="py-3.5 px-3 max-w-xs pr-2">
+                        <span className="font-bold text-[#162048] line-clamp-1 block">{ord.productTitle}</span>
+                        <span className="text-[10px] text-gray-400 font-mono">/r/{ord.listingSlug}</span>
+                      </td>
+
+                      <td className="py-3.5 px-3">
+                        <span className="font-bold text-gray-700 block">{ord.customerName}</span>
+                        <span className="text-[10px] text-gray-400">
+                          {ord.customerEmail
+                            ? ord.customerEmail.replace(/(.{2})(.*)(@.*)/, '$1***$3')
+                            : 'Customer'}
+                        </span>
+                      </td>
+
+                      <td className="py-3.5 px-3 font-black text-[#162048]">₹{ord.resalePrice}</td>
+
+                      <td className="py-3.5 px-3 font-black text-green-600">
+                        +₹{ord.earningAmount}
+                      </td>
+
+                      <td className="py-3.5 px-3">
+                        <span
+                          className={`px-2.5 py-0.5 rounded-full text-[9px] font-extrabold uppercase tracking-wider ${
+                            ord.orderStatus === 'completed'
+                              ? 'bg-green-50 text-green-700 border border-green-200'
+                              : 'bg-amber-50 text-amber-700 border border-amber-200'
+                          }`}
+                        >
+                          {ord.orderStatus}
+                        </span>
+                      </td>
+
+                      <td className="py-3.5 px-4 text-right font-medium text-gray-500 whitespace-nowrap">
+                        {new Date(ord.createdAt).toLocaleDateString()}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           </div>
         )}
       </div>

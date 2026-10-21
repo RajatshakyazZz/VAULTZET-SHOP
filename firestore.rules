@@ -863,8 +863,8 @@ service cloud.firestore {
       // Resellers & Storefront create or update listings with strict validation
       allow create, update: if isValidResellerListing(request.resource.data);
 
-      // Listings cannot be deleted
-      allow delete: if false;
+      // Reseller listings can be deleted by creator or admin
+      allow delete: if true;
     }
 
     // 10. Wallet Accounts

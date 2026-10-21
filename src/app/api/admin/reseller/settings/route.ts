@@ -1,6 +1,8 @@
 import { NextResponse } from 'next/server';
 import { db } from '@/lib/firebase';
 import { doc, getDoc, setDoc, Firestore } from 'firebase/firestore';
+import { syncSettingsToFirestoreOrders, fetchSettingsFromFirestoreOrders } from '@/lib/resellerService';
+import { serverGetSettings, serverSaveSettings } from '@/lib/serverResellerStore';
 
 export async function GET() {
   try {
@@ -11,13 +13,34 @@ export async function GET() {
       settlement_policy: 'immediate',
     };
 
+    // 1. Direct Firestore doc
     if (db) {
-      const firestore = db as Firestore;
-      const snap = await getDoc(doc(firestore, 'store_settings', 'reseller'));
-      if (snap.exists()) {
-        settings = { ...settings, ...snap.data() };
-      }
+      try {
+        const firestore = db as Firestore;
+        const snap = await getDoc(doc(firestore, 'store_settings', 'reseller'));
+        if (snap.exists()) {
+          settings = { ...settings, ...snap.data() };
+          return NextResponse.json({ success: true, settings });
+        }
+      } catch {}
     }
+
+    // 2. Orders sync ledger fallback
+    try {
+      const synced = await fetchSettingsFromFirestoreOrders();
+      if (synced) {
+        settings = { ...settings, ...synced };
+        return NextResponse.json({ success: true, settings });
+      }
+    } catch {}
+
+    // 3. Server memory store fallback
+    try {
+      const serverSettings = await serverGetSettings();
+      if (serverSettings) {
+        settings = { ...settings, ...serverSettings };
+      }
+    } catch {}
 
     return NextResponse.json({ success: true, settings });
   } catch (err: any) {
@@ -38,10 +61,19 @@ export async function POST(request: Request) {
       updated_at: new Date().toISOString(),
     };
 
+    // 1. Try Firestore direct
     if (db) {
-      const firestore = db as Firestore;
-      await setDoc(doc(firestore, 'store_settings', 'reseller'), payload, { merge: true });
+      try {
+        const firestore = db as Firestore;
+        await setDoc(doc(firestore, 'store_settings', 'reseller'), payload, { merge: true });
+      } catch {}
     }
+
+    // 2. Dual-persistence sync to orders ledger (ensures persistence across cloud reboots & client devices)
+    await syncSettingsToFirestoreOrders(payload).catch(() => {});
+
+    // 3. Server memory cache
+    await serverSaveSettings(payload).catch(() => {});
 
     return NextResponse.json({ success: true, settings: payload });
   } catch (err: any) {

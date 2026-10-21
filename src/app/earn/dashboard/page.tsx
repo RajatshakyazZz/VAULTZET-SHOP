@@ -72,7 +72,7 @@ export default function ResellerDashboardOverview() {
   const totalSalesCount = orders.filter((o) => o.orderStatus === 'completed').length;
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 pb-24 sm:pb-8">
       {/* Welcome Banner */}
       <div className="p-6 sm:p-8 rounded-3xl bg-gradient-to-br from-[#162048] via-[#221652] to-[#3a1b63] text-white flex flex-col sm:flex-row sm:items-center justify-between gap-4 shadow-xl">
         <div className="space-y-1">

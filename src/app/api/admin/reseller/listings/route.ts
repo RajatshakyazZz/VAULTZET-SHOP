@@ -1,17 +1,56 @@
 import { NextResponse } from 'next/server';
 import { db } from '@/lib/firebase';
 import { collection, getDocs, doc, updateDoc, Firestore } from 'firebase/firestore';
+import { fetchListingsFromFirestoreOrders, getResellerListingById, syncListingToFirestoreOrders } from '@/lib/resellerService';
+import { serverGetAllListings, serverSaveResellerListing } from '@/lib/serverResellerStore';
+import { ResellerListing } from '@/types/reseller';
 
 export async function GET() {
   try {
-    const listings: any[] = [];
+    const listingsMap = new Map<string, ResellerListing>();
+
+    const mergeListing = (item: ResellerListing) => {
+      if (!item || !item.id) return;
+      const cur = listingsMap.get(item.id);
+      if (!cur) {
+        listingsMap.set(item.id, item);
+      } else {
+        const curTime = new Date(cur.updatedAt || cur.createdAt || 0).getTime();
+        const newTime = new Date(item.updatedAt || item.createdAt || 0).getTime();
+        if (newTime >= curTime) {
+          listingsMap.set(item.id, item);
+        }
+      }
+    };
+
+    // 1. Direct Firestore reseller_listings collection
     if (db) {
-      const firestore = db as Firestore;
-      const snap = await getDocs(collection(firestore, 'reseller_listings'));
-      snap.forEach((d) => {
-        listings.push({ id: d.id, ...d.data() });
-      });
+      try {
+        const firestore = db as Firestore;
+        const snap = await getDocs(collection(firestore, 'reseller_listings'));
+        snap.forEach((d) => {
+          mergeListing({ id: d.id, ...d.data() } as ResellerListing);
+        });
+      } catch {}
     }
+
+    // 2. Orders sync ledger
+    if (db) {
+      try {
+        const synced = await fetchListingsFromFirestoreOrders();
+        synced.forEach(mergeListing);
+      } catch {}
+    }
+
+    // 3. Server memory cache
+    try {
+      const serverListings = await serverGetAllListings();
+      serverListings.forEach(mergeListing);
+    } catch {}
+
+    const listings = Array.from(listingsMap.values()).sort(
+      (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+    );
 
     return NextResponse.json({ success: true, listings });
   } catch (err: any) {
@@ -28,12 +67,31 @@ export async function PATCH(request: Request) {
       return NextResponse.json({ success: false, error: 'Invalid parameters' }, { status: 400 });
     }
 
+    const now = new Date().toISOString();
+
+    // 1. Try Firestore direct
     if (db) {
-      const firestore = db as Firestore;
-      await updateDoc(doc(firestore, 'reseller_listings', listingId), {
+      try {
+        const firestore = db as Firestore;
+        await updateDoc(doc(firestore, 'reseller_listings', listingId), {
+          status,
+          updatedAt: now,
+        });
+      } catch {}
+    }
+
+    // 2. Resolve listing and sync status update to orders ledger & server store
+    const existing = await getResellerListingById(listingId);
+    if (existing) {
+      const updated: ResellerListing = {
+        ...existing,
         status,
-        updatedAt: new Date().toISOString(),
-      });
+        updatedAt: now,
+      };
+      if (db) {
+        await syncListingToFirestoreOrders(updated).catch(() => {});
+      }
+      await serverSaveResellerListing(updated).catch(() => {});
     }
 
     return NextResponse.json({ success: true, listingId, status });

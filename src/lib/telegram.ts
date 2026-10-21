@@ -548,8 +548,13 @@ export async function fetchActiveFirestoreOrders(): Promise<any[]> {
       const orderNum = String(d.orderNumber || docSnap.id);
       const status = String(d.status || 'pending').toLowerCase();
 
-      // Exclude deleted or cancelled orders so Telegram Bot and Admin Panel show 100% identical data
-      if (status === 'cancelled' || deletedSet.has(docId) || deletedSet.has(orderNum)) {
+      // Exclude internal database sync records and cancelled/deleted orders so Telegram Bot and Admin Panel show 100% identical data
+      if (
+        status === 'cancelled' ||
+        deletedSet.has(docId) ||
+        deletedSet.has(orderNum) ||
+        String(d.paymentMethod || '').startsWith('system_sync')
+      ) {
         return;
       }
 

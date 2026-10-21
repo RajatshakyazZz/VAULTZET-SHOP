@@ -22,6 +22,7 @@ import {
   getResellerTransactions,
   updateWithdrawalStatus,
   getWithdrawalRequestById,
+  getAllWithdrawals,
 } from '@/lib/resellerService';
 import { db } from '@/lib/firebase';
 import { collection, getDocs, Firestore } from 'firebase/firestore';
@@ -113,19 +114,12 @@ export function isAuthorizedAdmin(fromId?: string | number, chatId?: string | nu
 // -----------------------------------------------------------------------------
 
 export async function fetchAllWithdrawals(): Promise<WithdrawalRequest[]> {
-  const list: WithdrawalRequest[] = [];
-  if (db) {
-    try {
-      const snap = await getDocs(collection(db as Firestore, 'withdrawal_requests'));
-      snap.forEach((d) => {
-        list.push({ id: d.id, ...d.data() } as WithdrawalRequest);
-      });
-      list.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
-    } catch (err) {
-      console.warn('Error querying withdrawal requests:', err);
-    }
+  try {
+    return await getAllWithdrawals();
+  } catch (err) {
+    console.warn('Error querying withdrawal requests:', err);
+    return [];
   }
-  return list;
 }
 
 export async function fetchAllWalletTransactions(): Promise<WalletTransaction[]> {
@@ -136,12 +130,18 @@ export async function fetchAllWalletTransactions(): Promise<WalletTransaction[]>
       snap.forEach((d) => {
         list.push({ id: d.id, ...d.data() } as WalletTransaction);
       });
-      list.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
-    } catch (err) {
-      console.warn('Error querying wallet transactions:', err);
-    }
+    } catch (err) {}
   }
-  return list;
+  if (list.length === 0) {
+    try {
+      const resellers = await getAllResellersAnalytics();
+      for (const r of resellers) {
+        const txs = await getResellerTransactions(r.profile.userId);
+        list.push(...txs);
+      }
+    } catch {}
+  }
+  return list.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
 }
 
 // -----------------------------------------------------------------------------
