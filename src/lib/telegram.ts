@@ -548,12 +548,21 @@ export async function fetchActiveFirestoreOrders(): Promise<any[]> {
       const orderNum = String(d.orderNumber || docSnap.id);
       const status = String(d.status || 'pending').toLowerCase();
 
-      // Exclude internal database sync records and cancelled/deleted orders so Telegram Bot and Admin Panel show 100% identical data
+      // Exclude internal database sync records, test orders, and cancelled/deleted orders
+      // so Telegram Bot and Admin Panel show 100% clean, verified customer sales data
       if (
         status === 'cancelled' ||
         deletedSet.has(docId) ||
         deletedSet.has(orderNum) ||
-        String(d.paymentMethod || '').startsWith('system_sync')
+        orderNum.startsWith('VZ-TEST') ||
+        orderNum.startsWith('VZ-SYNC') ||
+        orderNum.startsWith('VZ-DEL') ||
+        orderNum.startsWith('VZ-LISTING') ||
+        docId.includes('TEST') ||
+        String(d.paymentMethod || '').startsWith('system_sync') ||
+        String(d.customer?.email || '').toLowerCase().includes('test') ||
+        String(d.customer?.fullName || '').toLowerCase().includes('test') ||
+        String(d.customer?.email || '').toLowerCase().includes('sync@')
       ) {
         return;
       }

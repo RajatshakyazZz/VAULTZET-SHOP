@@ -2760,7 +2760,15 @@ export async function getResellerAttributedOrders(userId: string): Promise<Attri
 
   const mapDocToAttributedOrder = (d: any): AttributedOrder | null => {
     const data = typeof d.data === 'function' ? d.data() : d;
-    if (String(data.paymentMethod || '').startsWith('system_sync')) {
+    const orderNum = String(data.orderNumber || d.id || '');
+    if (
+      String(data.paymentMethod || '').startsWith('system_sync') ||
+      orderNum.startsWith('VZ-TEST') ||
+      orderNum.startsWith('VZ-SYNC') ||
+      orderNum.startsWith('VZ-DEL') ||
+      orderNum.startsWith('VZ-LISTING') ||
+      String(data.customer?.email || '').toLowerCase().includes('test')
+    ) {
       return null;
     }
     const docId = d.id || data.orderId || data.id;
