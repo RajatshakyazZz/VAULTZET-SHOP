@@ -24,6 +24,7 @@ import {
 import { useCart } from '@/context/CartContext';
 import { ORDER_BUMP } from '@/data/bundles';
 import { track } from '@/lib/analytics';
+import { resolveBundleSlug } from '@/lib/bundleResolver';
 
 declare global {
   interface Window {
@@ -34,7 +35,8 @@ declare global {
 function CheckoutContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const isBuyNowMode = searchParams.get('mode') === 'buynow';
+  const productParam = searchParams.get('product') || searchParams.get('slug') || searchParams.get('id');
+  const isBuyNowMode = searchParams.get('mode') === 'buynow' || Boolean(productParam);
   const resellerSlug = searchParams.get('r') || (typeof window !== 'undefined' ? sessionStorage.getItem('vaultzet_reseller_slug') : null);
 
   const {
@@ -54,9 +56,18 @@ function CheckoutContent() {
     return false;
   });
 
-  // Dynamic client hydration to guarantee reseller checkout is NEVER empty
+  // Dynamic client hydration to guarantee checkout is NEVER empty and always loads the correct product
   useEffect(() => {
-    if (buyNowItem || (!isBuyNowMode && !resellerSlug && items.length > 0)) {
+    const matchesProductParam = productParam
+      ? Boolean(buyNowItem?.product?.slug === productParam || buyNowItem?.product?.id === productParam)
+      : true;
+
+    if (buyNowItem && matchesProductParam) {
+      setIsLoadingBundle(false);
+      return;
+    }
+
+    if (!isBuyNowMode && !resellerSlug && !productParam && items.length > 0) {
       setIsLoadingBundle(false);
       return;
     }
@@ -64,7 +75,37 @@ function CheckoutContent() {
     let isMounted = true;
 
     async function hydrateBundle() {
-      // 1. Try reading from session / local storage
+      // 1. If direct product slug/id in query params, resolve authoritatively
+      if (productParam) {
+        try {
+          const resolved = resolveBundleSlug(productParam);
+          if (resolved) {
+            const licenseParam = (searchParams.get('license') as 'personal' | 'reseller') || 'personal';
+            const resolvedPrice = Number(licenseParam === 'reseller' ? resolved.resellerPrice : resolved.personalPrice);
+            const directItem = {
+              product: resolved,
+              license: licenseParam,
+              price: resolvedPrice,
+            };
+            setBuyNowItem(directItem);
+            try {
+              sessionStorage.setItem('vaultzet_buynow_item', JSON.stringify(directItem));
+              localStorage.setItem('vaultzet_buynow_item', JSON.stringify(directItem));
+            } catch {}
+            if (isMounted) setIsLoadingBundle(false);
+            return;
+          } else {
+            // URL explicitly specified a product, but it does not exist in the catalog
+            setBuyNowItem(null);
+            if (isMounted) setIsLoadingBundle(false);
+            return;
+          }
+        } catch (err) {
+          console.warn('Error resolving product from URL param:', err);
+        }
+      }
+
+      // 2. Try reading from session / local storage
       if (typeof window !== 'undefined') {
         try {
           const stored =
@@ -81,7 +122,7 @@ function CheckoutContent() {
         } catch {}
       }
 
-      // 2. If resellerSlug is present in URL or storage, fetch listing directly from API
+      // 3. If resellerSlug is present in URL or storage, fetch listing directly from API
       if (resellerSlug) {
         try {
           const res = await fetch(`/api/reseller/listings?slug=${encodeURIComponent(resellerSlug)}`);
@@ -140,7 +181,7 @@ function CheckoutContent() {
     return () => {
       isMounted = false;
     };
-  }, [buyNowItem, isBuyNowMode, resellerSlug, items.length]);
+  }, [buyNowItem, isBuyNowMode, productParam, resellerSlug, items.length]);
 
   // Strictly separate Buy Now (single product only) vs Cart Checkout (all added cart items)
   const checkoutItems = isBuyNowMode ? (buyNowItem ? [buyNowItem] : []) : items;
@@ -632,15 +673,7 @@ function CheckoutContent() {
   }
 
   return (
-    <>
-      {/* Official Cashfree v3 Web SDK */}
-      <Script
-        src="https://sdk.cashfree.com/js/v3/cashfree.js"
-        strategy="lazyOnload"
-        onLoad={() => setSdkLoaded(true)}
-      />
-
-      <div className="py-8 sm:py-12 pb-56 lg:pb-12 bg-[#faf9ff]">
+    <div className="py-8 sm:py-12 pb-56 lg:pb-12 bg-[#faf9ff]">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
           
           {/* Checkout Header (Clean & Minimal for Resellers, Standard for Store) */}
@@ -1334,14 +1367,32 @@ function CheckoutContent() {
 
         </div>
       </div>
-    </>
   );
 }
 
 export default function CheckoutPage() {
   return (
-    <Suspense fallback={<div className="py-20 text-center text-sm font-bold text-slate-500">Loading Checkout...</div>}>
-      <CheckoutContent />
-    </Suspense>
+    <>
+      {/* Official Cashfree v3 Web SDK loaded unconditionally at page root */}
+      <Script
+        src="https://sdk.cashfree.com/js/v3/cashfree.js"
+        strategy="lazyOnload"
+      />
+      <Suspense
+        fallback={
+          <div className="min-h-[70vh] flex flex-col items-center justify-center p-6 text-center space-y-4 bg-[#faf9ff]">
+            <div className="w-16 h-16 rounded-full bg-purple-100 flex items-center justify-center text-rb-purple animate-pulse">
+              <div className="w-8 h-8 rounded-full border-4 border-purple-600 border-t-transparent animate-spin" />
+            </div>
+            <h2 className="text-xl font-black text-[#182247]">Loading Checkout...</h2>
+            <p className="text-xs text-slate-500 max-w-sm">
+              Preparing bundle details and secure Cashfree payment gateway.
+            </p>
+          </div>
+        }
+      >
+        <CheckoutContent />
+      </Suspense>
+    </>
   );
 }

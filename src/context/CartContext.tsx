@@ -118,6 +118,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     setBuyNowItem(singleItem);
     try {
       sessionStorage.setItem('vaultzet_buynow_item', JSON.stringify(singleItem));
+      localStorage.setItem('vaultzet_buynow_item', JSON.stringify(singleItem));
     } catch {
       // ignore
     }
@@ -136,13 +137,15 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
       ],
     });
     setIsCartOpen(false);
-    router.push('/checkout?mode=buynow');
+    const slugOrId = product.slug || product.id;
+    router.push(`/checkout?product=${encodeURIComponent(slugOrId)}&mode=buynow`);
   };
 
   const clearBuyNowItem = () => {
     setBuyNowItem(null);
     try {
       sessionStorage.removeItem('vaultzet_buynow_item');
+      localStorage.removeItem('vaultzet_buynow_item');
     } catch {
       // ignore
     }

@@ -50,7 +50,8 @@ const KEYWORD_MAP: Array<[string[], string]> = [
  */
 export function resolveBundleSlug(
   rawSlug: string,
-  extraList?: BundleProduct[]
+  extraList?: BundleProduct[],
+  fallbackToDefault: boolean = false
 ): BundleProduct | undefined {
   const clean = normalizeSlug(rawSlug);
   if (!clean) return undefined;
@@ -111,8 +112,8 @@ export function resolveBundleSlug(
     }
   }
 
-  // 6. Default to first bundle if everything else fails rather than 404
-  return BUNDLE_PRODUCTS[0];
+  // 6. Return first bundle only if explicitly allowed as fallback, otherwise undefined
+  return fallbackToDefault ? BUNDLE_PRODUCTS[0] : undefined;
 }
 
 /**
@@ -120,15 +121,15 @@ export function resolveBundleSlug(
  */
 export function getProductUrlForReel(reel: ReelItem): string {
   if (reel.bundleSlug) {
-    const bundle = resolveBundleSlug(reel.bundleSlug);
+    const bundle = resolveBundleSlug(reel.bundleSlug, undefined, true);
     if (bundle) return `/product/${bundle.slug}`;
   }
   if (reel.bundleTitle) {
-    const bundle = resolveBundleSlug(reel.bundleTitle);
+    const bundle = resolveBundleSlug(reel.bundleTitle, undefined, true);
     if (bundle) return `/product/${bundle.slug}`;
   }
   if (reel.title) {
-    const bundle = resolveBundleSlug(reel.title);
+    const bundle = resolveBundleSlug(reel.title, undefined, true);
     if (bundle) return `/product/${bundle.slug}`;
   }
   return '/shop';

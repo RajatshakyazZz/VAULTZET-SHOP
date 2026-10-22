@@ -35,18 +35,22 @@ export default function WhatsAppButton({
     setMounted(true);
   }, []);
 
-  // If this is the global root layout instance, hide on reseller /r/ landing pages
-  // so ResellerLandingClient can authoritatively manage its own reseller-specific WhatsApp toggle
-  if (!isResellerPage && pathname?.startsWith('/r/')) {
-    return null;
-  }
+  // Show friendly floating tooltip after 3 seconds on first visit
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setShowTooltip(true);
+    }, 2800);
+    return () => clearTimeout(timer);
+  }, []);
 
   // Hide on checkout, order-success, and order-status to never overlap checkout forms, coupon apply button, or sticky pay bar
-  if (
+  const isHidden =
+    (!isResellerPage && pathname?.startsWith('/r/')) ||
     pathname?.includes('/checkout') ||
     pathname?.includes('/order-success') ||
-    pathname?.includes('/order-status')
-  ) {
+    pathname?.includes('/order-status');
+
+  if (isHidden) {
     return null;
   }
 
@@ -68,14 +72,6 @@ export default function WhatsAppButton({
     : 'bottom-20 md:bottom-6 right-4 sm:right-6';
 
   const position = positionClassName || defaultPosition;
-
-  // Show friendly floating tooltip after 3 seconds on first visit
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setShowTooltip(true);
-    }, 2800);
-    return () => clearTimeout(timer);
-  }, []);
 
   const getTargetUrl = (messageText?: string) => {
     const textToSend =
