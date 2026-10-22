@@ -916,6 +916,20 @@ class PortalApiClient {
   // 5. COUPONS (Direct Firestore)
   // ==========================================
   async getCoupons(): Promise<Coupon[]> {
+    // 1. Try server API endpoint first
+    try {
+      const res = await fetch('https://www.vaultzet.shop/api/admin/coupons');
+      if (res.ok) {
+        const data = await res.json();
+        if (data?.success && Array.isArray(data?.coupons) && data.coupons.length > 0) {
+          return data.coupons;
+        }
+      }
+    } catch (e) {
+      console.warn('Server coupon API fetch fallback:', e);
+    }
+
+    // 2. Direct Firestore fallback
     if (db) {
       try {
         const snap = await getDocs(collection(db, 'coupons'));
@@ -936,6 +950,25 @@ class PortalApiClient {
 
   async couponAction(action: 'create' | 'update' | 'delete' | 'toggle', coupon: any): Promise<any> {
     const couponId = String(coupon.id || coupon.code);
+
+    // 1. Send to server endpoint
+    try {
+      if (action === 'delete') {
+        await fetch(`https://www.vaultzet.shop/api/admin/coupons?id=${encodeURIComponent(couponId)}`, {
+          method: 'DELETE',
+        });
+      } else {
+        await fetch('https://www.vaultzet.shop/api/admin/coupons', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(coupon),
+        });
+      }
+    } catch (e) {
+      console.warn('Server coupon API action fallback:', e);
+    }
+
+    // 2. Direct Firestore write
     if (db) {
       try {
         if (action === 'delete') {
@@ -947,6 +980,7 @@ class PortalApiClient {
         console.warn('Firestore coupon action error:', e);
       }
     }
+
     await logAdminAction({
       adminEmail: 'admin@vaultzet.com',
       action: `COUPON_${action.toUpperCase()}`,

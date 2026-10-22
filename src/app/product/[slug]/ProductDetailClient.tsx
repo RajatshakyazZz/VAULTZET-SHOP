@@ -14,8 +14,6 @@ import {
   Sparkles,
   ChevronDown,
   FolderOpen,
-  Play,
-  X,
   Flame,
   TrendingUp,
   Video,
@@ -27,7 +25,6 @@ import {
   Smartphone,
   Monitor,
   Volume2,
-  VolumeX,
   ArrowRight,
   Shield,
   Clock,
@@ -41,7 +38,6 @@ import { useCart } from '@/context/CartContext';
 import { BundleProduct } from '@/types';
 import { optimizeImageUrl } from '@/lib/imageOptimized';
 import { getBundleContentDetails } from '@/lib/bundleContent';
-import { parseVideoUrl } from '@/lib/reels';
 import { track } from '@/lib/analytics';
 
 interface ProductDetailClientProps {
@@ -57,9 +53,6 @@ export default function ProductDetailClient({ product }: ProductDetailClientProp
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const [isDescExpanded, setIsDescExpanded] = useState(false);
   const [openFaqIndex, setOpenFaqIndex] = useState<number | null>(0);
-  const [isPreviewOpen, setIsPreviewOpen] = useState(false);
-  const [isVideoMuted, setIsVideoMuted] = useState(false);
-  const videoRef = useRef<HTMLVideoElement | null>(null);
 
   // Track GA4 view_item event once on product mount
   useEffect(() => {
@@ -80,28 +73,6 @@ export default function ProductDetailClient({ product }: ProductDetailClientProp
       });
     }
   }, [product?.id]);
-
-  const previewUrl =
-    (product?.previewVideoUrl && product.previewVideoUrl.trim()) ||
-    'https://reelsbundles.in/wp-content/uploads/2026/09/gigglee_toons_1787416995_3969463571233179389_28226841059.mp4';
-  const parsedVideo = parseVideoUrl(previewUrl);
-  const isYouTube = parsedVideo.videoType === 'youtube' && Boolean(parsedVideo.youtubeId);
-
-  useEffect(() => {
-    if (isPreviewOpen && !isYouTube && videoRef.current) {
-      const v = videoRef.current;
-      v.currentTime = 0;
-      v.muted = false;
-      const playPromise = v.play();
-      if (playPromise !== undefined) {
-        playPromise.catch(() => {
-          v.muted = true;
-          setIsVideoMuted(true);
-          v.play().catch(() => {});
-        });
-      }
-    }
-  }, [isPreviewOpen, isYouTube]);
 
   const activePrice = product.personalPrice;
   const originalPrice = product.personalOriginalPrice;
@@ -213,18 +184,6 @@ export default function ProductDetailClient({ product }: ProductDetailClientProp
                 <span className="px-3 py-1 rounded-full text-[11px] font-black uppercase tracking-wider bg-gradient-to-r from-pink-500 to-rose-500 text-white shadow-md">
                   {discountPercent}% OFF
                 </span>
-              </div>
-
-              {/* Watch Preview floating button on image */}
-              <div className="absolute bottom-3.5 right-3.5">
-                <button
-                  type="button"
-                  onClick={() => setIsPreviewOpen(true)}
-                  className="px-4 py-2 rounded-xl bg-white/95 hover:bg-white text-rb-purple font-black text-xs shadow-lg hover:shadow-xl backdrop-blur-sm transition-all flex items-center gap-1.5 active:scale-95"
-                >
-                  <Play className="w-3.5 h-3.5 fill-rb-purple" />
-                  <span>Watch Preview</span>
-                </button>
               </div>
             </div>
 
@@ -768,64 +727,6 @@ export default function ProductDetailClient({ product }: ProductDetailClientProp
         </section>
 
       </div>
-
-      {/* VIDEO PREVIEW MODAL */}
-      {isPreviewOpen && (
-        <div
-          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-md animate-in fade-in duration-200"
-          onClick={() => setIsPreviewOpen(false)}
-        >
-          <div
-            className="relative w-full max-w-[340px] aspect-[9/16] bg-black rounded-3xl overflow-hidden shadow-2xl border border-white/20"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <button
-              type="button"
-              onClick={() => setIsPreviewOpen(false)}
-              className="absolute top-3.5 right-3.5 z-30 w-8 h-8 rounded-full bg-black/70 hover:bg-black/90 text-white flex items-center justify-center shadow-lg transition-transform hover:scale-105 border border-white/20"
-              aria-label="Close Preview"
-            >
-              <X className="w-4 h-4 stroke-[2.5]" />
-            </button>
-
-            {isVideoMuted && !isYouTube && (
-              <button
-                type="button"
-                onClick={() => {
-                  if (videoRef.current) {
-                    videoRef.current.muted = false;
-                    setIsVideoMuted(false);
-                  }
-                }}
-                className="absolute top-3.5 left-3.5 z-30 px-3 py-1.5 rounded-full bg-black/75 hover:bg-black text-white text-[11px] font-bold flex items-center gap-1.5 border border-white/20 shadow-lg backdrop-blur-sm"
-              >
-                <Volume2 className="w-3.5 h-3.5" />
-                <span>Tap to Unmute</span>
-              </button>
-            )}
-
-            {isYouTube ? (
-              <iframe
-                src={`https://www.youtube.com/embed/${parsedVideo.youtubeId}?autoplay=1&mute=0&rel=0&playsinline=1`}
-                title={product?.title || 'Reels Preview'}
-                className="w-full h-full border-0"
-                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                allowFullScreen
-              />
-            ) : (
-              <video
-                ref={videoRef}
-                src={previewUrl}
-                autoPlay
-                controls
-                playsInline
-                loop
-                className="w-full h-full object-cover"
-              />
-            )}
-          </div>
-        </div>
-      )}
 
       {/* MOBILE STICKY BOTTOM BUY BAR */}
       <div className="fixed bottom-0 left-0 right-0 z-40 md:hidden bg-white/95 backdrop-blur-md border-t border-gray-200 px-4 py-3 shadow-[0_-4px_20px_rgba(0,0,0,0.08)]">
