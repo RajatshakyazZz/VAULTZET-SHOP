@@ -70,6 +70,32 @@ body {
   50% { opacity: 0; }
 }
 
+/* Diwali Left to Right Mobile Marquee Animation */
+@keyframes diwaliLeftToRight {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+.animate-diwali-ltr {
+  display: inline-block;
+  white-space: nowrap;
+  animation: diwaliLeftToRight 9s linear infinite;
+  will-change: transform;
+}
+
+@media (min-width: 640px) {
+  .animate-diwali-ltr {
+    animation: none !important;
+    transform: none !important;
+    display: block !important;
+    white-space: normal !important;
+  }
+}
+
 .typewriter-caret {
   display: inline-block;
   width: 3px;

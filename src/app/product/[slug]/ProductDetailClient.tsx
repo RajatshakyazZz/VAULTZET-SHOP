@@ -388,12 +388,8 @@ export default function ProductDetailClient({ product }: ProductDetailClientProp
                   </div>
                 </div>
 
-                {/* Resell Option Strip */}
-                <div className="pt-2 border-t border-slate-100 flex items-center justify-between text-xs text-slate-600">
-                  <div className="flex items-center gap-1.5">
-                    <Briefcase className="w-3.5 h-3.5 text-purple-600 shrink-0" />
-                    <span className="font-medium">Want to resell this bundle?</span>
-                  </div>
+                {/* Secondary Resell & Earn Option Card */}
+                <div className="p-3.5 rounded-2xl bg-gradient-to-r from-purple-50/90 via-pink-50/70 to-purple-50/90 border border-purple-200/80 text-center space-y-1.5 shadow-2xs">
                   <button
                     type="button"
                     onClick={() => {
@@ -403,11 +399,17 @@ export default function ProductDetailClient({ product }: ProductDetailClientProp
                         setIsAuthModalOpen(true);
                       }
                     }}
-                    className="font-bold text-purple-700 hover:text-purple-900 hover:underline flex items-center gap-0.5 cursor-pointer"
+                    className="w-full py-3 px-5 rounded-xl bg-white hover:bg-purple-50/80 border border-purple-300 text-[#6734f7] font-black text-sm flex items-center justify-center gap-2 shadow-xs hover:shadow-md transition-all active:scale-95 cursor-pointer"
                   >
-                    <span>Resell & Earn (100% Margin)</span>
-                    <ArrowRight className="w-3 h-3" />
+                    <Briefcase className="w-4 h-4 text-[#ec288d]" />
+                    <span>Resell & Earn on This Bundle</span>
+                    <span className="px-2 py-0.5 rounded-full bg-gradient-to-r from-[#6734f7] to-[#ec288d] text-white text-[10px] font-extrabold uppercase">
+                      Keep 100% Margin
+                    </span>
                   </button>
+                  <p className="text-[11px] text-slate-500 font-medium">
+                    Set your own selling price and earn on every successful sale.
+                  </p>
                 </div>
               </div>
 

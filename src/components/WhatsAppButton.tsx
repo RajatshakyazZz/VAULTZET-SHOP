@@ -41,6 +41,15 @@ export default function WhatsAppButton({
     return null;
   }
 
+  // Hide on checkout, order-success, and order-status to never overlap checkout forms, coupon apply button, or sticky pay bar
+  if (
+    pathname?.includes('/checkout') ||
+    pathname?.includes('/order-success') ||
+    pathname?.includes('/order-status')
+  ) {
+    return null;
+  }
+
   // Clean phone number: keep only digits
   const cleanPhone = (phoneNumber || '917895317940').replace(/[^0-9]/g, '');
 
