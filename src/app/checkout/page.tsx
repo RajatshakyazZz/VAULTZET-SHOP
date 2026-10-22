@@ -640,7 +640,7 @@ function CheckoutContent() {
         onLoad={() => setSdkLoaded(true)}
       />
 
-      <div className="py-8 sm:py-12 pb-36 lg:pb-12 bg-[#faf9ff]">
+      <div className="py-8 sm:py-12 pb-56 lg:pb-12 bg-[#faf9ff]">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
           
           {/* Checkout Header (Clean & Minimal for Resellers, Standard for Store) */}
@@ -1065,8 +1065,8 @@ function CheckoutContent() {
                   )}
                 </div>
 
-                {/* Promo Code / Coupon Input Box */}
-                <div className="pt-3 border-t border-slate-100">
+                {/* Promo Code / Coupon Input Box (Desktop view inside summary) */}
+                <div className="hidden lg:block pt-3 border-t border-slate-100">
                   <div className="flex items-center justify-between mb-2">
                     <span className="text-xs font-bold text-slate-700 flex items-center gap-1.5">
                       <Tag className="w-3.5 h-3.5 text-rb-purple" />
@@ -1233,24 +1233,109 @@ function CheckoutContent() {
             </div>
 
             {/* Sticky Mobile Checkout Footer Bar (Visible on mobile screens < lg) */}
-            <div className="lg:hidden fixed bottom-0 inset-x-0 z-50 bg-white/95 backdrop-blur-md border-t border-[#eae2fa] shadow-[0_-8px_30px_rgba(24,34,71,0.12)] px-4 py-3 pb-safe">
+            <div className="lg:hidden fixed bottom-0 inset-x-0 z-50 bg-white/95 backdrop-blur-md border-t border-[#eae2fa] shadow-[0_-8px_30px_rgba(24,34,71,0.12)] px-4 py-2.5 pb-[calc(0.75rem+env(safe-area-inset-bottom,0px))]">
               <div className="max-w-md mx-auto space-y-2">
                 <div className="flex items-center justify-between px-1">
                   <div>
-                    <span className="text-[10px] sm:text-[11px] font-bold text-slate-500 uppercase tracking-wider block">
+                    <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">
                       Final Total
                     </span>
-                    <span className="text-xl sm:text-2xl font-black text-rb-purple">
+                    <span className="text-xl font-black text-rb-purple">
                       ₹{checkoutTotal}.00
                     </span>
                   </div>
                   <div className="text-right">
-                    <span className="inline-flex items-center gap-1 text-[10px] sm:text-[11px] font-bold text-emerald-700 bg-emerald-50 px-2.5 py-1 rounded-md border border-emerald-200">
-                      <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" />
+                    <span className="inline-flex items-center gap-1 text-[10px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-md border border-emerald-200">
+                      <ShieldCheck className="w-3 h-3 text-emerald-600" />
                       <span>256-bit SSL</span>
                     </span>
                   </div>
                 </div>
+
+                {/* Mobile Locked Coupon Bar Right Above Buy Now Button */}
+                {!appliedCoupon ? (
+                  <div className="space-y-1">
+                    <div className="flex items-center gap-1.5 bg-slate-50 border border-purple-200/90 rounded-xl p-1 shadow-2xs">
+                      <Tag className="w-3.5 h-3.5 text-rb-purple ml-1.5 shrink-0" />
+                      <input
+                        type="text"
+                        value={couponInput}
+                        onChange={(e) => {
+                          setCouponInput(e.target.value.toUpperCase());
+                          setCouponError(null);
+                        }}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter') {
+                            e.preventDefault();
+                            handleApplyCoupon();
+                          }
+                        }}
+                        placeholder="ENTER COUPON CODE"
+                        className="bg-transparent text-xs font-bold text-slate-900 placeholder:text-slate-400 focus:outline-none flex-1 min-w-0 uppercase tracking-wider px-1"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => handleApplyCoupon()}
+                        disabled={couponLoading || !couponInput.trim()}
+                        className="px-3.5 py-1.5 rounded-lg bg-purple-900 hover:bg-purple-800 disabled:opacity-50 text-white text-[11px] font-black shrink-0 transition-transform active:scale-95 cursor-pointer shadow-xs"
+                      >
+                        {couponLoading ? (
+                          <Loader2 className="w-3 h-3 animate-spin" />
+                        ) : (
+                          'Apply'
+                        )}
+                      </button>
+                    </div>
+
+                    {couponError && (
+                      <p className="text-[10px] font-bold text-red-600 flex items-center gap-1 px-1">
+                        <AlertCircle className="w-3 h-3 shrink-0" />
+                        <span>{couponError}</span>
+                      </p>
+                    )}
+
+                    <div className="flex items-center justify-between px-1 text-[10px]">
+                      <span className="text-slate-400 font-medium">Have OFF20?</span>
+                      <button
+                        type="button"
+                        onClick={() => handleQuickApply('OFF20')}
+                        className="font-black text-purple-900 hover:text-purple-700 underline flex items-center gap-1 cursor-pointer active:scale-95"
+                      >
+                        <Sparkles className="w-2.5 h-2.5 text-purple-600" />
+                        Tap for OFF20 (20% OFF)
+                      </button>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="p-2 rounded-xl bg-gradient-to-r from-emerald-50 to-teal-50 border border-emerald-200 flex items-center justify-between gap-2 shadow-2xs animate-in fade-in duration-200">
+                    <div className="flex items-center gap-2 min-w-0">
+                      <div className="w-6 h-6 rounded-lg bg-emerald-500 text-white flex items-center justify-center shrink-0">
+                        <CheckCircle2 className="w-3.5 h-3.5" />
+                      </div>
+                      <div className="min-w-0">
+                        <div className="flex items-center gap-1.5">
+                          <span className="text-xs font-black text-emerald-950 uppercase tracking-wide">
+                            {appliedCoupon.code}
+                          </span>
+                          <span className="text-[9px] font-black px-1.5 py-0.2 rounded bg-emerald-200 text-emerald-900">
+                            -₹{couponDiscount} OFF
+                          </span>
+                        </div>
+                        <p className="text-[10px] text-emerald-700 font-medium truncate">
+                          {appliedCoupon.description || 'Special promo discount applied!'}
+                        </p>
+                      </div>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={handleRemoveCoupon}
+                      className="text-[11px] font-bold text-emerald-800 hover:text-red-600 px-2 py-0.5 rounded hover:bg-emerald-100/80 transition-colors shrink-0 cursor-pointer"
+                      title="Remove promo code"
+                    >
+                      Remove
+                    </button>
+                  </div>
+                )}
 
                 <button
                   type="submit"
