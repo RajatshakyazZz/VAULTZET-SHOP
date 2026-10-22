@@ -238,11 +238,15 @@ export default function RootLayout({
         {GTM_ID && (
           <Script id="gtm-script" strategy="afterInteractive">
             {`
-              (function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
-              new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
-              j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
-              'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
-              })(window,document,'dataLayer','${GTM_ID}');
+              try {
+                (function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+                new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
+                j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
+                'https://www.googletagmanager.com/gtm.js?id='+i+dl;
+                if(f && f.parentNode){f.parentNode.insertBefore(j,f);}
+                else{(d.head||d.body||d.documentElement).appendChild(j);}
+                })(window,document,'script','dataLayer','${GTM_ID}');
+              } catch(e) { console.warn('GTM init skipped:', e); }
             `}
           </Script>
         )}
@@ -251,15 +255,19 @@ export default function RootLayout({
         {META_PIXEL_ID && (
           <Script id="meta-pixel" strategy="afterInteractive">
             {`
-              !function(f,b,e,v,n,t,s)
-              {if(f.fbq)return;n=f.fbq=function(){n.callMethod?
-              n.callMethod.apply(n,arguments):n.queue.push(arguments)};
-              if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';
-              n.queue=[];t=b.createElement(e);t.async=!0;
-              t.src=v;s=b.getElementsByTagName(e)[0];
-              s.parentNode.insertBefore(t,s)}(window, document,'script',
-              'https://connect.facebook.net/en_US/fbevents.js');
-              fbq('init', '${META_PIXEL_ID}');
+              try {
+                !function(f,b,e,v,n,t,s)
+                {if(f.fbq)return;n=f.fbq=function(){n.callMethod?
+                n.callMethod.apply(n,arguments):n.queue.push(arguments)};
+                if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';
+                n.queue=[];t=b.createElement(e);t.async=!0;
+                t.src=v;s=b.getElementsByTagName(e)[0];
+                if(s && s.parentNode){s.parentNode.insertBefore(t,s);}
+                else{(b.head||b.body||b.documentElement).appendChild(t);}
+                }(window, document,'script',
+                'https://connect.facebook.net/en_US/fbevents.js');
+                fbq('init', '${META_PIXEL_ID}');
+              } catch(e) { console.warn('Meta Pixel init skipped:', e); }
             `}
           </Script>
         )}

@@ -271,12 +271,12 @@ function CheckoutContent() {
         currency: 'INR',
         value: checkoutTotal,
         items: checkoutItems.map((i) => ({
-          item_id: i.product.id,
-          item_name: i.product.title,
-          item_category: i.product.category,
-          price: i.price,
+          item_id: i?.product?.id || 'bundle',
+          item_name: i?.product?.title || 'Viral Reels Bundle',
+          item_category: i?.product?.category || 'Reels Bundle',
+          price: Number(i?.price || 0),
           quantity: 1,
-          item_variant: i.license,
+          item_variant: i?.license || 'personal',
         })),
       });
     }
@@ -420,10 +420,10 @@ function CheckoutContent() {
                 phone,
               },
               items: checkoutItems.map((i) => ({
-                id: i.product.id,
-                title: i.product.title,
-                license: i.license,
-                price: i.price,
+                id: i?.product?.id || 'bundle',
+                title: i?.product?.title || 'Viral Reels Bundle',
+                license: i?.license || 'personal',
+                price: Number(i?.price || 0),
               })),
               orderBump: orderBumpAdded
                 ? {
@@ -475,10 +475,10 @@ function CheckoutContent() {
       currency: 'INR',
       value: checkoutTotal,
       items: checkoutItems.map((i, idx) => ({
-        item_id: i.product.id,
-        item_name: i.product.title,
-        item_category: i.product.category || 'Reels Bundle',
-        price: Number(i.price),
+        item_id: i?.product?.id || 'bundle',
+        item_name: i?.product?.title || 'Viral Reels Bundle',
+        item_category: i?.product?.category || 'Reels Bundle',
+        price: Number(i?.price || 0),
         quantity: 1,
         index: idx,
       })),
@@ -493,10 +493,10 @@ function CheckoutContent() {
         phone: phone.trim(),
       },
       items: checkoutItems.map((i) => ({
-        id: i.product.id,
-        title: i.product.title,
-        license: i.license,
-        price: i.price,
+        id: i?.product?.id || 'bundle',
+        title: i?.product?.title || 'Viral Reels Bundle',
+        license: i?.license || 'personal',
+        price: Number(i?.price || 0),
       })),
       orderBump: orderBumpAdded
         ? {
@@ -997,34 +997,34 @@ function CheckoutContent() {
 
                 {/* Items List */}
                 <div className="space-y-3 max-h-72 overflow-y-auto pr-1">
-                  {checkoutItems.map((item) => (
+                  {checkoutItems.map((item, idx) => (
                     <div
-                      key={`${item.product.id}-${item.license}`}
+                      key={`${item?.product?.id || idx}-${item?.license || 'p'}`}
                       className="flex gap-3 items-center justify-between p-2.5 rounded-xl bg-slate-50 border border-slate-100"
                     >
                       <img
-                        src={item.product.thumbnail}
-                        alt={item.product.title}
+                        src={item?.product?.thumbnail || '/logo.webp'}
+                        alt={item?.product?.title || 'Bundle'}
                         className="w-12 h-14 object-cover rounded-lg shrink-0"
                       />
                       <div className="flex-1 min-w-0 px-1">
                         <h4 className="font-bold text-xs text-[#182247] line-clamp-1">
-                          {item.product.title}
+                          {item?.product?.title || 'Viral Reels Bundle'}
                         </h4>
                         <span className="text-[10px] font-semibold text-rb-purple bg-purple-100 px-1.5 py-0.5 rounded">
-                          {item.license === 'reseller' ? 'Reseller Rights' : 'Personal Use'}
+                          {item?.license === 'reseller' ? 'Reseller Rights' : 'Personal Use'}
                         </span>
                       </div>
                       <div className="text-right shrink-0">
                         <div className="font-extrabold text-xs text-[#182247]">
-                          ₹{item.price}.00
+                          ₹{item?.price || 0}.00
                         </div>
                         <button
                           type="button"
                           onClick={() =>
                             isBuyNowMode
                               ? clearBuyNowItem()
-                              : removeFromCart(item.product.id, item.license)
+                              : removeFromCart(item?.product?.id || '', item?.license || 'personal')
                           }
                           className="text-slate-400 hover:text-red-500 text-xs p-1"
                         >
