@@ -1,7 +1,7 @@
 import { BUNDLE_PRODUCTS } from '@/data/bundles';
 import { initialStoreReels } from '@/lib/reels';
 import { BundleProduct, ReelItem } from '@/types';
-import { getLocalCustomProductsSync } from '@/lib/customProducts';
+import { getLocalCustomProductsSync, fetchCustomProductBySlug } from '@/lib/customProducts';
 
 /**
  * Normalizes input slugs by stripping leading/trailing slashes, product prefixes,
@@ -114,6 +114,24 @@ export function resolveBundleSlug(
 
   // 6. Return first bundle only if explicitly allowed as fallback, otherwise undefined
   return fallbackToDefault ? BUNDLE_PRODUCTS[0] : undefined;
+}
+
+/**
+ * Asynchronously resolves a slug by querying live Firestore custom products first,
+ * falling back to the local and static catalog.
+ */
+export async function resolveBundleSlugAsync(
+  rawSlug: string,
+  extraList?: BundleProduct[],
+  fallbackToDefault: boolean = false
+): Promise<BundleProduct | undefined> {
+  const clean = normalizeSlug(rawSlug);
+  if (!clean) return undefined;
+
+  const live = await fetchCustomProductBySlug(clean);
+  if (live) return live;
+
+  return resolveBundleSlug(rawSlug, extraList, fallbackToDefault);
 }
 
 /**

@@ -40,6 +40,7 @@ import { BundleProduct } from '@/types';
 import { optimizeImageUrl } from '@/lib/imageOptimized';
 import { getBundleContentDetails } from '@/lib/bundleContent';
 import { track } from '@/lib/analytics';
+import { fetchCustomProductBySlug } from '@/lib/customProducts';
 
 interface ProductDetailClientProps {
   product: BundleProduct;
@@ -107,39 +108,60 @@ export default function ProductDetailClient({ product }: ProductDetailClientProp
   const { isAuthenticated } = useResellerAuth();
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
 
+  const [currentProduct, setCurrentProduct] = useState<BundleProduct>(product);
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const [isDescExpanded, setIsDescExpanded] = useState(false);
   const [openFaqIndex, setOpenFaqIndex] = useState<number | null>(0);
   const [helpfulMap, setHelpfulMap] = useState<Record<string, number>>({});
 
+  useEffect(() => {
+    setCurrentProduct(product);
+  }, [product]);
+
+  useEffect(() => {
+    let isMounted = true;
+    fetchCustomProductBySlug(product.slug)
+      .then((live) => {
+        if (isMounted && live) {
+          setCurrentProduct((prev) => ({ ...prev, ...live }));
+        }
+      })
+      .catch(() => {});
+    return () => {
+      isMounted = false;
+    };
+  }, [product.slug]);
+
+  const p = currentProduct;
+
   // Track GA4 view_item event once on product mount
   useEffect(() => {
-    if (product) {
+    if (p) {
       track('view_item', {
         currency: 'INR',
-        value: Number(product.personalPrice),
+        value: Number(p.personalPrice),
         items: [
           {
-            item_id: product.id,
-            item_name: product.title,
-            item_category: product.category || 'Reels Bundle',
-            price: Number(product.personalPrice),
+            item_id: p.id,
+            item_name: p.title,
+            item_category: p.category || 'Reels Bundle',
+            price: Number(p.personalPrice),
             quantity: 1,
             item_variant: 'standard',
           },
         ],
       });
     }
-  }, [product?.id]);
+  }, [p?.id, p?.personalPrice]);
 
-  const activePrice = product.personalPrice;
-  const originalPrice = product.personalOriginalPrice;
-  const discountPercent = Math.round(((originalPrice - activePrice) / originalPrice) * 100);
+  const activePrice = p.personalPrice;
+  const originalPrice = p.personalOriginalPrice;
+  const discountPercent = Math.round(((originalPrice - activePrice) / Math.max(1, originalPrice)) * 100);
   const savingsAmount = originalPrice - activePrice;
-  const currentImage = selectedImage || product.thumbnail || '';
+  const currentImage = selectedImage || p.thumbnail || '';
 
-  const details = getBundleContentDetails(product);
-  const relatedBundles = BUNDLE_PRODUCTS.filter((b) => b.id !== product.id && !b.isUpcoming).slice(0, 4);
+  const details = getBundleContentDetails(p);
+  const relatedBundles = BUNDLE_PRODUCTS.filter((b) => b.id !== p.id && !b.isUpcoming).slice(0, 4);
 
   const handleHelpful = (id: string) => {
     setHelpfulMap((prev) => ({
@@ -180,13 +202,13 @@ export default function ProductDetailClient({ product }: ProductDetailClientProp
             <Link href="/shop" className="hover:text-purple-600 transition-colors">Shop</Link>
             <span className="text-slate-300">/</span>
             <Link
-              href={`/category/${product.categorySlug || 'ai-reels'}`}
+              href={`/category/${p.categorySlug || 'ai-reels'}`}
               className="hover:text-purple-600 transition-colors"
             >
-              {product.category || 'Reels Bundle'}
+              {p.category || 'Reels Bundle'}
             </Link>
             <span className="text-slate-300">/</span>
-            <span className="text-slate-800 font-bold truncate max-w-xs">{product.title}</span>
+            <span className="text-slate-800 font-bold truncate max-w-xs">{p.title}</span>
           </nav>
 
           {/* Mobile Back Header */}
@@ -213,7 +235,7 @@ export default function ProductDetailClient({ product }: ProductDetailClientProp
             <div className="relative aspect-[4/3] rounded-2xl sm:rounded-3xl overflow-hidden bg-slate-100 border border-slate-200/90 shadow-sm">
               <img
                 src={optimizeImageUrl(currentImage, 1024)}
-                alt={`${product.title} preview`}
+                alt={`${p.title} preview`}
                 width={1024}
                 height={768}
                 fetchPriority="high"
@@ -224,7 +246,7 @@ export default function ProductDetailClient({ product }: ProductDetailClientProp
               {/* Minimal Clean Tag Overlays */}
               <div className="absolute top-3 left-3 flex items-center gap-1.5">
                 <span className="px-2.5 py-1 rounded-lg text-[10px] font-extrabold uppercase tracking-wider bg-black/75 text-white backdrop-blur-md shadow-xs">
-                  {product.resolution || '1080P'} Full HD
+                  {p.resolution || '1080P'} Full HD
                 </span>
                 <span className="px-2.5 py-1 rounded-lg text-[10px] font-extrabold uppercase tracking-wider bg-black/75 text-white backdrop-blur-md shadow-xs">
                   9:16 Vertical
@@ -239,9 +261,9 @@ export default function ProductDetailClient({ product }: ProductDetailClientProp
             </div>
 
             {/* Gallery Thumbnails Strip (if multiple) */}
-            {product.galleryImages && product.galleryImages.length > 1 && (
+            {p.galleryImages && p.galleryImages.length > 1 && (
               <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-none">
-                {product.galleryImages.map((img, idx) => (
+                {p.galleryImages.map((img, idx) => (
                   <button
                     key={idx}
                     type="button"
@@ -254,7 +276,7 @@ export default function ProductDetailClient({ product }: ProductDetailClientProp
                   >
                     <img
                       src={optimizeImageUrl(img, 120)}
-                      alt={`${product.title} thumbnail ${idx + 1}`}
+                      alt={`${p.title} thumbnail ${idx + 1}`}
                       width={80}
                       height={80}
                       loading="lazy"
@@ -291,12 +313,12 @@ export default function ProductDetailClient({ product }: ProductDetailClientProp
                 <div className="flex items-center justify-between gap-2 flex-wrap">
                   <div className="flex items-center gap-2">
                     <span className="px-2.5 py-0.5 rounded-full bg-purple-50 text-purple-700 font-extrabold text-[11px] uppercase tracking-wider border border-purple-100">
-                      {product.category || 'Reels Bundle'}
+                      {p.category || 'Reels Bundle'}
                     </span>
                     <span className="text-slate-300">•</span>
                     <div className="flex items-center gap-1 text-xs font-bold text-amber-500">
                       <span>★ 4.9</span>
-                      <span className="text-slate-400 font-medium text-[11px]">({product.reviewCount || 200}+ verified reviews)</span>
+                      <span className="text-slate-400 font-medium text-[11px]">({p.reviewCount || 200}+ verified reviews)</span>
                     </div>
                   </div>
                   <span className="text-[11px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-md border border-emerald-200">
@@ -305,12 +327,12 @@ export default function ProductDetailClient({ product }: ProductDetailClientProp
                 </div>
 
                 <h1 className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight leading-snug">
-                  {product.title}
+                  {p.title}
                 </h1>
 
-                {product.shortDescription && (
+                {p.shortDescription && (
                   <p className="text-xs sm:text-sm text-slate-600 leading-relaxed font-normal">
-                    {product.shortDescription}
+                    {p.shortDescription}
                   </p>
                 )}
               </div>
@@ -341,7 +363,7 @@ export default function ProductDetailClient({ product }: ProductDetailClientProp
               <div className="grid grid-cols-2 gap-2 text-xs font-bold text-slate-700">
                 <div className="flex items-center gap-1.5 p-2 rounded-xl bg-purple-50/50 border border-purple-100/60">
                   <Check className="w-3.5 h-3.5 text-purple-600 shrink-0" />
-                  <span>{product.reelCount || 1000}+ HD Video Clips</span>
+                  <span>{p.reelCount || 1000}+ HD Video Clips</span>
                 </div>
                 <div className="flex items-center gap-1.5 p-2 rounded-xl bg-purple-50/50 border border-purple-100/60">
                   <Check className="w-3.5 h-3.5 text-purple-600 shrink-0" />
@@ -361,7 +383,7 @@ export default function ProductDetailClient({ product }: ProductDetailClientProp
               <div className="space-y-3 pt-1">
                 <button
                   type="button"
-                  onClick={() => buyNow(product, 'personal')}
+                  onClick={() => buyNow(p, 'personal')}
                   className="w-full py-4 px-6 rounded-2xl btn-gradient-orange text-white font-black text-base shadow-lg hover:shadow-xl hover:scale-[1.01] active:scale-[0.98] transition-all flex items-center justify-center gap-2 cursor-pointer"
                 >
                   <Zap className="w-4 h-4 fill-white" />
@@ -394,7 +416,7 @@ export default function ProductDetailClient({ product }: ProductDetailClientProp
                     type="button"
                     onClick={() => {
                       if (isAuthenticated) {
-                        router.push(`/earn/create/${product.id}`);
+                        router.push(`/earn/create/${p.id}`);
                       } else {
                         setIsAuthModalOpen(true);
                       }
@@ -480,11 +502,11 @@ export default function ProductDetailClient({ product }: ProductDetailClientProp
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
             <div className="p-3 rounded-xl bg-slate-50 border border-slate-200/70">
               <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Quantity</span>
-              <strong className="text-sm font-black text-slate-900">{product.reelCount || 1000}+ Videos</strong>
+              <strong className="text-sm font-black text-slate-900">{p.reelCount || 1000}+ Videos</strong>
             </div>
             <div className="p-3 rounded-xl bg-slate-50 border border-slate-200/70">
               <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Resolution</span>
-              <strong className="text-sm font-black text-slate-900">{product.resolution || '1080P'} Full HD</strong>
+              <strong className="text-sm font-black text-slate-900">{p.resolution || '1080P'} Full HD</strong>
             </div>
             <div className="p-3 rounded-xl bg-slate-50 border border-slate-200/70">
               <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Format</span>
@@ -498,8 +520,8 @@ export default function ProductDetailClient({ product }: ProductDetailClientProp
 
           {/* Description Text */}
           <div className="space-y-4 text-xs sm:text-sm text-slate-600 leading-relaxed">
-            {product.description ? (
-              <div className="whitespace-pre-line">{product.description}</div>
+            {p.description ? (
+              <div className="whitespace-pre-line">{p.description}</div>
             ) : (
               <p>{details.overview}</p>
             )}
@@ -674,7 +696,7 @@ export default function ProductDetailClient({ product }: ProductDetailClientProp
 
           <a
             href={`https://wa.me/917895317940?text=${encodeURIComponent(
-              `Hi Vaultzet Support! I have a question regarding: "${product.title}"`
+              `Hi Vaultzet Support! I have a question regarding: "${p.title}"`
             )}`}
             target="_blank"
             rel="noopener noreferrer"
@@ -771,7 +793,7 @@ export default function ProductDetailClient({ product }: ProductDetailClientProp
               type="button"
               onClick={() => {
                 if (isAuthenticated) {
-                  router.push(`/earn/create/${product.id}`);
+                  router.push(`/earn/create/${p.id}`);
                 } else {
                   setIsAuthModalOpen(true);
                 }
@@ -784,7 +806,7 @@ export default function ProductDetailClient({ product }: ProductDetailClientProp
             </button>
             <button
               type="button"
-              onClick={() => buyNow(product, 'personal')}
+              onClick={() => buyNow(p, 'personal')}
               className="flex-1 py-3 px-4 rounded-xl btn-gradient-orange text-white font-black text-sm shadow-md active:scale-95 transition-all flex items-center justify-center gap-1.5 cursor-pointer"
             >
               <Zap className="w-3.5 h-3.5 fill-white" />
@@ -798,9 +820,9 @@ export default function ProductDetailClient({ product }: ProductDetailClientProp
       <ResellerAuthModal
         isOpen={isAuthModalOpen}
         onClose={() => setIsAuthModalOpen(false)}
-        onSuccess={() => router.push(`/earn/create/${product.id}`)}
-        productTitle={product.title}
-        productId={product.id}
+        onSuccess={() => router.push(`/earn/create/${p.id}`)}
+        productTitle={p.title}
+        productId={p.id}
       />
 
     </div>

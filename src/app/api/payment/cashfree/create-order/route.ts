@@ -7,6 +7,7 @@ import { generateOrderToken } from '@/lib/orderToken';
 import { getResellerListingBySlug } from '@/lib/resellerService';
 import { BUNDLE_PRODUCTS, ORDER_BUMP } from '@/data/bundles';
 import { calculateCouponDiscount } from '@/app/api/coupon/validate/route';
+import { fetchCustomProductBySlug } from '@/lib/customProducts';
 
 export async function POST(request: Request) {
   try {
@@ -79,9 +80,12 @@ export async function POST(request: Request) {
         );
       }
 
-      const originalProd = BUNDLE_PRODUCTS.find(
-        (p) => p.id === listing.originalProductId || p.slug === listing.originalProductSlug
-      );
+      let originalProd = await fetchCustomProductBySlug(listing.originalProductId || listing.originalProductSlug || '');
+      if (!originalProd) {
+        originalProd = BUNDLE_PRODUCTS.find(
+          (p) => p.id === listing.originalProductId || p.slug === listing.originalProductSlug
+        ) || null;
+      }
       const basePrice = originalProd ? Number(originalProd.personalPrice) : Number(listing.basePrice || 0);
       const approvedResalePrice = Number(listing.resalePrice || 0);
 
@@ -117,9 +121,13 @@ export async function POST(request: Request) {
       let expectedCatalogTotal = 0;
       if (Array.isArray(items) && items.length > 0) {
         for (const item of items) {
-          const matchedProd = BUNDLE_PRODUCTS.find(
-            (p) => p.id === item.id || p.slug === item.slug || p.id === item.productId
-          );
+          const identifier = String(item.slug || item.id || item.productId || '').trim();
+          let matchedProd = identifier ? await fetchCustomProductBySlug(identifier) : null;
+          if (!matchedProd) {
+            matchedProd = BUNDLE_PRODUCTS.find(
+              (p) => p.id === item.id || p.slug === item.slug || p.id === item.productId
+            ) || null;
+          }
           if (matchedProd) {
             const itemPrice = item.license === 'reseller'
               ? Number(matchedProd.resellerPrice)

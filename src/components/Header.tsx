@@ -7,7 +7,7 @@ import { ShoppingCart, Search, Menu, X, Play, ArrowRight, Sparkles, Copy, Check 
 import { useCart } from '@/context/CartContext';
 import { useStoreSettings } from '@/context/StoreSettingsContext';
 import { BUNDLE_PRODUCTS } from '@/data/bundles';
-import { getAllCatalogBundles, getLocalCustomProductsSync } from '@/lib/customProducts';
+import { getAllCatalogBundles, getLocalCustomProductsSync, fetchCustomProducts } from '@/lib/customProducts';
 import { filterBundlesByQuery } from '@/lib/search';
 import { BundleProduct } from '@/types';
 
@@ -72,8 +72,16 @@ export default function Header() {
   searchQueryRef.current = searchQuery;
 
   // Catalog bundles for instant header autocomplete
-  const catalogBundles = useMemo<BundleProduct[]>(() => {
+  const [catalogBundles, setCatalogBundles] = useState<BundleProduct[]>(() => {
     return getAllCatalogBundles(getLocalCustomProductsSync(), BUNDLE_PRODUCTS);
+  });
+
+  useEffect(() => {
+    fetchCustomProducts().then((res) => {
+      if (res && res.length > 0) {
+        setCatalogBundles(getAllCatalogBundles(res, BUNDLE_PRODUCTS));
+      }
+    }).catch(() => {});
   }, []);
 
   // Instant matching results for live autocomplete dropdown

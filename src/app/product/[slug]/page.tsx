@@ -2,12 +2,15 @@ import { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { BUNDLE_PRODUCTS } from '@/data/bundles';
 import { resolveBundleSlug } from '@/lib/bundleResolver';
+import { fetchCustomProductBySlug } from '@/lib/customProducts';
 import ProductDetailClient from './ProductDetailClient';
 
 interface ProductPageProps {
   params: Promise<{ slug: string }>;
 }
 
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
 export const dynamicParams = true;
 
 export async function generateStaticParams() {
@@ -18,7 +21,7 @@ export async function generateStaticParams() {
 
 export async function generateMetadata({ params }: ProductPageProps): Promise<Metadata> {
   const { slug } = await params;
-  const product = resolveBundleSlug(slug);
+  const product = (await fetchCustomProductBySlug(slug)) || resolveBundleSlug(slug);
 
   if (!product) {
     return {
@@ -98,7 +101,7 @@ export async function generateMetadata({ params }: ProductPageProps): Promise<Me
 
 export default async function ProductDetailPage({ params }: ProductPageProps) {
   const { slug } = await params;
-  const product = resolveBundleSlug(slug);
+  const product = (await fetchCustomProductBySlug(slug)) || resolveBundleSlug(slug);
 
   if (!product) {
     notFound();

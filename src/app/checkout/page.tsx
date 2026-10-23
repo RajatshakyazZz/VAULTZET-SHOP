@@ -25,6 +25,7 @@ import { useCart } from '@/context/CartContext';
 import { ORDER_BUMP } from '@/data/bundles';
 import { track } from '@/lib/analytics';
 import { resolveBundleSlug } from '@/lib/bundleResolver';
+import { fetchCustomProductBySlug } from '@/lib/customProducts';
 
 declare global {
   interface Window {
@@ -78,7 +79,8 @@ function CheckoutContent() {
       // 1. If direct product slug/id in query params, resolve authoritatively
       if (productParam) {
         try {
-          const resolved = resolveBundleSlug(productParam);
+          const live = await fetchCustomProductBySlug(productParam);
+          const resolved = live || resolveBundleSlug(productParam);
           if (resolved) {
             const licenseParam = (searchParams.get('license') as 'personal' | 'reseller') || 'personal';
             const resolvedPrice = Number(licenseParam === 'reseller' ? resolved.resellerPrice : resolved.personalPrice);
@@ -114,6 +116,12 @@ function CheckoutContent() {
           if (stored) {
             const parsed = JSON.parse(stored);
             if (parsed && parsed.product) {
+              const live = await fetchCustomProductBySlug(parsed.product.slug || parsed.product.id);
+              if (live) {
+                const licenseParam = parsed.license || 'personal';
+                parsed.product = { ...parsed.product, ...live };
+                parsed.price = Number(licenseParam === 'reseller' ? live.resellerPrice : live.personalPrice);
+              }
               setBuyNowItem(parsed);
               if (isMounted) setIsLoadingBundle(false);
               return;

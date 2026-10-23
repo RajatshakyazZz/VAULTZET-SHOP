@@ -15,11 +15,14 @@ import {
 import { COMPETITOR_CATEGORIES } from '@/lib/categories';
 import { BUNDLE_PRODUCTS } from '@/data/bundles';
 import { optimizeImageUrl } from '@/lib/imageOptimized';
+import { fetchCustomProducts, getAllCatalogBundles } from '@/lib/customProducts';
 
 interface CategoryPageProps {
   params: Promise<{ slug: string }>;
 }
 
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
 export const dynamicParams = true;
 
 export async function generateStaticParams() {
@@ -99,9 +102,12 @@ export default async function CategoryPage({ params }: CategoryPageProps) {
   const siteUrl = (process.env.NEXT_PUBLIC_SITE_URL || 'https://vaultzet.shop').replace(/\/+$/, '');
   const canonicalUrl = `${siteUrl}/category/${category.slug}`;
 
+  const customProducts = await fetchCustomProducts();
+  const allBundles = getAllCatalogBundles(customProducts, BUNDLE_PRODUCTS);
+
   // Find products matching category slug or keywords
   const keywords = (category.keywords || []).map((k) => k.toLowerCase());
-  const matchingProducts = BUNDLE_PRODUCTS.filter((p) => {
+  const matchingProducts = allBundles.filter((p) => {
     const catSlug = (p.categorySlug || '').toLowerCase();
     const catName = (p.category || '').toLowerCase();
     const title = p.title.toLowerCase();
@@ -109,7 +115,7 @@ export default async function CategoryPage({ params }: CategoryPageProps) {
     return keywords.some((kw) => title.includes(kw) || catName.includes(kw));
   });
 
-  const displayProducts = matchingProducts.length > 0 ? matchingProducts : BUNDLE_PRODUCTS.slice(0, 8);
+  const displayProducts = matchingProducts.length > 0 ? matchingProducts : allBundles.slice(0, 8);
 
   // Structured Data: ItemList
   const itemListJsonLd = {

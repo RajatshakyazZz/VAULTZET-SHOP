@@ -6,6 +6,7 @@ import {
   serverDeleteResellerListing,
 } from '@/lib/serverResellerStore';
 import { BUNDLE_PRODUCTS } from '@/data/bundles';
+import { fetchCustomProductBySlug } from '@/lib/customProducts';
 
 export async function GET(request: Request) {
   try {
@@ -52,9 +53,12 @@ export async function POST(request: Request) {
     }
 
     // Server-authoritative catalog validation: Match original bundle product
-    const matchedProd = BUNDLE_PRODUCTS.find(
-      (p) => p.id === listing.originalProductId || p.slug === listing.originalProductSlug
-    );
+    let matchedProd = await fetchCustomProductBySlug(listing.originalProductId || listing.originalProductSlug || '');
+    if (!matchedProd) {
+      matchedProd = BUNDLE_PRODUCTS.find(
+        (p) => p.id === listing.originalProductId || p.slug === listing.originalProductSlug
+      ) || null;
+    }
 
     if (!matchedProd) {
       return NextResponse.json(
