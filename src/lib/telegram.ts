@@ -69,42 +69,46 @@ export async function sendTelegramMessage(
     return false;
   }
 
-  let successCount = 0;
-  for (const chatId of validTargets) {
-    try {
-      const endpoint = `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`;
-      const payload: Record<string, any> = {
-        chat_id: chatId,
-        text: htmlText,
-        parse_mode: 'HTML',
-        disable_web_page_preview: true,
-      };
-
-      if (inlineButtons && inlineButtons.length > 0) {
-        payload.reply_markup = {
-          inline_keyboard: inlineButtons,
+  const results = await Promise.allSettled(
+    validTargets.map(async (chatId) => {
+      try {
+        const endpoint = `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`;
+        const payload: Record<string, any> = {
+          chat_id: chatId,
+          text: htmlText,
+          parse_mode: 'HTML',
+          disable_web_page_preview: true,
         };
-      } else if (replyMarkup) {
-        payload.reply_markup = replyMarkup;
+
+        if (inlineButtons && inlineButtons.length > 0) {
+          payload.reply_markup = {
+            inline_keyboard: inlineButtons,
+          };
+        } else if (replyMarkup) {
+          payload.reply_markup = replyMarkup;
+        }
+
+        const res = await fetch(endpoint, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload),
+        });
+
+        if (res.ok) {
+          return true;
+        } else {
+          const errText = await res.text();
+          console.warn(`Telegram API error for chat ${chatId}:`, errText);
+          return false;
+        }
+      } catch (err) {
+        console.warn(`Failed to dispatch Telegram alert to ${chatId}:`, err);
+        return false;
       }
+    })
+  );
 
-      const res = await fetch(endpoint, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload),
-      });
-
-      if (res.ok) {
-        successCount++;
-      } else {
-        const errText = await res.text();
-        console.warn(`Telegram API error for chat ${chatId}:`, errText);
-      }
-    } catch (err) {
-      console.warn(`Failed to dispatch Telegram alert to ${chatId}:`, err);
-    }
-  }
-
+  const successCount = results.filter((r) => r.status === 'fulfilled' && r.value === true).length;
   return successCount > 0;
 }
 

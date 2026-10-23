@@ -33,10 +33,18 @@ export interface CashfreeOrderResponse {
   environment: 'PRODUCTION' | 'SANDBOX';
 }
 
+let cachedCashfreeCreds: CashfreeCredentials | null = null;
+let cashfreeCredsCachedAt = 0;
+const CASHFREE_CREDS_TTL = 5 * 60 * 1000; // 5 minutes
+
 /**
- * Retrieve Cashfree credentials from Environment Variables or Firestore
+ * Retrieve Cashfree credentials from Environment Variables or Firestore (Cached in-memory)
  */
-export async function getCashfreeCredentials(): Promise<CashfreeCredentials> {
+export async function getCashfreeCredentials(forceRefresh = false): Promise<CashfreeCredentials> {
+  if (!forceRefresh && cachedCashfreeCreds && Date.now() - cashfreeCredsCachedAt < CASHFREE_CREDS_TTL) {
+    return cachedCashfreeCreds;
+  }
+
   // Check all common environment variable naming patterns
   let appId = (
     process.env.CASHFREE_APP_ID ||
@@ -119,7 +127,7 @@ export async function getCashfreeCredentials(): Promise<CashfreeCredentials> {
     environment = 'PRODUCTION';
   }
 
-  return {
+  const result: CashfreeCredentials = {
     appId,
     secretKey,
     environment,
@@ -127,6 +135,10 @@ export async function getCashfreeCredentials(): Promise<CashfreeCredentials> {
     returnUrl,
     enabled,
   };
+
+  cachedCashfreeCreds = result;
+  cashfreeCredsCachedAt = Date.now();
+  return result;
 }
 
 /**

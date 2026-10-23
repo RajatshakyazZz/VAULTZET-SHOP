@@ -234,8 +234,8 @@ export async function POST(request: Request) {
       }
     }
 
-    // 3. Dispatch Instant Telegram Alert for Checkout Started
-    await sendAbandonedOrPendingTelegramAlert(
+    // 3. Dispatch Instant Telegram Alert for Checkout Started (Non-blocking background delivery)
+    sendAbandonedOrPendingTelegramAlert(
       {
         orderNumber,
         customer: {
@@ -250,7 +250,9 @@ export async function POST(request: Request) {
         paymentMethod: 'Cashfree UPI / Card',
       },
       'checkout_initiated'
-    );
+    ).catch((tErr) => {
+      console.warn('Non-blocking Telegram alert warning:', tErr);
+    });
 
     return NextResponse.json({
       success: true,

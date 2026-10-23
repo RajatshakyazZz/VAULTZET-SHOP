@@ -586,12 +586,28 @@ function CheckoutContent() {
       }));
 
       // 2. Open Cashfree v3 Checkout
-      if (typeof window !== 'undefined' && window.Cashfree) {
-        const cashfree = window.Cashfree({
-          mode: data.environment === 'SANDBOX' ? 'sandbox' : 'production',
-        });
+      let cashfreeInstance: any = null;
+      if (typeof window !== 'undefined') {
+        if (window.Cashfree) {
+          cashfreeInstance = window.Cashfree({
+            mode: data.environment === 'SANDBOX' ? 'sandbox' : 'production',
+          });
+        } else {
+          // If SDK script is still in transit, wait up to 1.5s
+          for (let i = 0; i < 15; i++) {
+            await new Promise((r) => setTimeout(r, 100));
+            if (window.Cashfree) {
+              cashfreeInstance = window.Cashfree({
+                mode: data.environment === 'SANDBOX' ? 'sandbox' : 'production',
+              });
+              break;
+            }
+          }
+        }
+      }
 
-        const result = await cashfree.checkout({
+      if (cashfreeInstance) {
+        const result = await cashfreeInstance.checkout({
           paymentSessionId: data.payment_session_id,
           redirectTarget: '_self',
         });
@@ -614,8 +630,8 @@ function CheckoutContent() {
           setErrorMessage(result.error.message || 'Payment was cancelled. You can retry anytime.');
         }
       } else {
-        // Fallback: If JS SDK is slow to load, direct redirect
-        window.location.href = `/api/payment/cashfree/return?order_id=${encodeURIComponent(data.order_id)}`;
+        // Direct hosted fallback if SDK is blocked by client adblocker
+        window.location.href = `https://payments.cashfree.com/order/#${encodeURIComponent(data.payment_session_id)}`;
       }
     } catch (err: any) {
       console.error('Cashfree order error:', err);
@@ -1381,10 +1397,16 @@ function CheckoutContent() {
 export default function CheckoutPage() {
   return (
     <>
-      {/* Official Cashfree v3 Web SDK loaded unconditionally at page root */}
+      {/* Official Cashfree v3 Web SDK loaded with high priority + preconnect for instant checkout modal */}
+      <link rel="preconnect" href="https://sdk.cashfree.com" />
+      <link rel="dns-prefetch" href="https://sdk.cashfree.com" />
+      <link rel="preconnect" href="https://api.cashfree.com" />
+      <link rel="dns-prefetch" href="https://api.cashfree.com" />
+      <link rel="preconnect" href="https://payments.cashfree.com" />
+      <link rel="dns-prefetch" href="https://payments.cashfree.com" />
       <Script
         src="https://sdk.cashfree.com/js/v3/cashfree.js"
-        strategy="lazyOnload"
+        strategy="afterInteractive"
       />
       <Suspense
         fallback={

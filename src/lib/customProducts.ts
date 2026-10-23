@@ -372,10 +372,19 @@ export function getAllCatalogBundles(
   return [...brandNewCustom, ...updatedInitial];
 }
 
+const serverSingleProductCache = new Map<string, { product: BundleProduct | null; cachedAt: number }>();
+const SERVER_SINGLE_CACHE_TTL = 60 * 1000; // 60 seconds
+
 export async function fetchCustomProductBySlug(slug: string): Promise<BundleProduct | null> {
   const clean = slug.trim().toLowerCase();
   const deletedSet = getDeletedSlugsSync();
   if (deletedSet.has(clean)) return null;
+
+  // 0. Fast in-memory server/client cache
+  const memCached = serverSingleProductCache.get(clean);
+  if (memCached && Date.now() - memCached.cachedAt < SERVER_SINGLE_CACHE_TTL) {
+    return memCached.product;
+  }
 
   // Find corresponding base bundle in BUNDLE_PRODUCTS if one exists
   const baseProd = BUNDLE_PRODUCTS.find(
@@ -397,20 +406,21 @@ export async function fetchCustomProductBySlug(slug: string): Promise<BundleProd
       !deletedSet.has(p.id.toLowerCase())
   );
   if (local) {
-    if (baseProd) {
-      return {
-        ...baseProd,
-        ...local,
-        personalPrice: local.personalPrice,
-        personalOriginalPrice: local.personalOriginalPrice,
-        resellerPrice: local.resellerPrice,
-        resellerOriginalPrice: local.resellerOriginalPrice,
-      };
-    }
-    return local;
+    const res = baseProd
+      ? {
+          ...baseProd,
+          ...local,
+          personalPrice: local.personalPrice,
+          personalOriginalPrice: local.personalOriginalPrice,
+          resellerPrice: local.resellerPrice,
+          resellerOriginalPrice: local.resellerOriginalPrice,
+        }
+      : local;
+    serverSingleProductCache.set(clean, { product: res, cachedAt: Date.now() });
+    return res;
   }
 
-  // 2. Query Firestore directly: check candidate doc IDs
+  // 2. Query Firestore directly: check candidate doc IDs in parallel
   if (db) {
     const candidateIds = Array.from(
       new Set(
@@ -424,28 +434,32 @@ export async function fetchCustomProductBySlug(slug: string): Promise<BundleProd
       )
     );
 
-    for (const candId of candidateIds) {
-      try {
-        const snap = await getDoc(doc(db, 'products', candId));
-        if (snap.exists()) {
+    try {
+      const candidateSnaps = await Promise.all(
+        candidateIds.map((candId) => getDoc(doc(db, 'products', candId)).catch(() => null))
+      );
+
+      for (const snap of candidateSnaps) {
+        if (snap && snap.exists()) {
           const data = snap.data();
           if (!data.is_deleted && data.status !== 'trash') {
             const mapped = mapFirestoreDocToBundleProduct({ id: snap.id, ...data });
-            if (baseProd) {
-              return {
-                ...baseProd,
-                ...mapped,
-                personalPrice: mapped.personalPrice,
-                personalOriginalPrice: mapped.personalOriginalPrice,
-                resellerPrice: mapped.resellerPrice,
-                resellerOriginalPrice: mapped.resellerOriginalPrice,
-              };
-            }
-            return mapped;
+            const finalResult = baseProd
+              ? {
+                  ...baseProd,
+                  ...mapped,
+                  personalPrice: mapped.personalPrice,
+                  personalOriginalPrice: mapped.personalOriginalPrice,
+                  resellerPrice: mapped.resellerPrice,
+                  resellerOriginalPrice: mapped.resellerOriginalPrice,
+                }
+              : mapped;
+            serverSingleProductCache.set(clean, { product: finalResult, cachedAt: Date.now() });
+            return finalResult;
           }
         }
-      } catch {}
-    }
+      }
+    } catch {}
 
     // 3. Fallback scan if candidate direct lookups didn't match
     try {
@@ -464,17 +478,18 @@ export async function fetchCustomProductBySlug(slug: string): Promise<BundleProd
           (baseProd && (docSlug === baseProd.slug.toLowerCase() || docId === baseProd.id.toLowerCase()))
         ) {
           const mapped = mapFirestoreDocToBundleProduct({ id: d.id, ...data });
-          if (baseProd) {
-            return {
-              ...baseProd,
-              ...mapped,
-              personalPrice: mapped.personalPrice,
-              personalOriginalPrice: mapped.personalOriginalPrice,
-              resellerPrice: mapped.resellerPrice,
-              resellerOriginalPrice: mapped.resellerOriginalPrice,
-            };
-          }
-          return mapped;
+          const finalResult = baseProd
+            ? {
+                ...baseProd,
+                ...mapped,
+                personalPrice: mapped.personalPrice,
+                personalOriginalPrice: mapped.personalOriginalPrice,
+                resellerPrice: mapped.resellerPrice,
+                resellerOriginalPrice: mapped.resellerOriginalPrice,
+              }
+            : mapped;
+          serverSingleProductCache.set(clean, { product: finalResult, cachedAt: Date.now() });
+          return finalResult;
         }
       }
     } catch (e) {
@@ -484,6 +499,7 @@ export async function fetchCustomProductBySlug(slug: string): Promise<BundleProd
 
   // If not in Firestore or local, but exists in BUNDLE_PRODUCTS
   if (baseProd && !deletedSet.has(baseProd.slug.toLowerCase()) && !deletedSet.has(baseProd.id.toLowerCase())) {
+    serverSingleProductCache.set(clean, { product: baseProd, cachedAt: Date.now() });
     return baseProd;
   }
 
