@@ -1178,15 +1178,15 @@ function OrderSuccessContent() {
                         <div className="flex items-center justify-between text-[11px] font-bold text-slate-400 mb-1">
                           <span>ONE-TIME PRICE</span>
                           <span className="text-emerald-700 font-extrabold bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-100">
-                            {upsellTab === 'reseller' ? '80% OFF' : '73% OFF'}
+                            {upsellTab === 'reseller' ? `${ALL_ACCESS_PLANS[1].discountPercentage}% OFF` : `${ALL_ACCESS_PLANS[0].discountPercentage}% OFF`}
                           </span>
                         </div>
                         <div className="flex items-baseline gap-2">
                           <strong className="text-2xl font-black text-[#ff2d75]">
-                            {upsellTab === 'reseller' ? '₹899' : '₹699'}
+                            {upsellTab === 'reseller' ? `₹${ALL_ACCESS_PLANS[1].price}` : `₹${ALL_ACCESS_PLANS[0].price}`}
                           </strong>
                           <del className="text-xs font-bold text-slate-400">
-                            {upsellTab === 'reseller' ? '₹4499' : '₹2599'}
+                            {upsellTab === 'reseller' ? `₹${ALL_ACCESS_PLANS[1].originalPrice}` : `₹${ALL_ACCESS_PLANS[0].originalPrice}`}
                           </del>
                         </div>
                         <small className="block text-[11px] text-slate-500 font-semibold mt-0.5">
@@ -1240,14 +1240,13 @@ function OrderSuccessContent() {
                   </div>
 
                   {/* Wide Button matching the screenshot */}
-                  <button
-                    type="button"
-                    onClick={() => handleBuyUpsell(upsellTab)}
+                  <Link
+                    href={upsellTab === 'reseller' ? '/product/all-bundles-reseller-rights' : '/product/all-bundles-personal-use'}
                     className="w-full py-4 rounded-2xl bg-gradient-to-r from-[#ef2f32] via-[#ff4f21] to-[#ff7a00] hover:from-[#e02629] hover:to-[#f07000] text-white font-black text-sm sm:text-base flex items-center justify-center gap-2 shadow-[0_12px_28px_rgba(238,72,27,0.28)] transition-transform hover:scale-[1.01]"
                   >
-                    <span>{upsellTab === 'reseller' ? 'Unlock Reseller Access' : 'Get Personal Access'}</span>
+                    <span>{upsellTab === 'reseller' ? 'Get Reseller Access' : 'Get Personal Access'}</span>
                     <ArrowRight className="w-5 h-5 stroke-[2.5]" />
-                  </button>
+                  </Link>
                 </div>
               </section>
             )}

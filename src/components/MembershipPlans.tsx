@@ -1,48 +1,62 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import Link from 'next/link';
 import { Check, ArrowRight, ArrowUpRight, Play, RotateCw } from 'lucide-react';
 import { ALL_ACCESS_PLANS } from '@/data/bundles';
-import { useCart } from '@/context/CartContext';
-import { BundleProduct } from '@/types';
+import { fetchCustomProductBySlug } from '@/lib/customProducts';
 
 export default function MembershipPlans() {
   const [selectedTab, setSelectedTab] = useState<'personal' | 'reseller'>('personal');
-  const { buyNow } = useCart();
+  const [plans, setPlans] = useState(ALL_ACCESS_PLANS);
+
+  useEffect(() => {
+    let isMounted = true;
+    Promise.all([
+      fetchCustomProductBySlug('all-bundles-personal-use', true),
+      fetchCustomProductBySlug('all-bundles-reseller-rights', true),
+    ])
+      .then(([personalLive, resellerLive]) => {
+        if (!isMounted) return;
+        setPlans((prev) => {
+          const updated = [...prev];
+          if (personalLive) {
+            const pPrice = Number(personalLive.personalPrice ?? personalLive.price ?? updated[0].price);
+            const pOrig = Number(personalLive.personalOriginalPrice ?? personalLive.regular_price ?? updated[0].originalPrice);
+            const pDisc = Math.round(((pOrig - pPrice) / Math.max(1, pOrig)) * 100);
+            updated[0] = {
+              ...updated[0],
+              name: personalLive.title || updated[0].name,
+              price: pPrice,
+              originalPrice: pOrig,
+              discountPercentage: pDisc > 0 ? pDisc : updated[0].discountPercentage,
+            };
+          }
+          if (resellerLive) {
+            const rPrice = Number(resellerLive.personalPrice ?? resellerLive.price ?? updated[1].price);
+            const rOrig = Number(resellerLive.personalOriginalPrice ?? resellerLive.regular_price ?? updated[1].originalPrice);
+            const rDisc = Math.round(((rOrig - rPrice) / Math.max(1, rOrig)) * 100);
+            updated[1] = {
+              ...updated[1],
+              name: resellerLive.title || updated[1].name,
+              price: rPrice,
+              originalPrice: rOrig,
+              discountPercentage: rDisc > 0 ? rDisc : updated[1].discountPercentage,
+            };
+          }
+          return updated;
+        });
+      })
+      .catch(() => {});
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
 
   const isReseller = selectedTab === 'reseller';
-  const currentPlan = isReseller ? ALL_ACCESS_PLANS[1] : ALL_ACCESS_PLANS[0];
-
-  const handleChoosePlan = () => {
-    const masterProduct: BundleProduct = {
-      id: currentPlan.id,
-      slug: currentPlan.id,
-      title: currentPlan.name,
-      shortDescription: currentPlan.subtitle,
-      category: 'All Access Membership',
-      categorySlug: 'all-access',
-      reelCount: 222000,
-      personalPrice: currentPlan.price,
-      personalOriginalPrice: currentPlan.originalPrice,
-      resellerPrice: currentPlan.price,
-      resellerOriginalPrice: currentPlan.originalPrice,
-      thumbnail:
-        'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&w=800&q=80',
-      galleryImages: [],
-      tags: ['ALL ACCESS', currentPlan.badge],
-      rating: 5.0,
-      reviewCount: 310,
-      resolution: '1080p Full HD',
-      aspectRatio: '9:16 Vertical',
-      format: 'MP4 Video',
-      audioIncluded: true,
-      googleDriveLink: 'https://drive.google.com/drive/folders/master-all-access-vaultzet',
-      features: currentPlan.features,
-      faqs: [],
-    };
-
-    buyNow(masterProduct, currentPlan.licenseType);
-  };
+  const currentPlan = isReseller ? plans[1] : plans[0];
+  const targetProductSlug = isReseller ? 'all-bundles-reseller-rights' : 'all-bundles-personal-use';
 
   return (
     <section id="vaultzet-plans" className="py-6 sm:py-10 [contain:layout_style]">
@@ -162,7 +176,9 @@ export default function MembershipPlans() {
                       {isReseller ? 'RESELLER ACCESS' : 'PERSONAL ACCESS'}
                     </span>
                     <h3 className="text-xl sm:text-[22px] font-black text-[#141b34] leading-snug">
-                      {currentPlan.name}
+                      <Link href={`/product/${targetProductSlug}`} className="hover:text-purple-700 transition-colors">
+                        {currentPlan.name}
+                      </Link>
                     </h3>
                     <p className="text-xs sm:text-[13px] text-[#525a70] font-medium leading-relaxed">
                       {currentPlan.subtitle}
@@ -257,19 +273,18 @@ export default function MembershipPlans() {
 
             </div>
 
-            {/* Full-Width Orange Gradient CTA Button */}
-            <button
-              type="button"
-              onClick={handleChoosePlan}
+            {/* Full-Width Orange Gradient CTA Button: Navigates to respective product page */}
+            <Link
+              href={`/product/${targetProductSlug}`}
               className="w-full py-3.5 sm:py-4 px-6 rounded-[16px] bg-gradient-to-r from-[#c92a10] via-[#d9530f] to-[#c92a10] hover:from-[#b0230c] hover:via-[#c2460a] hover:to-[#b0230c] text-white font-extrabold text-sm sm:text-[15px] flex items-center justify-center gap-2.5 shadow-[0_8px_22px_rgba(217,72,15,0.28)] transition-all hover:scale-[1.005]"
             >
               <span>
-                {isReseller ? 'Unlock Reseller Access' : 'Get Personal Access'}
+                {isReseller ? 'Get Reseller Access' : 'Get Personal Access'}
               </span>
               <span className="w-5 h-5 rounded-full bg-white/25 flex items-center justify-center">
                 <ArrowRight className="w-3.5 h-3.5 text-white stroke-[2.5]" />
               </span>
-            </button>
+            </Link>
 
             {/* Bottom Accent Line */}
             <div
