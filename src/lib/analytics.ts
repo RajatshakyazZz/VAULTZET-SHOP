@@ -27,7 +27,8 @@ export type AnalyticsEventName =
   | 'scroll'
   | 'cta_click'
   | 'whatsapp_click'
-  | 'view_promotion';
+  | 'view_promotion'
+  | 'coupon_applied';
 
 declare global {
   interface Window {
@@ -110,37 +111,47 @@ function bridgeToMetaPixel(event: AnalyticsEventName, payload: Record<string, an
 
   try {
     switch (event) {
-      case 'page_view':
-        window.fbq('track', 'PageView');
+      case 'page_view': {
+        const eventId = payload.event_id || `pv_${Date.now()}_${Math.random().toString(36).substring(2, 8)}`;
+        window.fbq('track', 'PageView', {}, { eventID: eventId });
         break;
-      case 'view_item':
+      }
+      case 'view_item': {
+        const itemId = payload.items?.[0]?.item_id || payload.item_id || 'prod';
+        const eventId = payload.event_id || `vc_${itemId}_${Date.now()}`;
         window.fbq('track', 'ViewContent', {
           content_name: payload.items?.[0]?.item_name || payload.item_name,
           content_ids: [payload.items?.[0]?.item_id || payload.item_id],
           content_type: 'product',
           value: Number(payload.value || payload.items?.[0]?.price || 0),
           currency: 'INR',
-        });
+        }, { eventID: eventId });
         break;
-      case 'add_to_cart':
+      }
+      case 'add_to_cart': {
+        const itemId = payload.items?.[0]?.item_id || payload.item_id || 'cart';
+        const eventId = payload.event_id || `atc_${itemId}_${Date.now()}`;
         window.fbq('track', 'AddToCart', {
           content_name: payload.items?.[0]?.item_name,
           content_ids: [payload.items?.[0]?.item_id],
           content_type: 'product',
           value: Number(payload.value || 0),
           currency: 'INR',
-        });
+        }, { eventID: eventId });
         break;
-      case 'begin_checkout':
+      }
+      case 'begin_checkout': {
+        const eventId = payload.event_id || `ic_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`;
         window.fbq('track', 'InitiateCheckout', {
           value: Number(payload.value || 0),
           currency: 'INR',
           num_items: payload.items?.length || 1,
-        });
+        }, { eventID: eventId });
         break;
+      }
       case 'purchase': {
         const orderId = payload.transaction_id || payload.order_id || '';
-        const eventId = payload.event_id || (orderId ? `purchase_${orderId}` : undefined);
+        const eventId = payload.event_id || (orderId ? `purchase_${orderId}` : `purchase_${Date.now()}`);
         const fbData: Record<string, any> = {
           value: Number(payload.value || 0),
           currency: payload.currency || 'INR',
@@ -156,18 +167,16 @@ function bridgeToMetaPixel(event: AnalyticsEventName, payload: Record<string, an
           fbData.content_type = 'product';
           fbData.num_items = payload.items.length;
         }
-        if (eventId) {
-          window.fbq('track', 'Purchase', fbData, { eventID: eventId });
-        } else {
-          window.fbq('track', 'Purchase', fbData);
-        }
+        window.fbq('track', 'Purchase', fbData, { eventID: eventId });
         break;
       }
-      case 'search':
+      case 'search': {
+        const eventId = payload.event_id || `search_${Date.now()}`;
         window.fbq('track', 'Search', {
           search_string: payload.search_term,
-        });
+        }, { eventID: eventId });
         break;
+      }
     }
   } catch (err) {
     if (isDebugMode()) {

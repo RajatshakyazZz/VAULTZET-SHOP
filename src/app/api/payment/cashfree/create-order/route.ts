@@ -6,7 +6,7 @@ import { sendAbandonedOrPendingTelegramAlert } from '@/lib/telegram';
 import { generateOrderToken } from '@/lib/orderToken';
 import { getResellerListingBySlug } from '@/lib/resellerService';
 import { BUNDLE_PRODUCTS, ORDER_BUMP } from '@/data/bundles';
-import { calculateCouponDiscount } from '@/app/api/coupon/validate/route';
+import { calculateCouponDiscount } from '@/lib/coupon';
 import { fetchCustomProductBySlug } from '@/lib/customProducts';
 
 export async function POST(request: Request) {

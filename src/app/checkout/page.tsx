@@ -331,6 +331,19 @@ function CheckoutContent() {
     }
   }, []);
 
+  // Guarantee checkout always starts at the top (Delivery Information) when entering from Buy Now
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
+    }
+  }, []);
+
+  useEffect(() => {
+    if (!isLoadingBundle && typeof window !== 'undefined') {
+      window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
+    }
+  }, [isLoadingBundle]);
+
   // Normalize phone input: strip +91 / leading 0 on autofill, allow digits only, max 10 digits
   const normalizePhoneInput = (raw: string): string => {
     let digits = raw.replace(/\D/g, '');
@@ -913,6 +926,41 @@ function CheckoutContent() {
                       </p>
                     ) : null}
                   </div>
+
+                  {/* Immediate Pay Now Button directly below WhatsApp / Mobile Number */}
+                  <div className="pt-3 border-t border-purple-50">
+                    {errorMessage && (
+                      <div className="mb-3 p-3 rounded-xl bg-rose-50 border border-rose-200 text-rose-800 text-xs font-semibold flex items-center gap-2 animate-in fade-in">
+                        <AlertCircle className="w-4 h-4 text-rose-600 shrink-0" />
+                        <span>{errorMessage}</span>
+                      </div>
+                    )}
+                    <button
+                      type="submit"
+                      disabled={isProcessing}
+                      className="w-full py-4 px-6 rounded-2xl btn-gradient-orange text-white font-black text-base flex items-center justify-center gap-2 shadow-xl hover:scale-[1.01] active:scale-[0.98] transition-all disabled:opacity-70 cursor-pointer"
+                    >
+                      {isProcessing ? (
+                        <span className="flex items-center gap-2">
+                          <Loader2 className="w-5 h-5 animate-spin" />
+                          <span>Connecting Cashfree Gateway...</span>
+                        </span>
+                      ) : (
+                        <>
+                          <Lock className="w-4 h-4 fill-white/20" />
+                          <span>Pay ₹{checkoutTotal}.00 via Cashfree (Instant Access)</span>
+                        </>
+                      )}
+                    </button>
+                    <div className="flex items-center justify-center gap-2 text-[11px] text-slate-500 font-semibold text-center mt-2.5">
+                      <span className="flex items-center gap-1 text-emerald-700 font-bold">
+                        <ShieldCheck className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+                        <span>Instant Google Drive Delivery</span>
+                      </span>
+                      <span>•</span>
+                      <span>256-bit SSL Security</span>
+                    </div>
+                  </div>
                 </div>
               </div>
 
@@ -1289,52 +1337,11 @@ function CheckoutContent() {
                   </div>
                 </div>
 
-                {/* Mobile Locked Coupon Bar Right Above Buy Now Button */}
-                {!appliedCoupon ? (
-                  <div className="space-y-1">
-                    <div className="flex items-center gap-1.5 bg-slate-50 border border-purple-200/90 rounded-xl p-1 shadow-2xs">
-                      <Tag className="w-3.5 h-3.5 text-rb-purple ml-1.5 shrink-0" />
-                      <input
-                        type="text"
-                        value={couponInput}
-                        onChange={(e) => {
-                          setCouponInput(e.target.value.toUpperCase());
-                          setCouponError(null);
-                        }}
-                        onKeyDown={(e) => {
-                          if (e.key === 'Enter') {
-                            e.preventDefault();
-                            handleApplyCoupon();
-                          }
-                        }}
-                        placeholder="Enter coupon code"
-                        className="bg-transparent text-xs font-bold text-slate-900 placeholder:text-slate-400 focus:outline-none flex-1 min-w-0 uppercase tracking-wider px-1.5"
-                      />
-                      <button
-                        type="button"
-                        onClick={() => handleApplyCoupon()}
-                        disabled={couponLoading || !couponInput.trim()}
-                        className="px-3.5 py-1.5 rounded-lg bg-purple-900 hover:bg-purple-800 disabled:opacity-50 text-white text-[11px] font-black shrink-0 transition-transform active:scale-95 cursor-pointer shadow-xs"
-                      >
-                        {couponLoading ? (
-                          <Loader2 className="w-3 h-3 animate-spin" />
-                        ) : (
-                          'Apply'
-                        )}
-                      </button>
-                    </div>
-
-                    {couponError && (
-                      <p className="text-[10px] font-bold text-red-600 flex items-center gap-1 px-1">
-                        <AlertCircle className="w-3 h-3 shrink-0" />
-                        <span>{couponError}</span>
-                      </p>
-                    )}
-                  </div>
-                ) : (
+                {/* Applied Coupon Pill (If any) */}
+                {appliedCoupon && (
                   <div className="p-2 rounded-xl bg-gradient-to-r from-emerald-50 to-teal-50 border border-emerald-200 flex items-center justify-between gap-2 shadow-2xs animate-in fade-in duration-200">
                     <div className="flex items-center gap-2 min-w-0">
-                      <div className="w-6 h-6 rounded-lg bg-emerald-500 text-white flex items-center justify-center shrink-0">
+                      <div className="w-5 h-5 rounded-lg bg-emerald-500 text-white flex items-center justify-center shrink-0">
                         <CheckCircle2 className="w-3.5 h-3.5" />
                       </div>
                       <div className="min-w-0">
@@ -1342,13 +1349,10 @@ function CheckoutContent() {
                           <span className="text-xs font-black text-emerald-950 uppercase tracking-wide">
                             {appliedCoupon.code}
                           </span>
-                          <span className="text-[9px] font-black px-1.5 py-0.2 rounded bg-emerald-200 text-emerald-900">
+                          <span className="text-[9px] font-black px-1.5 py-0.5 rounded bg-emerald-200 text-emerald-900">
                             -₹{couponDiscount} OFF
                           </span>
                         </div>
-                        <p className="text-[10px] text-emerald-700 font-medium truncate">
-                          {appliedCoupon.description || 'Special promo discount applied!'}
-                        </p>
                       </div>
                     </div>
                     <button
