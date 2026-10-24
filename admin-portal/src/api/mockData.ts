@@ -56,10 +56,10 @@ export const initialProducts: Product[] = [
     "name": "1000+ Ulti Pulti Duniya / Ulti Duniya / Reverse World AI Reels Bundle",
     "slug": "1000-ulti-pulti-duniya-ulti-duniya-reverse-world-ai-reels-bundle",
     "status": "publish",
-    "price": 59,
+    "price": 99,
     "regular_price": 499,
-    "sale_price": 59,
-    "reseller_price": 129,
+    "sale_price": 99,
+    "reseller_price": 199,
     "reseller_regular_price": 998,
     "stock_status": "instock",
     "categories": [

@@ -28,9 +28,9 @@ export const BUNDLE_PRODUCTS: BundleProduct[] = [
     "category": "AI Reels",
     "categorySlug": "ai-reels",
     "reelCount": 1000,
-    "personalPrice": 59,
+    "personalPrice": 99,
     "personalOriginalPrice": 499,
-    "resellerPrice": 129,
+    "resellerPrice": 199,
     "resellerOriginalPrice": 998,
     "thumbnail": "https://reelsbundles.in/wp-content/uploads/2026/10/1000-ulti-pulti-duniya-ulti-duniya-reverse-world-ai-reels-bundle-2.png",
     "galleryImages": [

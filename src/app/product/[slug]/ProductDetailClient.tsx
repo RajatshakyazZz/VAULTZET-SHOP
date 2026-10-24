@@ -120,7 +120,7 @@ export default function ProductDetailClient({ product }: ProductDetailClientProp
 
   useEffect(() => {
     let isMounted = true;
-    fetchCustomProductBySlug(product.slug)
+    fetchCustomProductBySlug(product.slug, true)
       .then((live) => {
         if (isMounted && live) {
           setCurrentProduct((prev) => ({ ...prev, ...live }));

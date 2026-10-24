@@ -306,30 +306,79 @@ export function getAllCatalogBundles(
   const customMap = new Map<string, BundleProduct>();
   const brandNewCustom: BundleProduct[] = [];
 
-  // Index initial bundle identifiers to distinguish existing overrides from brand-new items
+  // Index initial bundle identifiers & aliases to distinguish existing overrides from brand-new items
   const initialIdentifiers = new Set<string>();
+  const identifierToBaseBundle = new Map<string, BundleProduct>();
+
   (initialBundles || []).forEach((b) => {
-    if (b.slug) initialIdentifiers.add(b.slug.toLowerCase());
-    if (b.id) {
-      initialIdentifiers.add(b.id.toLowerCase());
-      initialIdentifiers.add(b.id.toLowerCase().replace(/^rb-/, ''));
+    const bSlug = (b.slug || '').toLowerCase();
+    const bId = (b.id || '').toLowerCase();
+    const bCleanId = bId.replace(/^rb-/, '');
+
+    if (bSlug) {
+      initialIdentifiers.add(bSlug);
+      identifierToBaseBundle.set(bSlug, b);
+    }
+    if (bId) {
+      initialIdentifiers.add(bId);
+      identifierToBaseBundle.set(bId, b);
+    }
+    if (bCleanId) {
+      initialIdentifiers.add(bCleanId);
+      identifierToBaseBundle.set(bCleanId, b);
+    }
+
+    if (Array.isArray(b.aliases)) {
+      b.aliases.forEach((alias) => {
+        const cleanAlias = (alias || '').toLowerCase();
+        if (cleanAlias) {
+          initialIdentifiers.add(cleanAlias);
+          initialIdentifiers.add(`rb-${cleanAlias}`);
+          initialIdentifiers.add(cleanAlias.replace(/^rb-/, ''));
+          identifierToBaseBundle.set(cleanAlias, b);
+          identifierToBaseBundle.set(`rb-${cleanAlias}`, b);
+          identifierToBaseBundle.set(cleanAlias.replace(/^rb-/, ''), b);
+        }
+      });
     }
   });
 
   validCustom.forEach((cp) => {
-    const slugKey = cp.slug.toLowerCase();
+    const slugKey = (cp.slug || '').toLowerCase();
     const idKey = String(cp.id || '').toLowerCase();
     const cleanIdKey = idKey.replace(/^rb-/, '');
 
-    const isExisting =
-      initialIdentifiers.has(slugKey) ||
-      initialIdentifiers.has(idKey) ||
-      initialIdentifiers.has(cleanIdKey);
+    const baseBundle =
+      identifierToBaseBundle.get(slugKey) ||
+      identifierToBaseBundle.get(idKey) ||
+      identifierToBaseBundle.get(cleanIdKey);
 
-    if (isExisting) {
+    const isExisting = Boolean(baseBundle);
+
+    if (isExisting && baseBundle) {
+      // Map every possible key of both cp and baseBundle to cp so lookup ALWAYS succeeds
       customMap.set(slugKey, cp);
       customMap.set(idKey, cp);
       customMap.set(cleanIdKey, cp);
+
+      const baseSlug = (baseBundle.slug || '').toLowerCase();
+      const baseId = (baseBundle.id || '').toLowerCase();
+      const baseCleanId = baseId.replace(/^rb-/, '');
+
+      if (baseSlug) customMap.set(baseSlug, cp);
+      if (baseId) customMap.set(baseId, cp);
+      if (baseCleanId) customMap.set(baseCleanId, cp);
+
+      if (Array.isArray(baseBundle.aliases)) {
+        baseBundle.aliases.forEach((a) => {
+          const aLower = (a || '').toLowerCase();
+          if (aLower) {
+            customMap.set(aLower, cp);
+            customMap.set(`rb-${aLower}`, cp);
+            customMap.set(aLower.replace(/^rb-/, ''), cp);
+          }
+        });
+      }
     } else {
       if (!brandNewCustom.some((b) => b.slug.toLowerCase() === slugKey || b.id.toLowerCase() === idKey)) {
         brandNewCustom.push(cp);
@@ -351,7 +400,15 @@ export function getAllCatalogBundles(
       const idKey = String(b.id || '').toLowerCase();
       const cleanIdKey = idKey.replace(/^rb-/, '');
 
-      const override = customMap.get(slugKey) || customMap.get(idKey) || customMap.get(cleanIdKey);
+      let override = customMap.get(slugKey) || customMap.get(idKey) || customMap.get(cleanIdKey);
+      if (!override && Array.isArray(b.aliases)) {
+        for (const a of b.aliases) {
+          const aLower = (a || '').toLowerCase();
+          override = customMap.get(aLower) || customMap.get(`rb-${aLower}`) || customMap.get(aLower.replace(/^rb-/, ''));
+          if (override) break;
+        }
+      }
+
       if (override) {
         return {
           ...b,
@@ -373,17 +430,19 @@ export function getAllCatalogBundles(
 }
 
 const serverSingleProductCache = new Map<string, { product: BundleProduct | null; cachedAt: number }>();
-const SERVER_SINGLE_CACHE_TTL = 60 * 1000; // 60 seconds
+const SERVER_SINGLE_CACHE_TTL = 30 * 1000; // 30 seconds
 
-export async function fetchCustomProductBySlug(slug: string): Promise<BundleProduct | null> {
+export async function fetchCustomProductBySlug(slug: string, forceLive = false): Promise<BundleProduct | null> {
   const clean = slug.trim().toLowerCase();
   const deletedSet = getDeletedSlugsSync();
   if (deletedSet.has(clean)) return null;
 
-  // 0. Fast in-memory server/client cache
-  const memCached = serverSingleProductCache.get(clean);
-  if (memCached && Date.now() - memCached.cachedAt < SERVER_SINGLE_CACHE_TTL) {
-    return memCached.product;
+  // 0. Fast in-memory server/client cache (bypassed if forceLive = true)
+  if (!forceLive) {
+    const memCached = serverSingleProductCache.get(clean);
+    if (memCached && Date.now() - memCached.cachedAt < SERVER_SINGLE_CACHE_TTL) {
+      return memCached.product;
+    }
   }
 
   // Find corresponding base bundle in BUNDLE_PRODUCTS if one exists
@@ -392,35 +451,43 @@ export async function fetchCustomProductBySlug(slug: string): Promise<BundleProd
       b.slug.toLowerCase() === clean ||
       b.id.toLowerCase() === clean ||
       b.id.toLowerCase().replace(/^rb-/, '') === clean ||
-      (b.aliases && b.aliases.some((a) => a.toLowerCase() === clean))
+      (b.aliases && b.aliases.some((a) => a.toLowerCase() === clean || `rb-${a.toLowerCase()}` === clean || a.toLowerCase().replace(/^rb-/, '') === clean))
   );
 
-  // 1. Check local cache
-  const localList = getLocalCustomProductsSync();
-  const local = localList.find(
-    (p) =>
-      (p.slug.toLowerCase() === clean ||
-        p.id.toLowerCase() === clean ||
-        p.id.toLowerCase().replace(/^rb-/, '') === clean) &&
-      !deletedSet.has(p.slug.toLowerCase()) &&
-      !deletedSet.has(p.id.toLowerCase())
-  );
-  if (local) {
-    const res = baseProd
-      ? {
-          ...baseProd,
-          ...local,
-          personalPrice: local.personalPrice,
-          personalOriginalPrice: local.personalOriginalPrice,
-          resellerPrice: local.resellerPrice,
-          resellerOriginalPrice: local.resellerOriginalPrice,
-        }
-      : local;
-    serverSingleProductCache.set(clean, { product: res, cachedAt: Date.now() });
-    return res;
+  // 1. Check local cache (only if NOT forceLive)
+  if (!forceLive) {
+    const localList = getLocalCustomProductsSync();
+    const local = localList.find((p) => {
+      const pSlug = (p.slug || '').toLowerCase();
+      const pId = (p.id || '').toLowerCase();
+      const pCleanId = pId.replace(/^rb-/, '');
+      if (deletedSet.has(pSlug) || deletedSet.has(pId)) return false;
+
+      if (pSlug === clean || pId === clean || pCleanId === clean) return true;
+      if (baseProd) {
+        if (baseProd.slug.toLowerCase() === pSlug || baseProd.id.toLowerCase() === pId) return true;
+        if (baseProd.aliases && baseProd.aliases.some((a) => a.toLowerCase() === pSlug || a.toLowerCase() === pId || `rb-${a.toLowerCase()}` === pId)) return true;
+      }
+      return false;
+    });
+
+    if (local) {
+      const res = baseProd
+        ? {
+            ...baseProd,
+            ...local,
+            personalPrice: local.personalPrice,
+            personalOriginalPrice: local.personalOriginalPrice,
+            resellerPrice: local.resellerPrice,
+            resellerOriginalPrice: local.resellerOriginalPrice,
+          }
+        : local;
+      serverSingleProductCache.set(clean, { product: res, cachedAt: Date.now() });
+      return res;
+    }
   }
 
-  // 2. Query Firestore directly: check candidate doc IDs in parallel
+  // 2. Query Firestore directly: check candidate doc IDs in parallel (including all aliases)
   if (db) {
     const candidateIds = Array.from(
       new Set(
@@ -430,9 +497,12 @@ export async function fetchCustomProductBySlug(slug: string): Promise<BundleProd
           clean.replace(/^rb-/, ''),
           baseProd?.id,
           baseProd?.slug,
+          ...(baseProd?.aliases || []),
+          ...(baseProd?.aliases || []).map((a) => `rb-${a}`),
+          ...(baseProd?.aliases || []).map((a) => a.replace(/^rb-/, '')),
         ].filter((id): id is string => typeof id === 'string' && Boolean(id.trim()))
       )
-    );
+    ).map((id) => id.toLowerCase());
 
     try {
       const candidateSnaps = await Promise.all(
@@ -455,6 +525,30 @@ export async function fetchCustomProductBySlug(slug: string): Promise<BundleProd
                 }
               : mapped;
             serverSingleProductCache.set(clean, { product: finalResult, cachedAt: Date.now() });
+
+            // Sync updated product into client-side localStorage so other pages have fresh data
+            if (typeof window !== 'undefined') {
+              try {
+                const raw = localStorage.getItem('vaultzet_custom_products');
+                let list = raw ? JSON.parse(raw) : [];
+                if (Array.isArray(list)) {
+                  const idx = list.findIndex(
+                    (p: any) =>
+                      (p.slug && p.slug.toLowerCase() === clean) ||
+                      (p.id && p.id.toLowerCase() === clean) ||
+                      (baseProd && (p.slug?.toLowerCase() === baseProd.slug.toLowerCase() || p.id?.toLowerCase() === baseProd.id.toLowerCase()))
+                  );
+                  const storageItem = { ...finalResult, price: finalResult.personalPrice };
+                  if (idx !== -1) {
+                    list[idx] = { ...list[idx], ...storageItem };
+                  } else {
+                    list.unshift(storageItem);
+                  }
+                  localStorage.setItem('vaultzet_custom_products', JSON.stringify(list));
+                }
+              } catch {}
+            }
+
             return finalResult;
           }
         }
@@ -470,13 +564,19 @@ export async function fetchCustomProductBySlug(slug: string): Promise<BundleProd
         const docId = d.id.toLowerCase();
         const docSlug = String(data.slug || '').toLowerCase();
 
-        if (
+        const isMatch =
           docSlug === clean ||
           docId === clean ||
           docId === `rb-${clean}` ||
           clean === `rb-${docSlug}` ||
-          (baseProd && (docSlug === baseProd.slug.toLowerCase() || docId === baseProd.id.toLowerCase()))
-        ) {
+          (baseProd && (
+            docSlug === baseProd.slug.toLowerCase() ||
+            docId === baseProd.id.toLowerCase() ||
+            docId === `rb-${baseProd.slug.toLowerCase()}` ||
+            (baseProd.aliases && baseProd.aliases.some((a) => a.toLowerCase() === docSlug || a.toLowerCase() === docId || `rb-${a.toLowerCase()}` === docId))
+          ));
+
+        if (isMatch) {
           const mapped = mapFirestoreDocToBundleProduct({ id: d.id, ...data });
           const finalResult = baseProd
             ? {
@@ -489,6 +589,29 @@ export async function fetchCustomProductBySlug(slug: string): Promise<BundleProd
               }
             : mapped;
           serverSingleProductCache.set(clean, { product: finalResult, cachedAt: Date.now() });
+
+          if (typeof window !== 'undefined') {
+            try {
+              const raw = localStorage.getItem('vaultzet_custom_products');
+              let list = raw ? JSON.parse(raw) : [];
+              if (Array.isArray(list)) {
+                const idx = list.findIndex(
+                  (p: any) =>
+                    (p.slug && p.slug.toLowerCase() === clean) ||
+                    (p.id && p.id.toLowerCase() === clean) ||
+                    (baseProd && (p.slug?.toLowerCase() === baseProd.slug.toLowerCase() || p.id?.toLowerCase() === baseProd.id.toLowerCase()))
+                );
+                const storageItem = { ...finalResult, price: finalResult.personalPrice };
+                if (idx !== -1) {
+                  list[idx] = { ...list[idx], ...storageItem };
+                } else {
+                  list.unshift(storageItem);
+                }
+                localStorage.setItem('vaultzet_custom_products', JSON.stringify(list));
+              }
+            } catch {}
+          }
+
           return finalResult;
         }
       }

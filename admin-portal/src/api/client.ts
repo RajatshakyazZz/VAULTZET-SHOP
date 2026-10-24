@@ -530,10 +530,23 @@ class PortalApiClient {
       try {
         const docRef = doc(db, 'products', prodId);
         await setDoc(docRef, cleanPayload, { merge: true });
-        if (merged.slug && merged.slug !== prodId) {
-          try {
-            await setDoc(doc(db, 'products', merged.slug), cleanPayload, { merge: true });
-          } catch {}
+        const relatedIds = new Set<string>();
+        if (merged.slug) {
+          relatedIds.add(merged.slug);
+          relatedIds.add(`rb-${merged.slug}`);
+          relatedIds.add(merged.slug.replace(/^rb-/, ''));
+        }
+        if (prodId) {
+          relatedIds.add(prodId);
+          relatedIds.add(`rb-${prodId}`);
+          relatedIds.add(prodId.replace(/^rb-/, ''));
+        }
+        for (const relId of relatedIds) {
+          if (relId && relId !== prodId) {
+            try {
+              await setDoc(doc(db, 'products', relId), cleanPayload, { merge: true });
+            } catch {}
+          }
         }
       } catch (e) {
         console.warn('Firestore product update error:', e);

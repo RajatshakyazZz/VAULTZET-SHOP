@@ -21,7 +21,7 @@ export async function generateStaticParams() {
 
 export async function generateMetadata({ params }: ProductPageProps): Promise<Metadata> {
   const { slug } = await params;
-  const product = (await fetchCustomProductBySlug(slug)) || resolveBundleSlug(slug);
+  const product = (await fetchCustomProductBySlug(slug, true)) || resolveBundleSlug(slug);
 
   if (!product) {
     return {
@@ -101,7 +101,7 @@ export async function generateMetadata({ params }: ProductPageProps): Promise<Me
 
 export default async function ProductDetailPage({ params }: ProductPageProps) {
   const { slug } = await params;
-  const product = (await fetchCustomProductBySlug(slug)) || resolveBundleSlug(slug);
+  const product = (await fetchCustomProductBySlug(slug, true)) || resolveBundleSlug(slug);
 
   if (!product) {
     notFound();
