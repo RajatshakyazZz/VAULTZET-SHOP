@@ -7,10 +7,11 @@ import { useCart } from '@/context/CartContext';
 
 export default function MobileBottomNav() {
   const pathname = usePathname();
-  const { cartCount, total } = useCart();
+  const { cartCount, total, isCartOpen } = useCart();
 
-  // Hide on checkout, thankyou, or reseller hub/landing pages
+  // Hide on checkout, thankyou, reseller hub/landing pages, or when CartDrawer is open
   if (
+    isCartOpen ||
     pathname?.startsWith('/r/') ||
     pathname === '/r' ||
     pathname?.startsWith('/earn') ||

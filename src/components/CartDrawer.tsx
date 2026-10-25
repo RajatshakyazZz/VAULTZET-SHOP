@@ -3,7 +3,7 @@
 import React from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { X, Trash2, ArrowRight, ShieldCheck, Zap, Gift } from 'lucide-react';
+import { X, Trash2, ArrowRight, ShieldCheck, Zap, Gift, Lock } from 'lucide-react';
 import { useCart } from '@/context/CartContext';
 import { ORDER_BUMP } from '@/data/bundles';
 import { optimizeImageUrl } from '@/lib/imageOptimized';
@@ -29,11 +29,11 @@ export default function CartDrawer() {
   if (!isCartOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex justify-end">
+    <div className="fixed inset-0 z-[150] flex justify-end">
       {/* Backdrop */}
       <div
         onClick={() => setIsCartOpen(false)}
-        className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm transition-opacity animate-in fade-in"
+        className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm transition-opacity animate-in fade-in"
       />
 
       {/* Drawer Card */}
@@ -50,13 +50,14 @@ export default function CartDrawer() {
           <button
             onClick={() => setIsCartOpen(false)}
             className="p-2 rounded-xl text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors"
+            aria-label="Close cart"
           >
             <X className="w-5 h-5" />
           </button>
         </div>
 
         {/* Content */}
-        <div className="flex-1 overflow-y-auto p-5 space-y-4">
+        <div className="flex-1 overflow-y-auto p-5 pb-16 space-y-4">
           {items.length === 0 && !orderBumpAdded ? (
             <div className="text-center py-16 space-y-4">
               <div className="w-16 h-16 mx-auto rounded-full bg-purple-50 flex items-center justify-center text-rb-purple text-2xl">
@@ -185,7 +186,7 @@ export default function CartDrawer() {
                   <button
                     type="button"
                     onClick={() => setIsFreeBundleModalOpen(true)}
-                    className="px-3 py-1.5 rounded-xl bg-gradient-to-r from-[#6e35f5] to-[#8b5cf6] text-white text-xs font-black hover:opacity-95 shadow-sm"
+                    className="px-3 py-1.5 rounded-xl bg-gradient-to-r from-[#6e35f5] to-[#8b5cf6] text-white text-xs font-black hover:opacity-95 shadow-sm cursor-pointer"
                   >
                     Select Now
                   </button>
@@ -247,52 +248,51 @@ export default function CartDrawer() {
                   </button>
                 </div>
               </div>
+
+              {/* EXACT USER REQUEST: Pay Now / Instant Checkout Button right below the bump offer */}
+              <div className="mt-4 p-4 rounded-2xl bg-gradient-to-b from-[#faf9ff] to-[#f4f0ff] border border-purple-200/90 space-y-3.5 shadow-sm">
+                <div className="space-y-1.5 text-xs sm:text-sm">
+                  <div className="flex justify-between text-slate-500 font-medium">
+                    <span>Subtotal</span>
+                    <span className="font-bold text-slate-700">₹{subtotal}.00</span>
+                  </div>
+                  {orderBumpAdded && (
+                    <div className="flex justify-between text-emerald-600 text-xs font-bold">
+                      <span>Bonus Upsell Pack (80% Off)</span>
+                      <span>+₹{ORDER_BUMP.discountPrice}.00</span>
+                    </div>
+                  )}
+                  <div className="flex justify-between text-sm sm:text-base font-extrabold text-[#182247] pt-2 border-t border-purple-100">
+                    <span>Total Amount</span>
+                    <span className="text-xl font-black text-rb-purple">₹{total}.00</span>
+                  </div>
+                </div>
+
+                <Link
+                  href="/checkout"
+                  onClick={() => setIsCartOpen(false)}
+                  className="w-full py-4 px-4 rounded-2xl btn-gradient-primary text-white font-black text-sm flex items-center justify-center gap-2 shadow-xl shadow-purple-600/25 hover:scale-[1.01] active:scale-[0.99] transition-all cursor-pointer"
+                >
+                  <Lock className="w-4 h-4 fill-white/20" />
+                  <span>Pay Now • Instant Checkout (₹{total})</span>
+                  <ArrowRight className="w-4 h-4 stroke-[2.5]" />
+                </Link>
+
+                <div className="flex items-center justify-center gap-3 text-[11px] font-semibold text-slate-500 pt-0.5">
+                  <span className="flex items-center gap-1 text-emerald-700 font-bold">
+                    <ShieldCheck className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+                    Instant Drive Link
+                  </span>
+                  <span>•</span>
+                  <span className="flex items-center gap-1">
+                    <Zap className="w-3.5 h-3.5 text-amber-500 fill-amber-500 shrink-0" />
+                    Zero Delay Access
+                  </span>
+                </div>
+              </div>
             </>
           )}
         </div>
-
-        {/* Footer */}
-        {(items.length > 0 || orderBumpAdded) && (
-          <div className="p-5 pb-[calc(1.25rem+env(safe-area-inset-bottom,0px))] border-t border-slate-100 bg-[#faf9ff] space-y-4">
-            <div className="space-y-1.5 text-sm">
-              <div className="flex justify-between text-slate-500">
-                <span>Subtotal</span>
-                <span className="font-semibold text-slate-700">₹{subtotal}.00</span>
-              </div>
-              {orderBumpAdded && (
-                <div className="flex justify-between text-green-600 text-xs">
-                  <span>Bonus Upsell Pack (80% Off)</span>
-                  <span className="font-bold">+₹{ORDER_BUMP.discountPrice}.00</span>
-                </div>
-              )}
-              <div className="flex justify-between text-base font-extrabold text-[#182247] pt-2 border-t border-slate-200">
-                <span>Total Amount</span>
-                <span className="text-xl text-rb-purple">₹{total}.00</span>
-              </div>
-            </div>
-
-            <Link
-              href="/checkout"
-              onClick={() => setIsCartOpen(false)}
-              className="w-full py-3.5 px-4 rounded-xl btn-gradient-primary text-white font-extrabold text-sm flex items-center justify-center gap-2 shadow-lg"
-            >
-              <span>Instant Checkout</span>
-              <ArrowRight className="w-4 h-4" />
-            </Link>
-
-            <div className="flex items-center justify-center gap-4 text-[11px] font-medium text-slate-500 pt-1">
-              <span className="flex items-center gap-1">
-                <ShieldCheck className="w-3.5 h-3.5 text-green-600" />
-                Instant Drive Link
-              </span>
-              <span>•</span>
-              <span className="flex items-center gap-1">
-                <Zap className="w-3.5 h-3.5 text-amber-500 fill-amber-500" />
-                Zero Delay Access
-              </span>
-            </div>
-          </div>
-        )}
       </div>
     </div>
   );

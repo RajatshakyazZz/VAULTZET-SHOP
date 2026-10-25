@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { usePathname } from 'next/navigation';
 import { X, Send, Sparkles, CheckCheck } from 'lucide-react';
 import { track } from '@/lib/analytics';
+import { useCart } from '@/context/CartContext';
 
 interface WhatsAppButtonProps {
   phoneNumber?: string;
@@ -25,6 +26,7 @@ export default function WhatsAppButton({
   isResellerPage = false,
 }: WhatsAppButtonProps) {
   const pathname = usePathname();
+  const { isCartOpen } = useCart();
   const [mounted, setMounted] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
   const [hasInteracted, setHasInteracted] = useState(false);
@@ -43,8 +45,9 @@ export default function WhatsAppButton({
     return () => clearTimeout(timer);
   }, []);
 
-  // Hide on checkout, order-success, and order-status to never overlap checkout forms, coupon apply button, or sticky pay bar
+  // Hide on checkout, order-success, and order-status, or when CartDrawer is open to never overlap buttons or cart content
   const isHidden =
+    isCartOpen ||
     (!isResellerPage && pathname?.startsWith('/r/')) ||
     pathname?.includes('/checkout') ||
     pathname?.includes('/order-success') ||
