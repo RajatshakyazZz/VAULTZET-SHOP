@@ -11,13 +11,25 @@ import {
   ShoppingBag,
   Check,
   X,
+  Gift,
+  CheckCircle2,
+  Sparkles,
 } from 'lucide-react';
 import { useCart } from '@/context/CartContext';
 import { optimizeImageUrl } from '@/lib/imageOptimized';
 
 export default function CartPage() {
   const router = useRouter();
-  const { items, removeFromCart, subtotal, total } = useCart();
+  const {
+    items,
+    removeFromCart,
+    subtotal,
+    total,
+    freeBundles,
+    removeFreeBundle,
+    isQualifiedForFreeOffer,
+    setIsFreeBundleModalOpen,
+  } = useCart();
   const [couponCode, setCouponCode] = useState('');
   const [couponStatus, setCouponStatus] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
   const [isApplying, setIsApplying] = useState(false);
@@ -106,6 +118,44 @@ export default function CartPage() {
               </span>
               <span className="text-[11px] font-medium text-slate-400 mt-1">Access</span>
             </div>
+          </div>
+        </div>
+
+        {/* Special Offer Banner on Cart */}
+        <div className="rounded-2xl p-4 bg-gradient-to-r from-[#f8f5ff] via-[#ffffff] to-[#f4effe] border border-[#e3dbfa] shadow-sm flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+          <div className="flex items-center gap-3 min-w-0">
+            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#6e35f5] to-[#8b5cf6] text-white flex items-center justify-center shrink-0">
+              <Gift className="w-5 h-5 stroke-[2.2]" />
+            </div>
+            <div>
+              <h3 className="text-xs sm:text-sm font-black text-[#182247] tabular-nums">
+                Get 2 of Any Bundle Free on Minimum ₹149 Payment
+              </h3>
+              <p className="text-[11px] sm:text-xs text-[#4e4668] font-medium mt-0.5">
+                {isQualifiedForFreeOffer
+                  ? `Cart subtotal is ₹${subtotal} (Qualified!). Claim your 2 free bonus bundles.`
+                  : `Current cart is ₹${subtotal}. Add ₹${Math.max(0, 149 - subtotal)} more to unlock 2 free bundles.`}
+              </p>
+            </div>
+          </div>
+
+          <div className="shrink-0">
+            {isQualifiedForFreeOffer ? (
+              <button
+                type="button"
+                onClick={() => setIsFreeBundleModalOpen(true)}
+                className="px-4 py-2 rounded-xl bg-gradient-to-r from-[#076647] to-[#0d9488] text-white font-black text-xs shadow-sm hover:opacity-95"
+              >
+                {freeBundles.length > 0 ? `Change Free Bundles (${freeBundles.length}/2)` : '🎁 Claim 2 Free Bundles'}
+              </button>
+            ) : (
+              <Link
+                href="/claim-offer"
+                className="px-4 py-2 rounded-xl bg-gradient-to-r from-[#6e35f5] to-[#8b5cf6] text-white font-black text-xs shadow-sm"
+              >
+                Explore Offer →
+              </Link>
+            )}
           </div>
         </div>
 
@@ -280,6 +330,54 @@ export default function CartPage() {
                     </div>
                   ))}
                 </div>
+
+                {/* Claimed Free Gift Bundles */}
+                {freeBundles.length > 0 && (
+                  <div className="p-4 sm:p-5 bg-gradient-to-r from-[#eefbf4] to-[#f4fcf7] border-t border-[#bce8d5] space-y-3">
+                    <div className="flex items-center justify-between text-[#076647]">
+                      <span className="text-xs font-black uppercase tracking-wider flex items-center gap-1.5">
+                        <Gift className="w-4 h-4" />
+                        Claimed Free Bonus Bundles ({freeBundles.length}/2)
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() => setIsFreeBundleModalOpen(true)}
+                        className="text-xs font-bold underline hover:text-[#055038]"
+                      >
+                        Change Free Bundles
+                      </button>
+                    </div>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      {freeBundles.map((fb) => (
+                        <div key={fb.id} className="p-3 rounded-2xl bg-white border border-[#d2f0e2] flex items-center gap-3">
+                          <img
+                            src={optimizeImageUrl(fb.thumbnail, 64, 70)}
+                            alt={fb.title}
+                            width={48}
+                            height={48}
+                            className="w-12 h-12 rounded-xl object-cover shrink-0"
+                          />
+                          <div className="flex-1 min-w-0">
+                            <h4 className="text-xs font-bold text-[#171e43] truncate">{fb.title}</h4>
+                            <div className="flex items-center gap-2 mt-1">
+                              <span className="text-[10px] font-black text-[#076647] bg-[#e6f7f0] px-2 py-0.5 rounded">
+                                FREE BONUS ₹0
+                              </span>
+                              <span className="text-[10px] text-slate-400 line-through">₹{fb.personalPrice}</span>
+                            </div>
+                          </div>
+                          <button
+                            type="button"
+                            onClick={() => removeFreeBundle(fb.id)}
+                            className="p-1.5 rounded-lg text-slate-400 hover:text-red-500 hover:bg-slate-50 transition-colors"
+                          >
+                            <X className="w-4 h-4" />
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
 
                 {/* Coupon Code & Update Cart Bar (Matches competitor screenshot) */}
                 <div className="p-4 sm:p-5 bg-[#faf9fe] border-t border-[#f1edf8]">

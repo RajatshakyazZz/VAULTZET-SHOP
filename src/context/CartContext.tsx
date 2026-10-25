@@ -23,12 +23,22 @@ interface CartContextType {
   total: number;
   isCartOpen: boolean;
   setIsCartOpen: (open: boolean) => void;
+  // Free Bundles Offer
+  freeBundles: BundleProduct[];
+  claimFreeBundles: (bundles: BundleProduct[]) => void;
+  removeFreeBundle: (productId: string) => void;
+  isFreeBundleModalOpen: boolean;
+  setIsFreeBundleModalOpen: (open: boolean) => void;
+  isQualifiedForFreeOffer: boolean;
+  freeOfferProgress: number;
 }
 
 const CartContext = createContext<CartContextType | undefined>(undefined);
 
 export function CartProvider({ children }: { children: React.ReactNode }) {
   const [items, setItems] = useState<CartItem[]>([]);
+  const [freeBundles, setFreeBundles] = useState<BundleProduct[]>([]);
+  const [isFreeBundleModalOpen, setIsFreeBundleModalOpen] = useState(false);
   const [buyNowItem, setBuyNowItemState] = useState<CartItem | null>(null);
   const [orderBumpAdded, setOrderBumpAdded] = useState(false);
   const [isCartOpen, setIsCartOpen] = useState(false);
@@ -48,6 +58,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
   };
 
   const isHydrated = React.useRef(false);
+  const prevSubtotalRef = React.useRef<number>(0);
 
   // Load from storage
   useEffect(() => {
@@ -61,6 +72,15 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
           setItems(parsed);
         }
       }
+
+      const savedFree = localStorage.getItem('vaultzet_free_bundles_v2');
+      if (savedFree && savedFree !== '[]') {
+        const parsedFree = JSON.parse(savedFree);
+        if (Array.isArray(parsedFree) && parsedFree.length > 0) {
+          setFreeBundles(parsedFree.slice(0, 2));
+        }
+      }
+
       const savedBuyNow = sessionStorage.getItem('vaultzet_buynow_item') || localStorage.getItem('vaultzet_buynow_item');
       if (savedBuyNow && savedBuyNow !== 'null') {
         setBuyNowItemState(JSON.parse(savedBuyNow));
@@ -80,11 +100,48 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     if (!isHydrated.current) return;
     try {
       localStorage.setItem('vaultzet_cart_v2', JSON.stringify(items));
+      localStorage.setItem('vaultzet_free_bundles_v2', JSON.stringify(freeBundles));
       localStorage.setItem('vaultzet_bump', JSON.stringify(orderBumpAdded));
     } catch {
       // ignore
     }
-  }, [items, orderBumpAdded]);
+  }, [items, freeBundles, orderBumpAdded]);
+
+  const subtotal = items.reduce((acc, item) => acc + item.price, 0);
+  const total = subtotal + (orderBumpAdded ? ORDER_BUMP.discountPrice : 0);
+  const isQualifiedForFreeOffer = subtotal >= 149;
+  const freeOfferProgress = Math.min(100, Math.round((subtotal / 149) * 100));
+  const cartCount = items.length + freeBundles.length + (orderBumpAdded ? 1 : 0);
+
+  // Automatically trigger "2 Free Bundles Unlocked" popup when cart total crosses or reaches >= 149
+  useEffect(() => {
+    if (!isHydrated.current) return;
+    const prevSub = prevSubtotalRef.current;
+    if (prevSub < 149 && subtotal >= 149 && freeBundles.length < 2) {
+      setIsFreeBundleModalOpen(true);
+    }
+    prevSubtotalRef.current = subtotal;
+  }, [subtotal, freeBundles.length]);
+
+  const claimFreeBundles = (bundles: BundleProduct[]) => {
+    const capped = bundles.slice(0, 2);
+    setFreeBundles(capped);
+    try {
+      localStorage.setItem('vaultzet_free_bundles_v2', JSON.stringify(capped));
+    } catch {}
+    setIsFreeBundleModalOpen(false);
+    setIsCartOpen(true);
+  };
+
+  const removeFreeBundle = (productId: string) => {
+    setFreeBundles((prev) => {
+      const updated = prev.filter((b) => b.id !== productId && b.slug !== productId);
+      try {
+        localStorage.setItem('vaultzet_free_bundles_v2', JSON.stringify(updated));
+      } catch {}
+      return updated;
+    });
+  };
 
   const addToCart = (product: BundleProduct, license: LicenseType = 'personal') => {
     const price = Number(license === 'reseller' ? product.resellerPrice : product.personalPrice);
@@ -176,16 +233,13 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
 
   const clearCart = () => {
     setItems([]);
+    setFreeBundles([]);
     setOrderBumpAdded(false);
   };
 
   const toggleOrderBump = () => {
     setOrderBumpAdded((prev) => !prev);
   };
-
-  const subtotal = items.reduce((acc, item) => acc + item.price, 0);
-  const total = subtotal + (orderBumpAdded ? ORDER_BUMP.discountPrice : 0);
-  const cartCount = items.length + (orderBumpAdded ? 1 : 0);
 
   return (
     <CartContext.Provider
@@ -206,6 +260,13 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
         total,
         isCartOpen,
         setIsCartOpen,
+        freeBundles,
+        claimFreeBundles,
+        removeFreeBundle,
+        isFreeBundleModalOpen,
+        setIsFreeBundleModalOpen,
+        isQualifiedForFreeOffer,
+        freeOfferProgress,
       }}
     >
       {children}

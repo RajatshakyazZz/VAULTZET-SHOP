@@ -9,6 +9,7 @@ import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import MobileBottomNav from '@/components/MobileBottomNav';
 import CartDrawer from '@/components/CartDrawer';
+import FreeBundlesModal from '@/components/FreeBundlesModal';
 import AnalyticsTracker from '@/components/AnalyticsTracker';
 import WhatsAppButton from '@/components/WhatsAppButton';
 
@@ -284,6 +285,7 @@ export default function RootLayout({
               <main className="flex-grow">{children}</main>
               <Footer />
               <CartDrawer />
+              <FreeBundlesModal />
               <MobileBottomNav />
               <WhatsAppButton />
             </CartProvider>

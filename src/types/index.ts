@@ -39,6 +39,7 @@ export interface CartItem {
   product: BundleProduct;
   license: LicenseType;
   price: number;
+  isFreeBonus?: boolean;
 }
 
 export interface OrderBumpItem {

@@ -425,6 +425,11 @@ function OrderSuccessContent() {
                           <span className="bg-emerald-100 text-emerald-800 font-bold px-2 py-0.5 rounded">
                             Zero Watermarks
                           </span>
+                          {item.isFreeBonus && (
+                            <span className="bg-emerald-100 text-[#076647] font-black px-2 py-0.5 rounded">
+                              🎁 Free Bonus Gift
+                            </span>
+                          )}
                         </div>
                       </div>
                     </div>

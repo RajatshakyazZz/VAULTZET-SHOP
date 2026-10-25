@@ -25,6 +25,7 @@ import { filterBundlesByQuery } from '@/lib/search';
 import { track } from '@/lib/analytics';
 import { optimizeImageUrl } from '@/lib/imageOptimized';
 import { BundleProduct } from '@/types';
+import FreeBundleOfferBanner from '@/components/FreeBundleOfferBanner';
 
 const ITEMS_PER_PAGE = 12;
 
@@ -257,6 +258,8 @@ function ShopContent() {
             </div>
           </div>
         </div>
+
+        <FreeBundleOfferBanner variant="home" />
 
         {/* PROMINENT SEARCH BAR: Enter to Search + Dedicated Search Button + Instant Live Dropdown */}
         <div ref={shopSearchRef} className="relative rounded-3xl bg-gradient-to-br from-[#f8f5ff] via-white to-[#f5f0ff] border border-[#e8ddfb] p-3.5 sm:p-6 shadow-sm space-y-3.5 z-30">

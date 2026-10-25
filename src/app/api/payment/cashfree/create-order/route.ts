@@ -119,8 +119,15 @@ export async function POST(request: Request) {
     } else {
       // Normal store checkout: compute authoritative price from verified catalog
       let expectedCatalogTotal = 0;
+      let freeBonusCount = 0;
+      let paidItemsCatalogTotal = 0;
+
       if (Array.isArray(items) && items.length > 0) {
+        // First pass: compute paid items catalog total
         for (const item of items) {
+          if (item.isFreeBonus || item.price === 0) {
+            continue;
+          }
           const identifier = String(item.slug || item.id || item.productId || '').trim();
           let matchedProd = identifier ? await fetchCustomProductBySlug(identifier) : null;
           if (!matchedProd) {
@@ -132,12 +139,35 @@ export async function POST(request: Request) {
             const itemPrice = item.license === 'reseller'
               ? Number(matchedProd.resellerPrice)
               : Number(matchedProd.personalPrice);
-            expectedCatalogTotal += itemPrice;
+            paidItemsCatalogTotal += itemPrice;
           } else {
-            expectedCatalogTotal += Math.max(0, Number(item.price || 0));
+            paidItemsCatalogTotal += Math.max(0, Number(item.price || 0));
+          }
+        }
+
+        // Second pass: handle free bonus items (eligible if paidItemsCatalogTotal >= 149, max 2 items)
+        for (const item of items) {
+          if (item.isFreeBonus || item.price === 0) {
+            if (paidItemsCatalogTotal >= 149 && freeBonusCount < 2) {
+              freeBonusCount++;
+              // Qualified promotional free gift, charges ₹0
+              continue;
+            } else {
+              const identifier = String(item.slug || item.id || item.productId || '').trim();
+              let matchedProd = identifier ? await fetchCustomProductBySlug(identifier) : null;
+              if (!matchedProd) {
+                matchedProd = BUNDLE_PRODUCTS.find(
+                  (p) => p.id === item.id || p.slug === item.slug || p.id === item.productId
+                ) || null;
+              }
+              const itemPrice = matchedProd ? Number(matchedProd.personalPrice) : Number(item.price || 0);
+              paidItemsCatalogTotal += itemPrice;
+            }
           }
         }
       }
+
+      expectedCatalogTotal = paidItemsCatalogTotal;
 
       if (orderBump) {
         expectedCatalogTotal += Number(ORDER_BUMP.discountPrice);
