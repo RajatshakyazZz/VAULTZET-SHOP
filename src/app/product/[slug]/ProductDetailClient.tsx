@@ -41,6 +41,7 @@ import { optimizeImageUrl } from '@/lib/imageOptimized';
 import { getBundleContentDetails } from '@/lib/bundleContent';
 import { track } from '@/lib/analytics';
 import { fetchCustomProductBySlug } from '@/lib/customProducts';
+import FreeBundleOfferBanner from '@/components/FreeBundleOfferBanner';
 
 interface ProductDetailClientProps {
   product: BundleProduct;
@@ -358,6 +359,9 @@ export default function ProductDetailClient({ product }: ProductDetailClientProp
                   </span>
                 </div>
               </div>
+
+              {/* Special Free Bundles Offer Banner */}
+              <FreeBundleOfferBanner variant="product" />
 
               {/* Key Highlights */}
               <div className="grid grid-cols-2 gap-2 text-xs font-bold text-slate-700">

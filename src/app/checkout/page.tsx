@@ -26,6 +26,7 @@ import { ORDER_BUMP } from '@/data/bundles';
 import { track } from '@/lib/analytics';
 import { resolveBundleSlug } from '@/lib/bundleResolver';
 import { fetchCustomProductBySlug } from '@/lib/customProducts';
+import FreeBundleOfferBanner from '@/components/FreeBundleOfferBanner';
 
 declare global {
   interface Window {
@@ -755,6 +756,9 @@ function CheckoutContent() {
               </div>
             </div>
           )}
+
+          {/* Special Free Bundles Offer Banner */}
+          <FreeBundleOfferBanner variant="checkout" currentTotal={checkoutTotal} />
 
           {/* Error Banner */}
           {errorMessage && (

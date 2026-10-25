@@ -1,4 +1,5 @@
 import Hero from '@/components/Hero';
+import FreeBundleOfferBanner from '@/components/FreeBundleOfferBanner';
 import TrendingMarquee from '@/components/TrendingMarquee';
 import ReelsVideoPreview from '@/components/ReelsVideoPreview';
 import FreshReelsGrid from '@/components/FreshReelsGrid';
@@ -57,6 +58,9 @@ export default function HomePage() {
 
       {/* Hero with Typewriter & 3D Cards */}
       <Hero />
+
+      {/* Special Free Bundles Offer Banner */}
+      <FreeBundleOfferBanner variant="home" />
 
       {/* Trending Bundles Auto-Marquee */}
       <TrendingMarquee />
