@@ -17,6 +17,7 @@ import {
 } from 'lucide-react';
 import { useCart } from '@/context/CartContext';
 import { optimizeImageUrl } from '@/lib/imageOptimized';
+import FreeBundleOfferBanner from '@/components/FreeBundleOfferBanner';
 
 export default function CartPage() {
   const router = useRouter();
@@ -122,42 +123,7 @@ export default function CartPage() {
         </div>
 
         {/* Special Offer Banner on Cart */}
-        <div className="rounded-2xl p-4 bg-gradient-to-r from-[#f8f5ff] via-[#ffffff] to-[#f4effe] border border-[#e3dbfa] shadow-sm flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
-          <div className="flex items-center gap-3 min-w-0">
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#6e35f5] to-[#8b5cf6] text-white flex items-center justify-center shrink-0">
-              <Gift className="w-5 h-5 stroke-[2.2]" />
-            </div>
-            <div>
-              <h3 className="text-xs sm:text-sm font-black text-[#182247] tabular-nums">
-                Get 2 of Any Bundle Free on Minimum ₹149 Payment
-              </h3>
-              <p className="text-[11px] sm:text-xs text-[#4e4668] font-medium mt-0.5">
-                {isQualifiedForFreeOffer
-                  ? `Cart subtotal is ₹${subtotal} (Qualified!). Claim your 2 free bonus bundles.`
-                  : `Current cart is ₹${subtotal}. Add ₹${Math.max(0, 149 - subtotal)} more to unlock 2 free bundles.`}
-              </p>
-            </div>
-          </div>
-
-          <div className="shrink-0">
-            {isQualifiedForFreeOffer ? (
-              <button
-                type="button"
-                onClick={() => setIsFreeBundleModalOpen(true)}
-                className="px-4 py-2 rounded-xl bg-gradient-to-r from-[#076647] to-[#0d9488] text-white font-black text-xs shadow-sm hover:opacity-95"
-              >
-                {freeBundles.length > 0 ? `Change Free Bundles (${freeBundles.length}/2)` : '🎁 Claim 2 Free Bundles'}
-              </button>
-            ) : (
-              <Link
-                href="/claim-offer"
-                className="px-4 py-2 rounded-xl bg-gradient-to-r from-[#6e35f5] to-[#8b5cf6] text-white font-black text-xs shadow-sm"
-              >
-                Explore Offer →
-              </Link>
-            )}
-          </div>
-        </div>
+        <FreeBundleOfferBanner variant="checkout" currentTotal={subtotal} />
 
         {/* =========================================================================
             2. EMPTY CART STATE

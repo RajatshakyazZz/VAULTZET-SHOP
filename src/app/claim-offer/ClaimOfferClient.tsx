@@ -20,6 +20,7 @@ import { BUNDLE_PRODUCTS } from '@/data/bundles';
 import { fetchCustomProducts, getAllCatalogBundles, getLocalCustomProductsSync } from '@/lib/customProducts';
 import { optimizeImageUrl } from '@/lib/imageOptimized';
 import { BundleProduct } from '@/types';
+import FreeBundleOfferBanner from '@/components/FreeBundleOfferBanner';
 
 export default function ClaimOfferClient() {
   const {
@@ -192,6 +193,8 @@ export default function ClaimOfferClient() {
           2. FILTER & SEARCH CONTROLS
           ========================================================================= */}
       <div className="max-w-6xl mx-auto px-4 sm:px-6 pt-6 sm:pt-8 space-y-4">
+        <FreeBundleOfferBanner variant="home" />
+
         <div className="flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3">
           {/* Search Box */}
           <div className="relative flex-1 max-w-md">
