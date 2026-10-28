@@ -173,29 +173,29 @@ export default function Header() {
   }
 
   return (
-    <header className="sticky top-0 z-50 bg-white border-b border-slate-100 shadow-[0_2px_10px_rgba(20,10,50,0.02)]">
+    <header className="sticky top-0 z-50 bg-white/95 backdrop-blur-md border-b border-slate-200/80 shadow-[0_2px_12px_rgba(15,23,42,0.03)]">
       {/* Top Promotional Coupon Header Bar ("OFF20" for 20% Off on all products) */}
       {isCouponBannerVisible && (
-        <div className="relative bg-gradient-to-r from-[#210938] via-[#3b1261] to-[#1c0830] border-b border-white/10 text-white overflow-hidden">
-          {/* Subtle diagonal ambient glow */}
-          <div className="absolute inset-0 bg-[radial-gradient(ellipse_70%_80%_at_50%_-20%,rgba(168,85,247,0.3),rgba(255,255,255,0))] pointer-events-none" />
+        <div className="relative bg-gradient-to-r from-[#070b14] via-[#0f172a] to-[#1e293b] border-b border-white/10 text-white overflow-hidden">
+          {/* Subtle diagonal ambient glow in Cyan & Azure */}
+          <div className="absolute inset-0 bg-[radial-gradient(ellipse_70%_80%_at_50%_-20%,rgba(14,165,233,0.3),rgba(255,255,255,0))] pointer-events-none" />
 
           <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-2 sm:py-2.5 relative flex items-center justify-between gap-2 text-xs">
-            {/* Left: Gold Sparkle + Diwali Offer Pill */}
+            {/* Left: Gold Sparkle + Exclusive Offer Pill */}
             <div className="flex items-center gap-1.5 sm:gap-2.5 shrink-0 z-10">
               <span className="w-5 h-5 rounded-full bg-amber-400/20 text-amber-300 flex items-center justify-center shrink-0">
                 <Sparkles className="w-3.5 h-3.5 fill-amber-300 text-amber-300" />
               </span>
               <span className="px-2 sm:px-2.5 py-0.5 rounded-full border border-amber-300/40 bg-amber-400/15 text-[10px] font-black uppercase tracking-wider text-amber-200 shadow-2xs flex items-center gap-1">
-                <span>🪔</span>
-                <span>DIWALI OFFER</span>
+                <span>⚡</span>
+                <span>LIMITED OFFER</span>
               </span>
             </div>
 
-            {/* Center: Diwali Offer Notice (Animated Left to Right on Mobile, Clean Centered on Desktop) */}
+            {/* Center: Offer Notice */}
             <div className="flex-1 overflow-hidden px-1 text-center min-w-0">
               <div className="animate-diwali-ltr font-bold text-[11px] sm:text-xs md:text-[13px] text-white tracking-wide">
-                <span>🪔 Diwali Dhamaka: </span>
+                <span>🔥 Mega Creator Sale: </span>
                 <span>Flat </span>
                 <span className="text-amber-300 font-extrabold underline decoration-amber-400/50">20% Extra Discount</span>
                 <span> on All Reels Bundles! ✨</span>
@@ -210,16 +210,16 @@ export default function Header() {
                 className="px-2.5 sm:px-3 py-1 rounded-lg bg-white hover:bg-slate-50 border border-white/90 text-slate-900 shadow-xs flex items-center gap-1.5 transition-all active:scale-95 cursor-pointer select-none group"
                 title="Click to copy code and auto-apply discount"
               >
-                <span className="text-[9px] sm:text-[10px] font-extrabold text-slate-400 uppercase tracking-wider">
+                <span className="text-[9px] sm:text-[10px] font-extrabold text-slate-500 uppercase tracking-wider">
                   CODE
                 </span>
-                <span className="text-xs font-black text-purple-950 tracking-wider">
+                <span className="text-xs font-black text-blue-900 tracking-wider">
                   {isCopied ? 'COPIED!' : 'OFF20'}
                 </span>
                 {isCopied ? (
                   <Check className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
                 ) : (
-                  <Copy className="w-3.5 h-3.5 text-purple-700 group-hover:scale-110 transition-transform shrink-0" />
+                  <Copy className="w-3.5 h-3.5 text-blue-600 group-hover:scale-110 transition-transform shrink-0" />
                 )}
               </button>
 
@@ -242,10 +242,10 @@ export default function Header() {
           
           {/* Dynamic Brand Logo synced with Admin Panel */}
           <Link href="/" prefetch={false} className="flex items-center gap-2.5 group shrink-0">
-            <div className="w-9 h-9 sm:w-10 sm:h-9 rounded-xl bg-black border border-slate-800/80 overflow-hidden flex items-center justify-center shadow-sm shadow-purple-500/20 group-hover:scale-105 transition-transform">
+            <div className="w-9 h-9 sm:w-10 sm:h-9 rounded-xl bg-slate-950 border border-slate-800 overflow-hidden flex items-center justify-center shadow-sm shadow-blue-500/20 group-hover:scale-105 transition-transform">
               <img
                 src="/logo.webp"
-                alt="Vaultzet Store Logo"
+                alt="Store Logo"
                 width={40}
                 height={36}
                 decoding="async"
@@ -253,10 +253,10 @@ export default function Header() {
               />
             </div>
             <div className="flex flex-col">
-              <span className="font-black text-[16px] sm:text-[17px] text-[#162048] tracking-tight leading-tight">
+              <span className="font-black text-[16px] sm:text-[17px] text-[#0f172a] tracking-tight leading-tight">
                 {settings.storeName}
               </span>
-              <span className="text-[11px] sm:text-[12px] font-medium text-[#4a5270] tracking-tight">
+              <span className="text-[11px] sm:text-[12px] font-medium text-[#64748b] tracking-tight">
                 {settings.tagline}
               </span>
             </div>
@@ -272,27 +272,27 @@ export default function Header() {
                   href={link.href}
                   prefetch={false}
                   className={`text-[15px] font-bold transition-all relative py-1 ${
-                    isActive ? 'text-[#162048]' : 'text-[#3c4666] hover:text-[#162048]'
+                    isActive ? 'text-[#0f172a]' : 'text-[#475569] hover:text-[#0f172a]'
                   }`}
                 >
                   {link.name}
                   {isActive && (
-                    <span className="absolute -bottom-1 left-0 right-0 h-[3px] bg-gradient-to-r from-[#6b39ff] to-[#ff4fb3] rounded-full" />
+                    <span className="absolute -bottom-1 left-0 right-0 h-[3px] bg-gradient-to-r from-[#2563eb] to-[#06b6d4] rounded-full" />
                   )}
                 </Link>
               );
             })}
           </nav>
 
-          {/* Right Tools matching Competitor Screenshots */}
+          {/* Right Tools matching Clean Modern Architecture */}
           <div className="flex items-center gap-2 sm:gap-3">
             {/* Desktop Pill Search Box with Instant Live Autocomplete Dropdown */}
             <div ref={desktopSearchRef} className="relative hidden sm:block">
               <form
                 onSubmit={handleSearchSubmit}
-                className="flex items-center bg-[#fbf9ff] hover:bg-[#f5f0ff] focus-within:bg-white border border-[#e8dfff] rounded-full pl-3.5 pr-2 py-0.5 focus-within:ring-2 focus-within:ring-[#7c3aed]/20 focus-within:border-[#7c3aed] transition-all"
+                className="flex items-center bg-[#f8fafc] hover:bg-[#f1f5f9] focus-within:bg-white border border-[#e2e8f0] rounded-full pl-3.5 pr-2 py-0.5 focus-within:ring-2 focus-within:ring-[#2563eb]/20 focus-within:border-[#2563eb] transition-all"
               >
-                <Search className="w-4 h-4 text-[#7c3aed] shrink-0" />
+                <Search className="w-4 h-4 text-[#2563eb] shrink-0" />
                 <input
                   type="text"
                   autoComplete="off"
@@ -304,7 +304,7 @@ export default function Header() {
                     if (searchQuery.trim()) setIsDropdownOpen(true);
                   }}
                   onChange={(e) => handleSearchChange(e.target.value)}
-                  className="w-44 lg:w-56 py-2 px-2 bg-transparent text-[13px] font-medium text-[#182247] placeholder:text-[#525b7a] focus:outline-none"
+                  className="w-44 lg:w-56 py-2 px-2 bg-transparent text-[13px] font-medium text-[#0f172a] placeholder:text-[#94a3b8] focus:outline-none"
                 />
                 {searchQuery ? (
                   <button
@@ -320,9 +320,9 @@ export default function Header() {
 
               {/* Instant Dropdown Results for Desktop */}
               {isDropdownOpen && searchQuery.trim() && (
-                <div className="absolute top-full right-0 mt-2 w-80 lg:w-96 bg-white rounded-2xl shadow-2xl border border-purple-100 overflow-hidden z-50 animate-in fade-in zoom-in-95 duration-150">
-                  <div className="p-2.5 bg-gradient-to-r from-purple-50/80 to-pink-50/80 border-b border-purple-100 flex items-center justify-between">
-                    <span className="text-[11px] font-extrabold text-[#6f33e8] uppercase tracking-wider flex items-center gap-1">
+                <div className="absolute top-full right-0 mt-2 w-80 lg:w-96 bg-white rounded-2xl shadow-2xl border border-slate-200 overflow-hidden z-50 animate-in fade-in zoom-in-95 duration-150">
+                  <div className="p-2.5 bg-gradient-to-r from-sky-50/90 to-blue-50/90 border-b border-sky-100 flex items-center justify-between">
+                    <span className="text-[11px] font-extrabold text-[#0284c7] uppercase tracking-wider flex items-center gap-1">
                       <Sparkles className="w-3 h-3" />
                       <span>{searchResults.length} Bundle{searchResults.length !== 1 ? 's' : ''} Found</span>
                     </span>
@@ -331,28 +331,28 @@ export default function Header() {
                     )}
                   </div>
 
-                  <div className="max-h-80 overflow-y-auto divide-y divide-purple-50 p-1">
+                  <div className="max-h-80 overflow-y-auto divide-y divide-slate-100 p-1">
                     {searchResults.slice(0, 5).map((bundle) => (
                       <Link
                         key={bundle.id}
                         href={`/product/${bundle.slug}`}
                         onClick={() => setIsDropdownOpen(false)}
-                        className="flex items-center gap-3 p-2 rounded-xl hover:bg-purple-50/70 transition-colors group"
+                        className="flex items-center gap-3 p-2 rounded-xl hover:bg-sky-50/70 transition-colors group"
                       >
                         <img
                           src={bundle.thumbnail}
                           alt={bundle.title}
-                          className="w-11 h-11 rounded-lg object-cover shrink-0 bg-slate-900 border border-purple-100"
+                          className="w-11 h-11 rounded-lg object-cover shrink-0 bg-slate-900 border border-slate-200"
                         />
                         <div className="min-w-0 flex-1">
-                          <h4 className="text-xs font-bold text-[#162048] line-clamp-1 group-hover:text-[#6f33e8] transition-colors">
+                          <h4 className="text-xs font-bold text-[#0f172a] line-clamp-1 group-hover:text-[#2563eb] transition-colors">
                             {bundle.title}
                           </h4>
                           <div className="flex items-center gap-2 mt-0.5">
-                            <span className="text-[10px] font-bold text-[#6f33e8] bg-purple-50 px-1.5 py-0.5 rounded">
+                            <span className="text-[10px] font-bold text-[#0284c7] bg-sky-50 px-1.5 py-0.5 rounded">
                               {bundle.reelCount}+ Reels
                             </span>
-                            <span className="text-xs font-black text-[#162048]">
+                            <span className="text-xs font-black text-[#0f172a]">
                               ₹{bundle.personalPrice || 49}
                             </span>
                             {bundle.personalOriginalPrice && (
@@ -377,7 +377,7 @@ export default function Header() {
                     <button
                       type="button"
                       onClick={handleViewAllResults}
-                      className="w-full py-2.5 bg-gradient-to-r from-[#6f33e8] to-[#9333ea] hover:from-[#5b24d0] hover:to-[#7e22ce] text-white text-xs font-bold text-center block transition-all"
+                      className="w-full py-2.5 bg-gradient-to-r from-[#2563eb] to-[#0284c7] hover:from-[#1d4ed8] hover:to-[#0369a1] text-white text-xs font-bold text-center block transition-all"
                     >
                       View all {searchResults.length} results in Shop &rarr;
                     </button>
@@ -386,7 +386,7 @@ export default function Header() {
               )}
             </div>
 
-            {/* Mobile Search Button matching Screenshots 1 & 4 */}
+            {/* Mobile Search Button */}
             <button
               type="button"
               onClick={() => {
@@ -394,16 +394,16 @@ export default function Header() {
                 if (isMobileMenuOpen) setIsMobileMenuOpen(false);
               }}
               aria-label="Search"
-              className="sm:hidden w-9 h-9 rounded-xl bg-[#f5f1fd] text-[#5e2de0] flex items-center justify-center hover:bg-purple-100 transition-colors shrink-0"
+              className="sm:hidden w-9 h-9 rounded-xl bg-[#eff6ff] text-[#2563eb] flex items-center justify-center hover:bg-blue-100 transition-colors shrink-0"
             >
               <Search className="w-4 h-4" />
             </button>
 
-            {/* Mobile Cart Button matching Screenshots 1 & 4 */}
+            {/* Mobile Cart Button */}
             <Link
               href="/cart"
               prefetch={false}
-              className="sm:hidden px-2.5 h-9 rounded-xl bg-[#f5f1fd] text-[#5e2de0] flex items-center gap-1.5 hover:bg-purple-100 transition-colors text-xs font-bold relative shrink-0"
+              className="sm:hidden px-2.5 h-9 rounded-xl bg-[#eff6ff] text-[#2563eb] flex items-center gap-1.5 hover:bg-blue-100 transition-colors text-xs font-bold relative shrink-0"
               aria-label="Cart"
             >
               <ShoppingCart className="w-4 h-4" />
@@ -419,11 +419,11 @@ export default function Header() {
             <Link
               href="/cart"
               prefetch={false}
-              className="hidden sm:flex items-center gap-2 px-4 py-2 rounded-full bg-[#f4f1fa] hover:bg-[#eae4f7] border border-[#e2d8f5] text-[#162048] font-bold text-sm transition-all group"
+              className="hidden sm:flex items-center gap-2 px-4 py-2 rounded-full bg-[#f1f5f9] hover:bg-[#e2e8f0] border border-[#cbd5e1] text-[#0f172a] font-bold text-sm transition-all group"
               aria-label="Cart"
             >
               <div className="relative">
-                <ShoppingCart className="w-4 h-4 text-[#5e2de0] group-hover:scale-110 transition-transform" />
+                <ShoppingCart className="w-4 h-4 text-[#2563eb] group-hover:scale-110 transition-transform" />
                 {cartCount > 0 && (
                   <span className="absolute -top-2 -right-2.5 w-4 h-4 rounded-full bg-red-600 text-[10px] font-black text-white flex items-center justify-center">
                     {cartCount}
@@ -441,7 +441,7 @@ export default function Header() {
               }}
               aria-label={isMobileMenuOpen ? 'Close navigation menu' : 'Open navigation menu'}
               aria-expanded={isMobileMenuOpen}
-              className="md:hidden px-2.5 h-9 rounded-xl border border-gray-200 text-[#182247] flex items-center gap-1.5 hover:bg-slate-100 text-xs font-bold shrink-0"
+              className="md:hidden px-2.5 h-9 rounded-xl border border-gray-200 text-[#0f172a] flex items-center gap-1.5 hover:bg-slate-100 text-xs font-bold shrink-0"
             >
               {isMobileMenuOpen ? <X className="w-4 h-4" /> : <Menu className="w-4 h-4" />}
               <span>Menu</span>
@@ -454,9 +454,9 @@ export default function Header() {
           <div className="sm:hidden border-t border-slate-100 bg-white py-2.5 px-1 animate-in fade-in duration-150">
             <form
               onSubmit={handleSearchSubmit}
-              className="flex items-center bg-[#fbf9ff] border border-[#e8dfff] rounded-full pl-3 pr-2 py-0.5 focus-within:border-[#7c3aed] focus-within:ring-2 focus-within:ring-[#7c3aed]/20"
+              className="flex items-center bg-[#f8fafc] border border-[#e2e8f0] rounded-full pl-3 pr-2 py-0.5 focus-within:border-[#2563eb] focus-within:ring-2 focus-within:ring-[#2563eb]/20"
             >
-              <Search className="w-4 h-4 text-[#7c3aed] shrink-0" />
+              <Search className="w-4 h-4 text-[#2563eb] shrink-0" />
               <input
                 type="text"
                 autoFocus
@@ -465,7 +465,7 @@ export default function Header() {
                 placeholder="Type to search bundles instantly..."
                 value={searchQuery}
                 onChange={(e) => handleSearchChange(e.target.value)}
-                className="w-full py-1.5 px-2 bg-transparent text-xs font-medium text-[#182247] placeholder:text-[#525b7a] focus:outline-none"
+                className="w-full py-1.5 px-2 bg-transparent text-xs font-medium text-[#0f172a] placeholder:text-[#94a3b8] focus:outline-none"
               />
               {searchQuery ? (
                 <button
@@ -476,7 +476,7 @@ export default function Header() {
                   <X className="w-3.5 h-3.5" />
                 </button>
               ) : (
-                <div className="w-7 h-7 rounded-full bg-[#6533e4] text-white flex items-center justify-center shrink-0">
+                <div className="w-7 h-7 rounded-full bg-[#2563eb] text-white flex items-center justify-center shrink-0">
                   <Search className="w-3 h-3" />
                 </div>
               )}
@@ -484,8 +484,8 @@ export default function Header() {
 
             {/* Mobile Instant Results List */}
             {searchQuery.trim() && (
-              <div className="mt-2.5 bg-white rounded-2xl border border-purple-100 shadow-lg overflow-hidden animate-in fade-in duration-150">
-                <div className="p-2 bg-purple-50/70 border-b border-purple-100 flex items-center justify-between text-[11px] font-bold text-[#6f33e8]">
+              <div className="mt-2.5 bg-white rounded-2xl border border-slate-200 shadow-lg overflow-hidden animate-in fade-in duration-150">
+                <div className="p-2 bg-sky-50/70 border-b border-sky-100 flex items-center justify-between text-[11px] font-bold text-[#0284c7]">
                   <span>
                     {searchResults.length} Bundle{searchResults.length !== 1 ? 's' : ''} Found
                   </span>
@@ -493,14 +493,14 @@ export default function Header() {
                     <button
                       type="button"
                       onClick={handleViewAllResults}
-                      className="text-[10px] text-[#6f33e8] underline font-extrabold"
+                      className="text-[10px] text-[#0284c7] underline font-extrabold"
                     >
                       See All in Shop &rarr;
                     </button>
                   )}
                 </div>
 
-                <div className="max-h-64 overflow-y-auto divide-y divide-purple-50 p-1">
+                <div className="max-h-64 overflow-y-auto divide-y divide-slate-100 p-1">
                   {searchResults.slice(0, 5).map((bundle) => (
                     <Link
                       key={bundle.id}
@@ -509,22 +509,22 @@ export default function Header() {
                         setIsMobileSearchOpen(false);
                         setIsDropdownOpen(false);
                       }}
-                      className="flex items-center gap-2.5 p-2 rounded-xl active:bg-purple-100/70 transition-colors"
+                      className="flex items-center gap-2.5 p-2 rounded-xl active:bg-sky-100/70 transition-colors"
                     >
                       <img
                         src={bundle.thumbnail}
                         alt={bundle.title}
-                        className="w-10 h-10 rounded-lg object-cover shrink-0 bg-slate-900 border border-purple-100"
+                        className="w-10 h-10 rounded-lg object-cover shrink-0 bg-slate-900 border border-slate-200"
                       />
                       <div className="min-w-0 flex-1">
-                        <h4 className="text-xs font-bold text-[#162048] line-clamp-1">
+                        <h4 className="text-xs font-bold text-[#0f172a] line-clamp-1">
                           {bundle.title}
                         </h4>
                         <div className="flex items-center gap-1.5 mt-0.5">
-                          <span className="text-[9px] font-bold text-[#6f33e8] bg-purple-50 px-1 py-0.2 rounded">
+                          <span className="text-[9px] font-bold text-[#0284c7] bg-sky-50 px-1 py-0.2 rounded">
                             {bundle.reelCount}+ Reels
                           </span>
-                          <span className="text-xs font-black text-[#162048]">
+                          <span className="text-xs font-black text-[#0f172a]">
                             ₹{bundle.personalPrice || 49}
                           </span>
                         </div>
@@ -543,7 +543,7 @@ export default function Header() {
                   <button
                     type="button"
                     onClick={handleViewAllResults}
-                    className="w-full py-2 bg-[#6f33e8] text-white text-xs font-bold text-center block"
+                    className="w-full py-2 bg-[#2563eb] text-white text-xs font-bold text-center block"
                   >
                     View all {searchResults.length} results in Shop &rarr;
                   </button>
@@ -562,7 +562,7 @@ export default function Header() {
                   key={link.name}
                   href={link.href}
                   onClick={() => setIsMobileMenuOpen(false)}
-                  className="block px-3.5 py-2.5 rounded-xl text-[15px] font-bold text-[#182247] hover:bg-purple-50 active:bg-purple-100"
+                  className="block px-3.5 py-2.5 rounded-xl text-[15px] font-bold text-[#0f172a] hover:bg-sky-50 active:bg-sky-100"
                 >
                   {link.name}
                 </Link>

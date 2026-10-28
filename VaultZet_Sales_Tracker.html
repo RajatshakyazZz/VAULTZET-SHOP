@@ -1,0 +1,465 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>VaultZet Store — Sales & Meta Ads Tracker</title>
+  <style>
+    :root {
+      --bg: #0f172a;
+      --card-bg: #1e293b;
+      --card-border: #334155;
+      --text: #f8fafc;
+      --text-muted: #94a3b8;
+      --primary: #38bdf8;
+      --success: #22c55e;
+      --success-bg: rgba(34, 197, 94, 0.15);
+      --danger: #ef4444;
+      --danger-bg: rgba(239, 68, 68, 0.15);
+      --accent: #a855f7;
+    }
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      background-color: var(--bg);
+      color: var(--text);
+      padding: 30px 20px;
+      line-height: 1.5;
+    }
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+    header {
+      margin-bottom: 28px;
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      align-items: center;
+      gap: 16px;
+      padding-bottom: 20px;
+      border-bottom: 1px solid var(--card-border);
+    }
+    .brand h1 {
+      font-size: 26px;
+      font-weight: 800;
+      letter-spacing: -0.5px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .brand p {
+      color: var(--text-muted);
+      font-size: 14px;
+      margin-top: 4px;
+    }
+    .badge-milestone {
+      background: linear-gradient(135deg, #10b981, #059669);
+      color: #fff;
+      padding: 8px 16px;
+      border-radius: 999px;
+      font-size: 13px;
+      font-weight: 700;
+      box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 16px;
+      margin-bottom: 32px;
+    }
+    .stat-card {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 12px;
+      padding: 20px;
+      position: relative;
+    }
+    .stat-label {
+      font-size: 13px;
+      color: var(--text-muted);
+      font-weight: 500;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    .stat-value {
+      font-size: 26px;
+      font-weight: 700;
+      margin-top: 8px;
+    }
+    .stat-sub {
+      font-size: 12px;
+      color: var(--text-muted);
+      margin-top: 4px;
+    }
+    .text-green { color: var(--success); }
+    .text-blue { color: var(--primary); }
+    .text-purple { color: var(--accent); }
+    .text-orange { color: #f59e0b; }
+    
+    .section-title {
+      font-size: 18px;
+      font-weight: 700;
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .table-container {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 12px;
+      overflow-x: auto;
+      margin-bottom: 32px;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      text-align: left;
+      font-size: 14px;
+    }
+    th, td {
+      padding: 14px 18px;
+      border-bottom: 1px solid var(--card-border);
+    }
+    th {
+      background: rgba(255, 255, 255, 0.03);
+      color: var(--text-muted);
+      font-weight: 600;
+      text-transform: uppercase;
+      font-size: 12px;
+      letter-spacing: 0.5px;
+    }
+    tr:last-child td {
+      border-bottom: none;
+    }
+    tbody tr:hover {
+      background: rgba(255, 255, 255, 0.02);
+    }
+    .total-row {
+      background: rgba(56, 189, 248, 0.05);
+      font-weight: 700;
+    }
+    .pill {
+      display: inline-block;
+      padding: 4px 10px;
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 600;
+    }
+    .pill-green {
+      background: var(--success-bg);
+      color: var(--success);
+    }
+    .pill-red {
+      background: var(--danger-bg);
+      color: var(--danger);
+    }
+    .pill-blue {
+      background: rgba(56, 189, 248, 0.15);
+      color: var(--primary);
+    }
+    .order-id {
+      font-family: monospace;
+      font-weight: 700;
+      color: var(--primary);
+    }
+    footer {
+      text-align: center;
+      padding: 24px 0;
+      color: var(--text-muted);
+      font-size: 13px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <div class="brand">
+        <h1>⚡ VaultZet Store Performance Tracker</h1>
+        <p>Live Meta Ads & Cashfree Payment Settlements (Day 1 - Day 4)</p>
+      </div>
+      <div class="badge-milestone">
+        💰 ₹1,447.00 Gross Sales • 12 Orders Completed • +₹263.50 Pure Green Profit
+      </div>
+    </header>
+
+    <!-- Top KPI Cards -->
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-label">Total Gross Sales</div>
+        <div class="stat-value text-green">₹1,447.00</div>
+        <div class="stat-sub">12 Completed Orders (10 Unique Buyers)</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Net Bank Payout</div>
+        <div class="stat-value text-blue">₹1,413.50</div>
+        <div class="stat-sub">Cashfree Deductions: ₹33.50 (Fee+GST)</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Total Meta Ads Budget</div>
+        <div class="stat-value text-orange">₹1,450.00</div>
+        <div class="stat-sub">Day 1: ₹300 | Day 2: ₹300 | Day 3: ₹550 | Day 4: ₹300</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Cumulative Net P&L</div>
+        <div class="stat-value text-green">₹1,413.50 Net</div>
+        <div class="stat-sub">12 Orders • Day 4 Peak Evening Live</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Cumulative ROAS</div>
+        <div class="stat-value text-purple">1.00x</div>
+        <div class="stat-sub">Gross ₹1,447 / Ads ₹1,450</div>
+      </div>
+    </div>
+
+    <!-- Day Wise Table -->
+    <div class="section-title">📅 Day-Wise Ad & Revenue Performance</div>
+    <div class="table-container">
+      <table>
+        <thead>
+          <tr>
+            <th>Timeline</th>
+            <th>Date</th>
+            <th>Orders</th>
+            <th>Ad Spend (INR)</th>
+            <th>Gross Sales (INR)</th>
+            <th>Gateway Fee (INR)</th>
+            <th>Net Bank (INR)</th>
+            <th>Net P&L (INR)</th>
+            <th>ROAS</th>
+            <th>Campaign Status</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>Day 1</strong></td>
+            <td>22-Oct-2026</td>
+            <td>2</td>
+            <td>₹300.00</td>
+            <td>₹198.00</td>
+            <td>₹4.56</td>
+            <td>₹193.44</td>
+            <td><span class="pill pill-red">-₹106.56</span></td>
+            <td>0.66x</td>
+            <td>Initial testing; checkout bug caught & fixed</td>
+          </tr>
+          <tr>
+            <td><strong>Day 2</strong></td>
+            <td>23-Oct-2026</td>
+            <td>3</td>
+            <td>₹300.00</td>
+            <td>₹748.00</td>
+            <td>₹17.39</td>
+            <td>₹730.61</td>
+            <td><span class="pill pill-green">+₹430.61</span></td>
+            <td><strong>2.49x</strong></td>
+            <td>🚀 Surge day! Mega pack + 2 bundle orders</td>
+          </tr>
+          <tr>
+            <td><strong>Day 4 (Today)</strong></td>
+            <td>25-Oct-2026</td>
+            <td>0</td>
+            <td>₹300.00</td>
+            <td>₹0.00</td>
+            <td>₹0.00</td>
+            <td>₹0.00</td>
+            <td><span class="pill pill-orange">Running</span></td>
+            <td>0.00x</td>
+            <td>₹300 deposited today; 1 lead (Mohd Rihan ₹59); Peak evening live</td>
+          </tr>
+          <tr>
+            <td><strong>Day 3</strong></td>
+            <td>24-Oct-2026</td>
+            <td>7</td>
+            <td>₹550.00</td>
+            <td>₹501.00</td>
+            <td>₹11.55</td>
+            <td>₹489.45</td>
+            <td><span class="pill pill-red">-₹60.55</span></td>
+            <td>0.91x</td>
+            <td>🔥 7 Sales! (Rishu ₹79, Karma ₹99+₹59, Anu ₹99, Vikram ₹39, Sourabh ₹79, Japneet ₹47)</td>
+          </tr>
+          <tr class="total-row">
+            <td><strong>TOTAL</strong></td>
+            <td><strong>4 Days</strong></td>
+            <td><strong>12</strong></td>
+            <td><strong>₹1,450.00</strong></td>
+            <td><strong>₹1,447.00</strong></td>
+            <td><strong>₹33.50</strong></td>
+            <td><strong>₹1,413.50</strong></td>
+            <td><span class="pill pill-green">12 Orders</span></td>
+            <td><strong>1.00x</strong></td>
+            <td><strong>12 Completed Orders; Day 4 Live Running into Peak Evening Window</strong></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Orders Ledger -->
+    <div class="section-title">🧾 All Customer Orders (Itemized Ledger)</div>
+    <div class="table-container">
+      <table>
+        <thead>
+          <tr>
+            <th>Date & Time</th>
+            <th>Order ID</th>
+            <th>Customer</th>
+            <th>Bundle Name</th>
+            <th>Gross</th>
+            <th>Gateway Fee</th>
+            <th>Net Payout</th>
+            <th>UTR / Bank Ref</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>24-Oct 01:07 AM <small>(Late Night)</small></td>
+            <td><span class="order-id">VZ-862416</span></td>
+            <td><strong>Japneet Mahal</strong><br><small style="color: var(--text-muted)">7001740994</small></td>
+            <td>500+ AI Baby Dancing Reels Bundle</td>
+            <td>₹47.00</td>
+            <td>₹1.09</td>
+            <td><strong>₹45.91</strong></td>
+            <td><small>300084731547</small></td>
+            <td><span class="pill pill-green">PAID (UPI)</span></td>
+          </tr>
+          <tr>
+            <td>24-Oct 11:46 PM</td>
+            <td><span class="order-id">VZ-893098</span></td>
+            <td><strong>Sourabh</strong><br><small style="color: var(--text-muted)">8275740681</small></td>
+            <td>1500+ Mad Scientist Reels Bundle</td>
+            <td>₹79.00</td>
+            <td>₹1.82</td>
+            <td><strong>₹77.18</strong></td>
+            <td><small>827845129865</small></td>
+            <td><span class="pill pill-green">PAID (UPI)</span></td>
+          </tr>
+          <tr>
+            <td>24-Oct 05:51 PM</td>
+            <td><span class="order-id">VZ-948166</span></td>
+            <td><strong>vikram thakur</strong><br><small style="color: var(--text-muted)">8077817679</small></td>
+            <td>1000+ Premanand Ji Maharaj Reels Bundle</td>
+            <td>₹39.00</td>
+            <td>₹0.90</td>
+            <td><strong>₹38.10</strong></td>
+            <td><small>666364423039</small></td>
+            <td><span class="pill pill-green">PAID (UPI)</span></td>
+          </tr>
+          <tr>
+            <td>24-Oct 05:14 PM</td>
+            <td><span class="order-id">VZ-433550</span></td>
+            <td><strong>Anu Anu</strong><br><small style="color: var(--text-muted)">9993498154</small></td>
+            <td>500+ Dr Skeleton Health Reels Bundle</td>
+            <td>₹99.00</td>
+            <td>₹2.28</td>
+            <td><strong>₹96.72</strong></td>
+            <td><small>564550673703</small></td>
+            <td><span class="pill pill-green">PAID (UPI)</span></td>
+          </tr>
+          <tr>
+            <td>24-Oct 12:32 PM</td>
+            <td><span class="order-id">VZ-661627</span></td>
+            <td><strong>Karma Nanda chakma</strong><br><small style="color: var(--text-muted)">7627911068</small></td>
+            <td>1000+ Ulti Pulti Duniya AI Reels</td>
+            <td>₹59.00</td>
+            <td>₹1.36</td>
+            <td><strong>₹57.64</strong></td>
+            <td><small>131779934902</small></td>
+            <td><span class="pill pill-green">PAID (UPI)</span></td>
+          </tr>
+          <tr>
+            <td>24-Oct 12:29 PM</td>
+            <td><span class="order-id">VZ-812485</span></td>
+            <td><strong>Karma Nanda chakma</strong><br><small style="color: var(--text-muted)">7627911068</small></td>
+            <td>5000+ Trending AI Anime Reels</td>
+            <td>₹99.00</td>
+            <td>₹2.28</td>
+            <td><strong>₹96.72</strong></td>
+            <td><small>131779740815</small></td>
+            <td><span class="pill pill-green">PAID (UPI)</span></td>
+          </tr>
+          <tr>
+            <td>24-Oct 08:22 AM</td>
+            <td><span class="order-id">VZ-551574</span></td>
+            <td><strong>Rishu Kumar</strong><br><small style="color: var(--text-muted)">8540054574</small></td>
+            <td>3200+ Ultimate Twisted World Reel Bundle</td>
+            <td>₹79.00</td>
+            <td>₹1.82</td>
+            <td><strong>₹77.18</strong></td>
+            <td><small>629708765717</small></td>
+            <td><span class="pill pill-green">PAID (UPI)</span></td>
+          </tr>
+          <tr>
+            <td>23-Oct 08:24 PM</td>
+            <td><span class="order-id">VZ-451645</span></td>
+            <td><strong>Shivanshu Pandey</strong><br><small style="color: var(--text-muted)">9519478083</small></td>
+            <td>450+ AI Health Awareness Reels</td>
+            <td>₹71.00</td>
+            <td>₹1.81</td>
+            <td><strong>₹69.19</strong></td>
+            <td><small>218794097055</small></td>
+            <td><span class="pill pill-green">PAID (UPI)</span></td>
+          </tr>
+          <tr>
+            <td>23-Oct 08:04 PM</td>
+            <td><span class="order-id">VZ-731718</span></td>
+            <td><strong>Angshu Dey</strong><br><small style="color: var(--text-muted)">7047899377</small></td>
+            <td>500+ Snake Ulti Duniya AI Reels</td>
+            <td>₹39.00</td>
+            <td>₹0.90</td>
+            <td><strong>₹38.10</strong></td>
+            <td><small>629620422564</small></td>
+            <td><span class="pill pill-green">PAID (UPI)</span></td>
+          </tr>
+          <tr>
+            <td>23-Oct 07:09 AM</td>
+            <td><span class="order-id">VZ-120720</span></td>
+            <td><strong>Vinu Thomas</strong><br><small style="color: var(--text-muted)">9447058836</small></td>
+            <td>All Bundles + Bonus Pack (Mega Pack)</td>
+            <td>₹638.00</td>
+            <td>₹14.68</td>
+            <td><strong>₹623.32</strong></td>
+            <td><small>666222356380</small></td>
+            <td><span class="pill pill-green">PAID (UPI)</span></td>
+          </tr>
+          <tr>
+            <td>22-Oct 11:33 AM</td>
+            <td><span class="order-id">VZ-208367</span></td>
+            <td><strong>Dipak Dhodi</strong><br><small style="color: var(--text-muted)">7600181572</small></td>
+            <td>1500+ AI Funny Kids Reels</td>
+            <td>₹99.00</td>
+            <td>₹2.28</td>
+            <td><strong>₹96.72</strong></td>
+            <td><small>CF_6808791042</small></td>
+            <td><span class="pill pill-green">PAID (UPI)</span></td>
+          </tr>
+          <tr>
+            <td>22-Oct 11:08 AM</td>
+            <td><span class="order-id">VZ-778563</span></td>
+            <td><strong>Dipak Dhodi</strong><br><small style="color: var(--text-muted)">7600181572</small></td>
+            <td>800+ AI Horror Reels</td>
+            <td>₹99.00</td>
+            <td>₹2.28</td>
+            <td><strong>₹96.72</strong></td>
+            <td><small>CF_6808745910</small></td>
+            <td><span class="pill pill-green">PAID (UPI)</span></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <footer>
+      VaultZet Store Analytics • Generated directly from Cashfree Gateway Settlements & Meta Ads Ledger.
+    </footer>
+  </div>
+</body>
+</html>

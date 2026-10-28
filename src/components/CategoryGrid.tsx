@@ -38,12 +38,12 @@ export default function CategoryGrid() {
     <section className="py-4 sm:py-6 [contain:layout_style]">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         
-        {/* Outer Section Card Wrapper matching Competitor Screenshot */}
-        <div className="rounded-[28px] sm:rounded-[34px] bg-[#fdfbff] border border-[#f0ebfa] p-4 sm:p-6 space-y-5 shadow-[0_8px_30px_rgba(80,40,150,0.03)]">
+        {/* Outer Section Card Wrapper */}
+        <div className="rounded-[28px] sm:rounded-[34px] bg-[#f8fafc] border border-slate-200/80 p-4 sm:p-6 space-y-5 shadow-[0_8px_30px_rgba(15,23,42,0.03)]">
           
-          {/* Exact Purple Gradient Header Banner with Right Decorative Curve */}
-          <div className="relative overflow-hidden rounded-[20px] bg-gradient-to-r from-[#5f2eea] via-[#7c3aed] to-[#9845f5] px-5 py-4 sm:px-6 sm:py-5 text-white flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shadow-[0_12px_28px_rgba(109,54,232,0.22)]">
-            {/* Decorative translucent circle on right matching competitor */}
+          {/* Deep Navy/Sapphire Gradient Header Banner */}
+          <div className="relative overflow-hidden rounded-[20px] bg-gradient-to-r from-[#0f172a] via-[#1e3a8a] to-[#2563eb] px-5 py-4 sm:px-6 sm:py-5 text-white flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shadow-[0_12px_28px_rgba(30,58,138,0.22)] border border-white/10">
+            {/* Decorative translucent circle on right */}
             <div className="absolute -right-10 -bottom-16 w-52 h-52 rounded-full bg-white/10 pointer-events-none" />
 
             <div className="flex items-stretch gap-3.5 relative z-10">
@@ -69,34 +69,34 @@ export default function CategoryGrid() {
             </Link>
           </div>
 
-          {/* 8 Category Cards in 2 Rows of 4 matching Competitor Screenshot */}
+          {/* 8 Category Cards in 2 Rows of 4 */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3.5 sm:gap-4">
             {categories.slice(0, 8).map((cat) => (
               <Link
                 key={cat.slug}
                 href={`/shop?cat=${cat.slug}`}
                 prefetch={false}
-                className="py-5 px-4 rounded-[20px] bg-white border border-[#f1ecfa] shadow-[0_4px_14px_rgba(30,15,70,0.03)] hover:shadow-[0_10px_25px_rgba(108,60,240,0.09)] hover:-translate-y-0.5 transition-all text-center flex flex-col items-center justify-center group relative"
+                className="py-5 px-4 rounded-[20px] bg-white border border-slate-200/80 shadow-[0_4px_14px_rgba(15,23,42,0.03)] hover:shadow-[0_10px_25px_rgba(37,99,235,0.1)] hover:border-blue-300 hover:-translate-y-0.5 transition-all text-center flex flex-col items-center justify-center group relative"
               >
                 {cat.is_custom && (
-                  <span className="absolute top-2.5 right-2.5 px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider bg-purple-100 text-purple-700 border border-purple-200 shadow-2xs">
+                  <span className="absolute top-2.5 right-2.5 px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider bg-sky-50 text-sky-700 border border-sky-200 shadow-2xs">
                     New
                   </span>
                 )}
                 {/* Pastel Icon Box */}
                 <div
                   style={{
-                    backgroundColor: cat.bg || '#f4ebff',
-                    color: (cat as any).iconColor || '#6d36e8',
+                    backgroundColor: cat.bg || '#eff6ff',
+                    color: (cat as any).iconColor || '#2563eb',
                   }}
                   className="w-11 h-11 rounded-[14px] flex items-center justify-center text-lg font-bold mb-2.5 group-hover:scale-105 transition-transform"
                 >
                   {cat.icon || '✨'}
                 </div>
-                <h3 className="font-extrabold text-[14px] sm:text-[15px] text-[#141d42] group-hover:text-[#6d36e8] transition-colors leading-snug">
+                <h3 className="font-extrabold text-[14px] sm:text-[15px] text-[#0f172a] group-hover:text-[#2563eb] transition-colors leading-snug">
                   {cat.name}
                 </h3>
-                <p className="text-[11px] font-semibold text-[#4a5270] mt-0.5">
+                <p className="text-[11px] font-semibold text-[#64748b] mt-0.5">
                   {categoryCounts[cat.slug] ?? cat.count ?? 0} Bundles
                 </p>
               </Link>

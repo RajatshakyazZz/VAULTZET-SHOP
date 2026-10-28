@@ -76,56 +76,56 @@ export default function Hero() {
     <section className="pt-2 pb-2 sm:pt-6 sm:pb-6">
       <div className="max-w-7xl mx-auto px-3.5 sm:px-6 lg:px-8">
         
-        {/* Main Hero Card Container matching Competitor Screenshot Exactly */}
+        {/* Main Hero Card Container matching Clean Tech Luxury Theme */}
         <div
-          className="relative rounded-[24px] sm:rounded-[36px] bg-gradient-to-br from-[#ffffff] via-[#fdf9ff] to-[#fcecf8] border border-[#efe7fa] shadow-[0_12px_40px_rgba(80,40,150,0.05)] p-4 sm:p-10 lg:px-12 lg:py-11 overflow-hidden"
+          className="relative rounded-[24px] sm:rounded-[36px] bg-gradient-to-br from-[#ffffff] via-[#f8fafc] to-[#f0f7ff] border border-[#e2e8f0] shadow-[0_12px_40px_rgba(15,23,42,0.04)] p-4 sm:p-10 lg:px-12 lg:py-11 overflow-hidden"
           style={{
             backgroundImage:
-              'linear-gradient(to right, rgba(125, 85, 225, 0.03) 1px, transparent 1px), linear-gradient(to bottom, rgba(125, 85, 225, 0.03) 1px, transparent 1px)',
+              'linear-gradient(to right, rgba(14, 165, 233, 0.04) 1px, transparent 1px), linear-gradient(to bottom, rgba(14, 165, 233, 0.04) 1px, transparent 1px)',
             backgroundSize: '26px 26px',
           }}
         >
-          {/* Ambient Pink & Lavender Glow on the Right Side (Behind the 3 Phones) */}
+          {/* Ambient Cyan & Ice Blue Glow on the Right Side (Behind the 3 Phones) */}
           <div
             className="pointer-events-none absolute -right-16 top-0 bottom-0 w-full lg:w-[58%] z-0"
             style={{
               background:
-                'radial-gradient(circle at 65% 48%, rgba(255, 178, 226, 0.52) 0%, rgba(215, 178, 255, 0.36) 38%, rgba(255, 232, 247, 0.2) 68%, transparent 100%)',
+                'radial-gradient(circle at 65% 48%, rgba(56, 189, 248, 0.28) 0%, rgba(37, 99, 235, 0.16) 38%, rgba(240, 249, 255, 0.1) 68%, transparent 100%)',
             }}
           />
 
-          {/* Subtle bottom-left lavender wave shape matching competitor */}
-          <div className="pointer-events-none absolute -left-12 -bottom-24 w-80 h-60 rounded-full bg-purple-200/25 blur-2xl z-0" />
+          {/* Subtle bottom-left sky wave shape */}
+          <div className="pointer-events-none absolute -left-12 -bottom-24 w-80 h-60 rounded-full bg-sky-200/25 blur-2xl z-0" />
 
           <div className="relative z-10 grid grid-cols-1 lg:grid-cols-12 gap-5 sm:gap-8 lg:gap-6 items-center">
             
             {/* Left Content */}
             <div className="lg:col-span-7 space-y-3.5 sm:space-y-6">
               
-              {/* Exact Typography matching Competitor Screenshot */}
+              {/* Exact Typography matching Modern Architecture */}
               <div>
-                <h1 className="text-[32px] sm:text-[50px] lg:text-[62px] font-black text-[#0f1738] tracking-[-0.03em] leading-[1.06]">
+                <h1 className="text-[32px] sm:text-[50px] lg:text-[62px] font-black text-[#0f172a] tracking-[-0.03em] leading-[1.06]">
                   Viral Reels.
                 </h1>
                 <div className="text-[32px] sm:text-[50px] lg:text-[62px] font-black tracking-[-0.03em] leading-[1.08] mt-0.5 flex items-center min-h-[38px] sm:min-h-[64px]">
-                  <span className="bg-gradient-to-r from-[#6c35ff] via-[#b429f9] to-[#ff1e8e] bg-clip-text text-transparent pb-1">
+                  <span className="bg-gradient-to-r from-[#2563eb] via-[#0284c7] to-[#06b6d4] bg-clip-text text-transparent pb-1">
                     {displayText}
                   </span>
-                  <span className="w-[2.5px] h-[0.88em] bg-[#efb9d7] ml-1.5 inline-block animate-pulse shrink-0" />
+                  <span className="w-[2.5px] h-[0.88em] bg-[#0284c7] ml-1.5 inline-block animate-pulse shrink-0" />
                 </div>
               </div>
 
               {/* Subtitle */}
-              <p className="text-[13px] sm:text-[15.5px] text-[#5e688c] font-medium max-w-xl leading-[1.5] sm:leading-[1.6]">
+              <p className="text-[13px] sm:text-[15.5px] text-[#475569] font-medium max-w-xl leading-[1.5] sm:leading-[1.6]">
                 Download polished reels bundles for Instagram, YouTube Shorts and Facebook. Pick your niche, preview the content and get instant secure access after purchase.
               </p>
 
-              {/* Action Buttons matching Competitor Screenshot - Side by Side on Mobile */}
+              {/* Action Buttons - Side by Side on Mobile */}
               <div className="grid grid-cols-2 gap-2.5 sm:flex sm:flex-wrap sm:items-center sm:gap-3.5 pt-0.5 sm:pt-1">
                 <Link
                   href="/shop"
                   prefetch={false}
-                  className="px-3 sm:px-6 py-2.5 sm:py-3.5 rounded-xl sm:rounded-2xl bg-gradient-to-r from-[#6734f7] via-[#a32bf6] to-[#f92893] text-white font-extrabold text-[12.5px] sm:text-[14px] flex items-center justify-center gap-1.5 sm:gap-2.5 shadow-[0_10px_24px_rgba(163,43,246,0.25)] hover:scale-[1.02] active:scale-95 transition-transform"
+                  className="px-3 sm:px-6 py-2.5 sm:py-3.5 rounded-xl sm:rounded-2xl bg-gradient-to-r from-[#1d4ed8] via-[#2563eb] to-[#0284c7] text-white font-extrabold text-[12.5px] sm:text-[14px] flex items-center justify-center gap-1.5 sm:gap-2.5 shadow-[0_10px_24px_rgba(37,99,235,0.28)] hover:scale-[1.02] active:scale-95 transition-transform"
                 >
                   <span className="w-5 h-5 sm:w-6 sm:h-6 rounded-md sm:rounded-lg bg-white/20 flex items-center justify-center text-[10px] sm:text-xs leading-none shrink-0">
                     ▣
@@ -136,9 +136,9 @@ export default function Hero() {
 
                 <a
                   href="#rbui-preview"
-                  className="px-3 sm:px-6 py-2.5 sm:py-3.5 rounded-xl sm:rounded-2xl bg-white text-[#141d42] border border-[#c8b9f6] font-extrabold text-[12.5px] sm:text-[14px] flex items-center justify-center gap-1.5 sm:gap-2.5 shadow-xs hover:shadow-md transition-all hover:bg-purple-50/40 active:scale-95"
+                  className="px-3 sm:px-6 py-2.5 sm:py-3.5 rounded-xl sm:rounded-2xl bg-white text-[#0f172a] border border-[#cbd5e1] font-extrabold text-[12.5px] sm:text-[14px] flex items-center justify-center gap-1.5 sm:gap-2.5 shadow-xs hover:shadow-md transition-all hover:bg-sky-50/50 hover:border-blue-300 active:scale-95"
                 >
-                  <div className="w-5 h-5 sm:w-6 sm:h-6 rounded-full bg-[#111a3d] flex items-center justify-center text-white shrink-0">
+                  <div className="w-5 h-5 sm:w-6 sm:h-6 rounded-full bg-[#0f172a] flex items-center justify-center text-white shrink-0">
                     <Play className="w-2 h-2 sm:w-2.5 sm:h-2.5 fill-white ml-0.5" />
                   </div>
                   <span className="truncate">View Previews</span>
@@ -147,8 +147,8 @@ export default function Hero() {
 
               {/* 3 Glossy Color Stat Cards on Desktop */}
               <div className="hidden lg:grid grid-cols-3 gap-3.5 pt-3 max-w-xl">
-                {/* 129 Published Bundles (Purple Gradient) */}
-                <div className="relative overflow-hidden p-3.5 rounded-[20px] bg-gradient-to-br from-[#5d3be3] to-[#8353f5] text-white flex flex-col items-center text-center shadow-[0_10px_24px_rgba(93,59,227,0.2)]">
+                {/* Published Bundles (Sapphire Blue Gradient) */}
+                <div className="relative overflow-hidden p-3.5 rounded-[20px] bg-gradient-to-br from-[#1d4ed8] to-[#2563eb] text-white flex flex-col items-center text-center shadow-[0_10px_24px_rgba(37,99,235,0.2)]">
                   <div className="absolute -right-5 -bottom-6 w-20 h-20 rounded-full bg-white/12 pointer-events-none" />
                   <div className="w-9 h-9 rounded-xl bg-white/15 border border-white/25 flex items-center justify-center shrink-0 mb-1">
                     <FolderKanban className="w-4 h-4 text-white" />
@@ -159,8 +159,8 @@ export default function Hero() {
                   </div>
                 </div>
 
-                {/* 222K+ Ready-to-Post Reels (Coral/Pink Gradient) */}
-                <div className="relative overflow-hidden p-3.5 rounded-[20px] bg-gradient-to-br from-[#ef3966] to-[#f86669] text-white flex flex-col items-center text-center shadow-[0_10px_24px_rgba(239,57,102,0.2)]">
+                {/* Ready-to-Post Reels (Sunset Amber Gradient) */}
+                <div className="relative overflow-hidden p-3.5 rounded-[20px] bg-gradient-to-br from-[#ea580c] to-[#f97316] text-white flex flex-col items-center text-center shadow-[0_10px_24px_rgba(234,88,12,0.2)]">
                   <div className="absolute -right-5 -bottom-6 w-20 h-20 rounded-full bg-white/12 pointer-events-none" />
                   <div className="w-9 h-9 rounded-xl bg-white/15 border border-white/25 flex items-center justify-center shrink-0 mb-1">
                     <Film className="w-4 h-4 text-white" />
@@ -171,8 +171,8 @@ export default function Hero() {
                   </div>
                 </div>
 
-                {/* Up to 1080P Maximum Quality (Teal Gradient) */}
-                <div className="relative overflow-hidden p-3.5 rounded-[20px] bg-gradient-to-br from-[#06967d] to-[#11b594] text-white flex flex-col items-center text-center shadow-[0_10px_24px_rgba(6,150,125,0.2)]">
+                {/* Maximum Quality (Emerald Mint Gradient) */}
+                <div className="relative overflow-hidden p-3.5 rounded-[20px] bg-gradient-to-br from-[#059669] to-[#10b981] text-white flex flex-col items-center text-center shadow-[0_10px_24px_rgba(16,185,129,0.2)]">
                   <div className="absolute -right-5 -bottom-6 w-20 h-20 rounded-full bg-white/12 pointer-events-none" />
                   <div className="w-9 h-9 rounded-xl bg-white/15 border border-white/25 flex items-center justify-center shrink-0 mb-1">
                     <ShieldCheck className="w-4 h-4 text-white" />
@@ -186,22 +186,22 @@ export default function Hero() {
 
             </div>
 
-            {/* Right: 3 Phone Stack with Pink/Lavender Aura matching Competitor Screenshot */}
+            {/* Right: 3 Phone Stack with Sky/Azure Aura */}
             <div
               className="lg:col-span-5 flex flex-col items-center justify-center relative mt-1 sm:mt-0"
               onMouseEnter={() => setIsRotating(false)}
               onMouseLeave={() => setIsRotating(true)}
             >
-              {/* Extra Concentrated Pink/Violet Glow Directly Behind the 3 Phones */}
+              {/* Concentrated Cyan/Azure Glow Directly Behind the 3 Phones */}
               <div
-                className="pointer-events-none absolute inset-0 -m-6 rounded-full opacity-90 z-0"
+                className="pointer-events-none absolute inset-0 -m-6 rounded-full opacity-80 z-0"
                 style={{
                   background:
-                    'radial-gradient(circle at 50% 50%, rgba(250, 168, 224, 0.55) 0%, rgba(196, 160, 255, 0.35) 45%, transparent 72%)',
+                    'radial-gradient(circle at 50% 50%, rgba(56, 189, 248, 0.45) 0%, rgba(37, 99, 235, 0.22) 45%, transparent 72%)',
                 }}
               />
 
-              {/* 3 Phone Cards Container - Tightly clustered and proportional on mobile */}
+              {/* 3 Phone Cards Container */}
               <div className="relative z-10 w-full max-w-[340px] sm:max-w-[380px] h-[235px] sm:h-[310px] lg:h-[340px] flex items-center justify-center">
                 
                 {/* Left Card (-8deg tilt, tucked behind center card) */}
@@ -223,8 +223,8 @@ export default function Hero() {
                     />
                     <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/15 to-transparent flex flex-col justify-between p-2 sm:p-3 text-white">
                       <div />
-                      <div className="w-7 h-7 sm:w-9 sm:h-9 rounded-full bg-white/95 shadow-md flex items-center justify-center mx-auto text-[#5e2de0]">
-                        <Play className="w-2.5 h-2.5 sm:w-3.5 sm:h-3.5 fill-[#5e2de0] ml-0.5" />
+                      <div className="w-7 h-7 sm:w-9 sm:h-9 rounded-full bg-white/95 shadow-md flex items-center justify-center mx-auto text-[#2563eb]">
+                        <Play className="w-2.5 h-2.5 sm:w-3.5 sm:h-3.5 fill-[#2563eb] ml-0.5" />
                       </div>
                       <div>
                         <span className="text-[7px] sm:text-[8.5px] font-extrabold uppercase tracking-[0.12em] text-white/80 block mb-0.5">
@@ -257,8 +257,8 @@ export default function Hero() {
                     />
                     <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/15 to-transparent flex flex-col justify-between p-2 sm:p-3 text-white">
                       <div />
-                      <div className="w-7 h-7 sm:w-9 sm:h-9 rounded-full bg-white/95 shadow-md flex items-center justify-center mx-auto text-[#5e2de0]">
-                        <Play className="w-2.5 h-2.5 sm:w-3.5 sm:h-3.5 fill-[#5e2de0] ml-0.5" />
+                      <div className="w-7 h-7 sm:w-9 sm:h-9 rounded-full bg-white/95 shadow-md flex items-center justify-center mx-auto text-[#2563eb]">
+                        <Play className="w-2.5 h-2.5 sm:w-3.5 sm:h-3.5 fill-[#2563eb] ml-0.5" />
                       </div>
                       <div>
                         <span className="text-[7px] sm:text-[8.5px] font-extrabold uppercase tracking-[0.12em] text-white/80 block mb-0.5">
@@ -292,8 +292,8 @@ export default function Hero() {
                     <div className="absolute inset-0 bg-gradient-to-t from-black/95 via-black/20 to-transparent flex flex-col justify-between p-2.5 sm:p-3.5 text-white">
                       <div />
 
-                      <div className="w-8 h-8 sm:w-11 sm:h-11 rounded-full bg-white/95 shadow-lg flex items-center justify-center mx-auto text-[#5e2de0]">
-                        <Play className="w-3 h-3 sm:w-4 sm:h-4 fill-[#5e2de0] ml-0.5" />
+                      <div className="w-8 h-8 sm:w-11 sm:h-11 rounded-full bg-white/95 shadow-lg flex items-center justify-center mx-auto text-[#2563eb]">
+                        <Play className="w-3 h-3 sm:w-4 sm:h-4 fill-[#2563eb] ml-0.5" />
                       </div>
 
                       <div>
@@ -310,20 +310,20 @@ export default function Hero() {
 
               </div>
 
-              {/* Bottom Quality Badges matching Competitor Screenshot */}
+              {/* Bottom Quality Badges matching Modern Style */}
               <div className="relative z-10 flex items-center justify-center gap-2 sm:gap-3 mt-2 sm:mt-3">
-                <span className="px-3 sm:px-4 py-1 sm:py-1.5 rounded-full text-[10px] sm:text-[11px] font-extrabold bg-white/95 text-[#141d42] border border-white shadow-[0_4px_14px_rgba(30,15,70,0.08)]">
+                <span className="px-3 sm:px-4 py-1 sm:py-1.5 rounded-full text-[10px] sm:text-[11px] font-extrabold bg-white/95 text-[#0f172a] border border-slate-200 shadow-[0_4px_14px_rgba(15,23,42,0.06)]">
                   9:16 Vertical
                 </span>
-                <span className="px-3 sm:px-4 py-1 sm:py-1.5 rounded-full text-[10px] sm:text-[11px] font-extrabold bg-white/95 text-[#141d42] border border-white shadow-[0_4px_14px_rgba(30,15,70,0.08)]">
+                <span className="px-3 sm:px-4 py-1 sm:py-1.5 rounded-full text-[10px] sm:text-[11px] font-extrabold bg-white/95 text-[#0f172a] border border-slate-200 shadow-[0_4px_14px_rgba(15,23,42,0.06)]">
                   1080P Available
                 </span>
               </div>
 
-              {/* 3 Glossy Color Stat Cards on Mobile matching Competitor Screenshot 1 */}
+              {/* 3 Glossy Color Stat Cards on Mobile */}
               <div className="grid lg:hidden grid-cols-3 gap-2 pt-2.5 sm:pt-3 w-full max-w-md relative z-10">
-                {/* 129 Published Bundles (Purple Gradient) */}
-                <div className="relative overflow-hidden p-2 sm:p-2.5 rounded-xl sm:rounded-2xl bg-gradient-to-br from-[#5d3be3] to-[#8353f5] text-white flex flex-col items-center text-center shadow-[0_8px_20px_rgba(93,59,227,0.2)]">
+                {/* Published Bundles (Sapphire Blue Gradient) */}
+                <div className="relative overflow-hidden p-2 sm:p-2.5 rounded-xl sm:rounded-2xl bg-gradient-to-br from-[#1d4ed8] to-[#2563eb] text-white flex flex-col items-center text-center shadow-[0_8px_20px_rgba(37,99,235,0.2)]">
                   <div className="absolute -right-5 -bottom-6 w-16 h-16 rounded-full bg-white/12 pointer-events-none" />
                   <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg sm:rounded-xl bg-white/15 border border-white/25 flex items-center justify-center shrink-0 mb-1">
                     <FolderKanban className="w-3.5 h-3.5 text-white" />
@@ -334,8 +334,8 @@ export default function Hero() {
                   </div>
                 </div>
 
-                {/* 222K+ Ready-to-Post Reels (Coral/Pink Gradient) */}
-                <div className="relative overflow-hidden p-2 sm:p-2.5 rounded-xl sm:rounded-2xl bg-gradient-to-br from-[#ef3966] to-[#f86669] text-white flex flex-col items-center text-center shadow-[0_8px_20px_rgba(239,57,102,0.2)]">
+                {/* Ready-to-Post Reels (Sunset Amber Gradient) */}
+                <div className="relative overflow-hidden p-2 sm:p-2.5 rounded-xl sm:rounded-2xl bg-gradient-to-br from-[#ea580c] to-[#f97316] text-white flex flex-col items-center text-center shadow-[0_8px_20px_rgba(234,88,12,0.2)]">
                   <div className="absolute -right-5 -bottom-6 w-16 h-16 rounded-full bg-white/12 pointer-events-none" />
                   <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg sm:rounded-xl bg-white/15 border border-white/25 flex items-center justify-center shrink-0 mb-1">
                     <Film className="w-3.5 h-3.5 text-white" />
@@ -346,8 +346,8 @@ export default function Hero() {
                   </div>
                 </div>
 
-                {/* Up to 1080P Maximum Quality (Teal Gradient) */}
-                <div className="relative overflow-hidden p-2 sm:p-2.5 rounded-xl sm:rounded-2xl bg-gradient-to-br from-[#06967d] to-[#11b594] text-white flex flex-col items-center text-center shadow-[0_8px_20px_rgba(6,150,125,0.2)]">
+                {/* Maximum Quality (Emerald Mint Gradient) */}
+                <div className="relative overflow-hidden p-2 sm:p-2.5 rounded-xl sm:rounded-2xl bg-gradient-to-br from-[#059669] to-[#10b981] text-white flex flex-col items-center text-center shadow-[0_8px_20px_rgba(16,185,129,0.2)]">
                   <div className="absolute -right-5 -bottom-6 w-16 h-16 rounded-full bg-white/12 pointer-events-none" />
                   <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg sm:rounded-xl bg-white/15 border border-white/25 flex items-center justify-center shrink-0 mb-1">
                     <ShieldCheck className="w-3.5 h-3.5 text-white" />
