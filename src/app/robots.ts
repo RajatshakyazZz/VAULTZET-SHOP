@@ -1,3 +1,4 @@
+// Production robots configuration for Reel Bundle Store Vaultzet (vaultzet.shop) - v2
 import { MetadataRoute } from 'next';
 
 export default function robots(): MetadataRoute.Robots {
