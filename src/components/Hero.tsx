@@ -102,12 +102,18 @@ export default function Hero() {
             {/* Left Content */}
             <div className="lg:col-span-7 space-y-3.5 sm:space-y-6">
               
+              {/* Eyebrow SEO Badge */}
+              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-50 border border-blue-200/80 text-blue-700 text-[11px] sm:text-xs font-bold tracking-wide uppercase shadow-xs">
+                <span className="w-2 h-2 rounded-full bg-blue-600 animate-pulse shrink-0" />
+                <span>India&apos;s #1 Reel Bundle Store • Vaultzet</span>
+              </div>
+
               {/* Exact Typography matching Modern Architecture */}
               <div>
                 <h1 className="text-[32px] sm:text-[50px] lg:text-[62px] font-black text-[#0f172a] tracking-[-0.03em] leading-[1.06]">
-                  Viral Reels.
+                  Reel Bundle Store <span className="text-[#2563eb]">Vaultzet.</span>
                 </h1>
-                <div className="text-[32px] sm:text-[50px] lg:text-[62px] font-black tracking-[-0.03em] leading-[1.08] mt-0.5 flex items-center min-h-[38px] sm:min-h-[64px]">
+                <div className="text-[28px] sm:text-[44px] lg:text-[54px] font-black tracking-[-0.03em] leading-[1.08] mt-1 flex items-center min-h-[38px] sm:min-h-[58px]">
                   <span className="bg-gradient-to-r from-[#2563eb] via-[#0284c7] to-[#06b6d4] bg-clip-text text-transparent pb-1">
                     {displayText}
                   </span>

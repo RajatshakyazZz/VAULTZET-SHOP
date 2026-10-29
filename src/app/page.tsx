@@ -6,6 +6,7 @@ import FreshReelsGrid from '@/components/FreshReelsGrid';
 import MembershipPlans from '@/components/MembershipPlans';
 import UpcomingBundles from '@/components/UpcomingBundles';
 import CreatorProof from '@/components/CreatorProof';
+import ReelBundleStoreSEOSection from '@/components/ReelBundleStoreSEOSection';
 
 export default function HomePage() {
   const siteUrl = (process.env.NEXT_PUBLIC_SITE_URL || 'https://vaultzet.shop').replace(/\/+$/, '');
@@ -79,6 +80,9 @@ export default function HomePage() {
 
       {/* Creator Growth Analytics & Testimonials */}
       <CreatorProof />
+
+      {/* Authority SEO Section & FAQs for Google Ranking */}
+      <ReelBundleStoreSEOSection />
     </div>
   );
 }

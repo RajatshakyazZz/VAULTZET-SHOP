@@ -31,15 +31,21 @@ export const viewport: Viewport = {
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
   title: {
-    default: 'Vaultzet Store | Buy Viral Reels Bundles in India – 222,000+ Ready-to-Post Reels',
-    template: '%s | Vaultzet Store',
+    default: 'Reel Bundle Store Vaultzet | 222,000+ Viral Reels Bundles India',
+    template: '%s | Reel Bundle Store Vaultzet',
   },
   description:
-    'Download 222,000+ viral ready-to-post vertical reels bundles for Instagram Reels, YouTube Shorts & Facebook across 129+ niches. Zero watermarks, commercial & reseller rights, and instant Google Drive access.',
+    'Vaultzet is India\'s #1 reel bundle store. Download 222,000+ viral ready-to-post vertical reels bundles for Instagram Reels, YouTube Shorts & Facebook across 129+ niches. Zero watermarks, commercial & reseller rights, and instant Google Drive access.',
   keywords: [
+    'reel bundle store vaultzet',
+    'vaultzet reel bundle store',
+    'reel bundle store',
+    'reels bundle store',
     'vaultzet',
     'vaultzet store',
+    'vaultzet shop',
     'viral reels bundle',
+    'viral reels bundle store india',
     'ai reels bundle',
     'instagram reels bundle india',
     'youtube shorts bundle',
@@ -71,8 +77,8 @@ export const metadata: Metadata = {
     type: 'website',
     locale: 'en_IN',
     url: SITE_URL,
-    siteName: 'Vaultzet Store',
-    title: 'Vaultzet Store | 222,000+ Viral Reels Bundles – Instant Download',
+    siteName: 'Vaultzet - Reel Bundle Store',
+    title: 'Reel Bundle Store Vaultzet | 222,000+ Viral Reels Bundles India',
     description:
       'Over 222,000+ vertical HD reels across 129+ niches with zero watermarks & full commercial rights. Instant Google Drive delivery.',
   },

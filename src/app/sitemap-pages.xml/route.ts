@@ -1,7 +1,7 @@
 export const revalidate = 3600;
 
 export async function GET() {
-  const baseUrl = (process.env.NEXT_PUBLIC_SITE_URL || 'https://vaultzet.shop').replace(/\/+$/, '');
+  const baseUrl = (process.env.NEXT_PUBLIC_SITE_URL || 'https://www.vaultzet.shop').replace(/\/+$/, '');
   const now = new Date().toISOString();
 
   const pages = [

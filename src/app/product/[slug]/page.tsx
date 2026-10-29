@@ -31,12 +31,12 @@ export async function generateMetadata({ params }: ProductPageProps): Promise<Me
     };
   }
 
-  const siteUrl = (process.env.NEXT_PUBLIC_SITE_URL || 'https://vaultzet.shop').replace(/\/+$/, '');
+  const siteUrl = (process.env.NEXT_PUBLIC_SITE_URL || 'https://www.vaultzet.shop').replace(/\/+$/, '');
   const canonicalUrl = `${siteUrl}/product/${product.slug}`;
 
-  // Unique <title> (max 60 chars): "{Product Name} Bundle — Ready to Post Reels | Vaultzet"
-  const suffix = ' Bundle — Ready to Post Reels | Vaultzet';
-  const availableLength = 60 - suffix.length; // 21 chars
+  // Unique <title>: "{Product Name} | Reel Bundle Store Vaultzet"
+  const suffix = ' | Reel Bundle Store Vaultzet';
+  const availableLength = 65 - suffix.length;
   const rawCleanName = product.title
     .replace(/\s*(bundle|reels bundle|pack)\s*$/i, '')
     .trim();
@@ -44,7 +44,7 @@ export async function generateMetadata({ params }: ProductPageProps): Promise<Me
     rawCleanName.length > availableLength
       ? `${rawCleanName.slice(0, availableLength - 1).trim()}…`
       : rawCleanName;
-  const title = `${cleanName}${suffix}`.slice(0, 60);
+  const title = `${cleanName}${suffix}`;
 
   // Unique meta description (140–158 chars) mentioning niche + price + "instant Google Drive delivery"
   let description = `Buy ${product.title.slice(0, 32)} for ₹${product.personalPrice}. Get ${product.reelCount || 1000}+ viral ${product.category} reels with instant Google Drive delivery & commercial rights.`;
