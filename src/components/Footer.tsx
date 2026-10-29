@@ -22,6 +22,11 @@ export default function Footer() {
   const { setIsCartOpen } = useCart();
   const [isResellerRoute, setIsResellerRoute] = React.useState(false);
 
+  const footerEmail =
+    settings.supportEmail && !settings.supportEmail.includes('vaultworld') && !settings.supportEmail.includes('dizi')
+      ? settings.supportEmail
+      : 'rajattracozegaming@gmail.com';
+
   React.useEffect(() => {
     if (typeof window !== 'undefined') {
       const isR = pathname?.startsWith('/r/') || pathname === '/r';
@@ -277,8 +282,8 @@ export default function Footer() {
               Contact Us
             </Link>
             <span className="text-gray-300">•</span>
-            <a href={`mailto:${settings.supportEmail}`} className="hover:text-[#6f33e8] transition-colors">
-              {settings.supportEmail}
+            <a href={`mailto:${footerEmail}`} className="hover:text-[#6f33e8] transition-colors">
+              {footerEmail}
             </a>
           </div>
 

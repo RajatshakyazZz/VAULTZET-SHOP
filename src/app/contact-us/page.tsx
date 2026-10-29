@@ -8,8 +8,18 @@ import { useStoreSettings } from '@/context/StoreSettingsContext';
 export default function ContactUsPage() {
   const { settings } = useStoreSettings();
 
-  const supportEmail = settings.supportEmail || 'rajattracozegaming@gmail.com';
-  const supportPhone = settings.supportWhatsapp || '+91 7895317940';
+  const rawEmail = settings.supportEmail || '';
+  const supportEmail =
+    rawEmail && !rawEmail.includes('vaultworld') && !rawEmail.includes('dizi')
+      ? rawEmail
+      : 'rajattracozegaming@gmail.com';
+
+  const rawPhone = settings.supportWhatsapp || '';
+  const supportPhone =
+    rawPhone && !rawPhone.includes('80510') && !rawPhone.includes('88600')
+      ? rawPhone
+      : '+91 7895317940';
+
   const ownerName = settings.ownerName || 'Rajat Shakya';
 
   return (

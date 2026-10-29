@@ -34,20 +34,31 @@ function sanitizeStoreName(name?: string, fallback = 'Vaultzet Store'): string {
 
 function sanitizeEmail(email?: string, fallback = 'rajattracozegaming@gmail.com'): string {
   if (!email || !email.trim()) return fallback;
+  const clean = email.trim().toLowerCase();
   if (
-    /reelsbundles/i.test(email) ||
-    /digonest/i.test(email) ||
-    /support@vaultzet\.(com|shop)/i.test(email)
+    clean.includes('vaultworld') ||
+    clean.includes('diziproducts') ||
+    clean.includes('dizi') ||
+    clean.includes('ashamse') ||
+    clean.includes('reelsbundles') ||
+    clean.includes('digonest') ||
+    clean.includes('support@vaultzet')
   ) {
-    return 'rajattracozegaming@gmail.com';
+    return fallback;
   }
   return email.trim();
 }
 
 function sanitizePhone(phone?: string, fallback = '+91 7895317940'): string {
   if (!phone || !phone.trim()) return fallback;
-  if (/98765\s*43210/.test(phone)) {
-    return '+91 7895317940';
+  const digits = phone.replace(/[^0-9]/g, '');
+  if (
+    digits.includes('8051017331') ||
+    digits.includes('8860032559') ||
+    digits.includes('9142408286') ||
+    digits.includes('9876543210')
+  ) {
+    return fallback;
   }
   return phone.trim();
 }
@@ -68,15 +79,25 @@ export function StoreSettingsProvider({ children }: { children: React.ReactNode 
     try {
       const cached = localStorage.getItem('vaultzet_store_settings');
       if (cached) {
-        const parsed = JSON.parse(cached);
-        setSettings({
-          ...DEFAULT_SETTINGS,
-          ...parsed,
-          storeName: sanitizeStoreName(parsed.storeName),
-          supportEmail: sanitizeEmail(parsed.supportEmail),
-          supportWhatsapp: sanitizePhone(parsed.supportWhatsapp),
-          ownerName: parsed.ownerName || 'Rajat Shakya',
-        });
+        if (
+          cached.includes('vaultworld') ||
+          cached.includes('8051017331') ||
+          cached.includes('dizi') ||
+          cached.includes('ashamse')
+        ) {
+          localStorage.removeItem('vaultzet_store_settings');
+          setSettings(DEFAULT_SETTINGS);
+        } else {
+          const parsed = JSON.parse(cached);
+          setSettings({
+            ...DEFAULT_SETTINGS,
+            ...parsed,
+            storeName: sanitizeStoreName(parsed.storeName),
+            supportEmail: sanitizeEmail(parsed.supportEmail),
+            supportWhatsapp: sanitizePhone(parsed.supportWhatsapp),
+            ownerName: parsed.ownerName || 'Rajat Shakya',
+          });
+        }
       }
     } catch {}
   }, []);
