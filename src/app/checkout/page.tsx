@@ -26,7 +26,7 @@ import {
 import { useCart } from '@/context/CartContext';
 import { ORDER_BUMP } from '@/data/bundles';
 import { track } from '@/lib/analytics';
-import { resolveBundleSlug } from '@/lib/bundleResolver';
+import { resolveBundleSlug, isEligibleForFreeBundleGift } from '@/lib/bundleResolver';
 import { fetchCustomProductBySlug } from '@/lib/customProducts';
 
 declare global {
@@ -202,7 +202,7 @@ function CheckoutContent() {
 
   // Free bundles eligible if checkoutSubtotal >= 149
   const freeBonusItems: CartItem[] = (checkoutSubtotal >= 149 && freeBundles.length > 0)
-    ? freeBundles.map((b) => ({
+    ? freeBundles.filter(isEligibleForFreeBundleGift).map((b) => ({
         product: b,
         license: 'personal' as LicenseType,
         price: 0,

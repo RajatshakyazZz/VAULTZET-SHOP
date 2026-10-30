@@ -152,3 +152,83 @@ export function getProductUrlForReel(reel: ReelItem): string {
   }
   return '/shop';
 }
+
+/**
+ * Determines whether a bundle product is eligible to be picked as a promotional free gift bundle
+ * (e.g. 2 free bundles offer when cart reaches >= ₹149).
+ *
+ * STRICTLY EXCLUDES:
+ * - Mega Bundles / Full Catalog Bundles:
+ *   - "All Bundles – Personal Use" (rb-all-bundles-personal-use, all-bundles-personal-use)
+ *   - "All Bundles + Reseller Rights" (rb-all-bundles-reseller-rights, all-bundles-reseller-rights)
+ *   - All-Access plans (plan-personal, plan-reseller)
+ *   - Any item with price >= ₹299 (store all-access bundles)
+ *   - Any item with "all bundles", "entire store", "all-bundles" in title/slug/id/category
+ */
+export function isEligibleForFreeBundleGift(bundle: {
+  id?: string;
+  slug?: string;
+  title?: string;
+  categorySlug?: string;
+  category?: string;
+  personalPrice?: number;
+  price?: number;
+} | null | undefined): boolean {
+  if (!bundle) return false;
+
+  const id = String(bundle.id || '').trim().toLowerCase();
+  const slug = String(bundle.slug || '').trim().toLowerCase();
+  const title = String(bundle.title || '').trim().toLowerCase();
+  const categorySlug = String(bundle.categorySlug || '').trim().toLowerCase();
+  const category = String(bundle.category || '').trim().toLowerCase();
+  const price = Number(bundle.personalPrice ?? bundle.price ?? 0);
+
+  // 1. Explicit ID exclusion
+  if (
+    id.startsWith('plan-') ||
+    id === 'rb-all-bundles-personal-use' ||
+    id === 'rb-all-bundles-reseller-rights' ||
+    id === 'all-bundles-personal-use' ||
+    id === 'all-bundles-reseller-rights' ||
+    id.includes('all-bundles') ||
+    id.includes('all_bundles')
+  ) {
+    return false;
+  }
+
+  // 2. Explicit Slug exclusion
+  if (
+    slug === 'all-bundles-personal-use' ||
+    slug === 'all-bundles-reseller-rights' ||
+    slug.includes('all-bundles') ||
+    slug.includes('all_bundles') ||
+    slug.includes('all-access')
+  ) {
+    return false;
+  }
+
+  // 3. Category exclusion
+  if (categorySlug === 'all-access' || categorySlug === 'all-bundles' || category === 'all-access') {
+    return false;
+  }
+
+  // 4. Title heuristics for All Bundles / Mega Catalog
+  if (
+    title.includes('all bundle') ||
+    title.includes('all-bundle') ||
+    title.includes('all bundles') ||
+    title.includes('entire store') ||
+    title.includes('full library') ||
+    title.includes('all-access')
+  ) {
+    return false;
+  }
+
+  // 5. Price threshold safety net: individual reels bundles are ₹99 - ₹139; mega bundles are ₹549 & ₹699
+  if (price >= 299) {
+    return false;
+  }
+
+  return true;
+}
+

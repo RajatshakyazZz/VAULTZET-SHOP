@@ -8,6 +8,7 @@ import { getResellerListingBySlug } from '@/lib/resellerService';
 import { BUNDLE_PRODUCTS, ORDER_BUMP } from '@/data/bundles';
 import { calculateCouponDiscount } from '@/lib/coupon';
 import { fetchCustomProductBySlug } from '@/lib/customProducts';
+import { isEligibleForFreeBundleGift } from '@/lib/bundleResolver';
 
 export async function POST(request: Request) {
   try {
@@ -145,21 +146,24 @@ export async function POST(request: Request) {
           }
         }
 
-        // Second pass: handle free bonus items (eligible if paidItemsCatalogTotal >= 149, max 2 items)
+        // Second pass: handle free bonus items (eligible if paidItemsCatalogTotal >= 149, max 2 items, AND item is eligible)
         for (const item of items) {
           if (item.isFreeBonus || item.price === 0) {
-            if (paidItemsCatalogTotal >= 149 && freeBonusCount < 2) {
+            const identifier = String(item.slug || item.id || item.productId || '').trim();
+            let matchedProd = identifier ? await fetchCustomProductBySlug(identifier) : null;
+            if (!matchedProd) {
+              matchedProd = BUNDLE_PRODUCTS.find(
+                (p) => p.id === item.id || p.slug === item.slug || p.id === item.productId
+              ) || null;
+            }
+
+            const isEligible = matchedProd ? isEligibleForFreeBundleGift(matchedProd) : false;
+
+            if (paidItemsCatalogTotal >= 149 && freeBonusCount < 2 && isEligible) {
               freeBonusCount++;
               // Qualified promotional free gift, charges ₹0
               continue;
             } else {
-              const identifier = String(item.slug || item.id || item.productId || '').trim();
-              let matchedProd = identifier ? await fetchCustomProductBySlug(identifier) : null;
-              if (!matchedProd) {
-                matchedProd = BUNDLE_PRODUCTS.find(
-                  (p) => p.id === item.id || p.slug === item.slug || p.id === item.productId
-                ) || null;
-              }
               const itemPrice = matchedProd ? Number(matchedProd.personalPrice) : Number(item.price || 0);
               paidItemsCatalogTotal += itemPrice;
             }

@@ -7,6 +7,7 @@ import { BUNDLE_PRODUCTS } from '@/data/bundles';
 import { fetchCustomProducts, getAllCatalogBundles, getLocalCustomProductsSync } from '@/lib/customProducts';
 import { optimizeImageUrl } from '@/lib/imageOptimized';
 import { BundleProduct } from '@/types';
+import { isEligibleForFreeBundleGift } from '@/lib/bundleResolver';
 
 export default function FreeBundlesModal() {
   const {
@@ -41,7 +42,7 @@ export default function FreeBundlesModal() {
   useEffect(() => {
     if (isFreeBundleModalOpen) {
       if (freeBundles.length > 0) {
-        setSelected(freeBundles.slice(0, 2));
+        setSelected(freeBundles.filter(isEligibleForFreeBundleGift).slice(0, 2));
       } else {
         setSelected([]);
       }
@@ -63,17 +64,17 @@ export default function FreeBundlesModal() {
   const categories = useMemo(() => {
     const set = new Set<string>();
     allBundles.forEach((b) => {
-      if (b.category) set.add(b.category);
+      if (b.category && isEligibleForFreeBundleGift(b)) set.add(b.category);
     });
     return ['all', ...Array.from(set).slice(0, 7)];
   }, [allBundles]);
 
-  // Filtered bundles list
+  // Filtered bundles list (strictly excluding All Bundles / Mega Bundles)
   const filteredBundles = useMemo(() => {
     const query = searchQuery.trim().toLowerCase();
     return allBundles.filter((bundle) => {
-      // Exclude All-Access master bundles from free individual bundle selection
-      if (bundle.id.startsWith('plan-') || bundle.categorySlug === 'all-access') {
+      // Exclude All-Access / Mega store bundles from free gift selection
+      if (!isEligibleForFreeBundleGift(bundle)) {
         return false;
       }
       const matchesSearch =
@@ -93,6 +94,7 @@ export default function FreeBundlesModal() {
   if (!isFreeBundleModalOpen) return null;
 
   const handleToggleSelect = (bundle: BundleProduct) => {
+    if (!isEligibleForFreeBundleGift(bundle)) return;
     setSelected((prev) => {
       const isAlreadySelected = prev.some((b) => b.id === bundle.id);
       if (isAlreadySelected) {
@@ -107,8 +109,9 @@ export default function FreeBundlesModal() {
   };
 
   const handleClaim = () => {
-    if (selected.length === 0) return;
-    claimFreeBundles(selected);
+    const validSelected = selected.filter(isEligibleForFreeBundleGift);
+    if (validSelected.length === 0) return;
+    claimFreeBundles(validSelected);
   };
 
   return (
