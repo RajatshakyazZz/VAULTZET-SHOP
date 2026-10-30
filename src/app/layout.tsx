@@ -12,6 +12,7 @@ import CartDrawer from '@/components/CartDrawer';
 import FreeBundlesModal from '@/components/FreeBundlesModal';
 import AnalyticsTracker from '@/components/AnalyticsTracker';
 import WhatsAppButton from '@/components/WhatsAppButton';
+import CookieConsentBanner from '@/components/CookieConsentBanner';
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://www.vaultzet.shop';
 const GTM_ID = process.env.NEXT_PUBLIC_GTM_ID || 'GTM-TD8N9SDD';
@@ -342,6 +343,7 @@ export default function RootLayout({
               <FreeBundlesModal />
               <MobileBottomNav />
               <WhatsAppButton />
+              <CookieConsentBanner />
             </CartProvider>
           </ResellerAuthProvider>
         </StoreSettingsProvider>

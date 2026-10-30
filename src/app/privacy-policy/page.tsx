@@ -40,9 +40,25 @@ export default function PrivacyPolicyPage() {
             We respect your privacy and will never sell, rent, or trade your personal information to third parties. We use industry-standard security protocols to safeguard your personal data.
           </p>
 
-          <h2 className="text-lg font-bold text-[#182247]">4. Contact Us</h2>
+          <h2 className="text-lg font-bold text-[#182247]">4. Cookies & Tracking Technologies</h2>
           <p>
-            If you have questions regarding this Privacy Policy, please contact us at:
+            We use cookies and similar technologies to provide essential functionality, improve page performance, and ensure secure transaction processing:
+          </p>
+          <ul className="list-disc pl-5 space-y-2">
+            <li>
+              <strong className="text-slate-800">Strictly Necessary Cookies:</strong> Essential for shopping cart management, anti-fraud checks, and secure Cashfree UPI/card checkout. These cannot be disabled.
+            </li>
+            <li>
+              <strong className="text-slate-800">Analytics & Performance Cookies:</strong> Used with your consent to analyze store visits and popular bundles (via Google Analytics and Meta Pixel) so we can enhance creator experiences.
+            </li>
+          </ul>
+          <p>
+            You can customize or withdraw your cookie consent at any time by clicking &quot;Cookie Preferences&quot; in our website footer or through your browser settings.
+          </p>
+
+          <h2 className="text-lg font-bold text-[#182247]">5. Contact Us</h2>
+          <p>
+            If you have questions regarding this Privacy Policy or cookie management, please contact us at:
             <br />
             Email: <strong className="text-slate-800">rajattracozegaming@gmail.com</strong>
             <br />
