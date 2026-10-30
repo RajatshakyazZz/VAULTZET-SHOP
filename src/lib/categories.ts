@@ -30,7 +30,8 @@ export const COMPETITOR_CATEGORIES: CategoryItem[] = [
     name: 'Story Reels',
     slug: 'story-reels',
     icon: '📖',
-    keywords: ['story', 'stories', 'kahani', 'tale', 'history', 'patal lok', 'narrative'],
+    keywords: ['story', 'stories', 'kahani', 'tale', 'history', 'patal lok', 'narrative', 'hindi story'],
+    aliases: ['hindi-story-reels', 'hindi-stories'],
   },
   {
     name: 'Aesthetic Reels',
@@ -127,6 +128,7 @@ export const COMPETITOR_CATEGORIES: CategoryItem[] = [
     slug: 'motivation-reels',
     icon: '🔥',
     keywords: ['motivat', 'mindset', 'stoic', 'sigma', 'success', 'growth', 'testosterone', 'discipline'],
+    aliases: ['motivational-reels', 'motivation-mindset'],
   },
   {
     name: 'Anime Reels',

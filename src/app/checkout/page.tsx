@@ -1478,6 +1478,22 @@ function CheckoutContent() {
                   <ShieldCheck className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
                   <span>Instant Google Drive Delivery · 256-bit SSL Security</span>
                 </div>
+
+                <div className="pt-2 text-center text-[10px] sm:text-[11px] text-slate-500 leading-relaxed border-t border-slate-100">
+                  <span>By placing your order, you agree to our </span>
+                  <Link href="/terms-and-conditions" className="text-purple-700 hover:underline font-semibold" target="_blank">
+                    Terms & Conditions
+                  </Link>
+                  <span>, </span>
+                  <Link href="/privacy-policy" className="text-purple-700 hover:underline font-semibold" target="_blank">
+                    Privacy Policy
+                  </Link>
+                  <span>, and </span>
+                  <Link href="/refund-policy" className="text-purple-700 hover:underline font-semibold" target="_blank">
+                    Refund Policy
+                  </Link>
+                  <span>.</span>
+                </div>
               </div>
             </div>
 

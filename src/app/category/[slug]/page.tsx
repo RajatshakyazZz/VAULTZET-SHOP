@@ -31,6 +31,120 @@ export async function generateStaticParams() {
   }));
 }
 
+// Focused editorial intros and specific FAQs for key collections
+function getCategoryEditorial(slug: string, name: string) {
+  const s = slug.toLowerCase();
+  
+  if (s.includes('ai') || s === 'ai-reels') {
+    return {
+      title: 'AI Reels Bundles for Instagram & Shorts Creators',
+      intro:
+        'Download viral ready-to-post AI reels bundles designed for Indian creators and faceless theme page operators. Featuring cutting-edge Midjourney v6 aesthetics, 3D animated avatars, futuristic sci-fi narratives, and humorous viral AI shorts in crisp 1080P Full HD vertical (9:16) format. 100% watermark-free with instant Google Drive lifetime delivery.',
+      faqs: [
+        {
+          q: 'Can these AI reels be monetized on YouTube Shorts and Instagram in India?',
+          a: 'Yes. Both YouTube and Instagram reward high-retention, engaging visual shorts. Because all clips are 100% watermark-free, you can add your custom voiceovers, sound effects, or caption overlays to seamlessly meet platform monetization standards.',
+        },
+        {
+          q: 'Which visual styles and generation tools are included?',
+          a: 'Our AI packs combine generative Midjourney v6 art, Runway Gen-2 video animations, 3D character avatars, and Leonardo AI renders, curated specifically for maximum first-3-seconds retention.',
+        },
+        {
+          q: 'How are the files delivered after purchase?',
+          a: 'Instant access is granted immediately upon successful UPI or card payment on-screen, and a permanent Google Drive download link is also dispatched directly to your email address.',
+        },
+      ],
+    };
+  }
+
+  if (s.includes('story') || s.includes('kahani') || s === 'story-reels') {
+    return {
+      title: 'Hindi Story Reels Bundles — Mythological, Patal Lok & Mystery',
+      intro:
+        'Captivate your audience with high-retention Hindi storytelling reels covering Indian mythology, Patal Lok mysteries, historical sagas, and chilling folk tales. Storytelling is proven to hold 85%+ audience retention on Instagram Reels and YouTube Shorts, helping Indian theme pages explode in algorithmic reach with zero filming required.',
+      faqs: [
+        {
+          q: 'Do these Hindi story reels include background narration or sound effects?',
+          a: 'Yes, selected story packs include immersive Hindi voiceovers, evocative cinematic audio, and dramatic Foley effects that keep viewers hooked from the very first frame to the twist ending.',
+        },
+        {
+          q: 'Why do Hindi story reels generate higher engagement and shares?',
+          a: 'Story-driven content naturally triggers curiosity and high completion rates (average percentage viewed). The Instagram and YouTube algorithms prioritize videos that keep viewers on the app, pushing your content to wider Explore feeds.',
+        },
+        {
+          q: 'Can I resell this Hindi story bundle to my own customers?',
+          a: 'Yes! You can choose the Master Resell Rights (MRR) license option to sell the bundle directly to your own buyers and retain 100% of the profits.',
+        },
+      ],
+    };
+  }
+
+  if (s.includes('asmr') || s.includes('satisfying') || s === 'asmr-reels') {
+    return {
+      title: 'Satisfying & ASMR Reels Bundles — High Retention Sensory Clips',
+      intro:
+        'Deliver calming, addictive sensory gratification to millions of viewers with ultra-satisfying ASMR reels. Featuring kinetic sand, precision soap carving, glass cutting, hydraulic press crushing, and industrial restoration in 1080P Full HD. ASMR content has universal appeal across all age groups and demographics in India and worldwide.',
+      faqs: [
+        {
+          q: 'Why is ASMR content ideal for faceless channel operators?',
+          a: 'ASMR transcends spoken language, meaning a single video can attract views from Mumbai to California without requiring translations or on-camera presence. Re-watch rates are extraordinarily high.',
+        },
+        {
+          q: 'Is the audio crisp and binaural?',
+          a: 'Yes, all ASMR audio tracks are recorded with high-fidelity sensory microphones, isolating crunch, slice, and squish sounds with zero background noise.',
+        },
+        {
+          q: 'Are these clips formatted for mobile reels?',
+          a: 'Every clip is framed in standard 9:16 vertical ratio at 1080P (1080x1920) resolution, ready for immediate publishing to Instagram Reels, YouTube Shorts, and Facebook Reels.',
+        },
+      ],
+    };
+  }
+
+  if (s.includes('motivat') || s === 'motivation-reels') {
+    return {
+      title: 'Motivational & Mindset Reels Bundles — Stoic, Sigma & Growth',
+      intro:
+        'Inspire your followers daily with cinematic motivational reels, sigma male edits, stoic philosophy quotes, billionaire lifestyle aesthetics, and fitness discipline visuals. Motivational reels are among the most saved and shared categories across Indian social media, driving organic follower growth effortlessly.',
+      faqs: [
+        {
+          q: 'Can I add my own handle or brand watermark to the motivational reels?',
+          a: 'Absolutely. All videos are 100% clean and watermark-free, giving you full creative freedom to add your logo, username, or bio call-to-action in CapCut, VN, or InShot.',
+        },
+        {
+          q: 'What is the recommended posting cadence for motivational pages?',
+          a: 'Posting 2 to 3 reels daily during morning motivation hours (7 AM - 9 AM IST) and evening focus hours (6 PM - 9 PM IST) delivers optimal algorithmic consistency and engagement.',
+        },
+        {
+          q: 'How does instant Google Drive access work?',
+          a: 'You receive instant on-screen access right after payment via Google Pay, PhonePe, Paytm, BHIM, or Card. The Drive folder stays permanently saved in your Google Drive.',
+        },
+      ],
+    };
+  }
+
+  // Default high-value editorial for all other categories
+  return {
+    title: `${name} Reels Bundles for Creators in India`,
+    intro:
+      `Download premium ready-to-post ${name} reels bundles in 1080P Full HD vertical format. All videos are 100% watermark-free and accompanied by trending audio tracks. Whether you run a faceless Instagram theme page or YouTube Shorts channel, our curated packs accelerate your daily content creation with instant Google Drive lifetime access.`,
+    faqs: [
+      {
+        q: `Are ${name} reels completely free of watermarks and logos?`,
+        a: `Yes, every video is delivered 100% clean without creator watermarks or platform stamps. You have full freedom to add your own brand handle, captions, or stickers.`,
+      },
+      {
+        q: `How quickly do I get access after completing payment?`,
+        a: `Delivery is instant. As soon as your UPI or card payment is confirmed via Cashfree, a direct Google Drive link opens on your screen and is delivered to your email.`,
+      },
+      {
+        q: `What is the difference between Personal and Reseller rights?`,
+        a: `A Personal license allows you to post the reels on your own social channels. A Reseller (MRR) license gives you full legal rights to resell the bundle to other creators and keep 100% of the revenue.`,
+      },
+    ],
+  };
+}
+
 export async function generateMetadata({ params }: CategoryPageProps): Promise<Metadata> {
   const { slug } = await params;
   const cleanSlug = slug.toLowerCase().trim();
@@ -40,22 +154,16 @@ export async function generateMetadata({ params }: CategoryPageProps): Promise<M
 
   if (!category) {
     return {
-      title: 'Category Not Found | Vaultzet Store',
+      title: 'Category Not Found | Vaultzet',
       robots: { index: false, follow: true },
     };
   }
 
+  const editorial = getCategoryEditorial(category.slug, category.name);
   const siteUrl = (process.env.NEXT_PUBLIC_SITE_URL || 'https://www.vaultzet.shop').replace(/\/+$/, '');
   const canonicalUrl = `${siteUrl}/category/${category.slug}`;
-  const title = `${category.name} Bundles | Reel Bundle Store Vaultzet`;
-
-  let description = `Download ${category.name} reels bundles for Instagram & YouTube Shorts. Get 1000+ viral HD vertical videos with instant Google Drive access and commercial rights.`;
-  if (description.length < 140) {
-    description = `${description} 100% watermark-free with trending audio for rapid account growth.`;
-  }
-  if (description.length > 158) {
-    description = `${description.slice(0, 155)}...`;
-  }
+  const title = `${editorial.title} | Vaultzet`;
+  const description = editorial.intro.slice(0, 155).trim() + '...';
 
   return {
     title,
@@ -68,11 +176,11 @@ export async function generateMetadata({ params }: CategoryPageProps): Promise<M
       url: canonicalUrl,
       title,
       description,
-      siteName: 'Vaultzet Store',
+      siteName: 'Vaultzet',
       locale: 'en_IN',
       images: [
         {
-          url: `${siteUrl}/icon.png`,
+          url: `${siteUrl}/logo.webp`,
           width: 1200,
           height: 630,
           alt: `${category.name} Reels Bundles Collection`,
@@ -83,7 +191,7 @@ export async function generateMetadata({ params }: CategoryPageProps): Promise<M
       card: 'summary_large_image',
       title,
       description,
-      images: [`${siteUrl}/icon.png`],
+      images: [`${siteUrl}/logo.webp`],
     },
   };
 }
@@ -99,7 +207,8 @@ export default async function CategoryPage({ params }: CategoryPageProps) {
     notFound();
   }
 
-  const siteUrl = (process.env.NEXT_PUBLIC_SITE_URL || 'https://vaultzet.shop').replace(/\/+$/, '');
+  const editorial = getCategoryEditorial(category.slug, category.name);
+  const siteUrl = (process.env.NEXT_PUBLIC_SITE_URL || 'https://www.vaultzet.shop').replace(/\/+$/, '');
   const canonicalUrl = `${siteUrl}/category/${category.slug}`;
 
   const customProducts = await fetchCustomProducts();
@@ -131,7 +240,7 @@ export default async function CategoryPage({ params }: CategoryPageProps) {
     })),
   };
 
-  // Structured Data: Breadcrumbs
+  // Structured Data: BreadcrumbList
   const breadcrumbJsonLd = {
     '@context': 'https://schema.org',
     '@type': 'BreadcrumbList',
@@ -145,7 +254,7 @@ export default async function CategoryPage({ params }: CategoryPageProps) {
       {
         '@type': 'ListItem',
         position: 2,
-        name: 'Categories',
+        name: 'Shop',
         item: `${siteUrl}/shop`,
       },
       {
@@ -157,29 +266,10 @@ export default async function CategoryPage({ params }: CategoryPageProps) {
     ],
   };
 
-  const categoryFaqs = [
-    {
-      q: `Kya ${category.name} reels me koi watermark ya logo hota hai?`,
-      a: `Nahi, bilkul clean reels milti hain bina kisi watermark, copyright logo ya creator name ke. Aap apna logo, handle ya text add karke directly Instagram Reels, YouTube Shorts aur Facebook par post kar sakte hain.`,
-    },
-    {
-      q: `Payment ke baad ${category.name} bundle kaise access hoga?`,
-      a: `Payment confirm hote hi turant on-screen Google Drive link display hota hai aur aapke registered Gmail par bhi instant access email bheja jata hai jisse aap lifetime kabhi bhi download kar sakte hain.`,
-    },
-    {
-      q: `Kya in reels se Instagram monetize ho sakta hai?`,
-      a: `Haan, hamare thousands of creators faceless channels aur themed pages run karke sponsorships, affiliate marketing, digital products resell aur bonus programs se monthly handsome income generate kar rahe hain.`,
-    },
-    {
-      q: `Personal use aur Reseller license me kya difference hai?`,
-      a: `Personal license me aap ye reels apne khud ke pages par post kar sakte hain. Reseller license (MRR) ke sath aap is pure bundle ko apne buyers ko kisi bhi price par resell kar sakte hain aur 100% profit apne paas rakh sakte hain.`,
-    },
-  ];
-
   const faqJsonLd = {
     '@context': 'https://schema.org',
     '@type': 'FAQPage',
-    mainEntity: categoryFaqs.map((faq) => ({
+    mainEntity: editorial.faqs.map((faq) => ({
       '@type': 'Question',
       name: faq.q,
       acceptedAnswer: {
@@ -191,6 +281,7 @@ export default async function CategoryPage({ params }: CategoryPageProps) {
 
   return (
     <>
+      {/* Structured Data: ItemList, Breadcrumbs, FAQs */}
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(itemListJsonLd) }}
@@ -211,25 +302,24 @@ export default async function CategoryPage({ params }: CategoryPageProps) {
           <nav aria-label="Breadcrumb" className="flex items-center gap-2 text-xs sm:text-sm font-semibold text-slate-500">
             <Link href="/" className="hover:text-purple-600 transition-colors">Home</Link>
             <span>/</span>
-            <Link href="/shop" className="hover:text-purple-600 transition-colors">Categories</Link>
+            <Link href="/shop" className="hover:text-purple-600 transition-colors">Shop</Link>
             <span>/</span>
             <span className="text-slate-900 font-bold">{category.name}</span>
           </nav>
 
-          {/* Hero Hub Header */}
+          {/* Hero Hub Header with Focused Original Intro */}
           <header className="rounded-3xl p-6 sm:p-10 bg-gradient-to-br from-white via-purple-50/40 to-pink-50/30 border border-purple-100/80 shadow-sm space-y-4">
             <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs font-black bg-purple-100 text-purple-700">
               <span>{category.icon || '🔥'}</span>
-              <span>Trending Niche Collection</span>
+              <span>Trending Collection</span>
             </div>
 
             <h1 className="text-2xl sm:text-4xl lg:text-5xl font-black text-[#17151f] tracking-tight">
-              {category.name} Reels Bundles
+              {editorial.title}
             </h1>
 
             <p className="text-sm sm:text-base text-slate-600 max-w-3xl leading-relaxed">
-              Download premium ready-to-post <strong>{category.name}</strong> reels bundles in 1080P Full HD vertical format.
-              Sabhi videos 100% watermark-free hain aur trending background audio ke sath aati hain. Agar aap faceless Instagram page ya YouTube Shorts channel grow karna chahte hain toh ye bundles aapke daily content creation ko 10x fast bana denge. Instant Google Drive lifetime access guaranteed!
+              {editorial.intro}
             </p>
 
             <div className="flex flex-wrap items-center gap-4 pt-2 text-xs font-bold text-slate-700">
@@ -253,26 +343,26 @@ export default async function CategoryPage({ params }: CategoryPageProps) {
             <div className="flex items-end justify-between border-b border-purple-100 pb-4">
               <div>
                 <h2 className="text-xl sm:text-2xl font-black text-[#17151f] tracking-tight">
-                  Available {category.name} Packs ({displayProducts.length})
+                  Available {category.name} Bundles ({displayProducts.length})
                 </h2>
                 <p className="text-xs sm:text-sm text-slate-500 mt-0.5">
-                  Click on any bundle to view details, watch sample video preview, or instant buy.
+                  Explore high-retention packs. Click to preview clips, check specifications, or buy instantly with UPI.
                 </p>
               </div>
               <Link
                 href="/shop"
                 className="text-xs font-bold text-purple-600 hover:text-purple-700 flex items-center gap-1"
               >
-                <span>View all 130+ bundles</span>
+                <span>View all shop bundles</span>
                 <ArrowRight className="w-3.5 h-3.5" />
               </Link>
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
               {displayProducts.map((bundle) => {
-                const discount = Math.round(
-                  ((bundle.personalOriginalPrice - bundle.personalPrice) / bundle.personalOriginalPrice) * 100
-                );
+                const orig = bundle.personalOriginalPrice || 499;
+                const price = bundle.personalPrice || 49;
+                const discount = Math.round(((orig - price) / orig) * 100);
                 return (
                   <article
                     key={bundle.id}
@@ -310,18 +400,18 @@ export default async function CategoryPage({ params }: CategoryPageProps) {
                       <div className="pt-2 border-t border-slate-100 flex items-center justify-between">
                         <div>
                           <div className="text-base sm:text-lg font-black text-[#17151f]">
-                            ₹{bundle.personalPrice}.00
+                            ₹{price}.00
                           </div>
                           <div className="text-[11px] text-slate-400 line-through">
-                            ₹{bundle.personalOriginalPrice}.00
+                            ₹{orig}.00
                           </div>
                         </div>
 
                         <Link
                           href={`/product/${bundle.slug}`}
-                          className="px-3.5 py-2 rounded-xl btn-gradient-primary text-white text-xs font-bold shadow-sm hover:shadow-md transition-all"
+                          className="px-3 py-1.5 rounded-xl bg-purple-600 hover:bg-purple-700 text-white text-xs font-bold shadow-xs active:scale-95 transition-transform"
                         >
-                          View Bundle →
+                          View Bundle
                         </Link>
                       </div>
                     </div>
@@ -331,69 +421,29 @@ export default async function CategoryPage({ params }: CategoryPageProps) {
             </div>
           </section>
 
-          {/* Deep-Dive Hinglish Guide: How to Scale in this Niche (400-600 words) */}
-          <article className="rounded-3xl p-6 sm:p-10 bg-white border border-purple-100 shadow-sm space-y-6">
-            <div className="space-y-2">
-              <span className="text-xs font-black uppercase tracking-widest text-purple-600">
-                GROWTH BLUEPRINT
+          {/* Useful Collection FAQs Section */}
+          <section className="rounded-3xl p-6 sm:p-8 bg-white border border-slate-200/90 shadow-xs space-y-5">
+            <div className="flex items-center gap-2.5">
+              <span className="w-8 h-8 rounded-lg bg-purple-100 text-purple-700 flex items-center justify-center">
+                <HelpCircle className="w-4 h-4" />
               </span>
-              <h2 className="text-xl sm:text-3xl font-black text-[#17151f] tracking-tight">
-                {category.name} Reels Se Instagram Page Kaise Grow Karein?
-              </h2>
+              <div>
+                <h2 className="text-lg sm:text-xl font-black text-[#17151f] tracking-tight">
+                  Frequently Asked Questions About {category.name}
+                </h2>
+                <p className="text-xs text-slate-500">
+                  Helpful details on formats, delivery, licensing, and monetization.
+                </p>
+              </div>
             </div>
 
-            <div className="prose prose-slate max-w-none text-xs sm:text-sm leading-relaxed space-y-4 text-slate-600">
-              <p>
-                Aaj ke time me <strong>{category.name}</strong> reels Instagram aur YouTube Shorts par sabse tezi se viral hone wale niches me se ek hai. Har roz lakho log is category ke content ko consume aur share karte hain. Agar aap apna ek naya Instagram page start kar rahe hain ya existing account par views dead ho chuke hain, toh regular high-quality video publishing hi sabse bada secret hai algorithm me boost paane ka.
-              </p>
-
-              <h3 className="text-sm sm:text-base font-extrabold text-slate-900 pt-2">
-                1. Consistency aur Daily Posting Schedule
-              </h3>
-              <p>
-                Instagram algorithm un creators ko promote karta hai jo regular rehte hain. Hamare {category.name} bundle me aapko 1000 se lekar 3000+ ready-to-post videos milti hain, jisse aap daily 2-3 reels bina kisi tension ke 6 se 12 mahine tak post kar sakte hain. Aapko camera ke aage aane ki ya complex video editing sikhne ki koi zaroorat nahi hoti.
-              </p>
-
-              <h3 className="text-sm sm:text-base font-extrabold text-slate-900 pt-2">
-                2. Viral Hook aur Watch Time Formula
-              </h3>
-              <p>
-                In reels ko is tarah se design kiya gaya hai ki first 3 seconds me viewer scroll karna rok deta hai. High-retention visuals, engaging motion graphics aur trending background audio aapki reel ka average percentage viewed (APV) 80% se upar le jati hai, jisse Instagram algorithm use Explore feed aur Reels recommendation me dhakel deta hai.
-              </p>
-
-              <h3 className="text-sm sm:text-base font-extrabold text-slate-900 pt-2">
-                3. Monetization: Earning Kaise Shuru Karein?
-              </h3>
-              <p>
-                Jaise hi aapke account par 10k se 50k followers ban jaate hain, aap kai tarike se paise kama sakte hain:
-              </p>
-              <ul className="list-disc pl-5 space-y-1.5 font-medium">
-                <li><strong>Brand Collaborations & Paid Promotions:</strong> Niche-specific brands story aur reel shoutouts ke acche paise offer karte hain.</li>
-                <li><strong>Affiliate Marketing:</strong> Amazon, ClickBank ya coaching programs ke links bio me share karke commissions earn karein.</li>
-                <li><strong>Reselling Rights (MRR):</strong> Aap hamare Reseller license ke sath ye bundles apne followers ko ₹199 ya ₹499 me direct sell kar sakte hain aur 100% margin khud rakh sakte hain.</li>
-              </ul>
-            </div>
-          </article>
-
-          {/* FAQs Section */}
-          <section className="rounded-3xl p-6 sm:p-10 bg-purple-50/50 border border-purple-100 space-y-6">
-            <div>
-              <span className="text-xs font-black uppercase tracking-widest text-purple-600">
-                HELP & QUESTIONS
-              </span>
-              <h2 className="text-xl sm:text-2xl font-black text-[#17151f] tracking-tight mt-0.5">
-                {category.name} Bundles — FAQ
-              </h2>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {categoryFaqs.map((faq, i) => (
-                <div key={i} className="p-5 rounded-2xl bg-white border border-purple-100 shadow-xs space-y-2">
-                  <h3 className="text-sm font-bold text-[#17151f] flex items-start gap-2">
-                    <HelpCircle className="w-4 h-4 text-purple-600 shrink-0 mt-0.5" />
-                    <span>{faq.q}</span>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-2">
+              {editorial.faqs.map((faq, idx) => (
+                <div key={idx} className="p-4 rounded-2xl bg-slate-50 border border-slate-200/70 space-y-2">
+                  <h3 className="text-xs sm:text-sm font-bold text-slate-900 leading-snug">
+                    {faq.q}
                   </h3>
-                  <p className="text-xs text-slate-600 leading-relaxed pl-6">
+                  <p className="text-xs text-slate-600 leading-relaxed">
                     {faq.a}
                   </p>
                 </div>
@@ -401,21 +451,29 @@ export default async function CategoryPage({ params }: CategoryPageProps) {
             </div>
           </section>
 
-          {/* Explore Other Categories */}
-          <section className="pt-6 border-t border-purple-100 space-y-4">
-            <h2 className="text-base sm:text-lg font-bold text-[#17151f]">
-              Explore Other Trending Reels Categories
-            </h2>
+          {/* Internal Linking Footer Block to Explore Other Collections & Shop */}
+          <section className="p-6 rounded-3xl bg-white border border-purple-100/80 space-y-4">
+            <h3 className="text-sm font-bold text-slate-900">Explore More Popular Reels Categories:</h3>
             <div className="flex flex-wrap gap-2">
-              {COMPETITOR_CATEGORIES.filter((c) => c.slug !== category.slug).slice(0, 15).map((cat) => (
+              {COMPETITOR_CATEGORIES.slice(0, 12).map((cat) => (
                 <Link
                   key={cat.slug}
                   href={`/category/${cat.slug}`}
-                  className="px-3.5 py-1.5 rounded-full text-xs font-semibold bg-white border border-purple-100 text-slate-700 hover:bg-purple-600 hover:text-white transition-all shadow-2xs"
+                  className={`px-3 py-1.5 rounded-full text-xs font-semibold border transition-all ${
+                    cat.slug === category.slug
+                      ? 'bg-purple-600 text-white border-purple-600 shadow-xs'
+                      : 'bg-slate-50 text-slate-700 border-slate-200 hover:bg-purple-50 hover:text-purple-700 hover:border-purple-200'
+                  }`}
                 >
-                  {cat.icon} {cat.name}
+                  {cat.icon || '✨'} {cat.name}
                 </Link>
               ))}
+              <Link
+                href="/shop"
+                className="px-3.5 py-1.5 rounded-full text-xs font-bold bg-purple-50 text-purple-700 border border-purple-200 hover:bg-purple-100 transition-colors"
+              >
+                Browse All in Shop &rarr;
+              </Link>
             </div>
           </section>
 

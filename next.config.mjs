@@ -45,6 +45,31 @@ const nextConfig = {
     );
     return config;
   },
+  async redirects() {
+    return [
+      {
+        source: '/:path*',
+        has: [
+          {
+            type: 'host',
+            value: 'vaultzet.shop',
+          },
+        ],
+        destination: 'https://www.vaultzet.shop/:path*',
+        permanent: true,
+      },
+      {
+        source: '/terms',
+        destination: '/terms-and-conditions',
+        permanent: true,
+      },
+      {
+        source: '/terms/',
+        destination: '/terms-and-conditions',
+        permanent: true,
+      },
+    ];
+  },
   async headers() {
     return [
       {

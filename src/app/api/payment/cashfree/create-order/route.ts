@@ -215,7 +215,7 @@ export async function POST(request: Request) {
     const isLocalhost = hostHeader.includes('localhost');
     const returnBaseUrl = isLocalhost
       ? `http://${hostHeader}`
-      : 'https://vaultzet.shop';
+      : (process.env.NEXT_PUBLIC_SITE_URL || 'https://www.vaultzet.shop').replace(/\/+$/, '');
 
     const orderToken = generateOrderToken(orderNumber);
 

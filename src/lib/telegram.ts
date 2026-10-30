@@ -217,7 +217,7 @@ function resolveDriveLinkForItem(item: { id?: string; title?: string; googleDriv
       (item.id && b.id === item.id) ||
       (item.title && b.title.toLowerCase() === item.title.toLowerCase())
   );
-  return matched?.googleDriveLink || 'https://vaultzet.shop/my-order';
+  return matched?.googleDriveLink || 'https://www.vaultzet.shop/my-order';
 }
 
 /**
@@ -290,9 +290,9 @@ ${itemsFormatted}${bumpLine}${reasonLine}
 ━━━━━━━━━━━━━━━━━━━━━━
 👇 <i>Tap below to follow up or send an instant 20% discount offer on WhatsApp:</i>`;
 
-  const followUpMsg = `Hi ${customerName}! 👋\n\nWe noticed you were checking out on *Vaultzet Store* (Order #${data.orderNumber}), but your payment of *₹${totalAmount}* was not completed.\n\n📦 *Your Selected Bundle(s):*\n• ${productNamesList || 'Viral Reels Bundle'}\n\n✨ Complete your order now to get *100% Instant Google Drive Download Access*:\n👉 https://vaultzet.shop/checkout\n\nReply here if you need any help with UPI or payment! 🚀`;
+  const followUpMsg = `Hi ${customerName}! 👋\n\nWe noticed you were checking out on *Vaultzet Store* (Order #${data.orderNumber}), but your payment of *₹${totalAmount}* was not completed.\n\n📦 *Your Selected Bundle(s):*\n• ${productNamesList || 'Viral Reels Bundle'}\n\n✨ Complete your order now to get *100% Instant Google Drive Download Access*:\n👉 https://www.vaultzet.shop/checkout\n\nReply here if you need any help with UPI or payment! 🚀`;
 
-  const discountOfferMsg = `Hi ${customerName}! 🎁 *Special 15-Minute Offer from Vaultzet Store!*\n\nComplete your order (#${data.orderNumber}) for *${productNamesList || 'Viral Reels Bundle'}* in the next 15 minutes and get an *EXTRA 20% DISCOUNT (Save ₹${discountSaved}!)* 🔥\n\n💰 *Special Price for You:* Just *₹${discountedAmount}* (instead of ₹${totalAmount})\n📂 *Delivery:* 100% Instant Google Drive Link\n\n👉 Complete your order now:\nhttps://vaultzet.shop/checkout\n\nOr reply *YES* here to get a direct ₹${discountedAmount} UPI payment link right now! ⚡`;
+  const discountOfferMsg = `Hi ${customerName}! 🎁 *Special 15-Minute Offer from Vaultzet Store!*\n\nComplete your order (#${data.orderNumber}) for *${productNamesList || 'Viral Reels Bundle'}* in the next 15 minutes and get an *EXTRA 20% DISCOUNT (Save ₹${discountSaved}!)* 🔥\n\n💰 *Special Price for You:* Just *₹${discountedAmount}* (instead of ₹${totalAmount})\n📂 *Delivery:* 100% Instant Google Drive Link\n\n👉 Complete your order now:\nhttps://www.vaultzet.shop/checkout\n\nOr reply *YES* here to get a direct ₹${discountedAmount} UPI payment link right now! ⚡`;
 
   const waFollowUpUrl = buildWhatsAppFollowUpUrl(customerPhone, followUpMsg);
   const waDiscountUrl = buildWhatsAppFollowUpUrl(customerPhone, discountOfferMsg);
@@ -343,8 +343,8 @@ export async function sendSaleSuccessTelegramAlert(data: OrderAlertData): Promis
             title: 'Viral Reels Bundle',
             license: 'personal',
             price: data.totalAmount,
-            resolvedDriveLink: 'https://vaultzet.shop/my-order',
-            files: [{ name: 'Viral Reels Bundle Access', file_url: 'https://vaultzet.shop/my-order' }],
+            resolvedDriveLink: 'https://www.vaultzet.shop/my-order',
+            files: [{ name: 'Viral Reels Bundle Access', file_url: 'https://www.vaultzet.shop/my-order' }],
           },
         ];
 
@@ -409,7 +409,7 @@ ${itemsFormatted}${bumpLine}
     })
     .join('\n\n');
 
-  const driveDeliveryMsg = `Hi ${customerName}! 🎉\n\nThank you for your purchase on *Vaultzet Store*! Your payment of *₹${data.totalAmount}.00* (Order #${data.orderNumber}) is confirmed. ✅\n\n📂 *Here is your Instant Google Drive Download Access:*\n\n${driveLinksText}\n\n🔑 You can also access all your orders anytime at:\n👉 https://vaultzet.shop/my-order (Email: ${customerEmail})\n\nEnjoy your reels & grow fast! Reply here if you need any assistance. 🚀`;
+  const driveDeliveryMsg = `Hi ${customerName}! 🎉\n\nThank you for your purchase on *Vaultzet Store*! Your payment of *₹${data.totalAmount}.00* (Order #${data.orderNumber}) is confirmed. ✅\n\n📂 *Here is your Instant Google Drive Download Access:*\n\n${driveLinksText}\n\n🔑 You can also access all your orders anytime at:\n👉 https://www.vaultzet.shop/my-order (Email: ${customerEmail})\n\nEnjoy your reels & grow fast! Reply here if you need any assistance. 🚀`;
 
   const thankYouMsg = `Hi ${customerName}! 🎉\n\nThank you for your order (#${data.orderNumber}) of *${productNamesList || 'Viral Reels Bundle'}* on *Vaultzet Store*!\n\nLet me know if you were able to open your Google Drive folder smoothly. Happy creating! 🚀`;
 
@@ -467,7 +467,7 @@ ${itemsFormatted}
 
   const helpMsg = `Hi ${customerName}! 👋\n\nI saw you are checking out *${productNamesList || 'our Viral Reels Bundle'}* (₹${totalAmount}) on *Vaultzet Store*.\n\nDo you need any help with UPI payment or have any questions about the Google Drive download link? Just reply here! 🚀`;
 
-  const discountMsg = `Hi ${customerName}! 🎁 *Special Live Offer from Vaultzet Store!*\n\nComplete your checkout for *${productNamesList || 'Viral Reels Bundle'}* in the next 15 minutes and get *20% OFF* — pay just *₹${discountedAmount}* instead of ₹${totalAmount}!\n\n👉 Checkout now: https://vaultzet.shop/checkout\nOr reply *YES* here for a direct ₹${discountedAmount} UPI link! ⚡`;
+  const discountMsg = `Hi ${customerName}! 🎁 *Special Live Offer from Vaultzet Store!*\n\nComplete your checkout for *${productNamesList || 'Viral Reels Bundle'}* in the next 15 minutes and get *20% OFF* — pay just *₹${discountedAmount}* instead of ₹${totalAmount}!\n\n👉 Checkout now: https://www.vaultzet.shop/checkout\nOr reply *YES* here for a direct ₹${discountedAmount} UPI link! ⚡`;
 
   return sendTelegramMessage(text, [
     [{ text: `💬 Message Lead on WhatsApp (${customerPhone})`, url: buildWhatsAppFollowUpUrl(customerPhone, helpMsg) }],
@@ -490,7 +490,7 @@ export async function sendProductAddedTelegramAlert(product: {
   googleDriveLink?: string;
 }): Promise<boolean> {
   const slug = product.slug || '';
-  const productUrl = slug ? `https://vaultzet.shop/product/${slug}` : 'https://vaultzet.shop/shop';
+  const productUrl = slug ? `https://www.vaultzet.shop/product/${slug}` : 'https://www.vaultzet.shop/shop';
   const categoryStr = (product.categories || ['Viral Reels']).join(', ');
 
   const text = `🚀📦 <b>NEW PRODUCT UPLOADED TO STORE!</b> ✨🔥
@@ -604,7 +604,7 @@ export function getCommandCenterButtons(): Array<Array<TelegramInlineButton>> {
       { text: '⏳ Abandoned Leads (/pending)', callback_data: 'cmd_pending' },
       { text: '🌙 Night Summary (/summary)', callback_data: 'cmd_summary' },
     ],
-    [{ text: '🛍️ Open Vaultzet Store', url: 'https://vaultzet.shop' }],
+    [{ text: '🛍️ Open Vaultzet Store', url: 'https://www.vaultzet.shop' }],
   ];
 }
 
@@ -761,7 +761,7 @@ ${listText}
       const bundle = o.items?.[0]?.title || 'Viral Reels Bundle';
       const total = Number(o.totalAmount || 49);
       const disc = Math.max(19, Math.round(total * 0.8));
-      const msg = `Hi ${name}! 🎁 Complete your Vaultzet Store order (#${o.orderNumber}) for *${bundle}* in the next 15 mins and get *20% OFF* — pay just *₹${disc}* instead of ₹${total}!\n\n👉 https://vaultzet.shop/checkout\nReply *YES* for a direct ₹${disc} UPI link! 🚀`;
+      const msg = `Hi ${name}! 🎁 Complete your Vaultzet Store order (#${o.orderNumber}) for *${bundle}* in the next 15 mins and get *20% OFF* — pay just *₹${disc}* instead of ₹${total}!\n\n👉 https://www.vaultzet.shop/checkout\nReply *YES* for a direct ₹${disc} UPI link! 🚀`;
       buttons.push([
         {
           text: `🎁 Recover #${o.orderNumber} (${name} • Offer ₹${disc})`,

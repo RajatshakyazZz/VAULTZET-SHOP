@@ -107,16 +107,19 @@ export default async function ProductDetailPage({ params }: ProductPageProps) {
     notFound();
   }
 
-  const siteUrl = (process.env.NEXT_PUBLIC_SITE_URL || 'https://vaultzet.shop').replace(/\/+$/, '');
+  const siteUrl = (process.env.NEXT_PUBLIC_SITE_URL || 'https://www.vaultzet.shop').replace(/\/+$/, '');
   const canonicalUrl = `${siteUrl}/product/${product.slug}`;
 
-  // Structured Data: Product + Offer + AggregateRating
+  // Structured Data: Authentic Product + Offer Schema (No fabricated ratings or reviews)
   const productJsonLd: any = {
     '@context': 'https://schema.org',
     '@type': 'Product',
     name: product.title,
     image: [product.thumbnail, ...(product.galleryImages || [])].filter(Boolean),
-    description: product.shortDescription || `Download ${product.reelCount}+ viral reels bundle in ${product.category} niche.`,
+    description:
+      product.description ||
+      product.shortDescription ||
+      `Download ${product.reelCount || 1000}+ viral reels bundle in ${product.category} niche with instant Google Drive access.`,
     sku: product.slug,
     brand: {
       '@type': 'Brand',
@@ -132,20 +135,11 @@ export default async function ProductDetailPage({ params }: ProductPageProps) {
       itemCondition: 'https://schema.org/NewCondition',
       seller: {
         '@type': 'Organization',
-        name: 'Vaultzet Store',
+        name: 'Vaultzet',
+        url: siteUrl,
       },
     },
   };
-
-  if (product.rating && product.reviewCount) {
-    productJsonLd.aggregateRating = {
-      '@type': 'AggregateRating',
-      ratingValue: product.rating,
-      reviewCount: product.reviewCount,
-      bestRating: 5,
-      worstRating: 1,
-    };
-  }
 
   // Structured Data: BreadcrumbList
   const breadcrumbJsonLd = {

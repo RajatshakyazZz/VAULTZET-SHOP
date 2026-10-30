@@ -1011,7 +1011,7 @@ Select status filter or search:`;
     ],
     [
       { text: '📊 Withdrawal Summary', callback_data: 'wdr:sum' },
-      { text: '🌐 Admin Panel', url: 'https://vaultzet.shop/admin/resellers' },
+      { text: '🌐 Admin Panel', url: 'https://www.vaultzet.shop/admin/resellers' },
     ],
     [{ text: '🏠 Home', callback_data: 'nav:home' }],
   ];
@@ -1140,7 +1140,7 @@ Inspect risk categories or review in Admin Panel:`;
     ],
     [
       { text: '👤 Flagged Partners', callback_data: 'fraud:flag' },
-      { text: '🌐 Open Admin Panel', url: 'https://vaultzet.shop/admin/resellers' },
+      { text: '🌐 Open Admin Panel', url: 'https://www.vaultzet.shop/admin/resellers' },
     ],
     [{ text: '🏠 Home', callback_data: 'nav:home' }],
   ];
@@ -1191,7 +1191,7 @@ export async function renderAnalyticsMenu(
     subTitle = 'EXPORT REPORT SUMMARY';
     bodyText = `📊 <b>CSV EXPORT READY</b>
 All records are archived in Firestore and accessible via the secure web admin:
-👉 https://vaultzet.shop/admin/resellers
+👉 https://www.vaultzet.shop/admin/resellers
 
 • Total Partners: <b>${resellers.length}</b>
 • Total Orders: <b>${verifiedOrders.length}</b>
@@ -1363,7 +1363,7 @@ Status: 🟢 <b>Approved</b> (Funds remain reserved)
       { text: '⚙️ Mark Processing', callback_data: `wdr:act:processing:${w.id}` },
       { text: '❌ Reject', callback_data: `wdr:act:reject:${w.id}` },
     ],
-    [{ text: '🌐 Open Admin Panel (Mark Paid)', url: 'https://vaultzet.shop/admin/resellers' }],
+    [{ text: '🌐 Open Admin Panel (Mark Paid)', url: 'https://www.vaultzet.shop/admin/resellers' }],
     [
       { text: '⬅️ Back to Withdrawals', callback_data: 'nav:wdr' },
       { text: '🏠 Home', callback_data: 'nav:home' },
@@ -1411,7 +1411,7 @@ Transfer funds to the reseller via UPI and then record the Bank UTR reference in
 
   const buttons: Array<Array<TelegramInlineButton>> = [
     [{ text: '❌ Reject & Refund', callback_data: `wdr:act:reject:${w.id}` }],
-    [{ text: '🌐 Open Admin Panel to Mark Paid', url: 'https://vaultzet.shop/admin/resellers' }],
+    [{ text: '🌐 Open Admin Panel to Mark Paid', url: 'https://www.vaultzet.shop/admin/resellers' }],
     [
       { text: '⬅️ Back to Withdrawals', callback_data: 'nav:wdr' },
       { text: '🏠 Home', callback_data: 'nav:home' },
@@ -1519,21 +1519,21 @@ ${productBreakdownText}
     ]);
     inlineButtons.push([
       { text: '❌ Reject', callback_data: `wdr:act:reject:${wdr.id}` },
-      { text: '🌐 Admin Panel', url: 'https://vaultzet.shop/admin/resellers' },
+      { text: '🌐 Admin Panel', url: 'https://www.vaultzet.shop/admin/resellers' },
     ]);
   } else if (wdr.status === 'approved') {
     inlineButtons.push([
       { text: '⚙️ Mark Processing', callback_data: `wdr:act:processing:${wdr.id}` },
       { text: '❌ Reject', callback_data: `wdr:act:reject:${wdr.id}` },
     ]);
-    inlineButtons.push([{ text: '🌐 Admin Panel (Mark Paid)', url: 'https://vaultzet.shop/admin/resellers' }]);
+    inlineButtons.push([{ text: '🌐 Admin Panel (Mark Paid)', url: 'https://www.vaultzet.shop/admin/resellers' }]);
   } else if (wdr.status === 'processing') {
     inlineButtons.push([
       { text: '❌ Reject', callback_data: `wdr:act:reject:${wdr.id}` },
-      { text: '🌐 Admin Panel (Mark Paid)', url: 'https://vaultzet.shop/admin/resellers' },
+      { text: '🌐 Admin Panel (Mark Paid)', url: 'https://www.vaultzet.shop/admin/resellers' },
     ]);
   } else {
-    inlineButtons.push([{ text: '🌐 View in Admin Panel', url: 'https://vaultzet.shop/admin/resellers' }]);
+    inlineButtons.push([{ text: '🌐 View in Admin Panel', url: 'https://www.vaultzet.shop/admin/resellers' }]);
   }
 
   inlineButtons.push([

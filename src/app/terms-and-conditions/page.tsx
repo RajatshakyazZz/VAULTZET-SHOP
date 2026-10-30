@@ -1,4 +1,13 @@
 import React from 'react';
+import { Metadata } from 'next';
+
+export const metadata: Metadata = {
+  title: 'Terms & Conditions | Vaultzet Store',
+  description: 'Terms and Conditions for purchasing and licensing digital reels bundles from Vaultzet Store.',
+  alternates: {
+    canonical: 'https://www.vaultzet.shop/terms-and-conditions',
+  },
+};
 
 export default function TermsPage() {
   return (

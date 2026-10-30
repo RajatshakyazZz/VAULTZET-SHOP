@@ -1,3 +1,4 @@
+import { Metadata } from 'next';
 import Hero from '@/components/Hero';
 import FreeBundleOfferBanner from '@/components/FreeBundleOfferBanner';
 import TrendingMarquee from '@/components/TrendingMarquee';
@@ -8,68 +9,46 @@ import UpcomingBundles from '@/components/UpcomingBundles';
 import CreatorProof from '@/components/CreatorProof';
 import ReelBundleStoreSEOSection from '@/components/ReelBundleStoreSEOSection';
 
+export const metadata: Metadata = {
+  title: 'Reels Bundles for Instagram & Shorts Creators in India | Vaultzet',
+  description:
+    'Explore downloadable reels bundles for Instagram, YouTube Shorts and Facebook. Browse AI, story, ASMR and more. Pay securely with UPI or card.',
+  alternates: {
+    canonical: 'https://www.vaultzet.shop',
+  },
+  openGraph: {
+    title: 'Reels Bundles for Instagram & Shorts Creators in India | Vaultzet',
+    description:
+      'Explore downloadable reels bundles for Instagram, YouTube Shorts and Facebook. Browse AI, story, ASMR and more. Pay securely with UPI or card.',
+    url: 'https://www.vaultzet.shop',
+    siteName: 'Vaultzet',
+    locale: 'en_IN',
+    type: 'website',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Reels Bundles for Instagram & Shorts Creators in India | Vaultzet',
+    description:
+      'Explore downloadable reels bundles for Instagram, YouTube Shorts and Facebook. Browse AI, story, ASMR and more. Pay securely with UPI or card.',
+  },
+};
+
 export default function HomePage() {
-  const siteUrl = (process.env.NEXT_PUBLIC_SITE_URL || 'https://vaultzet.shop').replace(/\/+$/, '');
-
-  const organizationJsonLd = {
-    '@context': 'https://schema.org',
-    '@type': 'Organization',
-    name: 'Vaultzet Store',
-    url: siteUrl,
-    logo: `${siteUrl}/icon.png`,
-    description: "India's leading marketplace for viral ready-to-post vertical reels bundles with commercial rights.",
-    sameAs: [
-      'https://www.instagram.com/vaultzet',
-      'https://t.me/vaultzet',
-    ],
-    contactPoint: {
-      '@type': 'ContactPoint',
-      contactType: 'customer support',
-      areaServed: 'IN',
-      availableLanguage: ['en', 'hi'],
-    },
-  };
-
-  const websiteJsonLd = {
-    '@context': 'https://schema.org',
-    '@type': 'WebSite',
-    name: 'Vaultzet Store',
-    url: siteUrl,
-    potentialAction: {
-      '@type': 'SearchAction',
-      target: {
-        '@type': 'EntryPoint',
-        urlTemplate: `${siteUrl}/shop?q={search_term_string}`,
-      },
-      'query-input': 'required name=search_term_string',
-    },
-  };
-
   return (
     <div className="space-y-4">
-      {/* JSON-LD Structured Data: Organization & WebSite SearchAction */}
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationJsonLd) }}
-      />
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(websiteJsonLd) }}
-      />
-
-      {/* Hero with Typewriter & 3D Cards */}
+      {/* Hero with Value H1, Typewriter & 3D Cards */}
       <Hero />
 
       {/* Special Free Bundles Offer Banner */}
       <FreeBundleOfferBanner variant="home" />
 
-      {/* Trending Bundles Auto-Marquee */}
+      {/* Trending Bundles Auto-Marquee (Items 1-6) */}
       <TrendingMarquee />
 
       {/* Interactive Smartphone Video Preview Section */}
       <ReelsVideoPreview />
 
-      {/* Fresh Reels Grid */}
+      {/* Fresh Reels Grid (Distinct Items 7-14, No Duplicates) */}
       <FreshReelsGrid />
 
       {/* All Access Personal vs Reseller Plans */}

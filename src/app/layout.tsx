@@ -279,6 +279,54 @@ export default function RootLayout({
           </Script>
         )}
 
+        {/* Site-Wide JSON-LD Structured Data: Organization & WebSite */}
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify({
+              '@context': 'https://schema.org',
+              '@type': 'Organization',
+              name: 'Vaultzet',
+              legalName: 'Vaultzet Store',
+              url: 'https://www.vaultzet.shop',
+              logo: 'https://www.vaultzet.shop/logo.webp',
+              description:
+                "India's leading digital product store for viral ready-to-post vertical reels bundles with instant Google Drive access.",
+              sameAs: [
+                'https://www.instagram.com/vaultzet',
+                'https://t.me/vaultzet',
+              ],
+              contactPoint: {
+                '@type': 'ContactPoint',
+                telephone: '+91-7895317940',
+                contactType: 'customer support',
+                areaServed: 'IN',
+                availableLanguage: ['en', 'hi'],
+              },
+            }),
+          }}
+        />
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify({
+              '@context': 'https://schema.org',
+              '@type': 'WebSite',
+              name: 'Vaultzet',
+              alternateName: 'Vaultzet Store',
+              url: 'https://www.vaultzet.shop',
+              potentialAction: {
+                '@type': 'SearchAction',
+                target: {
+                  '@type': 'EntryPoint',
+                  urlTemplate: 'https://www.vaultzet.shop/shop?q={search_term_string}',
+                },
+                'query-input': 'required name=search_term_string',
+              },
+            }),
+          }}
+        />
+
         {/* Client-Side SPA Route Tracking */}
         <Suspense fallback={null}>
           <AnalyticsTracker />

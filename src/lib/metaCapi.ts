@@ -203,7 +203,7 @@ export async function sendMetaCapiPurchase(params: MetaPurchaseEventParams): Pro
     event_name: 'Purchase',
     event_time: Math.floor(Date.now() / 1000),
     event_id: eventId,
-    event_source_url: params.eventSourceUrl || `https://vaultzet.shop/order-success?orderId=${encodeURIComponent(params.orderId)}`,
+    event_source_url: params.eventSourceUrl || `https://www.vaultzet.shop/order-success?orderId=${encodeURIComponent(params.orderId)}`,
     action_source: 'website',
     user_data: userData,
     custom_data: {

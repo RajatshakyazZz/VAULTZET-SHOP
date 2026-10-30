@@ -1,4 +1,13 @@
 import React from 'react';
+import { Metadata } from 'next';
+
+export const metadata: Metadata = {
+  title: 'Refund & Cancellation Policy | Vaultzet Store',
+  description: 'Refund & Cancellation Policy for digital reels bundles purchased from Vaultzet Store.',
+  alternates: {
+    canonical: 'https://www.vaultzet.shop/refund-policy',
+  },
+};
 
 export default function RefundPolicyPage() {
   return (

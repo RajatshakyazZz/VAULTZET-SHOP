@@ -1,8 +1,7 @@
-// Production robots configuration for Reel Bundle Store Vaultzet (vaultzet.shop) - v2
 import { MetadataRoute } from 'next';
 
 export default function robots(): MetadataRoute.Robots {
-  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://www.vaultzet.shop';
+  const baseUrl = (process.env.NEXT_PUBLIC_SITE_URL || 'https://www.vaultzet.shop').replace(/\/+$/, '');
 
   return {
     rules: [
@@ -11,18 +10,21 @@ export default function robots(): MetadataRoute.Robots {
         allow: '/',
         disallow: [
           '/api/',
-          '/analy',
-          '/customers',
-          '/costumers',
+          '/admin/',
+          '/cart',
+          '/checkout',
+          '/my-order',
           '/order-status',
           '/order-success',
-          '/checkout',
-          '/cart',
-          '/_next/',
+          '/earn/dashboard',
+          '/earn/wallet',
+          '/earn/orders',
+          '/earn/settings',
+          '/earn/login',
+          '/earn/signup',
         ],
       },
     ],
     sitemap: `${baseUrl}/sitemap.xml`,
-    host: baseUrl,
   };
 }

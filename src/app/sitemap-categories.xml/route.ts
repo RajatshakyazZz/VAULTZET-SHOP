@@ -1,10 +1,9 @@
 import { COMPETITOR_CATEGORIES } from '@/lib/categories';
 
-export const revalidate = 3600;
+export const revalidate = 86400;
 
 export async function GET() {
   const baseUrl = (process.env.NEXT_PUBLIC_SITE_URL || 'https://www.vaultzet.shop').replace(/\/+$/, '');
-  const now = new Date().toISOString();
 
   const seenSlugs = new Set<string>();
   const validCategories = COMPETITOR_CATEGORIES.filter((c) => {
@@ -15,12 +14,15 @@ export async function GET() {
 
   const urlEntries = validCategories
     .map(
-      (c) => `  <url>
+      (c) => {
+        const lastmod = c.created_at || '2026-10-28T12:00:00.000Z';
+        return `  <url>
     <loc>${baseUrl}/category/${encodeURIComponent(c.slug)}</loc>
-    <lastmod>${now}</lastmod>
+    <lastmod>${lastmod}</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
-  </url>`
+  </url>`;
+      }
     )
     .join('\n');
 
@@ -33,7 +35,7 @@ ${urlEntries}
     status: 200,
     headers: {
       'Content-Type': 'application/xml; charset=utf-8',
-      'Cache-Control': 'public, s-maxage=3600, stale-while-revalidate=86400',
+      'Cache-Control': 'public, s-maxage=86400, stale-while-revalidate=604800',
     },
   });
 }

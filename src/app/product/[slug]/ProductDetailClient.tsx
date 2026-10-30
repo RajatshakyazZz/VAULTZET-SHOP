@@ -313,14 +313,18 @@ export default function ProductDetailClient({ product }: ProductDetailClientProp
               <div className="space-y-2">
                 <div className="flex items-center justify-between gap-2 flex-wrap">
                   <div className="flex items-center gap-2">
-                    <span className="px-2.5 py-0.5 rounded-full bg-purple-50 text-purple-700 font-extrabold text-[11px] uppercase tracking-wider border border-purple-100">
-                      {p.category || 'Reels Bundle'}
-                    </span>
+                    <Link
+                      href={`/category/${p.categorySlug || 'ai-reels'}`}
+                      className="px-2.5 py-0.5 rounded-full bg-purple-50 text-purple-700 hover:bg-purple-100 transition-colors font-extrabold text-[11px] uppercase tracking-wider border border-purple-100 flex items-center gap-1"
+                      title={`View all ${p.category || 'Reels'} bundles`}
+                    >
+                      <span>{p.category || 'Reels Bundle'}</span>
+                      <ChevronRight className="w-3 h-3 text-purple-500" />
+                    </Link>
                     <span className="text-slate-300">•</span>
-                    <div className="flex items-center gap-1 text-xs font-bold text-amber-500">
-                      <span>★ 4.9</span>
-                      <span className="text-slate-400 font-medium text-[11px]">({p.reviewCount || 200}+ verified reviews)</span>
-                    </div>
+                    <span className="text-[11px] text-slate-500 font-semibold">
+                      {p.reelCount || 1000}+ Clips
+                    </span>
                   </div>
                   <span className="text-[11px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-md border border-emerald-200">
                     Verified Digital Bundle
@@ -541,6 +545,56 @@ export default function ProductDetailClient({ product }: ProductDetailClientProp
                   </li>
                 ))}
               </ul>
+            </div>
+
+            {/* Complete Licensing, Usage & Delivery Guide */}
+            <div className="pt-3 border-t border-slate-100 space-y-3">
+              <h4 className="text-xs sm:text-sm font-bold text-slate-900">
+                Licensing, Delivery & Permitted Usage Guide
+              </h4>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+                <div className="p-3 rounded-xl bg-purple-50/60 border border-purple-100 space-y-1">
+                  <strong className="text-purple-900 block font-bold">1. Personal Creation License</strong>
+                  <p className="text-slate-600 leading-relaxed">
+                    Post watermark-free on your Instagram Reels, YouTube Shorts & Facebook pages. Add your own handle, text hooks or music with zero copyright strikes.
+                  </p>
+                </div>
+                <div className="p-3 rounded-xl bg-pink-50/60 border border-pink-100 space-y-1">
+                  <strong className="text-pink-900 block font-bold">2. Master Resell Rights (MRR)</strong>
+                  <p className="text-slate-600 leading-relaxed">
+                    Resell this bundle to your audience or clients at any price point and keep 100% of every sale directly to your bank account.
+                  </p>
+                </div>
+                <div className="p-3 rounded-xl bg-emerald-50/60 border border-emerald-100 space-y-1">
+                  <strong className="text-emerald-900 block font-bold">3. Instant Google Drive Access</strong>
+                  <p className="text-slate-600 leading-relaxed">
+                    Permanent access link opens on screen right after UPI/card payment and is sent to your registered Gmail for lifetime downloads.
+                  </p>
+                </div>
+                <div className="p-3 rounded-xl bg-blue-50/60 border border-blue-100 space-y-1">
+                  <strong className="text-blue-900 block font-bold">4. Mobile & Desktop Ready</strong>
+                  <p className="text-slate-600 leading-relaxed">
+                    Standard 1080x1920 vertical MP4 format. No transcoding or resizing needed; upload directly from your smartphone.
+                  </p>
+                </div>
+              </div>
+
+              {/* Descriptive Internal Links */}
+              <div className="pt-2 flex flex-wrap items-center gap-2 text-xs">
+                <span className="text-slate-500 font-medium">Explore related:</span>
+                <Link
+                  href={`/category/${p.categorySlug || 'ai-reels'}`}
+                  className="px-2.5 py-1 rounded-lg bg-slate-100 hover:bg-purple-50 text-purple-700 hover:text-purple-800 font-semibold border border-slate-200 transition-colors"
+                >
+                  More {p.category || 'Reels'} Bundles &rarr;
+                </Link>
+                <Link
+                  href="/shop"
+                  className="px-2.5 py-1 rounded-lg bg-slate-100 hover:bg-purple-50 text-purple-700 hover:text-purple-800 font-semibold border border-slate-200 transition-colors"
+                >
+                  Browse Full Shop Catalog &rarr;
+                </Link>
+              </div>
             </div>
           </div>
         </section>

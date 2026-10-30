@@ -18,13 +18,16 @@ export default function FreshReelsGrid() {
   const [freshBundles, setFreshBundles] = useState<BundleProduct[]>(() => {
     const local = getLocalCustomProductsSync();
     const all = getAllCatalogBundles(local, BUNDLE_PRODUCTS);
-    return all.filter((b) => !b.isUpcoming).slice(0, 8);
+    const valid = all.filter((b) => !b.isUpcoming);
+    // Distinct items 6 to 14 so there are zero duplicate cards between TrendingMarquee and FreshReelsGrid
+    return valid.length > 6 ? valid.slice(6, 14) : valid.slice(0, 8);
   });
 
   useEffect(() => {
     fetchCustomProducts().then((res) => {
       const all = getAllCatalogBundles(res, BUNDLE_PRODUCTS);
-      setFreshBundles(all.filter((b) => !b.isUpcoming).slice(0, 8));
+      const valid = all.filter((b) => !b.isUpcoming);
+      setFreshBundles(valid.length > 6 ? valid.slice(6, 14) : valid.slice(0, 8));
     }).catch(() => {});
   }, []);
 

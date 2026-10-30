@@ -5,7 +5,7 @@ export const metadata: Metadata = {
   title: 'Privacy Policy | Vaultzet Store',
   description: 'Privacy Policy for Vaultzet Store. Learn how we handle your information securely.',
   alternates: {
-    canonical: 'https://vaultzet.shop/privacy-policy',
+    canonical: 'https://www.vaultzet.shop/privacy-policy',
   },
 };
 

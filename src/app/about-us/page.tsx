@@ -1,6 +1,16 @@
 import React from 'react';
 import Link from 'next/link';
+import { Metadata } from 'next';
 import { PlaySquare, CheckCircle, ShieldCheck, Zap } from 'lucide-react';
+
+export const metadata: Metadata = {
+  title: 'About Us | Vaultzet Store',
+  description:
+    'Learn how Vaultzet Store empowers Indian content creators and theme page operators with ready-to-post, watermark-free vertical reels bundles.',
+  alternates: {
+    canonical: 'https://www.vaultzet.shop/about-us',
+  },
+};
 
 export default function AboutUsPage() {
   return (

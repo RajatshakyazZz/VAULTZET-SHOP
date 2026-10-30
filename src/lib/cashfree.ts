@@ -87,8 +87,8 @@ export async function getCashfreeCredentials(forceRefresh = false): Promise<Cash
   let returnUrl = (
     process.env.CASHFREE_RETURN_URL ||
     process.env.NEXT_PUBLIC_CASHFREE_RETURN_URL ||
-    'https://vaultzet.shop/api/payment/cashfree/return'
-  ).replace('store.vaultzet.shop', 'vaultzet.shop').trim();
+    'https://www.vaultzet.shop/api/payment/cashfree/return'
+  ).replace('store.vaultzet.shop', 'www.vaultzet.shop').trim();
   let enabled = true;
 
   // If not configured in environment variables, read from Firestore store_settings/cashfree
@@ -169,8 +169,8 @@ export async function createCashfreePgOrder(
   // Clean customer ID
   const cleanCustomerId = `cust_${params.customer.email.replace(/[^a-zA-Z0-9]/g, '_').slice(0, 30)}`;
 
-  const rawReturnUrl = (params.returnUrl || creds.returnUrl || 'https://vaultzet.shop/api/payment/cashfree/return')
-    .replace('store.vaultzet.shop', 'vaultzet.shop');
+  const rawReturnUrl = (params.returnUrl || creds.returnUrl || 'https://www.vaultzet.shop/api/payment/cashfree/return')
+    .replace('store.vaultzet.shop', 'www.vaultzet.shop');
   const finalReturnUrl = rawReturnUrl.includes('{order_id}')
     ? rawReturnUrl
     : `${rawReturnUrl}${rawReturnUrl.includes('?') ? '&' : '?'}order_id={order_id}`;

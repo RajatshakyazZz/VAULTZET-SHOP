@@ -415,7 +415,7 @@ export default function CreateListingWizard({ params }: CreateListingPageProps) 
           {/* Realistic Landing Preview Box */}
           <div className="rounded-2xl border-2 border-purple-200 overflow-hidden shadow-sm bg-white">
             <div className="p-3 bg-purple-50 border-b border-purple-100 flex items-center justify-between text-[11px] text-gray-500">
-              <span className="font-bold">Landing URL: https://vaultzet.shop/r/your-slug</span>
+              <span className="font-bold">Landing URL: https://www.vaultzet.shop/r/your-slug</span>
               <span className="text-green-600 font-bold flex items-center gap-1">
                 <ShieldCheck className="w-3.5 h-3.5" />
                 <span>SSL Secured</span>

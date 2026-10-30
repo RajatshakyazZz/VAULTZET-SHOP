@@ -108,12 +108,12 @@ export default function Hero() {
                 <span>India&apos;s #1 Reel Bundle Store • Vaultzet</span>
               </div>
 
-              {/* Exact Typography matching Competitor Screenshot */}
+              {/* High-Impact Value-Driven H1 */}
               <div>
-                <h1 className="text-[32px] sm:text-[50px] lg:text-[62px] font-black text-[#0f1738] tracking-[-0.03em] leading-[1.06]">
-                  Reel Bundle Store <span className="text-[#6c35ff]">Vaultzet.</span>
+                <h1 className="text-[28px] sm:text-[44px] lg:text-[54px] font-black text-[#0f1738] tracking-[-0.03em] leading-[1.08]">
+                  Download Viral Reels Bundles for <span className="text-[#6c35ff]">Creators in India.</span>
                 </h1>
-                <div className="text-[28px] sm:text-[44px] lg:text-[54px] font-black tracking-[-0.03em] leading-[1.08] mt-1 flex items-center min-h-[38px] sm:min-h-[58px]">
+                <div className="text-[24px] sm:text-[38px] lg:text-[46px] font-black tracking-[-0.03em] leading-[1.08] mt-1.5 flex items-center min-h-[34px] sm:min-h-[52px]">
                   <span className="bg-gradient-to-r from-[#6c35ff] via-[#b429f9] to-[#ff1e8e] bg-clip-text text-transparent pb-1">
                     {displayText}
                   </span>

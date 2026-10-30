@@ -30,7 +30,7 @@ export async function generateMetadata({ params }: ResellerPageProps): Promise<M
     };
   }
 
-  const siteUrl = (process.env.NEXT_PUBLIC_SITE_URL || 'https://vaultzet.shop').replace(/\/+$/, '');
+  const siteUrl = (process.env.NEXT_PUBLIC_SITE_URL || 'https://www.vaultzet.shop').replace(/\/+$/, '');
   const canonicalUrl = `${siteUrl}/r/${listing.slug}`;
   const title = `${listing.customHeadline || listing.customTitle} — Instant Download`;
   const description =

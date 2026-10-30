@@ -68,7 +68,7 @@ ${profile.phone ? `📱 <b>Phone:</b> <code>${escapeHtml(profile.phone)}</code>\
 • Available wallet balance: <b>₹0</b>
 • Pending wallet balance: <b>₹0</b>
 ━━━━━━━━━━━━━━━━━━
-🔍 <i>View in Admin Panel:</i> https://vaultzet.shop/admin/resellers`;
+🔍 <i>View in Admin Panel:</i> https://www.vaultzet.shop/admin/resellers`;
 
   const buttons: Array<Array<TelegramInlineButton>> = [
     [
@@ -143,7 +143,7 @@ ${productBreakdownText}
 🕒 <b>Requested At:</b> ${escapeHtml(requestedTime)} IST
 ━━━━━━━━━━━━━━━━━━
 🔎 <i>Review & process in the authenticated admin panel:</i>
-👉 https://vaultzet.shop/admin/resellers`;
+👉 https://www.vaultzet.shop/admin/resellers`;
 
   const buttons: Array<Array<TelegramInlineButton>> = [
     [
@@ -156,7 +156,7 @@ ${productBreakdownText}
     ],
     [
       { text: `👛 Wallet: ${wdr.resellerUid}`, callback_data: `wallet_${wdr.resellerUid}` },
-      { text: '📋 Admin Panel', url: 'https://vaultzet.shop/admin/resellers' },
+      { text: '📋 Admin Panel', url: 'https://www.vaultzet.shop/admin/resellers' },
     ],
   ];
 
@@ -230,7 +230,7 @@ ${detailsText}
   const buttons: Array<Array<TelegramInlineButton>> = [
     [
       { text: `👛 Wallet: ${wdr.resellerUid}`, callback_data: `wallet_${wdr.resellerUid}` },
-      { text: '📋 Admin Panel', url: 'https://vaultzet.shop/admin/resellers' },
+      { text: '📋 Admin Panel', url: 'https://www.vaultzet.shop/admin/resellers' },
     ],
   ];
 
@@ -306,7 +306,7 @@ ${customer?.phone ? `• Phone: <code>${escapeHtml(customer.phone)}</code>\n` : 
 
 🕒 <b>Time:</b> ${escapeHtml(nowIst)} IST
 ━━━━━━━━━━━━━━━━━━
-🔎 <i>Manage Resellers in Admin:</i> https://vaultzet.shop/admin/resellers`;
+🔎 <i>Manage Resellers in Admin:</i> https://www.vaultzet.shop/admin/resellers`;
 
   const buttons: Array<Array<TelegramInlineButton>> = [
     [
@@ -315,7 +315,7 @@ ${customer?.phone ? `• Phone: <code>${escapeHtml(customer.phone)}</code>\n` : 
     ],
     [
       { text: `📦 Order #${orderNumber}`, callback_data: `order_${orderNumber}` },
-      { text: '📋 Admin Panel', url: 'https://vaultzet.shop/admin/resellers' },
+      { text: '📋 Admin Panel', url: 'https://www.vaultzet.shop/admin/resellers' },
     ],
   ];
 
