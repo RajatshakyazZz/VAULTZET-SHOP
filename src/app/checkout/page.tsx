@@ -21,13 +21,13 @@ import {
   X,
   Percent,
   Gift,
+  ShoppingBag,
 } from 'lucide-react';
 import { useCart } from '@/context/CartContext';
 import { ORDER_BUMP } from '@/data/bundles';
 import { track } from '@/lib/analytics';
 import { resolveBundleSlug } from '@/lib/bundleResolver';
 import { fetchCustomProductBySlug } from '@/lib/customProducts';
-import FreeBundleOfferBanner from '@/components/FreeBundleOfferBanner';
 
 declare global {
   interface Window {
@@ -775,8 +775,134 @@ function CheckoutContent() {
             </div>
           )}
 
-          {/* Special Free Bundles Offer Banner */}
-          <FreeBundleOfferBanner variant="checkout" currentTotal={checkoutTotal} />
+          {/* Selected Product / Bundle You Are Buying */}
+          {checkoutItems.length > 0 && (
+            <div className="mb-8 rounded-3xl bg-white border-2 border-purple-200/90 shadow-md p-4 sm:p-5">
+              <div className="flex items-center justify-between pb-3 mb-3 border-b border-purple-100">
+                <div className="flex items-center gap-2">
+                  <div className="w-7 h-7 rounded-xl bg-purple-100 text-rb-purple flex items-center justify-center">
+                    <ShoppingBag className="w-4 h-4" />
+                  </div>
+                  <div>
+                    <h2 className="text-xs sm:text-sm font-black text-[#182247] uppercase tracking-wide">
+                      {isBuyNowMode ? 'Product You Are Buying' : `Items in Your Order (${checkoutItems.length})`}
+                    </h2>
+                    <p className="text-[11px] text-slate-500 font-medium">
+                      Verified bundle delivery to your Gmail right after payment
+                    </p>
+                  </div>
+                </div>
+                {isBuyNowMode && checkoutItems[0]?.product?.slug && (
+                  <Link
+                    href={`/product/${checkoutItems[0].product.slug}`}
+                    className="text-[11px] font-bold text-rb-purple hover:underline"
+                  >
+                    View Details →
+                  </Link>
+                )}
+              </div>
+
+              <div className="space-y-3">
+                {checkoutItems.map((item, idx) => {
+                  const originalPrice =
+                    item.license === 'reseller'
+                      ? item.product.resellerOriginalPrice || Math.round(item.price * 2)
+                      : item.product.personalOriginalPrice || Math.round(item.price * 2);
+                  const discountPercent =
+                    originalPrice > item.price
+                      ? Math.round(((originalPrice - item.price) / originalPrice) * 100)
+                      : 0;
+
+                  return (
+                    <div
+                      key={`checkout-product-${item?.product?.id || idx}-${item?.license || 'p'}`}
+                      className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 p-3.5 rounded-2xl bg-[#faf9ff] border border-purple-100"
+                    >
+                      <div className="flex items-center gap-3.5 min-w-0 flex-1">
+                        <div className="relative shrink-0">
+                          <img
+                            src={item?.product?.thumbnail || '/logo.webp'}
+                            alt={item?.product?.title || 'Selected Bundle'}
+                            className="w-16 h-20 sm:w-20 sm:h-24 object-cover rounded-xl border border-purple-200/80 shadow-sm bg-slate-100"
+                            onError={(e) => {
+                              (e.target as HTMLImageElement).src = '/logo.webp';
+                            }}
+                          />
+                          <span className="absolute bottom-1 right-1 bg-black/80 text-white text-[9px] font-black px-1.5 py-0.5 rounded backdrop-blur-xs">
+                            1080P
+                          </span>
+                        </div>
+
+                        <div className="min-w-0 flex-1 space-y-1.5">
+                          <div className="flex flex-wrap items-center gap-1.5">
+                            {item?.product?.category && (
+                              <span className="text-[10px] font-bold uppercase tracking-wider text-rb-purple bg-purple-100/70 px-2 py-0.5 rounded-md border border-purple-200">
+                                {item.product.category}
+                              </span>
+                            )}
+                            <span
+                              className={`text-[10px] font-black px-2 py-0.5 rounded-md ${
+                                item.license === 'reseller'
+                                  ? 'bg-amber-100 text-amber-900 border border-amber-300'
+                                  : 'bg-emerald-100 text-emerald-900 border border-emerald-300'
+                              }`}
+                            >
+                              {item.license === 'reseller' ? '👑 Reseller License (MRR)' : '👤 Personal Use'}
+                            </span>
+                          </div>
+
+                          <h3 className="font-black text-sm sm:text-base text-[#182247] leading-snug line-clamp-2">
+                            {item?.product?.title || 'Viral Reels Bundle'}
+                          </h3>
+
+                          <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px] font-medium text-slate-500">
+                            {item?.product?.reelCount ? (
+                              <span className="flex items-center gap-1 text-slate-700 font-bold">
+                                <span>✨</span> {item.product.reelCount.toLocaleString('en-IN')}+ Video Clips
+                              </span>
+                            ) : null}
+                            <span className="flex items-center gap-1">
+                              <span>⚡</span> No Watermark
+                            </span>
+                            <span className="flex items-center gap-1">
+                              <span>📱</span> 9:16 Vertical
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="flex items-center sm:flex-col sm:items-end justify-between sm:justify-center w-full sm:w-auto pt-2 sm:pt-0 border-t sm:border-t-0 border-purple-100/70 shrink-0">
+                        <div className="text-left sm:text-right">
+                          <div className="text-[11px] text-slate-400 line-through">
+                            ₹{originalPrice}.00
+                          </div>
+                          <div className="text-xl font-black text-emerald-600 tracking-tight">
+                            ₹{item.price}.00
+                          </div>
+                        </div>
+                        {discountPercent > 0 && (
+                          <span className="text-[10px] font-black text-emerald-700 bg-emerald-100 px-2 py-0.5 rounded-full mt-1">
+                            {discountPercent}% OFF
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+
+              {/* Instant Delivery Guarantee pill */}
+              <div className="mt-3 pt-3 border-t border-purple-100 flex items-center justify-between flex-wrap gap-2 text-[11px] font-semibold text-slate-600">
+                <span className="flex items-center gap-1.5 text-emerald-700">
+                  <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+                  <span>Ready-to-Post Reels • Lifetime Access • Google Drive Access</span>
+                </span>
+                <span className="text-slate-400 font-normal">
+                  ⚡ Sent directly to your Gmail within 5 seconds after payment
+                </span>
+              </div>
+            </div>
+          )}
 
           {/* Error Banner */}
           {errorMessage && (
