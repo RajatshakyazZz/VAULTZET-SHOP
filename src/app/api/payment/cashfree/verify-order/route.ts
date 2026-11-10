@@ -294,8 +294,21 @@ async function handleVerify(
 
     // Resolve secure download links exclusively for paid orders
     const rawItems = storedOrder?.items && storedOrder.items.length > 0
-      ? storedOrder.items
+      ? [...storedOrder.items]
       : [{ id: 'bundle', title: 'Viral Reels Bundle', license: 'personal' }];
+
+    // If order bump was added, include it in delivered items so customer gets instant Google Drive access
+    if (storedOrder?.orderBump) {
+      const bumpId = storedOrder.orderBump.id || 'rb-sheru-bhai-3000';
+      const bumpTitle = storedOrder.orderBump.title || '3000+ Sheru Bhai Mega Reel Bundle Pack';
+      if (!rawItems.some((it: any) => it.id === bumpId)) {
+        rawItems.push({
+          id: bumpId,
+          title: bumpTitle,
+          license: 'personal',
+        });
+      }
+    }
 
     const verifiedItems = await Promise.all(
       rawItems.map(async (it: any) => {

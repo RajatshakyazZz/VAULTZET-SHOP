@@ -1147,7 +1147,7 @@ function CheckoutContent() {
                           ₹{ORDER_BUMP.originalPrice}.00
                         </span>
                         <span className="px-1.5 py-0.5 rounded text-[10px] font-black bg-green-200 text-green-900">
-                          80% OFF
+                          {ORDER_BUMP.discountPercentage}% OFF
                         </span>
                       </div>
                     </div>
@@ -1483,7 +1483,7 @@ function CheckoutContent() {
                   </div>
                   {orderBumpAdded && (
                     <div className="flex justify-between text-green-600">
-                      <span>Order Bump (80% Off)</span>
+                      <span>Order Bump ({ORDER_BUMP.discountPercentage}% Off)</span>
                       <span>+₹{ORDER_BUMP.discountPrice}.00</span>
                     </div>
                   )}

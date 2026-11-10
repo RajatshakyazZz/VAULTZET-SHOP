@@ -232,7 +232,7 @@ export default function CartDrawer() {
                         ₹{ORDER_BUMP.originalPrice}
                       </span>
                       <span className="text-[10px] font-bold px-1.5 py-0.2 bg-green-200/80 text-green-800 rounded">
-                        80% OFF
+                        {ORDER_BUMP.discountPercentage}% OFF
                       </span>
                     </div>
                   </div>
@@ -244,7 +244,7 @@ export default function CartDrawer() {
                         : 'bg-white border border-amber-300 text-amber-900 hover:bg-amber-100'
                     }`}
                   >
-                    {orderBumpAdded ? '✓ Added' : '+ Add ₹99'}
+                    {orderBumpAdded ? '✓ Added' : `+ Add ₹${ORDER_BUMP.discountPrice}`}
                   </button>
                 </div>
               </div>
@@ -258,7 +258,7 @@ export default function CartDrawer() {
                   </div>
                   {orderBumpAdded && (
                     <div className="flex justify-between text-emerald-600 text-xs font-bold">
-                      <span>Bonus Upsell Pack (80% Off)</span>
+                      <span>Bonus Upsell Pack ({ORDER_BUMP.discountPercentage}% Off)</span>
                       <span>+₹{ORDER_BUMP.discountPrice}.00</span>
                     </div>
                   )}

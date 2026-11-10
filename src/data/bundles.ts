@@ -4,17 +4,87 @@ import type { BundleProduct, OrderBumpItem } from '@/types';
 export const CATEGORIES = COMPETITOR_CATEGORIES;
 
 export const ORDER_BUMP: OrderBumpItem = {
-  id: 'bump-special-01',
-  title: '1500+ Ultimate Twisted World & Viral AI Reels Pack',
-  subtitle: 'Add this exclusive bonus pack to your order & get 80% instant discount!',
-  originalPrice: 499,
+  id: 'rb-sheru-bhai-3000',
+  title: '3000+ Sheru Bhai Mega Reel Bundle Pack',
+  subtitle: 'Exclusive Checkout Add-On: 3000+ viral Sheru Bhai comedy & dialogue reels at 90% instant discount!',
+  originalPrice: 999,
   discountPrice: 99,
-  discountPercentage: 80,
-  thumbnail: 'https://reelsbundles.in/wp-content/uploads/2026/10/3200-ultimate-twisted-world-reel-bundle-reels-bundle-1-2-768x576.png',
-  reelCount: 1500,
+  discountPercentage: 90,
+  thumbnail: 'https://reelsbundles.in/wp-content/uploads/2026/10/thumbnail.png',
+  reelCount: 3000,
 };
 
 export const BUNDLE_PRODUCTS: BundleProduct[] = [
+  {
+    "id": "rb-sheru-bhai-3000",
+    "slug": "3000-sheru-bhai-mega-reel-bundle-pack",
+    "aliases": [
+      "sheru-bhai",
+      "sheru-bhai-reels",
+      "sheru-bhai-reels-bundle",
+      "3000-sheru-bhai",
+      "sheru-bhai-comedy-reels",
+      "sheru-bhai-bundle"
+    ],
+    "title": "3000+ Sheru Bhai Mega Reel Bundle Pack – Viral Comedy & Funny Dialogue Videos",
+    "shortDescription": "Sheru Bhai Mega Reel Bundle Pack: 3,000+ viral comedy reels, hilarious character dialogues, and high-retention funny clips. 100% watermark-free, 1080P Full HD 9:16 vertical MP4 format with pre-synced trending audio. Instant Google Drive lifetime download.",
+    "description": "3000+ Sheru Bhai Mega Reel Bundle Pack – Ready to Post Viral Comedy Reels\n\n🔥 Best Viral Comedy & Savage Dialogue Reels in India\nKya aap Instagram Reels, YouTube Shorts ya Facebook Page ko rocket ki speed se grow karna chahte hain? Sheru Bhai Viral Reel Bundle aapke liye ultimate shortcut hai! Is bundle mein aapko milti hain 3000+ high-engagement, hilarious comedy, character dialogue, aur savage attitude reels jo organic reach aur followers badhane ke liye engineered hain.\n\n✨ Why Sheru Bhai Reels Go Viral Fast:\nSheru Bhai content internet par sabse trending aur addictive comedy format hai. Har clip ke first 3 seconds mein solid curiosity hook hota hai, jisse audience poori video dekhti hai aur share karti hai. Isse aapke page par views aur retention dono explode karte hain!\n\n📦 What You Get Inside This Mega Bundle:\n• 3,000+ High Quality 1080P Full HD Reels (MP4 Format)\n• 9:16 Vertical Screen Ratio (Perfect for Instagram, Shorts & FB)\n• 100% Clean Without Any Watermarks or Logos\n• Pre-synced Trending Background Music & Funny Sound Effects\n• Instant Lifetime Google Drive Access (Direct High-Speed Download)\n• Plug & Play – Zero Video Editing Skills Required\n• Commercial Rights Included – Free to Monetize or Resell\n\n💰 How To Monetize & Grow With This Bundle:\n1. Post 2-3 reels daily at peak hours (6 PM - 9 PM) to trigger the algorithm.\n2. Grow theme pages and get brand sponsorships & shoutouts.\n3. Add affiliate marketing links in bio to make passive daily income.\n4. Resell the bundle with Reseller Rights and keep 100% direct profit in your bank account!\n\n⚡ Instant 100% Automated Delivery:\nPayment complete hote hi screen par direct Google Drive download link open ho jayega aur aapke email par bhi link bhej diya jayega.",
+    "category": "Comedy Reels",
+    "categorySlug": "comedy-reels",
+    "reelCount": 3000,
+    "personalPrice": 99,
+    "personalOriginalPrice": 999,
+    "resellerPrice": 199,
+    "resellerOriginalPrice": 1499,
+    "thumbnail": "https://reelsbundles.in/wp-content/uploads/2026/10/thumbnail.png",
+    "galleryImages": [
+      "https://reelsbundles.in/wp-content/uploads/2026/10/thumbnail.png"
+    ],
+    "previewVideoUrl": "https://shop.worklinc.com/wp-content/uploads/2026/02/450-Health-Awareness-Ai-Reels-Bundle2.mp4",
+    "tags": [
+      "HOT",
+      "VIRAL",
+      "HD",
+      "Google Drive"
+    ],
+    "isHot": true,
+    "isTrending": true,
+    "rating": 5,
+    "reviewCount": 443,
+    "resolution": "1080P",
+    "aspectRatio": "9:16 Vertical",
+    "format": "MP4",
+    "audioIncluded": true,
+    "googleDriveLink": "https://drive.google.com/drive/folders/demo-sheru-bhai",
+    "features": [
+      "3000+ High Quality HD Viral Sheru Bhai Reels",
+      "100% Watermark-Free & Ready to Post Immediately",
+      "Pre-added Trending Background Audio & Funny Dialogue",
+      "Direct Google Drive Instant Lifetime Access",
+      "1080P Full HD 9:16 Vertical Ratio for Insta & Shorts",
+      "High Retention Comedy, Savage & Meme Hooks",
+      "Commercial Rights & Personal Creation Freedom",
+      "Zero Editing Skills Needed – Download & Post"
+    ],
+    "faqs": [
+      {
+        "question": "What is included in the 3000+ Sheru Bhai Mega Reel Bundle Pack?",
+        "answer": "You get instant lifetime access to 3,000+ high-definition vertical (9:16) Sheru Bhai comedy and funny dialogue video clips in MP4 format. Every reel is 100% watermark-free with pre-synced trending audio."
+      },
+      {
+        "question": "How will I receive the download link after payment?",
+        "answer": "Immediately after payment via UPI, GPay, PhonePe, Paytm or Card, the Google Drive download button appears on your screen and the link is sent instantly to your email address."
+      },
+      {
+        "question": "Are these reels copyright-free and watermark-free?",
+        "answer": "Yes, all 3,000+ reels are 100% clean without any watermarks, logos, or brand tags. You can safely post them on Instagram, YouTube Shorts, and Facebook without copyright issues."
+      },
+      {
+        "question": "Can I monetize or resell this reel bundle?",
+        "answer": "Yes! You can use these reels to build high-reach theme pages for brand deals and affiliate marketing, or choose Reseller Rights to resell the bundle and keep 100% of the profits."
+      }
+    ]
+  },
   {
     "id": "rb-1000-ulti-pulti-duniya-ulti-duniya-reverse-world-ai-reels-bundle",
     "slug": "1000-ulti-pulti-duniya-ulti-duniya-reverse-world-ai-reels-bundle",
@@ -6392,76 +6462,6 @@ export const BUNDLE_PRODUCTS: BundleProduct[] = [
       {
         "question": "Can I edit these reels or add my logo?",
         "answer": "Yes! All reels are 100% watermark-free MP4 files that you can edit in CapCut, VN, Premiere Pro, or post directly."
-      }
-    ]
-  },
-  {
-    "id": "rb-sheru-bhai-3000",
-    "slug": "3000-sheru-bhai-mega-reel-bundle-pack",
-    "aliases": [
-      "sheru-bhai",
-      "sheru-bhai-reels",
-      "sheru-bhai-reels-bundle",
-      "3000-sheru-bhai",
-      "sheru-bhai-comedy-reels",
-      "sheru-bhai-bundle"
-    ],
-    "title": "3000+ Sheru Bhai Mega Reel Bundle Pack – Viral Comedy & Funny Dialogue Videos",
-    "shortDescription": "Sheru Bhai Mega Reel Bundle Pack: 3,000+ viral comedy reels, hilarious character dialogues, and high-retention funny clips. 100% watermark-free, 1080P Full HD 9:16 vertical MP4 format with pre-synced trending audio. Instant Google Drive lifetime download.",
-    "description": "3000+ Sheru Bhai Mega Reel Bundle Pack – Ready to Post Viral Comedy Reels\n\n🔥 Best Viral Comedy & Savage Dialogue Reels in India\nKya aap Instagram Reels, YouTube Shorts ya Facebook Page ko rocket ki speed se grow karna chahte hain? Sheru Bhai Viral Reel Bundle aapke liye ultimate shortcut hai! Is bundle mein aapko milti hain 3000+ high-engagement, hilarious comedy, character dialogue, aur savage attitude reels jo organic reach aur followers badhane ke liye engineered hain.\n\n✨ Why Sheru Bhai Reels Go Viral Fast:\nSheru Bhai content internet par sabse trending aur addictive comedy format hai. Har clip ke first 3 seconds mein solid curiosity hook hota hai, jisse audience poori video dekhti hai aur share karti hai. Isse aapke page par views aur retention dono explode karte hain!\n\n📦 What You Get Inside This Mega Bundle:\n• 3,000+ High Quality 1080P Full HD Reels (MP4 Format)\n• 9:16 Vertical Screen Ratio (Perfect for Instagram, Shorts & FB)\n• 100% Clean Without Any Watermarks or Logos\n• Pre-synced Trending Background Music & Funny Sound Effects\n• Instant Lifetime Google Drive Access (Direct High-Speed Download)\n• Plug & Play – Zero Video Editing Skills Required\n• Commercial Rights Included – Free to Monetize or Resell\n\n💰 How To Monetize & Grow With This Bundle:\n1. Post 2-3 reels daily at peak hours (6 PM - 9 PM) to trigger the algorithm.\n2. Grow theme pages and get brand sponsorships & shoutouts.\n3. Add affiliate marketing links in bio to make passive daily income.\n4. Resell the bundle with Reseller Rights and keep 100% direct profit in your bank account!\n\n⚡ Instant 100% Automated Delivery:\nPayment complete hote hi screen par direct Google Drive download link open ho jayega aur aapke email par bhi link bhej diya jayega.",
-    "category": "Comedy Reels",
-    "categorySlug": "comedy-reels",
-    "reelCount": 3000,
-    "personalPrice": 99,
-    "personalOriginalPrice": 999,
-    "resellerPrice": 199,
-    "resellerOriginalPrice": 1499,
-    "thumbnail": "https://reelsbundles.in/wp-content/uploads/2026/10/thumbnail.png",
-    "galleryImages": [
-      "https://reelsbundles.in/wp-content/uploads/2026/10/thumbnail.png"
-    ],
-    "previewVideoUrl": "https://shop.worklinc.com/wp-content/uploads/2026/02/450-Health-Awareness-Ai-Reels-Bundle2.mp4",
-    "tags": [
-      "HOT",
-      "VIRAL",
-      "HD",
-      "Google Drive"
-    ],
-    "isHot": true,
-    "isTrending": true,
-    "rating": 5,
-    "reviewCount": 443,
-    "resolution": "1080P",
-    "aspectRatio": "9:16 Vertical",
-    "format": "MP4",
-    "audioIncluded": true,
-    "googleDriveLink": "https://drive.google.com/drive/folders/demo-sheru-bhai",
-    "features": [
-      "3000+ High Quality HD Viral Sheru Bhai Reels",
-      "100% Watermark-Free & Ready to Post Immediately",
-      "Pre-added Trending Background Audio & Funny Dialogue",
-      "Direct Google Drive Instant Lifetime Access",
-      "1080P Full HD 9:16 Vertical Ratio for Insta & Shorts",
-      "High Retention Comedy, Savage & Meme Hooks",
-      "Commercial Rights & Personal Creation Freedom",
-      "Zero Editing Skills Needed – Download & Post"
-    ],
-    "faqs": [
-      {
-        "question": "What is included in the 3000+ Sheru Bhai Mega Reel Bundle Pack?",
-        "answer": "You get instant lifetime access to 3,000+ high-definition vertical (9:16) Sheru Bhai comedy and funny dialogue video clips in MP4 format. Every reel is 100% watermark-free with pre-synced trending audio."
-      },
-      {
-        "question": "How will I receive the download link after payment?",
-        "answer": "Immediately after payment via UPI, GPay, PhonePe, Paytm or Card, the Google Drive download button appears on your screen and the link is sent instantly to your email address."
-      },
-      {
-        "question": "Are these reels copyright-free and watermark-free?",
-        "answer": "Yes, all 3,000+ reels are 100% clean without any watermarks, logos, or brand tags. You can safely post them on Instagram, YouTube Shorts, and Facebook without copyright issues."
-      },
-      {
-        "question": "Can I monetize or resell this reel bundle?",
-        "answer": "Yes! You can use these reels to build high-reach theme pages for brand deals and affiliate marketing, or choose Reseller Rights to resell the bundle and keep 100% of the profits."
       }
     ]
   }

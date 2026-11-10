@@ -68,9 +68,9 @@ export default function Hero() {
   }, [hasInteracted, isRotating]);
 
   const totalBundles = BUNDLE_PRODUCTS.length;
-  const leftCard = BUNDLE_PRODUCTS[activeOffset % totalBundles];
-  const centerCard = BUNDLE_PRODUCTS[(activeOffset + 1) % totalBundles];
-  const rightCard = BUNDLE_PRODUCTS[(activeOffset + 2) % totalBundles];
+  const leftCard = BUNDLE_PRODUCTS[(activeOffset + totalBundles - 1) % totalBundles];
+  const centerCard = BUNDLE_PRODUCTS[activeOffset % totalBundles];
+  const rightCard = BUNDLE_PRODUCTS[(activeOffset + 1) % totalBundles];
 
   return (
     <section className="pt-2 pb-2 sm:pt-6 sm:pb-6">
