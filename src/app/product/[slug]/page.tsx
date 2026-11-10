@@ -3,6 +3,7 @@ import { notFound } from 'next/navigation';
 import { BUNDLE_PRODUCTS } from '@/data/bundles';
 import { resolveBundleSlug } from '@/lib/bundleResolver';
 import { fetchCustomProductBySlug } from '@/lib/customProducts';
+import { getBundleContentDetails } from '@/lib/bundleContent';
 import ProductDetailClient from './ProductDetailClient';
 
 interface ProductPageProps {
@@ -141,6 +142,16 @@ export default async function ProductDetailPage({ params }: ProductPageProps) {
     },
   };
 
+  if (product.rating && product.reviewCount) {
+    productJsonLd.aggregateRating = {
+      '@type': 'AggregateRating',
+      ratingValue: String(product.rating),
+      reviewCount: String(product.reviewCount),
+      bestRating: '5',
+      worstRating: '1',
+    };
+  }
+
   // Structured Data: BreadcrumbList
   const breadcrumbJsonLd = {
     '@context': 'https://schema.org',
@@ -162,7 +173,7 @@ export default async function ProductDetailPage({ params }: ProductPageProps) {
         '@type': 'ListItem',
         position: 3,
         name: product.category || 'Reels Bundles',
-        item: `${siteUrl}/category/${product.categorySlug || 'ai-reels'}`,
+        item: `${siteUrl}/category/${product.categorySlug || 'comedy-reels'}`,
       },
       {
         '@type': 'ListItem',
@@ -173,14 +184,18 @@ export default async function ProductDetailPage({ params }: ProductPageProps) {
     ],
   };
 
-  // Structured Data: FAQPage (if FAQs exist)
-  const faqList = product.faqs && product.faqs.length > 0 ? product.faqs : [];
+  // Structured Data: FAQPage (uses bundle specific faqs or rich auto-generated fallback)
+  const bundleContentDetails = getBundleContentDetails(product);
+  const faqList = (product.faqs && product.faqs.length > 0)
+    ? product.faqs
+    : (bundleContentDetails.faqs || []);
+
   const faqJsonLd =
     faqList.length > 0
       ? {
           '@context': 'https://schema.org',
           '@type': 'FAQPage',
-          mainEntity: faqList.map((faq) => ({
+          mainEntity: faqList.map((faq: any) => ({
             '@type': 'Question',
             name: faq.question,
             acceptedAnswer: {

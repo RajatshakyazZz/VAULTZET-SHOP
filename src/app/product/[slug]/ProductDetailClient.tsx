@@ -162,7 +162,9 @@ export default function ProductDetailClient({ product }: ProductDetailClientProp
   const currentImage = selectedImage || p.thumbnail || '';
 
   const details = getBundleContentDetails(p);
-  const relatedBundles = BUNDLE_PRODUCTS.filter((b) => b.id !== p.id && !b.isUpcoming).slice(0, 4);
+  const sameCategory = BUNDLE_PRODUCTS.filter((b) => b.id !== p.id && !b.isUpcoming && b.categorySlug === p.categorySlug);
+  const otherCategory = BUNDLE_PRODUCTS.filter((b) => b.id !== p.id && !b.isUpcoming && b.categorySlug !== p.categorySlug);
+  const relatedBundles = [...sameCategory, ...otherCategory].slice(0, 4);
 
   const handleHelpful = (id: string) => {
     setHelpfulMap((prev) => ({

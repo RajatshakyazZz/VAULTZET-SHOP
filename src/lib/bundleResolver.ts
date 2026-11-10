@@ -21,6 +21,7 @@ export function normalizeSlug(raw: string): string {
  * Maps common reel keywords to the exact canonical bundle slug.
  */
 const KEYWORD_MAP: Array<[string[], string]> = [
+  [['sheru', 'sheru-bhai', 'sherubhai'], '3000-sheru-bhai-mega-reel-bundle-pack'],
   [['stickman'], '2500-stickman-animation-reels-bundle'],
   [['premanand'], '1000-premanand-ji-maharaj-reels-bundle'],
   [['ulti-pulti', 'reverse-world', 'saamp', 'snake'], '1000-ulti-pulti-duniya-reverse-world-ai-reels-bundle'],

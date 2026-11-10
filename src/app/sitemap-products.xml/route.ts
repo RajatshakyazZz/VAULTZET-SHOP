@@ -1,13 +1,24 @@
 import { BUNDLE_PRODUCTS } from '@/data/bundles';
+import { fetchCustomProducts } from '@/lib/customProducts';
 
 export const revalidate = 86400;
 
 export async function GET() {
   const baseUrl = (process.env.NEXT_PUBLIC_SITE_URL || 'https://www.vaultzet.shop').replace(/\/+$/, '');
 
+  let allProducts = [...BUNDLE_PRODUCTS];
+  try {
+    const custom = await fetchCustomProducts();
+    if (custom && custom.length > 0) {
+      allProducts = [...custom, ...BUNDLE_PRODUCTS];
+    }
+  } catch {
+    // fallback gracefully to static BUNDLE_PRODUCTS
+  }
+
   // Deduplicate products by slug
   const seenSlugs = new Set<string>();
-  const validProducts = BUNDLE_PRODUCTS.filter((p) => {
+  const validProducts = allProducts.filter((p) => {
     if (!p.slug || seenSlugs.has(p.slug)) return false;
     seenSlugs.add(p.slug);
     return true;
@@ -16,7 +27,9 @@ export async function GET() {
   const urlEntries = validProducts
     .map(
       (p) => {
-        const lastmod = p.createdAt || '2026-10-28T12:00:00.000Z';
+        const lastmod = p.slug === '3000-sheru-bhai-mega-reel-bundle-pack'
+          ? '2026-11-10T12:00:00.000Z'
+          : p.createdAt || '2026-10-28T12:00:00.000Z';
         return `  <url>
     <loc>${baseUrl}/product/${encodeURIComponent(p.slug)}</loc>
     <lastmod>${lastmod}</lastmod>
