@@ -339,7 +339,7 @@ export default function RootLayout({
           <ResellerAuthProvider>
             <CartProvider>
               <Header />
-              <main className="flex-grow">{children}</main>
+              <main className="flex-grow w-full max-w-full overflow-x-hidden">{children}</main>
               <Footer />
               <CartDrawer />
               <FreeBundlesModal />

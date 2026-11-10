@@ -75,7 +75,7 @@ export default function TrendingPopupModal() {
     >
       <div
         onClick={(e) => e.stopPropagation()}
-        className="relative w-full max-w-lg rounded-3xl bg-white border border-purple-200 shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200"
+        className="relative w-full max-w-lg max-w-[calc(100vw-24px)] max-h-[92vh] overflow-y-auto rounded-3xl bg-white border border-purple-200 shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200"
       >
         {/* Top Flame / Urgency Strip */}
         <div className="bg-gradient-to-r from-[#d9222a] via-[#e5383b] to-[#f77f00] px-4 py-2 text-white flex items-center justify-between shadow-sm">
