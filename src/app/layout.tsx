@@ -11,6 +11,7 @@ import MobileBottomNav from '@/components/MobileBottomNav';
 import CartDrawer from '@/components/CartDrawer';
 import FreeBundlesModal from '@/components/FreeBundlesModal';
 import TrendingPopupModal from '@/components/TrendingPopupModal';
+import FloatingSheruButton from '@/components/FloatingSheruButton';
 import AnalyticsTracker from '@/components/AnalyticsTracker';
 import WhatsAppButton from '@/components/WhatsAppButton';
 import CookieConsentBanner from '@/components/CookieConsentBanner';
@@ -343,6 +344,7 @@ export default function RootLayout({
               <CartDrawer />
               <FreeBundlesModal />
               <TrendingPopupModal />
+              <FloatingSheruButton />
               <MobileBottomNav />
               <WhatsAppButton />
               <CookieConsentBanner />

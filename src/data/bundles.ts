@@ -10,7 +10,7 @@ export const ORDER_BUMP: OrderBumpItem = {
   originalPrice: 999,
   discountPrice: 99,
   discountPercentage: 90,
-  thumbnail: 'https://reelsbundles.in/wp-content/uploads/2026/10/thumbnail.png',
+  thumbnail: '/sheru-bhai-cover.png',
   reelCount: 3000,
 };
 
@@ -36,11 +36,12 @@ export const BUNDLE_PRODUCTS: BundleProduct[] = [
     "personalOriginalPrice": 999,
     "resellerPrice": 199,
     "resellerOriginalPrice": 1499,
-    "thumbnail": "https://reelsbundles.in/wp-content/uploads/2026/10/thumbnail.png",
+    "thumbnail": "/sheru-bhai-cover.png",
     "galleryImages": [
-      "https://reelsbundles.in/wp-content/uploads/2026/10/thumbnail.png"
+      "/sheru-bhai-cover.png",
+      "https://i.ibb.co/tw2ts4j7/1000014019.png"
     ],
-    "previewVideoUrl": "https://shop.worklinc.com/wp-content/uploads/2026/02/450-Health-Awareness-Ai-Reels-Bundle2.mp4",
+    "previewVideoUrl": "https://drive.google.com/file/d/19OtwWku9JxAV2rz2jdNlaShWvFqw1cl6/view?usp=drivesdk",
     "tags": [
       "HOT",
       "VIRAL",
@@ -55,7 +56,7 @@ export const BUNDLE_PRODUCTS: BundleProduct[] = [
     "aspectRatio": "9:16 Vertical",
     "format": "MP4",
     "audioIncluded": true,
-    "googleDriveLink": "https://drive.google.com/drive/folders/demo-sheru-bhai",
+    "googleDriveLink": "https://drive.google.com/drive/folders/1sr2POBi408SvcrkDbbuCnEskLFwz4HuK",
     "features": [
       "3000+ High Quality HD Viral Sheru Bhai Reels",
       "100% Watermark-Free & Ready to Post Immediately",

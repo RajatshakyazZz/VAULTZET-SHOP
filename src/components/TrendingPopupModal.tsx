@@ -104,8 +104,11 @@ export default function TrendingPopupModal() {
             {/* Visual Thumbnail */}
             <div className="relative w-24 sm:w-28 aspect-[3/4] rounded-2xl overflow-hidden bg-slate-900 border-2 border-purple-100 shrink-0 shadow-md">
               <img
-                src={optimizeImageUrl(sheruProduct.thumbnail, 200)}
+                src={sheruProduct.thumbnail || '/sheru-bhai-cover.png'}
                 alt={sheruProduct.title}
+                onError={(e) => {
+                  (e.target as HTMLImageElement).src = '/sheru-bhai-cover.png';
+                }}
                 className="w-full h-full object-cover"
                 loading="eager"
               />
