@@ -18,11 +18,10 @@ import CookieConsentBanner from '@/components/CookieConsentBanner';
 import { getLiveStoreMetrics } from '@/lib/storeMetrics';
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://www.vaultzet.shop';
-const GTM_ID = process.env.NEXT_PUBLIC_GTM_ID || 'GTM-TD8N9SDD';
 const GA4_ID = process.env.NEXT_PUBLIC_GA4_ID || 'G-7RMXL2RZ4J';
 const GSC_VERIFICATION = process.env.NEXT_PUBLIC_GSC_VERIFICATION || 'googlef90de30240e3b03b';
 const BING_VERIFICATION = process.env.NEXT_PUBLIC_BING_VERIFICATION || '';
-const META_PIXEL_ID = process.env.NEXT_PUBLIC_META_PIXEL_ID || '1715650960276913';
+const META_PIXEL_ID = (process.env.NEXT_PUBLIC_META_PIXEL_ID || '1715650960276913').trim();
 
 export const viewport: Viewport = {
   width: 'device-width',
@@ -165,6 +164,8 @@ export default function RootLayout({
         <link rel="dns-prefetch" href="https://reelsbundles.in" />
         <link rel="preconnect" href="https://www.googletagmanager.com" />
         <link rel="dns-prefetch" href="https://www.googletagmanager.com" />
+        <link rel="preconnect" href="https://connect.facebook.net" />
+        <link rel="dns-prefetch" href="https://connect.facebook.net" />
         <link
           rel="preload"
           as="image"
@@ -177,19 +178,7 @@ export default function RootLayout({
         />
       </head>
       <body className="min-h-screen flex flex-col antialiased selection:bg-rb-purple selection:text-white pb-[calc(4.5rem+env(safe-area-inset-bottom,0px))] md:pb-0">
-        {/* Google Tag Manager (noscript) */}
-        {GTM_ID && (
-          <noscript>
-            <iframe
-              src={`https://www.googletagmanager.com/ns.html?id=${GTM_ID}`}
-              height="0"
-              width="0"
-              style={{ display: 'none', visibility: 'hidden' }}
-            />
-          </noscript>
-        )}
-
-        {/* Meta Pixel (noscript) */}
+        {/* Meta Pixel (noscript) — single primary pixel only */}
         {META_PIXEL_ID && (
           <noscript>
             <img
@@ -233,33 +222,16 @@ export default function RootLayout({
             <Script id="google-analytics" strategy="afterInteractive">
               {`
                 window.dataLayer = window.dataLayer || [];
-                function gtag(){dataLayer.push(arguments);}
-                gtag('js', new Date());
+                window.gtag = window.gtag || function(){window.dataLayer.push(arguments);};
+                window.gtag('js', new Date());
 
-                gtag('config', '${GA4_ID}');
+                window.gtag('config', '${GA4_ID}', { send_page_view: false });
               `}
             </Script>
           </>
         )}
 
-        {/* Google Tag Manager (GTM) */}
-        {GTM_ID && (
-          <Script id="gtm-script" strategy="afterInteractive">
-            {`
-              try {
-                (function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
-                new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
-                j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
-                'https://www.googletagmanager.com/gtm.js?id='+i+dl;
-                if(f && f.parentNode){f.parentNode.insertBefore(j,f);}
-                else{(d.head||d.body||d.documentElement).appendChild(j);}
-                })(window,document,'script','dataLayer','${GTM_ID}');
-              } catch(e) { console.warn('GTM init skipped:', e); }
-            `}
-          </Script>
-        )}
-
-        {/* Meta Pixel Script */}
+        {/* Meta Pixel Script (single consolidated primary pixel) */}
         {META_PIXEL_ID && (
           <Script id="meta-pixel" strategy="afterInteractive">
             {`
@@ -268,13 +240,18 @@ export default function RootLayout({
                 {if(f.fbq)return;n=f.fbq=function(){n.callMethod?
                 n.callMethod.apply(n,arguments):n.queue.push(arguments)};
                 if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';
-                n.queue=[];t=b.createElement(e);t.async=!0;
-                t.src=v;s=b.getElementsByTagName(e)[0];
-                if(s && s.parentNode){s.parentNode.insertBefore(t,s);}
-                else{(b.head||b.body||b.documentElement).appendChild(t);}
-                }(window, document,'script',
+                n.queue=[];
+                if(!b.querySelector('script[src*="fbevents.js"]')){
+                  t=b.createElement(e);t.async=!0;
+                  t.src=v;s=b.getElementsByTagName(e)[0];
+                  if(s && s.parentNode){s.parentNode.insertBefore(t,s);}
+                  else{(b.head||b.body||b.documentElement).appendChild(t);}
+                }}(window, document,'script',
                 'https://connect.facebook.net/en_US/fbevents.js');
-                fbq('init', '${META_PIXEL_ID}');
+                if(window.__vzMetaPixelInited !== '${META_PIXEL_ID}') {
+                  window.__vzMetaPixelInited = '${META_PIXEL_ID}';
+                  window.fbq('init', '${META_PIXEL_ID}');
+                }
               } catch(e) { console.warn('Meta Pixel init skipped:', e); }
             `}
           </Script>

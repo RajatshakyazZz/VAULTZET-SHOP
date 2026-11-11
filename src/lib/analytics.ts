@@ -34,9 +34,21 @@ declare global {
   interface Window {
     dataLayer?: any[];
     gtag?: (...args: any[]) => void;
-    fbq?: (...args: any[]) => void;
+    fbq?: ((...args: any[]) => void) & {
+      callMethod?: (...args: any[]) => void;
+      queue?: any[];
+      push?: any;
+      loaded?: boolean;
+      version?: string;
+    };
+    _fbq?: any;
+    __vzMetaPixelInited?: string;
   }
 }
+
+export const PRIMARY_META_PIXEL_ID = (
+  process.env.NEXT_PUBLIC_META_PIXEL_ID || '1715650960276913'
+).trim();
 
 /**
  * Checks whether analytics debug mode is enabled via ?debug=1 query param or localStorage.
@@ -78,13 +90,142 @@ export function sanitizePagePath(urlStr: string): { cleanPath: string; trackingP
   }
 }
 
+const CUSTOM_META_EVENT_MAP: Record<string, string> = {
+  scroll: 'ScrollDepth',
+  view_item_list: 'ViewCategory',
+  select_item: 'SelectBundle',
+  view_cart: 'ViewCart',
+  remove_from_cart: 'RemoveFromCart',
+  cta_click: 'CtaClick',
+  coupon_applied: 'CouponApplied',
+  view_promotion: 'ViewPromotion',
+};
+
+function omitUndefined(obj: Record<string, any>): Record<string, any> {
+  const result: Record<string, any> = {};
+  for (const [key, value] of Object.entries(obj)) {
+    if (value !== undefined && value !== null && value !== '') {
+      result[key] = value;
+    }
+  }
+  return result;
+}
+
 /**
- * Primary track function: safely pushes to window.dataLayer.
+ * Ensures Meta Pixel queue stub and fbevents.js loader are synchronously ready for the
+ * single primary pixel (1715650960276913), so early React mount events never get dropped.
+ */
+function ensureMetaPixelInitialized(): boolean {
+  if (typeof window === 'undefined' || !PRIMARY_META_PIXEL_ID) return false;
+
+  if (typeof window.fbq !== 'function') {
+    const n: any = function (...args: any[]) {
+      if (n.callMethod) {
+        n.callMethod.apply(n, args);
+      } else {
+        n.queue.push(args);
+      }
+    };
+    if (!window._fbq) window._fbq = n;
+    n.push = n;
+    n.loaded = true;
+    n.version = '2.0';
+    n.queue = [];
+    window.fbq = n;
+
+    if (typeof document !== 'undefined' && !document.querySelector('script[src*="fbevents.js"]')) {
+      const t = document.createElement('script');
+      t.async = true;
+      t.src = 'https://connect.facebook.net/en_US/fbevents.js';
+      const s = document.getElementsByTagName('script')[0];
+      if (s && s.parentNode) {
+        s.parentNode.insertBefore(t, s);
+      } else {
+        (document.head || document.body || document.documentElement).appendChild(t);
+      }
+    }
+  }
+
+  if (window.__vzMetaPixelInited !== PRIMARY_META_PIXEL_ID && typeof window.fbq === 'function') {
+    window.__vzMetaPixelInited = PRIMARY_META_PIXEL_ID;
+    window.fbq('init', PRIMARY_META_PIXEL_ID);
+  }
+
+  return true;
+}
+
+function buildMetaProductPayload(payload: Record<string, any>): Record<string, any> {
+  const rawItems: any[] = Array.isArray(payload.items)
+    ? payload.items
+    : payload.item_id || payload.product_id
+      ? [
+          {
+            item_id: payload.item_id || payload.product_id,
+            item_name: payload.item_name || payload.product_name,
+            item_category: payload.item_category || payload.category,
+            price: payload.price ?? payload.value,
+            quantity: payload.quantity ?? 1,
+          },
+        ]
+      : [];
+
+  const contents = rawItems
+    .map((it) => ({
+      id: String(it.item_id || it.id || ''),
+      quantity: Number(it.quantity || 1),
+      item_price: Number(it.price || 0),
+    }))
+    .filter((it) => it.id);
+
+  const contentIds = contents.map((it) => it.id);
+  const numItems =
+    rawItems.reduce((sum, it) => sum + Number(it.quantity || 1), 0) ||
+    (payload.num_items ? Number(payload.num_items) : undefined);
+
+  const firstItem = rawItems[0];
+  const contentName =
+    rawItems.length === 1
+      ? firstItem?.item_name
+      : payload.item_name ||
+        (rawItems.length > 1
+          ? rawItems
+              .map((it) => it.item_name)
+              .filter(Boolean)
+              .join(', ')
+          : undefined);
+
+  return omitUndefined({
+    content_name: contentName,
+    content_category: firstItem?.item_category || payload.item_category || payload.category,
+    content_ids: contentIds.length > 0 ? contentIds : undefined,
+    content_type: contentIds.length > 0 ? 'product' : undefined,
+    contents: contents.length > 0 ? contents : undefined,
+    num_items: numItems,
+    value: Number(payload.value ?? firstItem?.price ?? 0) || 0,
+    currency: payload.currency || 'INR',
+  });
+}
+
+function forwardToGtag(event: AnalyticsEventName, payload: Record<string, any>): void {
+  if (typeof window === 'undefined') return;
+  if (typeof window.gtag !== 'function') {
+    window.gtag = function () {
+      window.dataLayer = window.dataLayer || [];
+      // eslint-disable-next-line prefer-rest-params
+      window.dataLayer.push(arguments);
+    };
+  }
+  const { event: _ignored, ...params } = payload;
+  window.gtag('event', event, params);
+}
+
+/**
+ * Primary track function: safely pushes to window.dataLayer, forwards to GA4 gtag,
+ * and delivers strictly to primary Meta Pixel (1715650960276913).
  */
 export function track(event: AnalyticsEventName, payload: Record<string, any> = {}): void {
   if (typeof window === 'undefined') return;
 
-  // Initialize dataLayer array if not already present
   window.dataLayer = window.dataLayer || [];
 
   const eventPayload = {
@@ -94,88 +235,122 @@ export function track(event: AnalyticsEventName, payload: Record<string, any> = 
   };
 
   window.dataLayer.push(eventPayload);
+  forwardToGtag(event, payload);
 
   if (isDebugMode()) {
     console.log(`%c[Analytics DataLayer] ${event}`, 'color: #7c3aed; font-weight: bold;', eventPayload);
   }
 
-  // Also bridge to Meta Pixel (fbq) if available
   bridgeToMetaPixel(event, payload);
 }
 
 /**
- * Maps standard GA4 events to Meta Pixel equivalents for unified tracking without duplication.
+ * Maps storefront events to Meta Pixel standard & custom events targeted exclusively
+ * at PRIMARY_META_PIXEL_ID via trackSingle/trackSingleCustom.
  */
 function bridgeToMetaPixel(event: AnalyticsEventName, payload: Record<string, any>): void {
-  if (typeof window === 'undefined' || typeof window.fbq !== 'function') return;
+  if (!ensureMetaPixelInitialized() || typeof window.fbq !== 'function') return;
 
   try {
-    switch (event) {
+    const eventName = event as string;
+    switch (eventName) {
       case 'page_view': {
         const eventId = payload.event_id || `pv_${Date.now()}_${Math.random().toString(36).substring(2, 8)}`;
-        window.fbq('track', 'PageView', {}, { eventID: eventId });
-        break;
+        window.fbq(
+          'trackSingle',
+          PRIMARY_META_PIXEL_ID,
+          'PageView',
+          omitUndefined({
+            page_path: payload.page_path,
+            page_title: payload.page_title,
+          }),
+          { eventID: eventId }
+        );
+        return;
       }
       case 'view_item': {
-        const itemId = payload.items?.[0]?.item_id || payload.item_id || 'prod';
+        const productData = buildMetaProductPayload(payload);
+        const itemId = productData.content_ids?.[0] || 'prod';
         const eventId = payload.event_id || `vc_${itemId}_${Date.now()}`;
-        window.fbq('track', 'ViewContent', {
-          content_name: payload.items?.[0]?.item_name || payload.item_name,
-          content_ids: [payload.items?.[0]?.item_id || payload.item_id],
-          content_type: 'product',
-          value: Number(payload.value || payload.items?.[0]?.price || 0),
-          currency: 'INR',
-        }, { eventID: eventId });
-        break;
+        window.fbq('trackSingle', PRIMARY_META_PIXEL_ID, 'ViewContent', productData, { eventID: eventId });
+        return;
       }
       case 'add_to_cart': {
-        const itemId = payload.items?.[0]?.item_id || payload.item_id || 'cart';
+        const productData = buildMetaProductPayload(payload);
+        const itemId = productData.content_ids?.[0] || 'cart';
         const eventId = payload.event_id || `atc_${itemId}_${Date.now()}`;
-        window.fbq('track', 'AddToCart', {
-          content_name: payload.items?.[0]?.item_name,
-          content_ids: [payload.items?.[0]?.item_id],
-          content_type: 'product',
-          value: Number(payload.value || 0),
-          currency: 'INR',
-        }, { eventID: eventId });
-        break;
+        window.fbq('trackSingle', PRIMARY_META_PIXEL_ID, 'AddToCart', productData, { eventID: eventId });
+        return;
       }
       case 'begin_checkout': {
+        const productData = buildMetaProductPayload(payload);
         const eventId = payload.event_id || `ic_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`;
-        window.fbq('track', 'InitiateCheckout', {
-          value: Number(payload.value || 0),
-          currency: 'INR',
-          num_items: payload.items?.length || 1,
-        }, { eventID: eventId });
-        break;
+        window.fbq('trackSingle', PRIMARY_META_PIXEL_ID, 'InitiateCheckout', productData, { eventID: eventId });
+        return;
+      }
+      case 'add_payment_info': {
+        const productData = buildMetaProductPayload(payload);
+        const eventId = payload.event_id || `api_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`;
+        window.fbq(
+          'trackSingle',
+          PRIMARY_META_PIXEL_ID,
+          'AddPaymentInfo',
+          omitUndefined({
+            ...productData,
+            payment_type: payload.payment_type,
+          }),
+          { eventID: eventId }
+        );
+        return;
       }
       case 'purchase': {
         const orderId = payload.transaction_id || payload.order_id || '';
         const eventId = payload.event_id || (orderId ? `purchase_${orderId}` : `purchase_${Date.now()}`);
-        const fbData: Record<string, any> = {
-          value: Number(payload.value || 0),
-          currency: payload.currency || 'INR',
-          order_id: orderId,
-        };
-        if (payload.items && Array.isArray(payload.items) && payload.items.length > 0) {
-          fbData.contents = payload.items.map((it: any) => ({
-            id: String(it.item_id || it.id),
-            quantity: Number(it.quantity || 1),
-            item_price: Number(it.price || 0),
-          }));
-          fbData.content_ids = payload.items.map((it: any) => String(it.item_id || it.id));
-          fbData.content_type = 'product';
-          fbData.num_items = payload.items.length;
-        }
-        window.fbq('track', 'Purchase', fbData, { eventID: eventId });
-        break;
+        const fbData = omitUndefined({
+          ...buildMetaProductPayload(payload),
+          order_id: orderId || undefined,
+        });
+        window.fbq('trackSingle', PRIMARY_META_PIXEL_ID, 'Purchase', fbData, { eventID: eventId });
+        return;
       }
       case 'search': {
         const eventId = payload.event_id || `search_${Date.now()}`;
-        window.fbq('track', 'Search', {
-          search_string: payload.search_term,
-        }, { eventID: eventId });
-        break;
+        window.fbq(
+          'trackSingle',
+          PRIMARY_META_PIXEL_ID,
+          'Search',
+          omitUndefined({
+            search_string: payload.search_term,
+          }),
+          { eventID: eventId }
+        );
+        return;
+      }
+      case 'whatsapp_click': {
+        const eventId = payload.event_id || `contact_${Date.now()}`;
+        window.fbq(
+          'trackSingle',
+          PRIMARY_META_PIXEL_ID,
+          'Contact',
+          omitUndefined({
+            source: payload.source || payload.location || 'storefront',
+          }),
+          { eventID: eventId }
+        );
+        return;
+      }
+      default: {
+        const customMetaName = CUSTOM_META_EVENT_MAP[eventName];
+        if (!customMetaName) return;
+        const { event_id, event: _ignored, ...rest } = payload;
+        const eventId = event_id || `${eventName}_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`;
+        window.fbq(
+          'trackSingleCustom',
+          PRIMARY_META_PIXEL_ID,
+          customMetaName,
+          omitUndefined(rest),
+          { eventID: eventId }
+        );
       }
     }
   } catch (err) {

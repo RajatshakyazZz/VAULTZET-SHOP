@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, Suspense } from 'react';
+import React, { useState, useEffect, useRef, Suspense } from 'react';
 import Link from 'next/link';
 import Script from 'next/script';
 import { useRouter, useSearchParams } from 'next/navigation';
@@ -331,23 +331,31 @@ function CheckoutContent() {
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [sdkLoaded, setSdkLoaded] = useState(false);
 
-  // Track GA4 begin_checkout on checkout load
+  const hasTrackedCheckoutKeyRef = useRef<string>('');
+
+  // Track begin_checkout (GA4 + Meta InitiateCheckout) once items finish hydrating
   useEffect(() => {
-    if (checkoutItems.length > 0) {
-      track('begin_checkout', {
-        currency: 'INR',
-        value: checkoutTotal,
-        items: checkoutItems.map((i) => ({
-          item_id: i?.product?.id || 'bundle',
-          item_name: i?.product?.title || 'Viral Reels Bundle',
-          item_category: i?.product?.category || 'Reels Bundle',
-          price: Number(i?.price || 0),
-          quantity: 1,
-          item_variant: i?.license || 'personal',
-        })),
-      });
-    }
-  }, []);
+    if (isLoadingBundle || checkoutItems.length === 0) return;
+
+    const checkoutSignature = checkoutItems
+      .map((i) => `${i?.product?.id || 'bundle'}:${i?.license || 'personal'}`)
+      .join('|');
+    if (hasTrackedCheckoutKeyRef.current === checkoutSignature) return;
+    hasTrackedCheckoutKeyRef.current = checkoutSignature;
+
+    track('begin_checkout', {
+      currency: 'INR',
+      value: checkoutTotal,
+      items: checkoutItems.map((i) => ({
+        item_id: i?.product?.id || 'bundle',
+        item_name: i?.product?.title || 'Viral Reels Bundle',
+        item_category: i?.product?.category || 'Reels Bundle',
+        price: Number(i?.price || 0),
+        quantity: 1,
+        item_variant: i?.license || 'personal',
+      })),
+    });
+  }, [isLoadingBundle, checkoutItems, checkoutTotal]);
 
   // Guarantee checkout always starts at the top (Delivery Information) when entering from Buy Now
   useEffect(() => {
