@@ -1,5 +1,5 @@
 import { Metadata } from 'next';
-import { notFound } from 'next/navigation';
+import { notFound, permanentRedirect } from 'next/navigation';
 import Link from 'next/link';
 import {
   Sparkles,
@@ -12,7 +12,12 @@ import {
   Layers,
   HelpCircle,
 } from 'lucide-react';
-import { COMPETITOR_CATEGORIES } from '@/lib/categories';
+import {
+  COMPETITOR_CATEGORIES,
+  fetchCustomCategories,
+  productMatchesCategory,
+  canonicalizeCategorySlug,
+} from '@/lib/categories';
 import { BUNDLE_PRODUCTS } from '@/data/bundles';
 import { optimizeImageUrl } from '@/lib/imageOptimized';
 import { fetchCustomProducts, getAllCatalogBundles } from '@/lib/customProducts';
@@ -148,13 +153,18 @@ function getCategoryEditorial(slug: string, name: string) {
 export async function generateMetadata({ params }: CategoryPageProps): Promise<Metadata> {
   const { slug } = await params;
   const cleanSlug = slug.toLowerCase().trim();
-  const category = COMPETITOR_CATEGORIES.find(
-    (c) => c.slug.toLowerCase() === cleanSlug || (c.aliases && c.aliases.includes(cleanSlug))
+  const canonicalTarget = canonicalizeCategorySlug(cleanSlug);
+  const allCategories = await fetchCustomCategories();
+  const category = allCategories.find(
+    (c) =>
+      c.slug.toLowerCase() === cleanSlug ||
+      c.slug.toLowerCase() === canonicalTarget ||
+      (c.aliases && c.aliases.includes(cleanSlug))
   );
 
   if (!category) {
     return {
-      title: 'Category Not Found | Vaultzet',
+      title: 'Category Not Found',
       robots: { index: false, follow: true },
     };
   }
@@ -162,7 +172,7 @@ export async function generateMetadata({ params }: CategoryPageProps): Promise<M
   const editorial = getCategoryEditorial(category.slug, category.name);
   const siteUrl = (process.env.NEXT_PUBLIC_SITE_URL || 'https://www.vaultzet.shop').replace(/\/+$/, '');
   const canonicalUrl = `${siteUrl}/category/${category.slug}`;
-  const title = `${editorial.title} | Vaultzet`;
+  const title = editorial.title;
   const description = editorial.intro.slice(0, 155).trim() + '...';
 
   return {
@@ -174,7 +184,7 @@ export async function generateMetadata({ params }: CategoryPageProps): Promise<M
     openGraph: {
       type: 'website',
       url: canonicalUrl,
-      title,
+      title: `${title} | Reel Bundle Store Vaultzet`,
       description,
       siteName: 'Vaultzet',
       locale: 'en_IN',
@@ -189,7 +199,7 @@ export async function generateMetadata({ params }: CategoryPageProps): Promise<M
     },
     twitter: {
       card: 'summary_large_image',
-      title,
+      title: `${title} | Reel Bundle Store Vaultzet`,
       description,
       images: [`${siteUrl}/logo.webp`],
     },
@@ -199,12 +209,21 @@ export async function generateMetadata({ params }: CategoryPageProps): Promise<M
 export default async function CategoryPage({ params }: CategoryPageProps) {
   const { slug } = await params;
   const cleanSlug = slug.toLowerCase().trim();
-  const category = COMPETITOR_CATEGORIES.find(
-    (c) => c.slug.toLowerCase() === cleanSlug || (c.aliases && c.aliases.includes(cleanSlug))
+  const canonicalTarget = canonicalizeCategorySlug(cleanSlug);
+  const allCategories = await fetchCustomCategories();
+  const category = allCategories.find(
+    (c) =>
+      c.slug.toLowerCase() === cleanSlug ||
+      c.slug.toLowerCase() === canonicalTarget ||
+      (c.aliases && c.aliases.includes(cleanSlug))
   );
 
   if (!category) {
     notFound();
+  }
+
+  if (cleanSlug !== category.slug.toLowerCase()) {
+    permanentRedirect(`/category/${category.slug}`);
   }
 
   const editorial = getCategoryEditorial(category.slug, category.name);
@@ -214,15 +233,9 @@ export default async function CategoryPage({ params }: CategoryPageProps) {
   const customProducts = await fetchCustomProducts();
   const allBundles = getAllCatalogBundles(customProducts, BUNDLE_PRODUCTS);
 
-  // Find products matching category slug or keywords
-  const keywords = (category.keywords || []).map((k) => k.toLowerCase());
-  const matchingProducts = allBundles.filter((p) => {
-    const catSlug = (p.categorySlug || '').toLowerCase();
-    const catName = (p.category || '').toLowerCase();
-    const title = p.title.toLowerCase();
-    if (catSlug === category.slug || catName === category.name.toLowerCase()) return true;
-    return keywords.some((kw) => title.includes(kw) || catName.includes(kw));
-  });
+  const matchingProducts = allBundles.filter((p) =>
+    productMatchesCategory(p, category.slug, allCategories)
+  );
 
   const displayProducts = matchingProducts.length > 0 ? matchingProducts : allBundles.slice(0, 8);
 

@@ -2,7 +2,7 @@ import React from 'react';
 import { Metadata } from 'next';
 
 export const metadata: Metadata = {
-  title: 'Privacy Policy | Vaultzet Store',
+  title: 'Privacy Policy',
   description: 'Privacy Policy for Vaultzet Store. Learn how we handle your information securely.',
   alternates: {
     canonical: 'https://www.vaultzet.shop/privacy-policy',
@@ -60,7 +60,7 @@ export default function PrivacyPolicyPage() {
           <p>
             If you have questions regarding this Privacy Policy or cookie management, please contact us at:
             <br />
-            Email: <strong className="text-slate-800">rajattracozegaming@gmail.com</strong>
+            Email: <strong className="text-slate-800">support@vaultzet.shop</strong>
             <br />
             Phone: <strong className="text-slate-800">+91 7895317940</strong>
           </p>

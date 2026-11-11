@@ -21,6 +21,7 @@ import {
   ChevronRight,
 } from 'lucide-react';
 import { useResellerAuth } from '@/context/ResellerAuthContext';
+import { STATIC_STORE_METRICS } from '@/lib/storeMetrics';
 import {
   getResellerWallet,
   getResellerListingsByUser,
@@ -226,7 +227,7 @@ export default function ResellerDashboardOverview() {
             <div className="space-y-1">
               <h3 className="text-sm font-black text-[#162048]">No Reseller Links Created Yet</h3>
               <p className="text-xs text-slate-500 max-w-sm mx-auto font-medium">
-                Pick any of our 222,000+ viral reel bundles, customize your price, and start generating daily income.
+                Pick any of our {STATIC_STORE_METRICS.totalReelsFormatted} viral reel bundles, customize your price, and start generating daily income.
               </p>
             </div>
             <Link

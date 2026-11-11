@@ -2,6 +2,7 @@ import { BundleProduct } from '@/types';
 import { db } from '@/lib/firebase';
 import { collection, getDocs, doc, getDoc } from 'firebase/firestore';
 import { BUNDLE_PRODUCTS } from '@/data/bundles';
+import { canonicalizeCategorySlug } from '@/lib/categories';
 
 export function mapFirestoreDocToBundleProduct(data: any): BundleProduct {
   if (!data) data = {};
@@ -73,8 +74,10 @@ export function mapFirestoreDocToBundleProduct(data: any): BundleProduct {
     : ['Trending Reels'];
 
   const category = rawCats[0] || baseProd?.category || 'Trending Reels';
-  const categorySlug = category.toLowerCase().replace(/[^a-z0-9]+/g, '-');
-  const categorySlugs = rawCats.map((c) => c.toLowerCase().replace(/[^a-z0-9]+/g, '-'));
+  const categorySlug = canonicalizeCategorySlug(undefined, category) || 'trending-reels';
+  const categorySlugs = rawCats
+    .map((c) => canonicalizeCategorySlug(undefined, c))
+    .filter(Boolean);
 
   let tags: string[] = [];
   if (Array.isArray(data.tags) && data.tags.length > 0) {
@@ -171,6 +174,8 @@ export function mapFirestoreDocToBundleProduct(data: any): BundleProduct {
     files,
     categories: rawCats,
     categorySlugs,
+    createdAt: data.created_at || data.createdAt || baseProd?.createdAt,
+    updatedAt: data.updated_at || data.updatedAt || data.created_at || data.createdAt || baseProd?.updatedAt,
   };
 }
 
@@ -226,6 +231,7 @@ export async function fetchCustomProducts(force = false): Promise<BundleProduct[
   if (db) {
     try {
       const snap = await getDocs(collection(db, 'products'));
+      const rawTrashedKeys = new Set<string>();
       snap.docs.forEach((d) => {
         const data = d.data();
         if (
@@ -235,25 +241,40 @@ export async function fetchCustomProducts(force = false): Promise<BundleProduct[
         ) {
           return;
         }
-        const slug = String(data.slug || d.id || '').toLowerCase();
+        const rawSlug = String(data.slug || d.id || '').toLowerCase();
+        const normSlug = normalizeProductSlug(rawSlug).toLowerCase();
         const isDeleted = Boolean(data.is_deleted || data.status === 'trash' || data.status === 'draft');
 
         if (isDeleted) {
-          deletedSet.add(d.id.toLowerCase());
-          if (slug) deletedSet.add(slug);
-          cachedDeletedSlugs.add(d.id.toLowerCase());
-          if (slug) cachedDeletedSlugs.add(slug);
+          rawTrashedKeys.add(d.id.toLowerCase());
+          if (rawSlug) rawTrashedKeys.add(rawSlug);
+          if (normSlug) rawTrashedKeys.add(normSlug);
         } else {
-          const bundle = mapFirestoreDocToBundleProduct({ id: d.id, ...data });
+          const bundle = normalizeBundleProduct(mapFirestoreDocToBundleProduct({ id: d.id, ...data }));
           const bundleSlug = bundle.slug.toLowerCase();
-          const bundleId = bundle.id.toLowerCase();
-          if (!deletedSet.has(bundleSlug) && !deletedSet.has(bundleId)) {
-            // Deduplicate: if already seen (e.g. rb-slug vs slug), keep the one with price/fields
-            const existing = slugMap.get(bundleSlug);
-            if (!existing || (bundle.personalPrice && !existing.personalPrice)) {
-              slugMap.set(bundleSlug, bundle);
-            }
+          const existing = slugMap.get(bundleSlug);
+          if (!existing || (bundle.personalPrice && !existing.personalPrice)) {
+            slugMap.set(bundleSlug, bundle);
           }
+        }
+      });
+
+      // Only mark a key as deleted when NO active published doc shares that slug/id
+      const activeKeys = new Set<string>();
+      slugMap.forEach((bundle) => {
+        if (bundle.slug) activeKeys.add(bundle.slug.toLowerCase());
+        if (bundle.id) activeKeys.add(bundle.id.toLowerCase());
+        (bundle.aliases || []).forEach((a) => activeKeys.add(a.toLowerCase()));
+      });
+
+      activeKeys.forEach((k) => {
+        deletedSet.delete(k);
+        cachedDeletedSlugs.delete(k);
+      });
+      rawTrashedKeys.forEach((k) => {
+        if (!activeKeys.has(k)) {
+          deletedSet.add(k);
+          cachedDeletedSlugs.add(k);
         }
       });
     } catch (e) {
@@ -343,7 +364,21 @@ export function getAllCatalogBundles(
     }
   });
 
-  validCustom.forEach((cp) => {
+  const activeCustomSlugs = new Set(
+    validCustom
+      .map((cp) => normalizeProductSlug(cp.slug).toLowerCase())
+      .filter(Boolean)
+  );
+
+  const primaryMatchedBaseIds = new Set<string>();
+  const primaryMatchedBaseSlugs = new Set<string>();
+  (initialBundles || []).forEach((b) => {
+    if (b?.id) primaryMatchedBaseIds.add(String(b.id).toLowerCase());
+    if (b?.slug) primaryMatchedBaseSlugs.add(b.slug.toLowerCase());
+  });
+
+  validCustom.forEach((cpRaw) => {
+    const cp = normalizeBundleProduct(cpRaw);
     const slugKey = (cp.slug || '').toLowerCase();
     const idKey = String(cp.id || '').toLowerCase();
     const cleanIdKey = idKey.replace(/^rb-/, '');
@@ -371,8 +406,8 @@ export function getAllCatalogBundles(
 
       if (Array.isArray(baseBundle.aliases)) {
         baseBundle.aliases.forEach((a) => {
-          const aLower = (a || '').toLowerCase();
-          if (aLower) {
+          const aLower = normalizeProductSlug(a || '').toLowerCase();
+          if (aLower && !primaryMatchedBaseSlugs.has(aLower)) {
             customMap.set(aLower, cp);
             customMap.set(`rb-${aLower}`, cp);
             customMap.set(aLower.replace(/^rb-/, ''), cp);
@@ -392,8 +427,9 @@ export function getAllCatalogBundles(
       (b) =>
         b &&
         typeof b.slug === 'string' &&
-        !deletedSlugs.has(b.slug.toLowerCase()) &&
-        !deletedSlugs.has(String(b.id || '').toLowerCase())
+        (activeCustomSlugs.has(b.slug.toLowerCase()) ||
+          (!deletedSlugs.has(b.slug.toLowerCase()) &&
+            !deletedSlugs.has(String(b.id || '').toLowerCase())))
     )
     .map((b) => {
       const slugKey = b.slug.toLowerCase();
@@ -404,13 +440,16 @@ export function getAllCatalogBundles(
       if (!override && Array.isArray(b.aliases)) {
         for (const a of b.aliases) {
           const aLower = (a || '').toLowerCase();
-          override = customMap.get(aLower) || customMap.get(`rb-${aLower}`) || customMap.get(aLower.replace(/^rb-/, ''));
-          if (override) break;
+          const candidate = customMap.get(aLower) || customMap.get(`rb-${aLower}`) || customMap.get(aLower.replace(/^rb-/, ''));
+          if (candidate && candidate.slug.toLowerCase() === slugKey) {
+            override = candidate;
+            break;
+          }
         }
       }
 
       if (override) {
-        return {
+        return normalizeBundleProduct({
           ...b,
           ...override,
           personalPrice: override.personalPrice,
@@ -420,13 +459,85 @@ export function getAllCatalogBundles(
           title: override.title || b.title,
           description: override.description || b.description,
           shortDescription: override.shortDescription || b.shortDescription,
-        };
+        });
       }
-      return b;
+      return normalizeBundleProduct(b);
     });
 
-  // Brand-new products placed on top, existing products preserve curated order with updated prices
-  return [...brandNewCustom, ...updatedInitial];
+  // Brand-new products placed on top, existing products preserve curated order, deduped strictly by slug
+  const merged = [...brandNewCustom.map(normalizeBundleProduct), ...updatedInitial];
+  const seenMergedSlugs = new Set<string>();
+  return merged.filter((item) => {
+    const key = String(item.slug || '').toLowerCase();
+    if (!key || seenMergedSlugs.has(key)) return false;
+    seenMergedSlugs.add(key);
+    return true;
+  });
+}
+
+const PRODUCT_SLUG_REMAP: Record<string, string> = {
+  '4000-ready-to-upload-2d-3d-cartoon-videos-ready-to-uploadq':
+    '4000-ready-to-upload-2d-3d-cartoon-videos-ready-to-upload',
+};
+
+export function normalizeProductSlug(rawSlug: string): string {
+  const trimmed = String(rawSlug || '').trim();
+  const lower = trimmed.toLowerCase();
+  if (PRODUCT_SLUG_REMAP[lower]) return PRODUCT_SLUG_REMAP[lower];
+  return trimmed.replace(/-ready-to-uploadq$/i, '-ready-to-upload');
+}
+
+export function normalizeBundleProduct(product: BundleProduct): BundleProduct {
+  const cleanSlug = normalizeProductSlug(product.slug);
+  const cleanUploadq = (val: string) => val.replace(/\bUploadq\b/g, 'Upload');
+  const cleanTitle = cleanUploadq(String(product.title || ''));
+  const cleanShortDesc = product.shortDescription
+    ? cleanUploadq(String(product.shortDescription))
+    : product.shortDescription;
+  const cleanDesc = product.description ? cleanUploadq(String(product.description)) : product.description;
+  const cleanFiles = Array.isArray(product.files)
+    ? product.files.map((f: any) =>
+        f && typeof f === 'object'
+          ? {
+              ...f,
+              ...(typeof f.name === 'string' ? { name: cleanUploadq(f.name) } : {}),
+              ...(typeof f.file_name === 'string' ? { file_name: cleanUploadq(f.file_name) } : {}),
+            }
+          : f
+      )
+    : product.files;
+
+  const hasUploadqFileChange =
+    Array.isArray(product.files) &&
+    product.files.some((f: any) =>
+      typeof f?.name === 'string' && /\bUploadq\b/.test(f.name) ||
+      typeof f?.file_name === 'string' && /\bUploadq\b/.test(f.file_name)
+    );
+
+  if (
+    cleanSlug === product.slug &&
+    cleanTitle === product.title &&
+    cleanShortDesc === product.shortDescription &&
+    cleanDesc === product.description &&
+    !hasUploadqFileChange
+  ) {
+    return product;
+  }
+
+  return {
+    ...product,
+    slug: cleanSlug,
+    title: cleanTitle,
+    shortDescription: cleanShortDesc,
+    description: cleanDesc,
+    files: cleanFiles,
+    aliases: Array.from(
+      new Set([
+        ...(product.aliases || []),
+        ...(product.slug !== cleanSlug ? [product.slug] : []),
+      ])
+    ),
+  };
 }
 
 const serverSingleProductCache = new Map<string, { product: BundleProduct | null; cachedAt: number }>();
@@ -434,12 +545,17 @@ const SERVER_SINGLE_CACHE_TTL = 30 * 1000; // 30 seconds
 
 export async function fetchCustomProductBySlug(slug: string, forceLive = false): Promise<BundleProduct | null> {
   const clean = slug.trim().toLowerCase();
+  const normalizedClean = normalizeProductSlug(clean).toLowerCase();
+  const legacyUploadqVariant =
+    normalizedClean === '4000-ready-to-upload-2d-3d-cartoon-videos-ready-to-upload'
+      ? '4000-ready-to-upload-2d-3d-cartoon-videos-ready-to-uploadq'
+      : null;
   const deletedSet = getDeletedSlugsSync();
-  if (deletedSet.has(clean)) return null;
+  if (!forceLive && deletedSet.has(clean) && deletedSet.has(normalizedClean)) return null;
 
   // 0. Fast in-memory server/client cache (bypassed if forceLive = true)
   if (!forceLive) {
-    const memCached = serverSingleProductCache.get(clean);
+    const memCached = serverSingleProductCache.get(normalizedClean) || serverSingleProductCache.get(clean);
     if (memCached && Date.now() - memCached.cachedAt < SERVER_SINGLE_CACHE_TTL) {
       return memCached.product;
     }
@@ -448,22 +564,24 @@ export async function fetchCustomProductBySlug(slug: string, forceLive = false):
   // Find corresponding base bundle in BUNDLE_PRODUCTS if one exists
   const baseProd = BUNDLE_PRODUCTS.find(
     (b) =>
+      b.slug.toLowerCase() === normalizedClean ||
       b.slug.toLowerCase() === clean ||
       b.id.toLowerCase() === clean ||
       b.id.toLowerCase().replace(/^rb-/, '') === clean ||
-      (b.aliases && b.aliases.some((a) => a.toLowerCase() === clean || `rb-${a.toLowerCase()}` === clean || a.toLowerCase().replace(/^rb-/, '') === clean))
+      (b.aliases && b.aliases.some((a) => a.toLowerCase() === clean || a.toLowerCase() === normalizedClean || `rb-${a.toLowerCase()}` === clean || a.toLowerCase().replace(/^rb-/, '') === clean))
   );
 
   // 1. Check local cache (only if NOT forceLive)
   if (!forceLive) {
     const localList = getLocalCustomProductsSync();
     const local = localList.find((p) => {
-      const pSlug = (p.slug || '').toLowerCase();
+      const pSlug = normalizeProductSlug(p.slug || '').toLowerCase();
+      const rawPSlug = (p.slug || '').toLowerCase();
       const pId = (p.id || '').toLowerCase();
       const pCleanId = pId.replace(/^rb-/, '');
-      if (deletedSet.has(pSlug) || deletedSet.has(pId)) return false;
+      if (deletedSet.has(pSlug) || deletedSet.has(rawPSlug) || deletedSet.has(pId)) return false;
 
-      if (pSlug === clean || pId === clean || pCleanId === clean) return true;
+      if (pSlug === normalizedClean || rawPSlug === clean || pId === clean || pCleanId === clean) return true;
       if (baseProd) {
         if (baseProd.slug.toLowerCase() === pSlug || baseProd.id.toLowerCase() === pId) return true;
         if (baseProd.aliases && baseProd.aliases.some((a) => a.toLowerCase() === pSlug || a.toLowerCase() === pId || `rb-${a.toLowerCase()}` === pId)) return true;
@@ -472,28 +590,34 @@ export async function fetchCustomProductBySlug(slug: string, forceLive = false):
     });
 
     if (local) {
-      const res = baseProd
-        ? {
-            ...baseProd,
-            ...local,
-            personalPrice: local.personalPrice,
-            personalOriginalPrice: local.personalOriginalPrice,
-            resellerPrice: local.resellerPrice,
-            resellerOriginalPrice: local.resellerOriginalPrice,
-          }
-        : local;
-      serverSingleProductCache.set(clean, { product: res, cachedAt: Date.now() });
+      const res = normalizeBundleProduct(
+        baseProd
+          ? {
+              ...baseProd,
+              ...local,
+              personalPrice: local.personalPrice,
+              personalOriginalPrice: local.personalOriginalPrice,
+              resellerPrice: local.resellerPrice,
+              resellerOriginalPrice: local.resellerOriginalPrice,
+            }
+          : local
+      );
+      serverSingleProductCache.set(normalizedClean, { product: res, cachedAt: Date.now() });
       return res;
     }
   }
 
   // 2. Query Firestore directly: check candidate doc IDs in parallel (including all aliases)
   if (db) {
+    const firestore = db;
     const candidateIds = Array.from(
       new Set(
         [
           clean,
+          normalizedClean,
+          legacyUploadqVariant,
           `rb-${clean}`,
+          `rb-${normalizedClean}`,
           clean.replace(/^rb-/, ''),
           baseProd?.id,
           baseProd?.slug,
@@ -506,7 +630,7 @@ export async function fetchCustomProductBySlug(slug: string, forceLive = false):
 
     try {
       const candidateSnaps = await Promise.all(
-        candidateIds.map((candId) => getDoc(doc(db, 'products', candId)).catch(() => null))
+        candidateIds.map((candId) => getDoc(doc(firestore, 'products', candId)).catch(() => null))
       );
 
       for (const snap of candidateSnaps) {
@@ -514,17 +638,19 @@ export async function fetchCustomProductBySlug(slug: string, forceLive = false):
           const data = snap.data();
           if (!data.is_deleted && data.status !== 'trash') {
             const mapped = mapFirestoreDocToBundleProduct({ id: snap.id, ...data });
-            const finalResult = baseProd
-              ? {
-                  ...baseProd,
-                  ...mapped,
-                  personalPrice: mapped.personalPrice,
-                  personalOriginalPrice: mapped.personalOriginalPrice,
-                  resellerPrice: mapped.resellerPrice,
-                  resellerOriginalPrice: mapped.resellerOriginalPrice,
-                }
-              : mapped;
-            serverSingleProductCache.set(clean, { product: finalResult, cachedAt: Date.now() });
+            const finalResult = normalizeBundleProduct(
+              baseProd
+                ? {
+                    ...baseProd,
+                    ...mapped,
+                    personalPrice: mapped.personalPrice,
+                    personalOriginalPrice: mapped.personalOriginalPrice,
+                    resellerPrice: mapped.resellerPrice,
+                    resellerOriginalPrice: mapped.resellerOriginalPrice,
+                  }
+                : mapped
+            );
+            serverSingleProductCache.set(normalizedClean, { product: finalResult, cachedAt: Date.now() });
 
             // Sync updated product into client-side localStorage so other pages have fresh data
             if (typeof window !== 'undefined') {
@@ -562,33 +688,40 @@ export async function fetchCustomProductBySlug(slug: string, forceLive = false):
         const data = d.data();
         if (data.status === 'draft' || data.status === 'trash' || data.is_deleted) continue;
         const docId = d.id.toLowerCase();
-        const docSlug = String(data.slug || '').toLowerCase();
+        const rawDocSlug = String(data.slug || '').toLowerCase();
+        const docSlug = normalizeProductSlug(rawDocSlug).toLowerCase();
 
         const isMatch =
-          docSlug === clean ||
+          docSlug === normalizedClean ||
+          rawDocSlug === clean ||
           docId === clean ||
+          docId === normalizedClean ||
           docId === `rb-${clean}` ||
-          clean === `rb-${docSlug}` ||
+          docId === `rb-${normalizedClean}` ||
+          clean === `rb-${rawDocSlug}` ||
+          normalizedClean === `rb-${docSlug}` ||
           (baseProd && (
             docSlug === baseProd.slug.toLowerCase() ||
             docId === baseProd.id.toLowerCase() ||
             docId === `rb-${baseProd.slug.toLowerCase()}` ||
-            (baseProd.aliases && baseProd.aliases.some((a) => a.toLowerCase() === docSlug || a.toLowerCase() === docId || `rb-${a.toLowerCase()}` === docId))
+            (baseProd.aliases && baseProd.aliases.some((a) => a.toLowerCase() === rawDocSlug || a.toLowerCase() === docSlug || a.toLowerCase() === docId || `rb-${a.toLowerCase()}` === docId))
           ));
 
         if (isMatch) {
           const mapped = mapFirestoreDocToBundleProduct({ id: d.id, ...data });
-          const finalResult = baseProd
-            ? {
-                ...baseProd,
-                ...mapped,
-                personalPrice: mapped.personalPrice,
-                personalOriginalPrice: mapped.personalOriginalPrice,
-                resellerPrice: mapped.resellerPrice,
-                resellerOriginalPrice: mapped.resellerOriginalPrice,
-              }
-            : mapped;
-          serverSingleProductCache.set(clean, { product: finalResult, cachedAt: Date.now() });
+          const finalResult = normalizeBundleProduct(
+            baseProd
+              ? {
+                  ...baseProd,
+                  ...mapped,
+                  personalPrice: mapped.personalPrice,
+                  personalOriginalPrice: mapped.personalOriginalPrice,
+                  resellerPrice: mapped.resellerPrice,
+                  resellerOriginalPrice: mapped.resellerOriginalPrice,
+                }
+              : mapped
+          );
+          serverSingleProductCache.set(normalizedClean, { product: finalResult, cachedAt: Date.now() });
 
           if (typeof window !== 'undefined') {
             try {

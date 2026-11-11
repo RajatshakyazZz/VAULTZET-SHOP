@@ -146,12 +146,12 @@ export default function Header() {
 
   return (
     <header className="sticky top-0 z-50 bg-white border-b border-slate-100 shadow-[0_2px_10px_rgba(20,10,50,0.02)]">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between h-[66px] sm:h-[74px] gap-3">
+      <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8">
+        <div className="flex items-center justify-between h-[66px] sm:h-[74px] gap-2 sm:gap-3">
           
           {/* Dynamic Brand Logo synced with Admin Panel */}
-          <Link href="/" prefetch={false} className="flex items-center gap-2.5 group shrink-0">
-            <div className="w-9 h-9 sm:w-10 sm:h-9 rounded-xl bg-black border border-slate-800/80 overflow-hidden flex items-center justify-center shadow-sm shadow-purple-500/20 group-hover:scale-105 transition-transform">
+          <Link href="/" prefetch={false} className="flex items-center gap-2 sm:gap-2.5 group min-w-0 flex-1 md:flex-none md:shrink-0">
+            <div className="w-8 h-8 sm:w-10 sm:h-9 rounded-xl bg-black border border-slate-800/80 overflow-hidden flex items-center justify-center shrink-0 shadow-sm shadow-purple-500/20 group-hover:scale-105 transition-transform">
               <img
                 src="/logo.webp"
                 alt="Vaultzet Store Logo"
@@ -161,11 +161,11 @@ export default function Header() {
                 className="w-full h-full object-cover"
               />
             </div>
-            <div className="flex flex-col">
-              <span className="font-black text-[16px] sm:text-[17px] text-[#162048] tracking-tight leading-tight">
+            <div className="flex flex-col min-w-0">
+              <span className="font-black text-[15px] sm:text-[17px] text-[#162048] tracking-tight leading-tight truncate">
                 {settings.storeName}
               </span>
-              <span className="text-[11px] sm:text-[12px] font-medium text-[#4a5270] tracking-tight">
+              <span className="text-[10px] sm:text-[12px] font-medium text-[#4a5270] tracking-tight truncate">
                 {settings.tagline}
               </span>
             </div>
@@ -194,7 +194,7 @@ export default function Header() {
           </nav>
 
           {/* Right Tools matching Competitor Screenshots */}
-          <div className="flex items-center gap-2 sm:gap-3">
+          <div className="flex items-center gap-1.5 sm:gap-3 shrink-0">
             {/* Desktop Pill Search Box with Instant Live Autocomplete Dropdown */}
             <div ref={desktopSearchRef} className="relative hidden sm:block">
               <form
@@ -303,7 +303,7 @@ export default function Header() {
                 if (isMobileMenuOpen) setIsMobileMenuOpen(false);
               }}
               aria-label="Search"
-              className="sm:hidden w-9 h-9 rounded-xl bg-[#f5f1fd] text-[#5e2de0] flex items-center justify-center hover:bg-purple-100 transition-colors shrink-0"
+              className="sm:hidden w-8 h-8 rounded-xl bg-[#f5f1fd] text-[#5e2de0] flex items-center justify-center hover:bg-purple-100 transition-colors shrink-0"
             >
               <Search className="w-4 h-4" />
             </button>
@@ -312,10 +312,10 @@ export default function Header() {
             <Link
               href="/cart"
               prefetch={false}
-              className="sm:hidden px-2.5 h-9 rounded-xl bg-[#f5f1fd] text-[#5e2de0] flex items-center gap-1.5 hover:bg-purple-100 transition-colors text-xs font-bold relative shrink-0"
+              className="sm:hidden px-2 h-8 rounded-xl bg-[#f5f1fd] text-[#5e2de0] flex items-center gap-1 hover:bg-purple-100 transition-colors text-xs font-bold relative shrink-0"
               aria-label="Cart"
             >
-              <ShoppingCart className="w-4 h-4" />
+              <ShoppingCart className="w-3.5 h-3.5" />
               <span>Cart</span>
               {cartCount > 0 && (
                 <span className="w-4 h-4 rounded-full bg-red-600 text-[9px] font-black text-white flex items-center justify-center shadow-xs">
@@ -350,7 +350,7 @@ export default function Header() {
               }}
               aria-label={isMobileMenuOpen ? 'Close navigation menu' : 'Open navigation menu'}
               aria-expanded={isMobileMenuOpen}
-              className="md:hidden px-2.5 h-9 rounded-xl border border-gray-200 text-[#182247] flex items-center gap-1.5 hover:bg-slate-100 text-xs font-bold shrink-0"
+              className="md:hidden px-2 h-8 rounded-xl border border-gray-200 text-[#182247] flex items-center gap-1 hover:bg-slate-100 text-xs font-bold shrink-0"
             >
               {isMobileMenuOpen ? <X className="w-4 h-4" /> : <Menu className="w-4 h-4" />}
               <span>Menu</span>

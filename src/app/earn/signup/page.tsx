@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Lock, Mail, User, Phone, ArrowRight, AlertCircle, Sparkles, ShieldCheck } from 'lucide-react';
 import { useResellerAuth } from '@/context/ResellerAuthContext';
+import { STATIC_STORE_METRICS } from '@/lib/storeMetrics';
 
 function SignupContent() {
   const router = useRouter();
@@ -57,7 +58,7 @@ function SignupContent() {
           </div>
           <h1 className="text-2xl font-black tracking-tight">Create Reseller Account</h1>
           <p className="text-xs text-white/90 mt-1 max-w-xs mx-auto">
-            Set your custom price on 222,000+ reels & keep 100% of your margin.
+            Set your custom price on {STATIC_STORE_METRICS.totalReelsFormatted} reels & keep 100% of your margin.
           </p>
         </div>
 

@@ -10,9 +10,12 @@ export default function ContactUsPage() {
 
   const rawEmail = settings.supportEmail || '';
   const supportEmail =
-    rawEmail && !rawEmail.includes('vaultworld') && !rawEmail.includes('dizi')
+    rawEmail &&
+    !rawEmail.includes('vaultworld') &&
+    !rawEmail.includes('dizi') &&
+    !rawEmail.includes('rajattracozegaming')
       ? rawEmail
-      : 'rajattracozegaming@gmail.com';
+      : 'support@vaultzet.shop';
 
   const rawPhone = settings.supportWhatsapp || '';
   const supportPhone =

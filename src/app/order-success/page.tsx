@@ -32,6 +32,7 @@ import { useCart } from '@/context/CartContext';
 import { ALL_ACCESS_PLANS } from '@/data/bundles';
 import { BundleProduct } from '@/types';
 import { track } from '@/lib/analytics';
+import { STATIC_STORE_METRICS, getLiveStoreMetrics } from '@/lib/storeMetrics';
 
 function OrderSuccessContent() {
   const searchParams = useSearchParams();
@@ -47,6 +48,11 @@ function OrderSuccessContent() {
   const [retryCount, setRetryCount] = useState<number>(0);
   const [copiedKey, setCopiedKey] = useState<string | null>(null);
   const [upsellTab, setUpsellTab] = useState<'personal' | 'reseller'>('reseller');
+  const [metrics, setMetrics] = useState(STATIC_STORE_METRICS);
+
+  useEffect(() => {
+    getLiveStoreMetrics().then(setMetrics).catch(() => {});
+  }, []);
 
   const isResellerOrder = Boolean(
     searchParams.get('r') ||
@@ -693,17 +699,17 @@ function OrderSuccessContent() {
                       You Have Unlocked Every Reels Bundle in the Store!
                     </h2>
                     <p className="text-xs sm:text-sm text-purple-100 max-w-2xl font-medium leading-relaxed">
-                      Congratulations! You now have lifetime master access to all 129+ published reels bundles (over 222,000+ viral HD videos), future upcoming releases, and commercial reseller rights.
+                      Congratulations! You now have lifetime master access to all {metrics.bundleCount} published reels bundles ({metrics.totalReelsFormatted} viral HD videos), future upcoming releases, and commercial reseller rights.
                     </p>
                   </div>
 
                   <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 pt-2">
                     <div className="p-3 rounded-xl bg-white/10 backdrop-blur-sm border border-white/15">
-                      <strong className="block text-base sm:text-lg font-black text-white">129+</strong>
+                      <strong className="block text-base sm:text-lg font-black text-white">{metrics.categoryCount}</strong>
                       <span className="text-[11px] text-purple-200 font-bold">Categories Included</span>
                     </div>
                     <div className="p-3 rounded-xl bg-white/10 backdrop-blur-sm border border-white/15">
-                      <strong className="block text-base sm:text-lg font-black text-white">222,000+</strong>
+                      <strong className="block text-base sm:text-lg font-black text-white">{metrics.totalReelsFormatted}</strong>
                       <span className="text-[11px] text-purple-200 font-bold">Ready-to-Post Reels</span>
                     </div>
                     <div className="p-3 rounded-xl bg-white/10 backdrop-blur-sm border border-white/15">
@@ -1213,7 +1219,7 @@ function OrderSuccessContent() {
                           <span className="w-4 h-4 rounded-full bg-pink-100 text-[#ec2677] flex items-center justify-center text-[10px] font-black">
                             ✓
                           </span>
-                          <span>Access to 129+ published reels bundles</span>
+                          <span>Access to {metrics.bundleCount} published reels bundles</span>
                         </li>
                         <li className="flex items-center gap-2 text-[#ec2677] font-bold">
                           <span className="w-4 h-4 rounded-full bg-pink-100 text-[#ec2677] flex items-center justify-center text-[10px] font-black">
@@ -1308,7 +1314,7 @@ function OrderSuccessContent() {
                 </div>
                 <h4 className="text-sm font-black text-[#17214a]">Creator Community</h4>
                 <p className="text-xs text-[#5e6888] font-medium leading-relaxed">
-                  Join 15,000+ creators for daily trending audio, hooks &amp; viral reels updates.
+                  Join {metrics.creatorsCount} creators for daily trending audio, hooks &amp; viral reels updates.
                 </p>
                 <div className="pt-1 text-xs font-black text-sky-700 flex items-center gap-1">
                   <span>Join Telegram</span>

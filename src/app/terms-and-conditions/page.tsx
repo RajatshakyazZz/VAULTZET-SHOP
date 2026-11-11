@@ -2,7 +2,7 @@ import React from 'react';
 import { Metadata } from 'next';
 
 export const metadata: Metadata = {
-  title: 'Terms & Conditions | Vaultzet Store',
+  title: 'Terms & Conditions',
   description: 'Terms and Conditions for purchasing and licensing digital reels bundles from Vaultzet Store.',
   alternates: {
     canonical: 'https://www.vaultzet.shop/terms-and-conditions',
@@ -17,7 +17,7 @@ export default function TermsPage() {
         
         <div className="bg-white rounded-3xl p-8 border border-slate-200/80 shadow-sm space-y-6 text-sm text-[#6e7696] font-medium leading-relaxed">
           <p>
-            Last Updated: October 2026
+            Last Updated: November 2026
           </p>
 
           <h2 className="text-lg font-bold text-[#182247]">1. License & Usage Rights</h2>
@@ -33,14 +33,14 @@ export default function TermsPage() {
             </li>
           </ul>
 
-          <h2 className="text-lg font-bold text-[#182247]">2. Digital Delivery</h2>
+          <h2 className="text-lg font-bold text-[#182247]">2. Digital Delivery &amp; Tax-Inclusive Pricing</h2>
           <p>
-            All products are delivered digitally via cloud download links immediately upon successful UPI or card payment. You will also receive an automated confirmation email.
+            All products are delivered digitally via cloud download links immediately upon successful UPI or card payment. You will also receive an automated confirmation email. All prices displayed across Vaultzet Store are in INR and are inclusive of applicable taxes.
           </p>
 
           <h2 className="text-lg font-bold text-[#182247]">3. Contact</h2>
           <p>
-            For any queries, please reach out to <strong className="text-slate-800">Rajat Shakya</strong> at <strong className="text-slate-800">rajattracozegaming@gmail.com</strong> or <strong className="text-slate-800">+91 7895317940</strong>.
+            For any queries, please reach out to <strong className="text-slate-800">Rajat Shakya</strong> at <strong className="text-slate-800">support@vaultzet.shop</strong> or <strong className="text-slate-800">+91 7895317940</strong>.
           </p>
         </div>
       </div>

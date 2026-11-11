@@ -1,10 +1,12 @@
 import React from 'react';
 import Link from 'next/link';
 import { Metadata } from 'next';
-import { PlaySquare, CheckCircle, ShieldCheck, Zap } from 'lucide-react';
+import { getLiveStoreMetrics } from '@/lib/storeMetrics';
+
+export const revalidate = 3600;
 
 export const metadata: Metadata = {
-  title: 'About Us | Vaultzet Store',
+  title: 'About Us',
   description:
     'Learn how Vaultzet Store empowers Indian content creators and theme page operators with ready-to-post, watermark-free vertical reels bundles.',
   alternates: {
@@ -12,7 +14,8 @@ export const metadata: Metadata = {
   },
 };
 
-export default function AboutUsPage() {
+export default async function AboutUsPage() {
+  const metrics = await getLiveStoreMetrics();
   return (
     <div className="py-12 sm:py-20 bg-[#faf9ff]">
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 space-y-12">
@@ -71,7 +74,7 @@ export default function AboutUsPage() {
             href="/shop"
             className="inline-flex items-center gap-2 px-8 py-4 rounded-2xl btn-gradient-primary text-white font-black text-sm shadow-xl"
           >
-            <span>Explore All 129+ Bundles Now</span>
+            <span>Explore All {metrics.bundleCount} Bundles Now</span>
           </Link>
         </div>
 

@@ -3,44 +3,56 @@
 import React, { useState } from 'react';
 import Link from 'next/link';
 import { ChevronDown, Sparkles, ShieldCheck, Zap, Download, Video, CheckCircle2, Award } from 'lucide-react';
+import {
+  STATIC_STORE_METRICS,
+  type StoreMetrics,
+} from '@/lib/storeMetrics';
 
-const FAQS = [
-  {
-    q: 'What is Vaultzet Reel Bundle Store?',
-    a: 'Vaultzet is India’s #1 dedicated reel bundle store offering 222,000+ curated, ready-to-post vertical video reels for Instagram Reels, YouTube Shorts, and Facebook. Every bundle is professionally edited in full 1080p HD, 100% watermark-free, and organized niche-wise inside instant Google Drive folders.',
-  },
-  {
-    q: 'How do I download reels from Vaultzet Reel Bundle Store?',
-    a: 'Downloading from Vaultzet is completely instant. Once you select your bundle and complete payment via UPI, Google Pay, PhonePe, Paytm, or Card, the direct Google Drive download link appears instantly on your screen and is delivered to your email. You get permanent lifetime access with zero waiting time.',
-  },
-  {
-    q: 'Are Vaultzet reel bundles 100% watermark-free with commercial rights?',
-    a: 'Yes! Every single video reel in the Vaultzet Reel Bundle Store is 100% free of watermarks, logos, and creator handles. You receive full commercial rights with the Personal license to grow your pages, or Master Resell Rights with the Reseller license to resell the bundles and keep 100% of your profits.',
-  },
-  {
-    q: 'Which video niches are available in the Vaultzet Reel Bundle Store?',
-    a: 'Vaultzet covers over 129+ high-engagement niches including AI Avatars & Sci-Fi, Motivational & Mindset, Premanand Ji Maharaj & Devotional, Gym & Fitness, Anime, Luxury Cars & Billionaire Lifestyle, 3D Animation, Comedy, Horror & Mystery, and Business Growth.',
-  },
-  {
-    q: 'Why is Vaultzet ranked as the best reel bundle store in India?',
-    a: 'Vaultzet stands out as India’s top reel bundle store due to our rigorous video quality checks (crisp 1080x1920 HD), trending audio synchronization, genuine instant Google Drive cloud delivery, transparent pricing starting at just ₹49, and dedicated 24/7 WhatsApp customer support (+91 8860032559).',
-  },
-  {
-    q: 'Can I edit the reels or add my own captions and music?',
-    a: 'Absolutely! All Vaultzet reels are delivered in standard MP4 vertical format compatible with Canva, CapCut, VN Editor, Adobe Premiere, and InShot. You can effortlessly overlay your own logo, subtitles, captions, or custom background audio before posting.',
-  },
-];
+function buildFaqs(metrics: StoreMetrics) {
+  return [
+    {
+      q: 'What is Vaultzet Reel Bundle Store?',
+      a: `Vaultzet is India’s #1 dedicated reel bundle store offering ${metrics.totalReelsFormatted} curated, ready-to-post vertical video reels across ${metrics.bundleCount} bundles for Instagram Reels, YouTube Shorts, and Facebook. Every bundle is professionally edited in full 1080p HD, 100% watermark-free, and organized niche-wise inside instant Google Drive folders.`,
+    },
+    {
+      q: 'How do I download reels from Vaultzet Reel Bundle Store?',
+      a: 'Downloading from Vaultzet is completely instant. Once you select your bundle and complete payment via UPI, Google Pay, PhonePe, Paytm, or Card, the direct Google Drive download link appears instantly on your screen and is delivered to your email. You get permanent lifetime access with zero waiting time.',
+    },
+    {
+      q: 'Are Vaultzet reel bundles 100% watermark-free with commercial rights?',
+      a: 'Yes! Every single video reel in the Vaultzet Reel Bundle Store is 100% free of watermarks, logos, and creator handles. You receive full commercial rights with the Personal license to grow your pages, or Master Resell Rights with the Reseller license to resell the bundles and keep 100% of your profits.',
+    },
+    {
+      q: 'Which video niches are available in the Vaultzet Reel Bundle Store?',
+      a: `Vaultzet covers ${metrics.categoryCount} high-engagement niches including AI Avatars & Sci-Fi, Motivational & Mindset, Premanand Ji Maharaj & Devotional, Gym & Fitness, Anime, Luxury Cars & Billionaire Lifestyle, 3D Animation, Comedy, Horror & Mystery, and Business Growth.`,
+    },
+    {
+      q: 'Why is Vaultzet ranked as the best reel bundle store in India?',
+      a: 'Vaultzet stands out as India’s top reel bundle store due to our rigorous video quality checks (crisp 1080x1920 HD), trending audio synchronization, genuine instant Google Drive cloud delivery, transparent pricing starting at just ₹49, and dedicated 24/7 WhatsApp customer support.',
+    },
+    {
+      q: 'Can I edit the reels or add my own captions and music?',
+      a: 'Absolutely! All Vaultzet reels are delivered in standard MP4 vertical format compatible with Canva, CapCut, VN Editor, Adobe Premiere, and InShot. You can effortlessly overlay your own logo, subtitles, captions, or custom background audio before posting.',
+    },
+  ];
+}
 
 const POPULAR_NICHES = [
   { label: 'AI Reels Bundles', href: '/category/ai-reels' },
   { label: 'Motivational Reels', href: '/category/motivation-reels' },
-  { label: 'Spiritual & Devotional', href: '/category/spiritual-reels' },
+  { label: 'Spiritual & Devotional', href: '/category/spiritual-and-devotional' },
   { label: 'Gym & Fitness Reels', href: '/category/fitness-reels' },
   { label: 'Luxury & Cars', href: '/category/luxury-reels' },
   { label: 'Anime & 3D Cartoon', href: '/category/anime-reels' },
 ];
 
-export default function ReelBundleStoreSEOSection() {
+export default function ReelBundleStoreSEOSection({
+  initialMetrics,
+}: {
+  initialMetrics?: StoreMetrics;
+}) {
+  const metrics = initialMetrics || STATIC_STORE_METRICS;
+  const faqs = buildFaqs(metrics);
   const [openIndex, setOpenIndex] = useState<number | null>(0);
 
   const toggleAccordion = (index: number) => {
@@ -50,7 +62,7 @@ export default function ReelBundleStoreSEOSection() {
   const faqJsonLd = {
     '@context': 'https://schema.org',
     '@type': 'FAQPage',
-    mainEntity: FAQS.map((faq) => ({
+    mainEntity: faqs.map((faq) => ({
       '@type': 'Question',
       name: faq.q,
       acceptedAnswer: {
@@ -83,7 +95,7 @@ export default function ReelBundleStoreSEOSection() {
             Why Creators Choose <span className="text-sky-600">Reel Bundle Store Vaultzet</span>
           </h2>
           <p className="mt-3 text-sm sm:text-base text-slate-600 leading-relaxed">
-            Vaultzet is India&apos;s leading reel bundle store, empowering over 15,000+ content creators, social media agencies, and digital entrepreneurs with 222,000+ high-retention viral reels.
+            Vaultzet is India&apos;s leading reel bundle store, empowering over {metrics.creatorsCount} content creators, social media agencies, and digital entrepreneurs with {metrics.totalReelsFormatted} high-retention viral reels.
           </p>
         </div>
 
@@ -93,9 +105,9 @@ export default function ReelBundleStoreSEOSection() {
             <div className="w-10 h-10 rounded-xl bg-sky-50 text-sky-600 flex items-center justify-center mb-3">
               <Video className="w-5 h-5" />
             </div>
-            <h3 className="font-bold text-slate-900 text-base mb-1">222,000+ Ready Reels</h3>
+            <h3 className="font-bold text-slate-900 text-base mb-1">{metrics.totalReelsFormatted} Ready Reels</h3>
             <p className="text-xs text-slate-600 leading-relaxed">
-              Curated across 129+ viral categories. Save hundreds of hours on video production every month.
+              Curated across {metrics.categoryCount} viral categories. Save hundreds of hours on video production every month.
             </p>
           </div>
 
@@ -142,7 +154,7 @@ export default function ReelBundleStoreSEOSection() {
           </div>
 
           <div className="space-y-3">
-            {FAQS.map((faq, idx) => {
+            {faqs.map((faq, idx) => {
               const isOpen = openIndex === idx;
               return (
                 <div
@@ -194,7 +206,7 @@ export default function ReelBundleStoreSEOSection() {
                 className="px-3.5 py-1.5 rounded-full bg-sky-500 hover:bg-sky-600 text-white text-xs font-bold shadow-xs transition-all flex items-center gap-1.5"
               >
                 <Sparkles className="w-3 h-3" />
-                <span>Browse All 131+ Bundles</span>
+                <span>Browse All {metrics.bundleCount} Bundles</span>
               </Link>
             </div>
           </div>

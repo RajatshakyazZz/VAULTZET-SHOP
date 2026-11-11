@@ -10,9 +10,12 @@ import MembershipPlans from '@/components/MembershipPlans';
 import UpcomingBundles from '@/components/UpcomingBundles';
 import CreatorProof from '@/components/CreatorProof';
 import ReelBundleStoreSEOSection from '@/components/ReelBundleStoreSEOSection';
+import { getLiveStoreMetrics } from '@/lib/storeMetrics';
+
+export const revalidate = 3600;
 
 export const metadata: Metadata = {
-  title: 'Reels Bundles for Instagram & Shorts Creators in India | Vaultzet',
+  title: 'Reels Bundles for Instagram & Shorts Creators in India',
   description:
     'Explore downloadable reels bundles for Instagram, YouTube Shorts and Facebook. Browse AI, story, ASMR and more. Pay securely with UPI or card.',
   alternates: {
@@ -35,7 +38,9 @@ export const metadata: Metadata = {
   },
 };
 
-export default function HomePage() {
+export default async function HomePage() {
+  const metrics = await getLiveStoreMetrics();
+
   return (
     <div className="space-y-4">
       {/* Featured Top Trending Sheru Bhai Announcement Bar */}
@@ -64,7 +69,7 @@ export default function HomePage() {
       </div>
 
       {/* Hero with Value H1, Typewriter & 3D Cards */}
-      <Hero />
+      <Hero initialMetrics={metrics} />
 
       {/* Special Free Bundles Offer Banner */}
       <FreeBundleOfferBanner variant="home" />
@@ -79,7 +84,7 @@ export default function HomePage() {
       <FreshReelsGrid />
 
       {/* All Access Personal vs Reseller Plans */}
-      <MembershipPlans />
+      <MembershipPlans initialMetrics={metrics} />
 
       {/* Upcoming Bundles & Notify Me */}
       <UpcomingBundles />
@@ -88,7 +93,7 @@ export default function HomePage() {
       <CreatorProof />
 
       {/* Authority SEO Section & FAQs for Google Ranking */}
-      <ReelBundleStoreSEOSection />
+      <ReelBundleStoreSEOSection initialMetrics={metrics} />
     </div>
   );
 }

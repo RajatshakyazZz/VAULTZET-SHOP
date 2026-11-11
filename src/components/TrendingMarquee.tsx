@@ -28,8 +28,6 @@ export default function TrendingMarquee() {
     }).catch(() => {});
   }, []);
 
-  const loopItems = [...items, ...items];
-
   return (
     <section className="py-6 sm:py-8 overflow-hidden [contain:layout_style]">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -62,10 +60,10 @@ export default function TrendingMarquee() {
             </Link>
           </div>
 
-          {/* Marquee Rail inside the Section Card */}
-          <div className="relative w-full overflow-hidden marquee-mask">
-            <div className="flex gap-4 w-max animate-marquee hover:[animation-play-state:paused] py-2 will-change-transform">
-              {loopItems.map((bundle, index) => {
+          {/* Horizontal Scrollable Shelf (Single Non-Duplicated Set of Trending Cards) */}
+          <div className="relative w-full overflow-hidden">
+            <div className="flex gap-3.5 sm:gap-4 overflow-x-auto pb-2 snap-x snap-mandatory [scrollbar-width:thin]">
+              {items.map((bundle) => {
                 const origPrice = bundle.personalOriginalPrice || 499;
                 const currPrice = bundle.personalPrice || 99;
                 const discount =
@@ -75,8 +73,8 @@ export default function TrendingMarquee() {
 
                 return (
                   <div
-                    key={`${bundle.id}-${index}`}
-                    className="w-72 sm:w-[305px] bg-white rounded-[24px] border border-[#eee8f8] shadow-[0_4px_18px_rgba(40,20,80,0.03)] hover:shadow-[0_14px_32px_rgba(108,60,240,0.12)] hover:-translate-y-1 transition-all duration-300 flex flex-col overflow-hidden group shrink-0"
+                    key={bundle.id}
+                    className="w-[265px] sm:w-[305px] snap-start bg-white rounded-[24px] border border-[#eee8f8] shadow-[0_4px_18px_rgba(40,20,80,0.03)] hover:shadow-[0_14px_32px_rgba(108,60,240,0.12)] hover:-translate-y-1 transition-all duration-300 flex flex-col overflow-hidden group shrink-0"
                   >
                     {/* 4:3 Thumbnail matching Image 3 */}
                     <Link

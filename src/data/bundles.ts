@@ -6540,7 +6540,7 @@ export const ALL_ACCESS_PLANS = [
     isPopular: false,
     badge: 'PERSONAL ACCESS',
     features: [
-      'Access to 131 published reels bundles',
+      `Access to ${BUNDLE_PRODUCTS.length} published reels bundles`,
       'Unlimited access to all bundles',
       'Personal use license',
       'High-quality ready-to-post reels',
@@ -6558,7 +6558,7 @@ export const ALL_ACCESS_PLANS = [
     isPopular: true,
     badge: 'RESELLER ACCESS',
     features: [
-      'Access to 131 published reels bundles',
+      `Access to ${BUNDLE_PRODUCTS.length} published reels bundles`,
       'Import all bundles in one click',
       'Everything in Personal Plan',
       'Reseller rights included',

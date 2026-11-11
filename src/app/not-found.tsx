@@ -1,9 +1,10 @@
 import Link from 'next/link';
 import { Search, Home, Film, Sparkles, ArrowRight } from 'lucide-react';
+import { STATIC_STORE_METRICS } from '@/lib/storeMetrics';
 
 export const metadata = {
-  title: '404 - Bundle Not Found | Vaultzet Store',
-  description: 'The requested reels bundle or page could not be found. Explore our 222,000+ viral reels bundles in shop.',
+  title: '404 - Bundle Not Found',
+  description: `The requested reels bundle or page could not be found. Explore our ${STATIC_STORE_METRICS.totalReelsFormatted} viral reels across ${STATIC_STORE_METRICS.bundleCount} bundles in shop.`,
   robots: {
     index: false,
     follow: true,

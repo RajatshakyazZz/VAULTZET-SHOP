@@ -15,6 +15,7 @@ import FloatingSheruButton from '@/components/FloatingSheruButton';
 import AnalyticsTracker from '@/components/AnalyticsTracker';
 import WhatsAppButton from '@/components/WhatsAppButton';
 import CookieConsentBanner from '@/components/CookieConsentBanner';
+import { getLiveStoreMetrics } from '@/lib/storeMetrics';
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://www.vaultzet.shop';
 const GTM_ID = process.env.NEXT_PUBLIC_GTM_ID || 'GTM-TD8N9SDD';
@@ -31,84 +32,81 @@ export const viewport: Viewport = {
   themeColor: '#6c35ff',
 };
 
-export const metadata: Metadata = {
-  metadataBase: new URL(SITE_URL),
-  title: {
-    default: 'Reel Bundle Store Vaultzet | 222,000+ Viral Reels Bundles India',
-    template: '%s | Reel Bundle Store Vaultzet',
-  },
-  description:
-    'Vaultzet is India\'s #1 reel bundle store. Download 222,000+ viral ready-to-post vertical reels bundles for Instagram Reels, YouTube Shorts & Facebook across 129+ niches. Zero watermarks, commercial & reseller rights, and instant Google Drive access.',
-  keywords: [
-    'reel bundle store vaultzet',
-    'vaultzet reel bundle store',
-    'reel bundle store',
-    'reels bundle store',
-    'vaultzet',
-    'vaultzet store',
-    'vaultzet shop',
-    'viral reels bundle',
-    'viral reels bundle store india',
-    'ai reels bundle',
-    'instagram reels bundle india',
-    'youtube shorts bundle',
-    'ready to post reels',
-    'faceless instagram reels',
-    'motivational reels bundle',
-    '3d animation reels bundle',
-    'digital products resell india',
-    'watermark free reels download',
-  ],
-  authors: [{ name: 'Vaultzet Store', url: SITE_URL }],
-  creator: 'Vaultzet Store',
-  publisher: 'Vaultzet Store',
-  alternates: {
-    canonical: SITE_URL,
-  },
-  robots: {
-    index: true,
-    follow: true,
-    googleBot: {
+export async function generateMetadata(): Promise<Metadata> {
+  const metrics = await getLiveStoreMetrics();
+  return {
+    metadataBase: new URL(SITE_URL),
+    title: {
+      default: `Reel Bundle Store Vaultzet | ${metrics.totalReelsFormatted} Viral Reels Bundles India`,
+      template: '%s | Reel Bundle Store Vaultzet',
+    },
+    description: `Vaultzet is India's #1 reel bundle store. Download ${metrics.totalReelsFormatted} viral ready-to-post vertical reels across ${metrics.bundleCount} bundles and ${metrics.categoryCount} niches for Instagram Reels, YouTube Shorts & Facebook. Zero watermarks, commercial & reseller rights, and instant Google Drive access.`,
+    keywords: [
+      'reel bundle store vaultzet',
+      'vaultzet reel bundle store',
+      'reel bundle store',
+      'reels bundle store',
+      'vaultzet',
+      'vaultzet store',
+      'vaultzet shop',
+      'viral reels bundle',
+      'viral reels bundle store india',
+      'ai reels bundle',
+      'instagram reels bundle india',
+      'youtube shorts bundle',
+      'ready to post reels',
+      'faceless instagram reels',
+      'motivational reels bundle',
+      '3d animation reels bundle',
+      'digital products resell india',
+      'watermark free reels download',
+    ],
+    authors: [{ name: 'Vaultzet Store', url: SITE_URL }],
+    creator: 'Vaultzet Store',
+    publisher: 'Vaultzet Store',
+    robots: {
       index: true,
       follow: true,
-      'max-video-preview': -1,
-      'max-image-preview': 'large',
-      'max-snippet': -1,
+      googleBot: {
+        index: true,
+        follow: true,
+        'max-video-preview': -1,
+        'max-image-preview': 'large',
+        'max-snippet': -1,
+      },
     },
-  },
-  openGraph: {
-    type: 'website',
-    locale: 'en_IN',
-    url: SITE_URL,
-    siteName: 'Vaultzet - Reel Bundle Store',
-    title: 'Reel Bundle Store Vaultzet | 222,000+ Viral Reels Bundles India',
-    description:
-      'Over 222,000+ vertical HD reels across 129+ niches with zero watermarks & full commercial rights. Instant Google Drive delivery.',
-  },
-  twitter: {
-    card: 'summary_large_image',
-    title: 'Vaultzet Store | Viral Reels Bundles – Instant Google Drive Access',
-    description:
-      'Grow faster on Instagram & YouTube Shorts with 222,000+ ready-to-post HD reels bundles.',
-  },
-  appleWebApp: {
-    capable: true,
-    statusBarStyle: 'default',
-    title: 'Vaultzet Store',
-  },
-  icons: {
-    icon: '/logo.webp',
-    shortcut: '/logo.webp',
-    apple: '/logo.png',
-  },
-  verification: {
-    google: GSC_VERIFICATION,
-    ...(BING_VERIFICATION ? { other: { 'msvalidate.01': BING_VERIFICATION } } : {}),
-  },
-  formatDetection: {
-    telephone: false,
-  },
-};
+    openGraph: {
+      type: 'website',
+      locale: 'en_IN',
+      url: SITE_URL,
+      siteName: 'Vaultzet - Reel Bundle Store',
+      title: `Reel Bundle Store Vaultzet | ${metrics.totalReelsFormatted} Viral Reels Bundles India`,
+      description: `Over ${metrics.totalReelsFormatted} vertical HD reels across ${metrics.categoryCount} niches with zero watermarks & full commercial rights. Instant Google Drive delivery.`,
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title: 'Vaultzet Store | Viral Reels Bundles – Instant Google Drive Access',
+      description: `Grow faster on Instagram & YouTube Shorts with ${metrics.totalReelsFormatted} ready-to-post HD reels across ${metrics.bundleCount} bundles.`,
+    },
+    appleWebApp: {
+      capable: true,
+      statusBarStyle: 'default',
+      title: 'Vaultzet Store',
+    },
+    icons: {
+      icon: '/logo.webp',
+      shortcut: '/logo.webp',
+      apple: '/logo.png',
+    },
+    verification: {
+      google: GSC_VERIFICATION,
+      ...(BING_VERIFICATION ? { other: { 'msvalidate.01': BING_VERIFICATION } } : {}),
+    },
+    formatDetection: {
+      telephone: false,
+    },
+  };
+}
 
 export default function RootLayout({
   children,
@@ -138,12 +136,12 @@ export default function RootLayout({
         url: SITE_URL,
         logo: `${SITE_URL}/logo.webp`,
         sameAs: [
-          'https://instagram.com/vaultzet.shop',
+          'https://www.instagram.com/vaultzet',
           'https://youtube.com/@vaultzet',
         ],
         contactPoint: {
           '@type': 'ContactPoint',
-          email: 'rajattracozegaming@gmail.com',
+          email: 'support@vaultzet.shop',
           telephone: '+91-7895317940',
           contactType: 'customer support',
           areaServed: 'IN',

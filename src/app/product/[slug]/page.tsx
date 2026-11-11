@@ -1,5 +1,5 @@
 import { Metadata } from 'next';
-import { notFound } from 'next/navigation';
+import { notFound, permanentRedirect } from 'next/navigation';
 import { BUNDLE_PRODUCTS } from '@/data/bundles';
 import { resolveBundleSlug } from '@/lib/bundleResolver';
 import { fetchCustomProductBySlug } from '@/lib/customProducts';
@@ -26,7 +26,7 @@ export async function generateMetadata({ params }: ProductPageProps): Promise<Me
 
   if (!product) {
     return {
-      title: 'Product Not Found | Vaultzet Store',
+      title: 'Product Not Found',
       description: 'The requested reels bundle could not be found.',
       robots: { index: false, follow: true },
     };
@@ -35,7 +35,7 @@ export async function generateMetadata({ params }: ProductPageProps): Promise<Me
   const siteUrl = (process.env.NEXT_PUBLIC_SITE_URL || 'https://www.vaultzet.shop').replace(/\/+$/, '');
   const canonicalUrl = `${siteUrl}/product/${product.slug}`;
 
-  // Unique <title>: "{Product Name} | Reel Bundle Store Vaultzet"
+  // Unique <title>: "{Product Name}" (root layout template adds " | Reel Bundle Store Vaultzet" once)
   const suffix = ' | Reel Bundle Store Vaultzet';
   const availableLength = 65 - suffix.length;
   const rawCleanName = product.title
@@ -45,7 +45,7 @@ export async function generateMetadata({ params }: ProductPageProps): Promise<Me
     rawCleanName.length > availableLength
       ? `${rawCleanName.slice(0, availableLength - 1).trim()}…`
       : rawCleanName;
-  const title = `${cleanName}${suffix}`;
+  const socialTitle = `${cleanName}${suffix}`;
 
   // Unique meta description (140–158 chars) mentioning niche + price + "instant Google Drive delivery"
   let description = `Buy ${product.title.slice(0, 32)} for ₹${product.personalPrice}. Get ${product.reelCount || 1000}+ viral ${product.category} reels with instant Google Drive delivery & commercial rights.`;
@@ -59,7 +59,7 @@ export async function generateMetadata({ params }: ProductPageProps): Promise<Me
   const imageUrl = product.thumbnail || `${siteUrl}/icon.png`;
 
   return {
-    title,
+    title: cleanName,
     description,
     alternates: {
       canonical: canonicalUrl,
@@ -67,7 +67,7 @@ export async function generateMetadata({ params }: ProductPageProps): Promise<Me
     openGraph: {
       type: 'website',
       url: canonicalUrl,
-      title,
+      title: socialTitle,
       description,
       siteName: 'Vaultzet Store',
       locale: 'en_IN',
@@ -82,7 +82,7 @@ export async function generateMetadata({ params }: ProductPageProps): Promise<Me
     },
     twitter: {
       card: 'summary_large_image',
-      title,
+      title: socialTitle,
       description,
       images: [imageUrl],
     },
@@ -106,6 +106,10 @@ export default async function ProductDetailPage({ params }: ProductPageProps) {
 
   if (!product) {
     notFound();
+  }
+
+  if (slug.toLowerCase().endsWith('-uploadq') && product.slug.toLowerCase() !== slug.toLowerCase()) {
+    permanentRedirect(`/product/${product.slug}`);
   }
 
   const siteUrl = (process.env.NEXT_PUBLIC_SITE_URL || 'https://www.vaultzet.shop').replace(/\/+$/, '');

@@ -16,7 +16,7 @@ export async function generateMetadata({ params }: ResellerPageProps): Promise<M
 
   if (!listing || listing.status === 'archived') {
     return {
-      title: 'Product Not Found | Vaultzet Store',
+      title: 'Product Not Found',
       description: 'The requested product listing is currently unavailable.',
       robots: { index: false, follow: false },
     };
@@ -24,7 +24,7 @@ export async function generateMetadata({ params }: ResellerPageProps): Promise<M
 
   if (listing.status !== 'active') {
     return {
-      title: `${listing.customTitle} (Unavailable) | Vaultzet Store`,
+      title: `${listing.customTitle} (Unavailable)`,
       description: 'This product listing is temporarily paused by the seller.',
       robots: { index: false, follow: false },
     };

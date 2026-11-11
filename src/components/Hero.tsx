@@ -5,8 +5,17 @@ import Link from 'next/link';
 import { Play, ArrowRight, FolderKanban, Film, ShieldCheck } from 'lucide-react';
 import { BUNDLE_PRODUCTS } from '@/data/bundles';
 import { optimizeImageUrl } from '@/lib/imageOptimized';
+import {
+  STATIC_STORE_METRICS,
+  type StoreMetrics,
+} from '@/lib/storeMetrics';
 
-export default function Hero() {
+interface HeroProps {
+  initialMetrics?: StoreMetrics;
+}
+
+export default function Hero({ initialMetrics }: HeroProps) {
+  const metrics = initialMetrics || STATIC_STORE_METRICS;
   const phrases = ['Ready to Post.', 'Built to Engage.', 'Made to Grow.'];
   const [phraseIndex, setPhraseIndex] = useState(0);
   const [displayText, setDisplayText] = useState(phrases[0]);
@@ -153,26 +162,26 @@ export default function Hero() {
 
               {/* 3 Glossy Color Stat Cards on Desktop */}
               <div className="hidden lg:grid grid-cols-3 gap-3.5 pt-3 max-w-xl">
-                {/* 129 Published Bundles (Purple Gradient) */}
+                {/* Published Bundles (Purple Gradient) */}
                 <div className="relative overflow-hidden p-3.5 rounded-[20px] bg-gradient-to-br from-[#5d3be3] to-[#8353f5] text-white flex flex-col items-center text-center shadow-[0_10px_24px_rgba(93,59,227,0.2)]">
                   <div className="absolute -right-5 -bottom-6 w-20 h-20 rounded-full bg-white/12 pointer-events-none" />
                   <div className="w-9 h-9 rounded-xl bg-white/15 border border-white/25 flex items-center justify-center shrink-0 mb-1">
                     <FolderKanban className="w-4 h-4 text-white" />
                   </div>
                   <div className="leading-tight relative z-10">
-                    <div className="text-[20px] font-black tracking-tight">{totalBundles || 129}</div>
+                    <div className="text-[20px] font-black tracking-tight">{metrics.bundleCount}</div>
                     <div className="text-[10px] font-bold text-white/90 mt-0.5">Published Bundles</div>
                   </div>
                 </div>
 
-                {/* 222K+ Ready-to-Post Reels (Coral/Pink Gradient) */}
+                {/* Ready-to-Post Reels (Coral/Pink Gradient) */}
                 <div className="relative overflow-hidden p-3.5 rounded-[20px] bg-gradient-to-br from-[#ef3966] to-[#f86669] text-white flex flex-col items-center text-center shadow-[0_10px_24px_rgba(239,57,102,0.2)]">
                   <div className="absolute -right-5 -bottom-6 w-20 h-20 rounded-full bg-white/12 pointer-events-none" />
                   <div className="w-9 h-9 rounded-xl bg-white/15 border border-white/25 flex items-center justify-center shrink-0 mb-1">
                     <Film className="w-4 h-4 text-white" />
                   </div>
                   <div className="leading-tight relative z-10">
-                    <div className="text-[20px] font-black tracking-tight">222K+</div>
+                    <div className="text-[20px] font-black tracking-tight">{metrics.totalReelsCompact}</div>
                     <div className="text-[10px] font-bold text-white/90 mt-0.5">Ready-to-Post Reels</div>
                   </div>
                 </div>
@@ -328,26 +337,26 @@ export default function Hero() {
 
               {/* 3 Glossy Color Stat Cards on Mobile matching Competitor Screenshot 1 */}
               <div className="grid lg:hidden grid-cols-3 gap-2 pt-2.5 sm:pt-3 w-full max-w-md relative z-10">
-                {/* 129 Published Bundles (Purple Gradient) */}
+                {/* Published Bundles (Purple Gradient) */}
                 <div className="relative overflow-hidden p-2 sm:p-2.5 rounded-xl sm:rounded-2xl bg-gradient-to-br from-[#5d3be3] to-[#8353f5] text-white flex flex-col items-center text-center shadow-[0_8px_20px_rgba(93,59,227,0.2)]">
                   <div className="absolute -right-5 -bottom-6 w-16 h-16 rounded-full bg-white/12 pointer-events-none" />
                   <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg sm:rounded-xl bg-white/15 border border-white/25 flex items-center justify-center shrink-0 mb-1">
                     <FolderKanban className="w-3.5 h-3.5 text-white" />
                   </div>
                   <div className="leading-tight relative z-10">
-                    <div className="text-[14px] sm:text-[16px] font-black tracking-tight">{totalBundles || 129}</div>
+                    <div className="text-[14px] sm:text-[16px] font-black tracking-tight">{metrics.bundleCount}</div>
                     <div className="text-[8.5px] sm:text-[9px] font-bold text-white/90 mt-0.5 line-clamp-1">Published Bundles</div>
                   </div>
                 </div>
 
-                {/* 222K+ Ready-to-Post Reels (Coral/Pink Gradient) */}
+                {/* Ready-to-Post Reels (Coral/Pink Gradient) */}
                 <div className="relative overflow-hidden p-2 sm:p-2.5 rounded-xl sm:rounded-2xl bg-gradient-to-br from-[#ef3966] to-[#f86669] text-white flex flex-col items-center text-center shadow-[0_8px_20px_rgba(239,57,102,0.2)]">
                   <div className="absolute -right-5 -bottom-6 w-16 h-16 rounded-full bg-white/12 pointer-events-none" />
                   <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg sm:rounded-xl bg-white/15 border border-white/25 flex items-center justify-center shrink-0 mb-1">
                     <Film className="w-3.5 h-3.5 text-white" />
                   </div>
                   <div className="leading-tight relative z-10">
-                    <div className="text-[14px] sm:text-[16px] font-black tracking-tight">222K+</div>
+                    <div className="text-[14px] sm:text-[16px] font-black tracking-tight">{metrics.totalReelsCompact}</div>
                     <div className="text-[8.5px] sm:text-[9px] font-bold text-white/90 mt-0.5 line-clamp-1">Ready-to-Post Reels</div>
                   </div>
                 </div>

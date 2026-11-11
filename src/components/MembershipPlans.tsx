@@ -5,10 +5,26 @@ import Link from 'next/link';
 import { Check, ArrowRight, ArrowUpRight, Play, RotateCw } from 'lucide-react';
 import { ALL_ACCESS_PLANS } from '@/data/bundles';
 import { fetchCustomProductBySlug } from '@/lib/customProducts';
+import {
+  STATIC_STORE_METRICS,
+  getLiveStoreMetrics,
+  type StoreMetrics,
+} from '@/lib/storeMetrics';
 
-export default function MembershipPlans() {
+interface MembershipPlansProps {
+  initialMetrics?: StoreMetrics;
+}
+
+export default function MembershipPlans({ initialMetrics }: MembershipPlansProps) {
   const [selectedTab, setSelectedTab] = useState<'personal' | 'reseller'>('personal');
   const [plans, setPlans] = useState(ALL_ACCESS_PLANS);
+  const [metrics, setMetrics] = useState<StoreMetrics>(initialMetrics || STATIC_STORE_METRICS);
+
+  useEffect(() => {
+    if (!initialMetrics) {
+      getLiveStoreMetrics().then(setMetrics).catch(() => {});
+    }
+  }, [initialMetrics]);
 
   useEffect(() => {
     let isMounted = true;
@@ -239,6 +255,9 @@ export default function MembershipPlans() {
 
                 {currentPlan.features.map((item, index) => {
                   const isImportRow = isReseller && index === 1;
+                  const resolvedItem = /Access to \d+\+? published reels bundles/i.test(item)
+                    ? `Access to ${metrics.bundleCount} published reels bundles`
+                    : item;
                   return (
                     <div
                       key={index}
@@ -264,7 +283,7 @@ export default function MembershipPlans() {
                             : 'font-bold text-[#252c42]'
                         }`}
                       >
-                        {item}
+                        {resolvedItem}
                       </span>
                     </div>
                   );

@@ -18,7 +18,7 @@ const DEFAULT_SETTINGS: StoreSettings = {
   storeName: 'Vaultzet Store',
   ownerName: 'Rajat Shakya',
   tagline: 'Premium Reels for Your Growth',
-  supportEmail: 'rajattracozegaming@gmail.com',
+  supportEmail: 'support@vaultzet.shop',
   supportWhatsapp: '+91 7895317940',
   currency: 'INR',
   currencySymbol: '₹',
@@ -32,7 +32,7 @@ function sanitizeStoreName(name?: string, fallback = 'Vaultzet Store'): string {
   return name.trim();
 }
 
-function sanitizeEmail(email?: string, fallback = 'rajattracozegaming@gmail.com'): string {
+function sanitizeEmail(email?: string, fallback = 'support@vaultzet.shop'): string {
   if (!email || !email.trim()) return fallback;
   const clean = email.trim().toLowerCase();
   if (
@@ -42,7 +42,7 @@ function sanitizeEmail(email?: string, fallback = 'rajattracozegaming@gmail.com'
     clean.includes('ashamse') ||
     clean.includes('reelsbundles') ||
     clean.includes('digonest') ||
-    clean.includes('support@vaultzet')
+    clean.includes('rajattracozegaming')
   ) {
     return fallback;
   }

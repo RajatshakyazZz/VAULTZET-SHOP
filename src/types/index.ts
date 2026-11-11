@@ -33,6 +33,8 @@ export interface BundleProduct {
   categories?: string[];
   categorySlugs?: string[];
   aliases?: string[];
+  createdAt?: string;
+  updatedAt?: string;
 }
 
 export interface CartItem {

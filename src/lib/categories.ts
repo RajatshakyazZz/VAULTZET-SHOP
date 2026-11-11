@@ -80,6 +80,7 @@ export const COMPETITOR_CATEGORIES: CategoryItem[] = [
     slug: 'diy-reels',
     icon: '🛠️',
     keywords: ['diy', 'craft', 'woodwork', 'restoration', 'art & craft', 'paper art', 'handmade'],
+    aliases: ['diy-crafts', 'diy-amp'],
   },
   {
     name: 'Fantasy Reels',
@@ -92,12 +93,14 @@ export const COMPETITOR_CATEGORIES: CategoryItem[] = [
     slug: 'nature-reels',
     icon: '🌿',
     keywords: ['nature', 'ocean', 'sunset', 'rain', 'snow', 'trees', 'scenery', 'wildlife', 'cloud', 'forest'],
+    aliases: ['nature-wildlife', 'nature-amp'],
   },
   {
     name: 'Sports Reels',
     slug: 'sports-reels',
     icon: '⚽',
     keywords: ['sport', 'sports', 'cricket', 'football', 'basketball', 'athletic', 'cycling', 'trick shots'],
+    aliases: ['sports-fitness', 'sports-amp'],
   },
   {
     name: 'Horror Reels',
@@ -109,7 +112,8 @@ export const COMPETITOR_CATEGORIES: CategoryItem[] = [
     name: 'Lifestyle Reels',
     slug: 'lifestyle-reels',
     icon: '💎',
-    keywords: ['lifestyle', 'luxury', 'billionaire', 'car & luxury', 'mafia', 'rich', 'wealth'],
+    keywords: ['lifestyle', 'luxury', 'billionaire', 'living', 'car & luxury', 'mafia', 'rich', 'wealth'],
+    aliases: ['lifestyle-luxury', 'lifestyle-amp'],
   },
   {
     name: 'Craft Reels',
@@ -127,8 +131,8 @@ export const COMPETITOR_CATEGORIES: CategoryItem[] = [
     name: 'Motivation Reels',
     slug: 'motivation-reels',
     icon: '🔥',
-    keywords: ['motivat', 'mindset', 'stoic', 'sigma', 'success', 'growth', 'testosterone', 'discipline'],
-    aliases: ['motivational-reels', 'motivation-mindset'],
+    keywords: ['motivat', 'motivation', 'motivational', 'mindset', 'stoic', 'sigma', 'success', 'growth', 'testosterone', 'discipline'],
+    aliases: ['motivational-reels', 'motivation-mindset', 'motivation-amp'],
   },
   {
     name: 'Anime Reels',
@@ -138,7 +142,7 @@ export const COMPETITOR_CATEGORIES: CategoryItem[] = [
   },
   {
     name: 'Art & Craft',
-    slug: 'art-amp',
+    slug: 'art-and-craft',
     icon: '🎨',
     keywords: ['art', 'paper art', 'art & craft', 'craft', 'drawing', 'painting'],
     aliases: ['art-craft', 'art-reels', 'art-amp'],
@@ -159,17 +163,19 @@ export const COMPETITOR_CATEGORIES: CategoryItem[] = [
     name: 'Business Reels',
     slug: 'business-reels',
     icon: '💼',
-    keywords: ['business', 'entrepreneur', 'stock market', 'growth', 'finance', 'tips', 'startup'],
+    keywords: ['business', 'entrepreneur', 'stock market', 'stock', 'growth', 'finance', 'tips', 'startup', 'wealth'],
+    aliases: ['business-finance', 'business-amp'],
   },
   {
     name: 'Cars Reels',
     slug: 'cars-reels',
     icon: '🚗',
     keywords: ['car', 'cars', 'f1', 'vehicle', 'automotive', 'mafia cars', 'supercar'],
+    aliases: ['cars-vehicles', 'cars-luxury', 'cars-amp'],
   },
   {
     name: 'Cartoons & Animation',
-    slug: 'cartoon-amp',
+    slug: 'cartoons-and-animation',
     icon: '📺',
     keywords: ['cartoon', 'cartoons', '3d cartoon', 'sharko', 'stickman', 'toons'],
     aliases: ['cartoon-reels', 'cartoons', 'cartoon-amp'],
@@ -197,20 +203,6 @@ export const COMPETITOR_CATEGORIES: CategoryItem[] = [
     slug: 'relationship-reels',
     icon: '❤️',
     keywords: ['couple', 'dosti', 'friendship', 'relationship', 'love', 'romantic', 'relatable', 'adult talks'],
-  },
-  {
-    name: 'Business & Finance',
-    slug: 'business-amp',
-    icon: '📈',
-    keywords: ['business', 'growth', 'stock', 'finance', 'entrepreneur', 'wealth'],
-    aliases: ['business-finance', 'business-amp'],
-  },
-  {
-    name: 'Cars & Luxury',
-    slug: 'cars-amp',
-    icon: '🏎️',
-    keywords: ['car', 'cars', 'f1', 'vehicle', 'mafia cars', 'automotive'],
-    aliases: ['cars-vehicles', 'cars-amp'],
   },
   {
     name: 'Celebrity Reels',
@@ -255,13 +247,6 @@ export const COMPETITOR_CATEGORIES: CategoryItem[] = [
     keywords: ['mindset', 'stoic', 'sigma', 'attitude', 'discipline', 'mental'],
   },
   {
-    name: 'Motivation & Mindset',
-    slug: 'motivation-amp',
-    icon: '🚀',
-    keywords: ['motivation', 'mindset', 'success', 'growth', 'motivational'],
-    aliases: ['motivation-mindset', 'motivation-amp'],
-  },
-  {
     name: 'Movie Reels',
     slug: 'movie-reels',
     icon: '🍿',
@@ -275,10 +260,10 @@ export const COMPETITOR_CATEGORIES: CategoryItem[] = [
   },
   {
     name: 'Spiritual & Devotional',
-    slug: 'spiritual-amp',
+    slug: 'spiritual-and-devotional',
     icon: '🕉️',
     keywords: ['spiritual', 'premanand', 'sanatan', 'god', 'bhakti', 'soul'],
-    aliases: ['spiritual-devotional', 'spiritual-amp'],
+    aliases: ['spiritual-devotional', 'spiritual-reels', 'spiritual-amp'],
   },
   {
     name: 'Tech Reels',
@@ -288,10 +273,10 @@ export const COMPETITOR_CATEGORIES: CategoryItem[] = [
   },
   {
     name: 'Tools & Tips',
-    slug: 'tools-amp',
+    slug: 'tools-and-tips',
     icon: '🔧',
     keywords: ['tools', 'tools tips', 'camera tips', 'tips', 'utilities'],
-    aliases: ['tools-tips', 'tools-amp'],
+    aliases: ['tools-tips', 'tools-reels', 'tools-amp'],
   },
   {
     name: 'Travel Reels',
@@ -330,38 +315,17 @@ export const COMPETITOR_CATEGORIES: CategoryItem[] = [
     keywords: ['danc', 'dancing', 'dancers', 'baby dancing'],
   },
   {
-    name: 'DIY & Crafts',
-    slug: 'diy-amp',
-    icon: '🔨',
-    keywords: ['diy', 'craft', 'woodwork', 'restoration'],
-    aliases: ['diy-crafts', 'diy-amp'],
-  },
-  {
     name: 'Emotional & Drama',
-    slug: 'emotional-amp',
+    slug: 'emotional-and-drama',
     icon: '🥺',
     keywords: ['emotional', 'dosti', 'friendship', 'sad', 'heart', 'feelings'],
-    aliases: ['emotional-drama', 'emotional-amp'],
+    aliases: ['emotional-drama', 'emotional-reels', 'emotional-amp'],
   },
   {
     name: 'Inspirational Reels',
     slug: 'inspirational-reels',
     icon: '💫',
     keywords: ['inspiration', 'humanity', 'kindness', 'motivat', 'uplifting'],
-  },
-  {
-    name: 'Lifestyle & Luxury',
-    slug: 'lifestyle-amp',
-    icon: '🍸',
-    keywords: ['lifestyle', 'luxury', 'billionaire', 'living'],
-    aliases: ['lifestyle-luxury', 'lifestyle-amp'],
-  },
-  {
-    name: 'Nature & Wildlife',
-    slug: 'nature-amp',
-    icon: '🌲',
-    keywords: ['nature', 'wildlife', 'trees', 'ocean', 'rain', 'snow'],
-    aliases: ['nature-wildlife', 'nature-amp'],
   },
   {
     name: 'Podcast Reels',
@@ -371,24 +335,17 @@ export const COMPETITOR_CATEGORIES: CategoryItem[] = [
   },
   {
     name: 'Satisfying & ASMR',
-    slug: 'satisfying-amp',
+    slug: 'satisfying-and-asmr',
     icon: '✨',
     keywords: ['satisfying', 'asmr', 'glass cutting', 'restoration'],
-    aliases: ['satisfying-asmr', 'satisfying-amp'],
+    aliases: ['satisfying-asmr', 'satisfying-reels', 'satisfying-amp'],
   },
   {
     name: 'Space & Universe',
-    slug: 'space-amp',
+    slug: 'space-and-universe',
     icon: '🌌',
     keywords: ['space', 'universe', 'cosmic', 'galaxy', 'astronomy'],
-    aliases: ['space-universe', 'space-amp'],
-  },
-  {
-    name: 'Sports & Fitness',
-    slug: 'sports-amp',
-    icon: '🏆',
-    keywords: ['sport', 'cricket', 'football', 'basketball', 'cycling', 'athletic'],
-    aliases: ['sports-fitness', 'sports-amp'],
+    aliases: ['space-universe', 'space-reels', 'space-amp'],
   },
   {
     name: 'Trending Reels',
@@ -426,6 +383,66 @@ export function normalizeCategorySlug(str: string): string {
     .replace(/&/g, 'and')
     .replace(/[^a-z0-9]+/g, '-')
     .replace(/^-+|-+$/g, '');
+}
+
+export const CATEGORY_REDIRECT_MAP: Record<string, string> = {
+  'business-amp': 'business-reels',
+  'business-finance': 'business-reels',
+  'cars-amp': 'cars-reels',
+  'cars-vehicles': 'cars-reels',
+  'cars-luxury': 'cars-reels',
+  'motivation-amp': 'motivation-reels',
+  'motivation-mindset': 'motivation-reels',
+  'motivational-reels': 'motivation-reels',
+  'diy-amp': 'diy-reels',
+  'diy-crafts': 'diy-reels',
+  'lifestyle-amp': 'lifestyle-reels',
+  'lifestyle-luxury': 'lifestyle-reels',
+  'nature-amp': 'nature-reels',
+  'nature-wildlife': 'nature-reels',
+  'sports-amp': 'sports-reels',
+  'sports-fitness': 'sports-reels',
+  'art-amp': 'art-and-craft',
+  'art-reels': 'art-and-craft',
+  'art-craft': 'art-and-craft',
+  'cartoon-amp': 'cartoons-and-animation',
+  'cartoon-reels': 'cartoons-and-animation',
+  cartoons: 'cartoons-and-animation',
+  'spiritual-amp': 'spiritual-and-devotional',
+  'spiritual-reels': 'spiritual-and-devotional',
+  'spiritual-devotional': 'spiritual-and-devotional',
+  'tools-amp': 'tools-and-tips',
+  'tools-reels': 'tools-and-tips',
+  'tools-tips': 'tools-and-tips',
+  'emotional-amp': 'emotional-and-drama',
+  'emotional-reels': 'emotional-and-drama',
+  'emotional-drama': 'emotional-and-drama',
+  'satisfying-amp': 'satisfying-and-asmr',
+  'satisfying-reels': 'satisfying-and-asmr',
+  'satisfying-asmr': 'satisfying-and-asmr',
+  'space-amp': 'space-and-universe',
+  'space-reels': 'space-and-universe',
+  'space-universe': 'space-and-universe',
+};
+
+/**
+ * Resolves raw category slug or name to a canonical non-amp category slug.
+ */
+export function canonicalizeCategorySlug(rawSlug?: string, rawName?: string): string {
+  const cleanName = cleanCategoryName(rawName || '');
+  const baseSlug = normalizeCategorySlug(rawSlug || cleanName);
+  if (!baseSlug) return '';
+  if (CATEGORY_REDIRECT_MAP[baseSlug]) {
+    return CATEGORY_REDIRECT_MAP[baseSlug];
+  }
+  const byName = cleanName ? normalizeCategorySlug(cleanName) : '';
+  if (byName && CATEGORY_REDIRECT_MAP[byName]) {
+    return CATEGORY_REDIRECT_MAP[byName];
+  }
+  if (baseSlug.endsWith('-amp') && cleanName.includes('&')) {
+    return normalizeCategorySlug(cleanName);
+  }
+  return baseSlug;
 }
 
 /**
@@ -619,6 +636,7 @@ export function getLocalCategoriesSync(): CategoryItem[] {
         .filter((c: any) => c && c.name && !c.is_deleted && !deleted.has(String(c.slug || '').toLowerCase()) && (!c.id || !deleted.has(String(c.id).toLowerCase())))
         .map((c: any) => ({
           ...c,
+          slug: canonicalizeCategorySlug(c.slug, c.name),
           name: cleanCategoryName(c.name),
           is_custom: true,
           count: Number(c.count || 0),
@@ -673,12 +691,13 @@ export async function fetchCustomCategories(force = false): Promise<CategoryItem
               }
             }
             items.forEach((c: any) => {
-              const slug = String(c.slug || c.name?.toLowerCase().replace(/[^a-z0-9]+/g, '-') || '').toLowerCase();
+              const rawSlug = String(c.slug || '').toLowerCase();
+              const slug = canonicalizeCategorySlug(c.slug, c.name);
               const id = String(c.id || slug).toLowerCase();
-              if (c && c.name && !c.is_deleted && !deletedSet.has(slug) && !deletedSet.has(id)) {
+              if (c && c.name && !c.is_deleted && slug && !deletedSet.has(slug) && !deletedSet.has(rawSlug) && !deletedSet.has(id)) {
                 customCategoriesMap.set(slug, {
                   id: c.id || slug,
-                  name: String(c.name).trim(),
+                  name: cleanCategoryName(c.name),
                   slug,
                   count: Number(c.count || 0),
                   icon: c.icon || '✨',
@@ -686,7 +705,7 @@ export async function fetchCustomCategories(force = false): Promise<CategoryItem
                   border: c.border || '#e9d5ff',
                   iconColor: c.iconColor || '#7c3aed',
                   description: c.description || '',
-                  keywords: Array.isArray(c.keywords) ? c.keywords : c.name.toLowerCase().split(/\s+/),
+                  keywords: Array.isArray(c.keywords) ? c.keywords : cleanCategoryName(c.name).toLowerCase().split(/\s+/),
                   created_at: c.created_at || c.createdAt || new Date().toISOString(),
                   is_custom: true,
                 });
@@ -719,9 +738,10 @@ export async function fetchCustomCategories(force = false): Promise<CategoryItem
               }
             }
             items.forEach((c: any) => {
-              const slug = String(c.slug || c.name?.toLowerCase().replace(/[^a-z0-9]+/g, '-') || '').toLowerCase();
+              const rawSlug = String(c.slug || '').toLowerCase();
+              const slug = canonicalizeCategorySlug(c.slug, c.name);
               const id = String(c.id || slug).toLowerCase();
-              if (c && c.name && !c.is_deleted && !deletedSet.has(slug) && !deletedSet.has(id) && !customCategoriesMap.has(slug)) {
+              if (c && c.name && !c.is_deleted && slug && !deletedSet.has(slug) && !deletedSet.has(rawSlug) && !deletedSet.has(id) && !customCategoriesMap.has(slug)) {
                 customCategoriesMap.set(slug, {
                   id: c.id || slug,
                   name: cleanCategoryName(c.name),
@@ -732,7 +752,7 @@ export async function fetchCustomCategories(force = false): Promise<CategoryItem
                   border: c.border || '#e9d5ff',
                   iconColor: c.iconColor || '#7c3aed',
                   description: c.description || '',
-                  keywords: Array.isArray(c.keywords) ? c.keywords : c.name.toLowerCase().split(/\s+/),
+                  keywords: Array.isArray(c.keywords) ? c.keywords : cleanCategoryName(c.name).toLowerCase().split(/\s+/),
                   created_at: c.created_at || c.createdAt || new Date().toISOString(),
                   is_custom: true,
                 });
@@ -752,14 +772,16 @@ export async function fetchCustomCategories(force = false): Promise<CategoryItem
         const data = d.data();
         const id = d.id.toLowerCase();
         const name = cleanCategoryName(String(data.name || 'Category'));
-        const slug = String(data.slug || name.toLowerCase().replace(/[^a-z0-9]+/g, '-')).toLowerCase();
+        const rawSlug = String(data.slug || '').toLowerCase();
+        const slug = canonicalizeCategorySlug(data.slug, name);
         const isDeleted = Boolean(data.is_deleted || name === '[DELETED]');
 
         if (isDeleted) {
           deletedSet.add(id);
-          deletedSet.add(slug);
-          customCategoriesMap.delete(slug);
-        } else if (!deletedSet.has(id) && !deletedSet.has(slug)) {
+          if (slug) deletedSet.add(slug);
+          if (rawSlug) deletedSet.add(rawSlug);
+          if (slug) customCategoriesMap.delete(slug);
+        } else if (slug && !deletedSet.has(id) && !deletedSet.has(slug) && !deletedSet.has(rawSlug)) {
           if (!customCategoriesMap.has(slug)) {
             customCategoriesMap.set(slug, {
               id: d.id,
@@ -791,9 +813,10 @@ export async function fetchCustomCategories(force = false): Promise<CategoryItem
         const custom = JSON.parse(raw);
         if (Array.isArray(custom)) {
           custom.forEach((c: any) => {
-            const slug = String(c.slug || c.name?.toLowerCase().replace(/[^a-z0-9]+/g, '-') || '').toLowerCase();
+            const rawSlug = String(c.slug || '').toLowerCase();
+            const slug = canonicalizeCategorySlug(c.slug, c.name);
             const id = String(c.id || slug).toLowerCase();
-            if (c && c.name && !c.is_deleted && !deletedSet.has(slug) && !deletedSet.has(id) && !customCategoriesMap.has(slug)) {
+            if (c && c.name && !c.is_deleted && slug && !deletedSet.has(slug) && !deletedSet.has(rawSlug) && !deletedSet.has(id) && !customCategoriesMap.has(slug)) {
               customCategoriesMap.set(slug, {
                 id: c.id || slug,
                 name: cleanCategoryName(c.name),
@@ -804,7 +827,7 @@ export async function fetchCustomCategories(force = false): Promise<CategoryItem
                 border: c.border || '#e9d5ff',
                 iconColor: c.iconColor || '#7c3aed',
                 description: c.description || '',
-                keywords: Array.isArray(c.keywords) ? c.keywords : c.name.toLowerCase().split(/\s+/),
+                keywords: Array.isArray(c.keywords) ? c.keywords : cleanCategoryName(c.name).toLowerCase().split(/\s+/),
                 created_at: c.created_at || c.createdAt || new Date().toISOString(),
                 is_custom: true,
               });

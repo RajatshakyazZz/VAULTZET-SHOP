@@ -23,9 +23,12 @@ export default function Footer() {
   const [isResellerRoute, setIsResellerRoute] = React.useState(false);
 
   const footerEmail =
-    settings.supportEmail && !settings.supportEmail.includes('vaultworld') && !settings.supportEmail.includes('dizi')
+    settings.supportEmail &&
+    !settings.supportEmail.includes('vaultworld') &&
+    !settings.supportEmail.includes('dizi') &&
+    !settings.supportEmail.includes('rajattracozegaming')
       ? settings.supportEmail
-      : 'rajattracozegaming@gmail.com';
+      : 'support@vaultzet.shop';
 
   React.useEffect(() => {
     if (typeof window !== 'undefined') {
@@ -299,9 +302,10 @@ export default function Footer() {
             </a>
           </div>
 
-          {/* Bottom Copyright Row */}
-          <div className="pt-4 border-t border-gray-100 flex flex-col sm:flex-row items-center justify-center gap-3 text-xs text-[#4a5270] font-medium">
-            <p>© {new Date().getFullYear()} {settings.storeName || 'Vaultzet Store'}. All rights reserved.</p>
+          {/* Bottom Copyright & Tax Row */}
+          <div className="pt-4 border-t border-gray-100 flex flex-col sm:flex-row items-center justify-between gap-2 text-xs text-[#4a5270] font-medium text-center">
+            <p>© {new Date().getFullYear()} {settings.storeName || 'Vaultzet Store'} • Digital Storefront, India. All rights reserved.</p>
+            <p className="font-semibold text-[#3f4766]">All prices are inclusive of applicable taxes.</p>
           </div>
 
         </div>

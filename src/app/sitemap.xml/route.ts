@@ -1,29 +1,32 @@
-export const revalidate = 86400;
+import { NextResponse } from 'next/server';
+import { getSitemapIndexLastmods } from '@/lib/sitemapDates';
+
+export const revalidate = 3600;
 
 export async function GET() {
   const baseUrl = (process.env.NEXT_PUBLIC_SITE_URL || 'https://www.vaultzet.shop').replace(/\/+$/, '');
+  const dates = getSitemapIndexLastmods();
 
   const xml = `<?xml version="1.0" encoding="UTF-8"?>
 <sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <sitemap>
     <loc>${baseUrl}/sitemap-pages.xml</loc>
-    <lastmod>2026-10-30T04:00:00.000Z</lastmod>
-  </sitemap>
-  <sitemap>
-    <loc>${baseUrl}/sitemap-products.xml</loc>
-    <lastmod>2026-10-29T10:00:00.000Z</lastmod>
+    <lastmod>${dates.pages}</lastmod>
   </sitemap>
   <sitemap>
     <loc>${baseUrl}/sitemap-categories.xml</loc>
-    <lastmod>2026-10-28T12:00:00.000Z</lastmod>
+    <lastmod>${dates.categories}</lastmod>
+  </sitemap>
+  <sitemap>
+    <loc>${baseUrl}/sitemap-products.xml</loc>
+    <lastmod>${dates.products}</lastmod>
   </sitemap>
 </sitemapindex>`;
 
-  return new Response(xml, {
-    status: 200,
+  return new NextResponse(xml, {
     headers: {
-      'Content-Type': 'application/xml; charset=utf-8',
-      'Cache-Control': 'public, s-maxage=86400, stale-while-revalidate=604800',
+      'Content-Type': 'application/xml',
+      'Cache-Control': 'public, s-maxage=3600, stale-while-revalidate=86400',
     },
   });
 }
