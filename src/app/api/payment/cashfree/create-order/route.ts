@@ -5,7 +5,7 @@ import { doc, setDoc, serverTimestamp } from 'firebase/firestore';
 import { sendAbandonedOrPendingTelegramAlert } from '@/lib/telegram';
 import { generateOrderToken } from '@/lib/orderToken';
 import { getResellerListingBySlug } from '@/lib/resellerService';
-import { BUNDLE_PRODUCTS, ORDER_BUMP } from '@/data/bundles';
+import { BUNDLE_PRODUCTS, ORDER_BUMP, HOT_GIRLS_ORDER_BUMP } from '@/data/bundles';
 import { calculateCouponDiscount } from '@/lib/coupon';
 import { fetchCustomProductBySlug } from '@/lib/customProducts';
 import { isEligibleForFreeBundleGift } from '@/lib/bundleResolver';
@@ -46,6 +46,14 @@ export async function POST(request: Request) {
         { status: 400 }
       );
     }
+
+    const resolvedOrderBump = orderBump
+      ? orderBump.id === HOT_GIRLS_ORDER_BUMP.id ||
+        orderBump.slug === HOT_GIRLS_ORDER_BUMP.slug ||
+        String(orderBump.title || '').toLowerCase().includes('hot girls')
+        ? HOT_GIRLS_ORDER_BUMP
+        : ORDER_BUMP
+      : null;
 
     // Server-authoritative price calculation and anti-tampering enforcement
     let finalTotalAmount = Number(totalAmount);
@@ -104,7 +112,7 @@ export async function POST(request: Request) {
       const resellerEarning = Math.max(0, approvedResalePrice - basePrice);
 
       // Authoritative order total derived strictly server-side
-      const bumpPrice = orderBump ? ORDER_BUMP.discountPrice : 0;
+      const bumpPrice = resolvedOrderBump ? resolvedOrderBump.discountPrice : 0;
       finalTotalAmount = approvedResalePrice + bumpPrice;
 
       resellerAttribution = {
@@ -173,8 +181,8 @@ export async function POST(request: Request) {
 
       expectedCatalogTotal = paidItemsCatalogTotal;
 
-      if (orderBump) {
-        expectedCatalogTotal += Number(ORDER_BUMP.discountPrice);
+      if (resolvedOrderBump) {
+        expectedCatalogTotal += Number(resolvedOrderBump.discountPrice);
       }
 
       // Apply validated coupon discount if couponCode is provided
@@ -247,7 +255,14 @@ export async function POST(request: Request) {
             phone: cleanPhone || '',
           },
           items: items && items.length > 0 ? items : [{ id: 'bundle', title: 'Viral Reels Bundle', price: Number(finalTotalAmount), license: 'personal' }],
-          orderBump: orderBump || null,
+          orderBump: resolvedOrderBump
+            ? {
+                id: resolvedOrderBump.id,
+                slug: resolvedOrderBump.slug,
+                title: resolvedOrderBump.title,
+                price: resolvedOrderBump.discountPrice,
+              }
+            : null,
           totalAmount: Number(finalTotalAmount),
           paymentMethod: 'Cashfree Gateway',
           transactionId: String(cashfreeOrder.order_id || orderNumber).slice(0, 95),

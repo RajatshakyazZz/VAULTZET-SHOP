@@ -14,8 +14,9 @@ export function optimizeImageUrl(
   const trimmed = url.trim();
   if (!trimmed) return '';
 
-  // Already optimized or vector formats
+  // Already optimized, data URLs, or vector formats
   if (trimmed.startsWith('/_next/image')) return trimmed;
+  if (trimmed.startsWith('data:') || trimmed.startsWith('blob:')) return trimmed;
   if (trimmed.endsWith('.svg') || trimmed.endsWith('.ico')) return trimmed;
 
   // Local static WebP files in public/ are already optimized

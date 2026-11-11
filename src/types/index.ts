@@ -44,6 +44,7 @@ export interface CartItem {
 
 export interface OrderBumpItem {
   id: string;
+  slug?: string;
   title: string;
   subtitle: string;
   originalPrice: number;
@@ -51,6 +52,16 @@ export interface OrderBumpItem {
   discountPercentage: number;
   thumbnail: string;
   reelCount: number;
+}
+
+export interface GrowthScreenshotItem {
+  id: string;
+  imageUrl: string;
+  pageHandle?: string;
+  metricBadge?: string;
+  caption?: string;
+  platform?: 'instagram' | 'youtube' | 'facebook';
+  createdAt?: string;
 }
 
 export interface ReelItem {

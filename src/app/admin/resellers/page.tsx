@@ -348,6 +348,12 @@ export default function AdminResellersManagementPage() {
               <ArrowLeft className="w-3.5 h-3.5" />
               <span>Dashboard</span>
             </Link>
+            <Link
+              href="/admin/growth-proof"
+              className="px-4 py-2 bg-purple-600/20 hover:bg-purple-600/30 border border-purple-500/40 rounded-xl text-xs font-bold text-purple-200 flex items-center gap-1.5 transition"
+            >
+              <span>📸 Growth Screenshots</span>
+            </Link>
             <button
               onClick={loadAll}
               className="px-4 py-2 bg-slate-900 hover:bg-slate-800 border border-slate-800 rounded-xl text-xs font-semibold text-slate-300 flex items-center gap-2 transition"

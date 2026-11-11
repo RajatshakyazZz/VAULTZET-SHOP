@@ -24,7 +24,7 @@ import {
   ShoppingBag,
 } from 'lucide-react';
 import { useCart } from '@/context/CartContext';
-import { ORDER_BUMP } from '@/data/bundles';
+import { getOrderBumpForContext } from '@/data/bundles';
 import { track } from '@/lib/analytics';
 import { resolveBundleSlug, isEligibleForFreeBundleGift } from '@/lib/bundleResolver';
 import { fetchCustomProductBySlug } from '@/lib/customProducts';
@@ -311,8 +311,9 @@ function CheckoutContent() {
     }
   };
 
-  // Dynamically calculate gross total and discount
-  const grossSubtotal = checkoutSubtotal + (orderBumpAdded ? ORDER_BUMP.discountPrice : 0);
+  // Dynamically calculate gross total and discount with page-specific order bump
+  const checkoutOrderBump = getOrderBumpForContext(checkoutItems, buyNowItem, productParam);
+  const grossSubtotal = checkoutSubtotal + (orderBumpAdded ? checkoutOrderBump.discountPrice : 0);
   const couponDiscount = appliedCoupon
     ? appliedCoupon.discountType === 'percent' && appliedCoupon.discountPercent
       ? Math.round((grossSubtotal * appliedCoupon.discountPercent) / 100)
@@ -507,8 +508,8 @@ function CheckoutContent() {
               })),
               orderBump: orderBumpAdded
                 ? {
-                    title: ORDER_BUMP.title,
-                    price: ORDER_BUMP.discountPrice,
+                    title: checkoutOrderBump.title,
+                    price: checkoutOrderBump.discountPrice,
                   }
                 : null,
               totalAmount: checkoutTotal,
@@ -581,9 +582,10 @@ function CheckoutContent() {
       })),
       orderBump: orderBumpAdded
         ? {
-            id: ORDER_BUMP.id,
-            title: ORDER_BUMP.title,
-            price: ORDER_BUMP.discountPrice,
+            id: checkoutOrderBump.id,
+            slug: checkoutOrderBump.slug,
+            title: checkoutOrderBump.title,
+            price: checkoutOrderBump.discountPrice,
           }
         : null,
       totalAmount: checkoutTotal,
@@ -1128,26 +1130,26 @@ function CheckoutContent() {
 
                   <div className="flex gap-4 items-start">
                     <img
-                      src={ORDER_BUMP.thumbnail}
-                      alt={ORDER_BUMP.title}
+                      src={checkoutOrderBump.thumbnail}
+                      alt={checkoutOrderBump.title}
                       className="w-20 sm:w-24 aspect-[4/3] rounded-xl object-cover shrink-0 border border-amber-200 shadow-sm"
                     />
                     <div className="flex-1 min-w-0">
                       <h3 className="font-extrabold text-sm text-[#182247] leading-snug">
-                        {ORDER_BUMP.title}
+                        {checkoutOrderBump.title}
                       </h3>
                       <p className="text-xs text-slate-500 mt-1 line-clamp-2">
-                        {ORDER_BUMP.subtitle}
+                        {checkoutOrderBump.subtitle}
                       </p>
                       <div className="flex items-center gap-2 mt-2">
                         <span className="font-black text-sm text-green-700">
-                          ₹{ORDER_BUMP.discountPrice}.00
+                          ₹{checkoutOrderBump.discountPrice}.00
                         </span>
                         <span className="text-xs text-slate-400 line-through">
-                          ₹{ORDER_BUMP.originalPrice}.00
+                          ₹{checkoutOrderBump.originalPrice}.00
                         </span>
                         <span className="px-1.5 py-0.5 rounded text-[10px] font-black bg-green-200 text-green-900">
-                          {ORDER_BUMP.discountPercentage}% OFF
+                          {checkoutOrderBump.discountPercentage}% OFF
                         </span>
                       </div>
                     </div>
@@ -1162,7 +1164,7 @@ function CheckoutContent() {
                       className="w-5 h-5 rounded text-rb-purple focus:ring-rb-purple border-slate-300 cursor-pointer"
                     />
                     <span className="text-xs font-extrabold text-[#182247]">
-                      Yes! Add this {ORDER_BUMP.reelCount}+ reels mega pack to my order for just ₹{ORDER_BUMP.discountPrice}
+                      Yes! Add this {checkoutOrderBump.reelCount.toLocaleString('en-IN')}+ reels mega pack to my order for just ₹{checkoutOrderBump.discountPrice}
                     </span>
                   </label>
                 </div>
@@ -1290,13 +1292,13 @@ function CheckoutContent() {
                   {orderBumpAdded && (
                     <div className="flex gap-3 items-center justify-between p-2.5 rounded-xl bg-amber-50/70 border border-amber-200">
                       <img
-                        src={ORDER_BUMP.thumbnail}
-                        alt={ORDER_BUMP.title}
+                        src={checkoutOrderBump.thumbnail}
+                        alt={checkoutOrderBump.title}
                         className="w-12 h-14 object-cover rounded-lg shrink-0"
                       />
                       <div className="flex-1 min-w-0 px-1">
                         <h4 className="font-bold text-xs text-amber-950 line-clamp-1">
-                          {ORDER_BUMP.title}
+                          {checkoutOrderBump.title}
                         </h4>
                         <span className="text-[10px] font-bold text-amber-800 bg-amber-200 px-1.5 py-0.5 rounded">
                           Bonus Offer
@@ -1304,7 +1306,7 @@ function CheckoutContent() {
                       </div>
                       <div className="text-right shrink-0">
                         <div className="font-extrabold text-xs text-amber-950">
-                          ₹{ORDER_BUMP.discountPrice}.00
+                          ₹{checkoutOrderBump.discountPrice}.00
                         </div>
                         <button
                           type="button"
@@ -1483,8 +1485,8 @@ function CheckoutContent() {
                   </div>
                   {orderBumpAdded && (
                     <div className="flex justify-between text-green-600">
-                      <span>Order Bump ({ORDER_BUMP.discountPercentage}% Off)</span>
-                      <span>+₹{ORDER_BUMP.discountPrice}.00</span>
+                      <span>Order Bump ({checkoutOrderBump.discountPercentage}% Off)</span>
+                      <span>+₹{checkoutOrderBump.discountPrice}.00</span>
                     </div>
                   )}
                   {appliedCoupon && couponDiscount > 0 && (

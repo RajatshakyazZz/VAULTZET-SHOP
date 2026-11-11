@@ -42,6 +42,11 @@ import { getBundleContentDetails } from '@/lib/bundleContent';
 import { track } from '@/lib/analytics';
 import { fetchCustomProductBySlug } from '@/lib/customProducts';
 import FreeBundleOfferBanner from '@/components/FreeBundleOfferBanner';
+import { HOT_GIRLS_ORDER_BUMP, isSheruBhaiIdentifier } from '@/data/bundles';
+import SheruSampleReels from '@/components/sheru/SheruSampleReels';
+import SheruBonusSection from '@/components/sheru/SheruBonusSection';
+import SheruGrowthProofSection from '@/components/sheru/SheruGrowthProofSection';
+import SheruPageOrderBump from '@/components/sheru/SheruPageOrderBump';
 
 interface ProductDetailClientProps {
   product: BundleProduct;
@@ -114,6 +119,11 @@ export default function ProductDetailClient({ product }: ProductDetailClientProp
   const [isDescExpanded, setIsDescExpanded] = useState(false);
   const [openFaqIndex, setOpenFaqIndex] = useState<number | null>(0);
   const [helpfulMap, setHelpfulMap] = useState<Record<string, number>>({});
+  const [isHotGirlsBumpAdded, setIsHotGirlsBumpAdded] = useState(false);
+
+  const isSheruPage =
+    isSheruBhaiIdentifier(currentProduct.slug) ||
+    isSheruBhaiIdentifier(currentProduct.id);
 
   useEffect(() => {
     setCurrentProduct(product);
@@ -346,7 +356,7 @@ export default function ProductDetailClient({ product }: ProductDetailClientProp
 
               {/* Pricing Box */}
               <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200/70 flex items-center justify-between gap-3">
-                <div>
+                <div className="min-w-0">
                   <div className="flex items-baseline gap-2">
                     <span className="text-3xl font-black text-slate-900 tracking-tight">
                       ₹{activePrice}.00
@@ -356,18 +366,34 @@ export default function ProductDetailClient({ product }: ProductDetailClientProp
                     </span>
                   </div>
                   <p className="text-[11px] text-slate-500 font-medium mt-0.5">
-                    One-time payment · Lifetime Google Drive access
+                    {isSheruPage
+                      ? 'One-time payment · Includes 2 Free Bonus Packs (6,000+ Reels)'
+                      : 'One-time payment · Lifetime Google Drive access'}
                   </p>
                 </div>
-                <div className="text-right">
+                <div className="text-right shrink-0">
                   <span className="inline-block px-2.5 py-1 rounded-lg bg-emerald-100 text-emerald-800 text-xs font-black">
                     Save ₹{savingsAmount}
                   </span>
                 </div>
               </div>
 
-              {/* Special Free Bundles Offer Banner */}
-              <FreeBundleOfferBanner variant="product" />
+              {/* Special Free Bundles Offer Banner (Replaced with clean Ad Offer Strip on Sheru Page) */}
+              {isSheruPage ? (
+                <div className="rounded-2xl bg-gradient-to-r from-[#6c3cf0]/10 via-fuchsia-50 to-amber-50 border border-purple-200/80 px-3.5 py-2.5 flex items-center justify-between gap-2">
+                  <p className="text-[11px] sm:text-xs font-extrabold text-slate-900 leading-snug">
+                    🔥 Trending Ad Offer • Includes 2 Free Bonus Bundles Worth ₹498 (6,000+ Reels Total)
+                  </p>
+                  <a
+                    href="#sheru-bonuses"
+                    className="text-[11px] font-black text-[#6c3cf0] underline underline-offset-2 shrink-0"
+                  >
+                    See Bonuses ↓
+                  </a>
+                </div>
+              ) : (
+                <FreeBundleOfferBanner variant="product" />
+              )}
 
               {/* Key Highlights */}
               <div className="grid grid-cols-2 gap-2 text-xs font-bold text-slate-700">
@@ -389,15 +415,32 @@ export default function ProductDetailClient({ product }: ProductDetailClientProp
                 </div>
               </div>
 
+              {/* Sheru Exclusive Page Order Bump */}
+              {isSheruPage && (
+                <SheruPageOrderBump
+                  checked={isHotGirlsBumpAdded}
+                  onToggle={() => setIsHotGirlsBumpAdded((prev) => !prev)}
+                  basePrice={activePrice}
+                />
+              )}
+
               {/* Primary Buy Button */}
               <div className="space-y-3 pt-1">
                 <button
                   type="button"
-                  onClick={() => buyNow(p, 'personal')}
+                  onClick={() =>
+                    buyNow(p, 'personal', isSheruPage ? isHotGirlsBumpAdded : false)
+                  }
                   className="w-full py-4 px-6 rounded-2xl btn-gradient-orange text-white font-black text-base shadow-lg hover:shadow-xl hover:scale-[1.01] active:scale-[0.98] transition-all flex items-center justify-center gap-2 cursor-pointer"
                 >
                   <Zap className="w-4 h-4 fill-white" />
-                  <span>Buy Now — ₹{activePrice}.00 (Instant Access)</span>
+                  <span>
+                    Buy Now — ₹
+                    {isSheruPage && isHotGirlsBumpAdded
+                      ? activePrice + (HOT_GIRLS_ORDER_BUMP.discountPrice ?? 99)
+                      : activePrice}
+                    .00 (Instant Access)
+                  </span>
                 </button>
 
                 <p className="text-center text-[11px] text-slate-500 font-medium flex items-center justify-center gap-1.5">
@@ -449,6 +492,25 @@ export default function ProductDetailClient({ product }: ProductDetailClientProp
           </div>
 
         </section>
+
+        {/* SHERU BHAI AD LANDING SECTIONS: SAMPLES + 2 FREE BONUSES + GROWTH PROOF */}
+        {isSheruPage && (
+          <>
+            <SheruSampleReels
+              price={activePrice}
+              onBuyClick={() => buyNow(p, 'personal', isHotGirlsBumpAdded)}
+            />
+            <SheruBonusSection
+              price={activePrice}
+              onBuyClick={() => buyNow(p, 'personal', isHotGirlsBumpAdded)}
+            />
+            <SheruGrowthProofSection
+              slug={p.slug}
+              price={activePrice}
+              onBuyClick={() => buyNow(p, 'personal', isHotGirlsBumpAdded)}
+            />
+          </>
+        )}
 
         {/* SECTION 1: HOW IT WORKS (3 Simple Steps) */}
         <section className="bg-white rounded-2xl sm:rounded-3xl border border-slate-200/90 p-5 sm:p-7 shadow-xs space-y-5">
@@ -839,11 +901,23 @@ export default function ProductDetailClient({ product }: ProductDetailClientProp
           <div className="flex flex-col shrink-0">
             <span className="text-[9px] font-bold text-emerald-600 flex items-center gap-1">
               <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-              Instant Access
+              {isSheruPage && isHotGirlsBumpAdded ? '+10K Bump Added' : 'Instant Access'}
             </span>
             <div className="flex items-baseline gap-1.5">
-              <span className="text-xl font-black text-slate-900">₹{activePrice}.00</span>
-              <span className="text-xs text-slate-400 line-through font-semibold">₹{originalPrice}.00</span>
+              <span className="text-xl font-black text-slate-900">
+                ₹
+                {isSheruPage && isHotGirlsBumpAdded
+                  ? activePrice + (HOT_GIRLS_ORDER_BUMP.discountPrice ?? 99)
+                  : activePrice}
+                .00
+              </span>
+              <span className="text-xs text-slate-400 line-through font-semibold">
+                ₹
+                {isSheruPage && isHotGirlsBumpAdded
+                  ? originalPrice + (HOT_GIRLS_ORDER_BUMP.originalPrice ?? 299)
+                  : originalPrice}
+                .00
+              </span>
             </div>
           </div>
 
@@ -866,11 +940,18 @@ export default function ProductDetailClient({ product }: ProductDetailClientProp
             </button>
             <button
               type="button"
-              onClick={() => buyNow(p, 'personal')}
+              onClick={() =>
+                buyNow(p, 'personal', isSheruPage ? isHotGirlsBumpAdded : false)
+              }
               className="flex-1 py-3 px-4 rounded-xl btn-gradient-orange text-white font-black text-sm shadow-md active:scale-95 transition-all flex items-center justify-center gap-1.5 cursor-pointer"
             >
               <Zap className="w-3.5 h-3.5 fill-white" />
-              <span>Buy Now</span>
+              <span>
+                Buy Now
+                {isSheruPage && isHotGirlsBumpAdded
+                  ? ` · ₹${activePrice + (HOT_GIRLS_ORDER_BUMP.discountPrice ?? 99)}`
+                  : ''}
+              </span>
             </button>
           </div>
         </div>

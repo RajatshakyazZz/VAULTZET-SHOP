@@ -1,8 +1,8 @@
 'use client';
 
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { BundleProduct, CartItem, LicenseType } from '@/types';
-import { ORDER_BUMP } from '@/data/bundles';
+import { BundleProduct, CartItem, LicenseType, OrderBumpItem } from '@/types';
+import { ORDER_BUMP, getOrderBumpForContext } from '@/data/bundles';
 import { useRouter } from 'next/navigation';
 import { track } from '@/lib/analytics';
 import { isEligibleForFreeBundleGift } from '@/lib/bundleResolver';
@@ -12,13 +12,14 @@ interface CartContextType {
   buyNowItem: CartItem | null;
   setBuyNowItem: (item: CartItem | null) => void;
   addToCart: (product: BundleProduct, license?: LicenseType) => void;
-  buyNow: (product: BundleProduct, license?: LicenseType) => void;
+  buyNow: (product: BundleProduct, license?: LicenseType, withOrderBump?: boolean) => void;
   removeFromCart: (productId: string, license: LicenseType) => void;
   clearBuyNowItem: () => void;
   clearCart: () => void;
   orderBumpAdded: boolean;
   setOrderBumpAdded: (added: boolean) => void;
   toggleOrderBump: () => void;
+  activeOrderBump: OrderBumpItem;
   cartCount: number;
   subtotal: number;
   total: number;
@@ -109,8 +110,9 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     }
   }, [items, freeBundles, orderBumpAdded]);
 
+  const activeOrderBump = getOrderBumpForContext(items, buyNowItem);
   const subtotal = items.reduce((acc, item) => acc + item.price, 0);
-  const total = subtotal + (orderBumpAdded ? ORDER_BUMP.discountPrice : 0);
+  const total = subtotal + (orderBumpAdded ? activeOrderBump.discountPrice : 0);
   const isQualifiedForFreeOffer = subtotal >= 149;
   const freeOfferProgress = Math.min(100, Math.round((subtotal / 149) * 100));
   const cartCount = items.length + freeBundles.length + (orderBumpAdded ? 1 : 0);
@@ -172,10 +174,16 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     setIsCartOpen(true);
   };
 
-  const buyNow = (product: BundleProduct, license: LicenseType = 'personal') => {
+  const buyNow = (product: BundleProduct, license: LicenseType = 'personal', withOrderBump?: boolean) => {
     const price = Number(license === 'reseller' ? product.resellerPrice : product.personalPrice);
     const singleItem: CartItem = { product, license, price };
     setBuyNowItem(singleItem);
+    if (typeof withOrderBump === 'boolean') {
+      setOrderBumpAdded(withOrderBump);
+      try {
+        localStorage.setItem('vaultzet_bump', JSON.stringify(withOrderBump));
+      } catch {}
+    }
     try {
       sessionStorage.setItem('vaultzet_buynow_item', JSON.stringify(singleItem));
       localStorage.setItem('vaultzet_buynow_item', JSON.stringify(singleItem));
@@ -258,6 +266,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
         orderBumpAdded,
         setOrderBumpAdded,
         toggleOrderBump,
+        activeOrderBump,
         cartCount,
         subtotal,
         total,

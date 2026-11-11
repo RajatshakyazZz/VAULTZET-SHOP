@@ -5,7 +5,6 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { X, Trash2, ArrowRight, ShieldCheck, Zap, Gift, Lock } from 'lucide-react';
 import { useCart } from '@/context/CartContext';
-import { ORDER_BUMP } from '@/data/bundles';
 import { optimizeImageUrl } from '@/lib/imageOptimized';
 
 export default function CartDrawer() {
@@ -19,6 +18,7 @@ export default function CartDrawer() {
     total,
     orderBumpAdded,
     toggleOrderBump,
+    activeOrderBump,
     freeBundles,
     removeFreeBundle,
     setIsFreeBundleModalOpen,
@@ -212,8 +212,8 @@ export default function CartDrawer() {
                 </div>
                 <div className="flex gap-3 items-center">
                   <img
-                    src={optimizeImageUrl(ORDER_BUMP.thumbnail, 128, 70)}
-                    alt={ORDER_BUMP.title}
+                    src={optimizeImageUrl(activeOrderBump.thumbnail, 128, 70)}
+                    alt={activeOrderBump.title}
                     width={48}
                     height={56}
                     loading="lazy"
@@ -222,17 +222,17 @@ export default function CartDrawer() {
                   />
                   <div className="flex-1 min-w-0">
                     <p className="font-bold text-xs text-slate-900 leading-snug line-clamp-2">
-                      {ORDER_BUMP.title}
+                      {activeOrderBump.title}
                     </p>
                     <div className="flex items-center gap-2 mt-1">
                       <span className="font-extrabold text-xs text-green-700">
-                        ₹{ORDER_BUMP.discountPrice}
+                        ₹{activeOrderBump.discountPrice}
                       </span>
                       <span className="text-[10px] text-slate-400 line-through">
-                        ₹{ORDER_BUMP.originalPrice}
+                        ₹{activeOrderBump.originalPrice}
                       </span>
                       <span className="text-[10px] font-bold px-1.5 py-0.2 bg-green-200/80 text-green-800 rounded">
-                        {ORDER_BUMP.discountPercentage}% OFF
+                        {activeOrderBump.discountPercentage}% OFF
                       </span>
                     </div>
                   </div>
@@ -244,7 +244,7 @@ export default function CartDrawer() {
                         : 'bg-white border border-amber-300 text-amber-900 hover:bg-amber-100'
                     }`}
                   >
-                    {orderBumpAdded ? '✓ Added' : `+ Add ₹${ORDER_BUMP.discountPrice}`}
+                    {orderBumpAdded ? '✓ Added' : `+ Add ₹${activeOrderBump.discountPrice}`}
                   </button>
                 </div>
               </div>
@@ -258,8 +258,8 @@ export default function CartDrawer() {
                   </div>
                   {orderBumpAdded && (
                     <div className="flex justify-between text-emerald-600 text-xs font-bold">
-                      <span>Bonus Upsell Pack ({ORDER_BUMP.discountPercentage}% Off)</span>
-                      <span>+₹{ORDER_BUMP.discountPrice}.00</span>
+                      <span>Bonus Upsell Pack ({activeOrderBump.discountPercentage}% Off)</span>
+                      <span>+₹{activeOrderBump.discountPrice}.00</span>
                     </div>
                   )}
                   <div className="flex justify-between text-sm sm:text-base font-extrabold text-[#182247] pt-2 border-t border-purple-100">

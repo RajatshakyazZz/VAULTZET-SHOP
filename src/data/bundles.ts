@@ -5,6 +5,7 @@ export const CATEGORIES = COMPETITOR_CATEGORIES;
 
 export const ORDER_BUMP: OrderBumpItem = {
   id: 'rb-sheru-bhai-3000',
+  slug: '3000-sheru-bhai-mega-reel-bundle-pack',
   title: '3000+ Sheru Bhai Mega Reel Bundle Pack',
   subtitle: 'Exclusive Checkout Add-On: 3000+ viral Sheru Bhai comedy & dialogue reels at 90% instant discount!',
   originalPrice: 999,
@@ -13,6 +14,48 @@ export const ORDER_BUMP: OrderBumpItem = {
   thumbnail: '/sheru-bhai-cover.png',
   reelCount: 3000,
 };
+
+export const HOT_GIRLS_ORDER_BUMP: OrderBumpItem = {
+  id: 'rb-hot-girls-reels-bundle',
+  slug: 'hot-girls-reels-bundle',
+  title: '10000+ Hot Girls Reels Bundle – Glamour, Fashion & Aesthetic Videos',
+  subtitle: 'Special Sheru Page Add-On: Add 10,000+ glamour, fashion & aesthetic model reels for just ₹99!',
+  originalPrice: 299,
+  discountPrice: 99,
+  discountPercentage: 67,
+  thumbnail: '/hot-girls-bump.jpg',
+  reelCount: 10000,
+};
+
+export function isSheruBhaiIdentifier(value?: string | null): boolean {
+  if (!value) return false;
+  const clean = String(value).trim().toLowerCase();
+  return (
+    clean === 'rb-sheru-bhai-3000' ||
+    clean === '3000-sheru-bhai-mega-reel-bundle-pack' ||
+    clean === 'prod-1794291801082' ||
+    clean.includes('sheru-bhai')
+  );
+}
+
+export function getOrderBumpForContext(
+  items?: Array<{ product?: { id?: string; slug?: string } | null }> | null,
+  buyNowItem?: { product?: { id?: string; slug?: string } | null } | null,
+  explicitSlugOrId?: string | null
+): OrderBumpItem {
+  const isSheruContext =
+    isSheruBhaiIdentifier(explicitSlugOrId) ||
+    isSheruBhaiIdentifier(buyNowItem?.product?.id) ||
+    isSheruBhaiIdentifier(buyNowItem?.product?.slug) ||
+    (Array.isArray(items) &&
+      items.some(
+        (i) =>
+          isSheruBhaiIdentifier(i?.product?.id) ||
+          isSheruBhaiIdentifier(i?.product?.slug)
+      ));
+
+  return isSheruContext ? HOT_GIRLS_ORDER_BUMP : ORDER_BUMP;
+}
 
 export const BUNDLE_PRODUCTS: BundleProduct[] = [
   {
@@ -57,6 +100,23 @@ export const BUNDLE_PRODUCTS: BundleProduct[] = [
     "format": "MP4",
     "audioIncluded": true,
     "googleDriveLink": "https://drive.google.com/drive/folders/1sr2POBi408SvcrkDbbuCnEskLFwz4HuK",
+    "files": [
+      {
+        "id": "file-1",
+        "name": "3000+ Sheru Bhai Mega Reel Bundle Pack",
+        "file_url": "https://drive.google.com/drive/folders/1sr2POBi408SvcrkDbbuCnEskLFwz4HuK"
+      },
+      {
+        "id": "file-bonus-snake",
+        "name": "FREE Bonus #1: 500+ Snake Ulti Duniya AI Reels Bundle",
+        "file_url": "https://drive.google.com/drive/folders/1CksKkU1ERAuhD9hgBZNP7xP9g068mG-c?usp=sharing"
+      },
+      {
+        "id": "file-bonus-stickman",
+        "name": "FREE Bonus #2: 2500+ Stickman Animation Reels Bundle",
+        "file_url": "https://drive.google.com/drive/folders/1yuOoZ2f7P3tdj8ubF_J-hLEkts0jXmW3"
+      }
+    ],
     "features": [
       "3000+ High Quality HD Viral Sheru Bhai Reels",
       "100% Watermark-Free & Ready to Post Immediately",
@@ -486,7 +546,7 @@ export const BUNDLE_PRODUCTS: BundleProduct[] = [
     "aspectRatio": "9:16 Vertical",
     "format": "MP4",
     "audioIncluded": true,
-    "googleDriveLink": "https://drive.google.com/drive/folders/demo-snake",
+    "googleDriveLink": "https://drive.google.com/drive/folders/1CksKkU1ERAuhD9hgBZNP7xP9g068mG-c?usp=sharing",
     "features": [
       "500+ High Quality Viral Reels",
       "Ready to Post with Trending Audio",
@@ -642,7 +702,7 @@ export const BUNDLE_PRODUCTS: BundleProduct[] = [
     "aspectRatio": "9:16 Vertical",
     "format": "MP4",
     "audioIncluded": true,
-    "googleDriveLink": "https://drive.google.com/drive/folders/demo-stickman",
+    "googleDriveLink": "https://drive.google.com/drive/folders/1yuOoZ2f7P3tdj8ubF_J-hLEkts0jXmW3",
     "features": [
       "2500+ High Quality Viral Reels",
       "Ready to Post with Trending Audio",
@@ -5476,7 +5536,7 @@ export const BUNDLE_PRODUCTS: BundleProduct[] = [
     "aspectRatio": "9:16 Vertical",
     "format": "MP4",
     "audioIncluded": true,
-    "googleDriveLink": "https://drive.google.com/drive/folders/demo-hot-girls-reels-bundle",
+    "googleDriveLink": "https://drive.google.com/drive/folders/1DaIU_BeG5NCj6TfbxABFT_ORhJRcjAid",
     "features": [
       "10000+ High Quality Viral Reels",
       "Ready to Post with Trending Audio",
