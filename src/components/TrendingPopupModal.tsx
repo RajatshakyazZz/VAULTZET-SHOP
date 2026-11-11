@@ -2,22 +2,21 @@
 
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { usePathname, useRouter } from 'next/navigation';
-import { X, Zap, Sparkles, CheckCircle2, ArrowRight, Flame, ShieldCheck, Play } from 'lucide-react';
-import { useCart } from '@/context/CartContext';
+import { usePathname } from 'next/navigation';
+import { X, Zap, CheckCircle2, ArrowRight, Flame, ShieldCheck, Play } from 'lucide-react';
 import { BUNDLE_PRODUCTS } from '@/data/bundles';
-import { optimizeImageUrl } from '@/lib/imageOptimized';
+
+const SHERU_PRODUCT_URL = '/product/3000-sheru-bhai-mega-reel-bundle-pack';
 
 export default function TrendingPopupModal() {
   const [isOpen, setIsOpen] = useState(false);
   const pathname = usePathname();
-  const router = useRouter();
-  const { buyNow } = useCart();
 
   // Find the Sheru Bhai bundle from BUNDLE_PRODUCTS
   const sheruProduct = BUNDLE_PRODUCTS.find(
     (b) => b.slug === '3000-sheru-bhai-mega-reel-bundle-pack' || b.id === 'rb-sheru-bhai-3000'
   ) || BUNDLE_PRODUCTS[0];
+  const productUrl = sheruProduct?.slug ? `/product/${sheruProduct.slug}` : SHERU_PRODUCT_URL;
 
   useEffect(() => {
     // Avoid showing on checkout, order success, admin, or the product page itself
@@ -54,15 +53,6 @@ export default function TrendingPopupModal() {
     } catch {}
   };
 
-  const handleBuyNow = () => {
-    handleClose();
-    if (sheruProduct) {
-      buyNow(sheruProduct, 'personal');
-    } else {
-      router.push('/product/3000-sheru-bhai-mega-reel-bundle-pack');
-    }
-  };
-
   if (!isOpen || !sheruProduct) return null;
 
   return (
@@ -70,7 +60,7 @@ export default function TrendingPopupModal() {
       role="dialog"
       aria-modal="true"
       aria-labelledby="trending-modal-title"
-      className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-300"
+      className="fixed inset-0 z-[70] flex items-center justify-center p-3 sm:p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-300"
       onClick={handleClose}
     >
       <div
@@ -100,9 +90,13 @@ export default function TrendingPopupModal() {
 
         <div className="p-4 sm:p-6 space-y-4">
           {/* Main Product Card */}
-          <div className="flex gap-4 items-center">
+          <Link
+            href={productUrl}
+            onClick={handleClose}
+            className="flex gap-4 items-center group"
+          >
             {/* Visual Thumbnail */}
-            <div className="relative w-24 sm:w-28 aspect-[3/4] rounded-2xl overflow-hidden bg-slate-900 border-2 border-purple-100 shrink-0 shadow-md">
+            <div className="relative w-24 sm:w-28 aspect-[3/4] rounded-2xl overflow-hidden bg-slate-900 border-2 border-purple-100 group-hover:border-purple-300 transition-colors shrink-0 shadow-md">
               <img
                 src={sheruProduct.thumbnail || '/sheru-bhai-cover.png'}
                 alt={sheruProduct.title}
@@ -133,7 +127,7 @@ export default function TrendingPopupModal() {
 
               <h3
                 id="trending-modal-title"
-                className="text-sm sm:text-base font-black text-slate-900 leading-snug line-clamp-2"
+                className="text-sm sm:text-base font-black text-slate-900 group-hover:text-[#6734f7] transition-colors leading-snug line-clamp-2"
               >
                 {sheruProduct.title}
               </h3>
@@ -153,7 +147,7 @@ export default function TrendingPopupModal() {
                 </span>
               </div>
             </div>
-          </div>
+          </Link>
 
           {/* Quick Value Highlights */}
           <div className="grid grid-cols-2 gap-2 text-[11px] sm:text-xs text-slate-700 font-bold bg-purple-50/70 p-3 rounded-xl border border-purple-100">
@@ -177,21 +171,21 @@ export default function TrendingPopupModal() {
 
           {/* CTAs */}
           <div className="space-y-2 pt-1">
-            <button
-              onClick={handleBuyNow}
-              type="button"
+            <Link
+              href={productUrl}
+              onClick={handleClose}
               className="w-full py-3.5 px-5 rounded-2xl bg-gradient-to-r from-[#6734f7] via-[#a32bf6] to-[#ec288d] text-white font-black text-sm shadow-lg hover:shadow-xl hover:scale-[1.01] active:scale-95 transition-all flex items-center justify-center gap-2 cursor-pointer"
             >
               <Zap className="w-4 h-4 fill-white" />
-              <span>Instant Buy Now — Just ₹{sheruProduct.personalPrice}</span>
-            </button>
+              <span>View Bundle &amp; Buy — Just ₹{sheruProduct.personalPrice}</span>
+            </Link>
 
             <Link
-              href="/product/3000-sheru-bhai-mega-reel-bundle-pack"
+              href={productUrl}
               onClick={handleClose}
               className="w-full py-2 px-4 rounded-xl text-center text-xs font-bold text-slate-600 hover:text-purple-700 hover:bg-slate-50 transition-colors flex items-center justify-center gap-1"
             >
-              <span>View Full Details & Previews</span>
+              <span>Watch Previews &amp; Full Details</span>
               <ArrowRight className="w-3.5 h-3.5" />
             </Link>
           </div>

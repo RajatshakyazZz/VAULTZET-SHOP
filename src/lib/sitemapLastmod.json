@@ -1,15 +1,15 @@
 {
   "pages": {
-    "/": "2026-11-11T14:24:54.813Z",
-    "/shop": "2026-11-11T14:01:41.067Z",
-    "/reels": "2026-11-11T14:01:46.069Z",
-    "/about-us": "2026-11-11T14:02:58.726Z",
-    "/contact-us": "2026-11-11T14:15:18.444Z",
-    "/claim-offer": "2026-11-11T14:18:35.389Z",
-    "/earn": "2026-11-11T14:21:50.004Z",
-    "/privacy-policy": "2026-11-11T14:15:33.384Z",
-    "/refund-policy": "2026-11-11T14:15:24.000Z",
-    "/terms-and-conditions": "2026-11-11T14:15:39.624Z"
+    "/": "2026-11-11T14:44:30.000Z",
+    "/shop": "2026-11-11T14:44:30.000Z",
+    "/reels": "2026-11-11T14:44:30.000Z",
+    "/about-us": "2026-11-11T14:44:30.000Z",
+    "/contact-us": "2026-11-11T14:44:30.000Z",
+    "/claim-offer": "2026-11-11T14:44:30.000Z",
+    "/earn": "2026-11-11T14:44:30.000Z",
+    "/privacy-policy": "2026-11-11T14:44:30.000Z",
+    "/refund-policy": "2026-11-11T14:44:30.000Z",
+    "/terms-and-conditions": "2026-11-11T14:44:30.000Z"
   },
   "categories": {
     "ai-reels": "2026-10-13T16:29:22.000Z",
@@ -31,12 +31,12 @@
     "model-reels": "2026-10-13T16:29:22.000Z",
     "motivation-reels": "2026-10-13T16:29:22.000Z",
     "anime-reels": "2026-10-13T16:29:22.000Z",
-    "art-and-craft": "2026-11-11T14:38:43.000Z",
+    "art-and-craft": "2026-11-11T14:44:30.000Z",
     "asmr-reels": "2026-10-13T16:29:22.000Z",
     "baby-reels": "2026-10-13T16:29:22.000Z",
     "business-reels": "2026-10-13T16:29:22.000Z",
     "cars-reels": "2026-10-13T16:29:22.000Z",
-    "cartoons-and-animation": "2026-11-11T14:38:43.000Z",
+    "cartoons-and-animation": "2026-11-11T14:44:30.000Z",
     "fashion-reels": "2026-10-13T16:29:22.000Z",
     "health-reels": "2026-10-13T16:29:22.000Z",
     "kids-reels": "2026-10-13T16:29:22.000Z",
@@ -50,20 +50,20 @@
     "mindset-reels": "2026-10-13T16:29:22.000Z",
     "movie-reels": "2026-10-13T16:29:22.000Z",
     "religious-reels": "2026-10-13T16:29:22.000Z",
-    "spiritual-and-devotional": "2026-11-11T14:38:43.000Z",
+    "spiritual-and-devotional": "2026-11-11T14:44:30.000Z",
     "tech-reels": "2026-10-13T16:29:22.000Z",
-    "tools-and-tips": "2026-11-11T14:38:43.000Z",
+    "tools-and-tips": "2026-11-11T14:44:30.000Z",
     "travel-reels": "2026-10-13T16:29:22.000Z",
     "ai-story-reels": "2026-10-13T16:29:22.000Z",
     "attitude-reels": "2026-10-13T16:29:22.000Z",
     "car-reels": "2026-10-13T16:29:22.000Z",
     "collectibles-reels": "2026-10-13T16:29:22.000Z",
     "dance-reels": "2026-10-13T16:29:22.000Z",
-    "emotional-and-drama": "2026-11-11T14:38:43.000Z",
+    "emotional-and-drama": "2026-11-11T14:44:30.000Z",
     "inspirational-reels": "2026-10-13T16:29:22.000Z",
     "podcast-reels": "2026-10-13T16:29:22.000Z",
-    "satisfying-and-asmr": "2026-11-11T14:38:43.000Z",
-    "space-and-universe": "2026-11-11T14:38:43.000Z",
+    "satisfying-and-asmr": "2026-11-11T14:44:30.000Z",
+    "space-and-universe": "2026-11-11T14:44:30.000Z",
     "trending-reels": "2026-10-13T16:29:22.000Z",
     "unboxing-reels": "2026-10-13T16:29:22.000Z"
   },
@@ -202,8 +202,8 @@
     "billionaire-lifestyle-reels-bundle": "2026-10-13T14:58:34.000Z"
   },
   "defaults": {
-    "pages": "2026-11-11T14:24:54.813Z",
-    "categories": "2026-11-11T13:29:10.429Z",
-    "products": "2026-11-11T14:02:32.132Z"
+    "pages": "2026-11-11T14:44:30.000Z",
+    "categories": "2026-11-11T14:44:30.000Z",
+    "products": "2026-11-11T14:44:30.000Z"
   }
 }
