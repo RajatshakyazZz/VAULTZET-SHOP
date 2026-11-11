@@ -1,14 +1,12 @@
 'use client';
 
-import React, { useState } from 'react';
+import React from 'react';
 import { CheckCircle2, Gift, Play, Sparkles, Zap } from 'lucide-react';
 import {
   SHERU_BONUSES,
   SNAKE_BONUS_SAMPLE_VIDEOS,
-  STICKMAN_BONUS_SAMPLE_VIDEOS,
-  type SheruSampleVideo,
 } from '@/data/sheruCampaign';
-import VideoPreviewModal from './VideoPreviewModal';
+import InlineSampleVideoGrid from './InlineSampleVideoGrid';
 
 interface SheruBonusSectionProps {
   onBuyClick?: () => void;
@@ -19,26 +17,8 @@ export default function SheruBonusSection({
   onBuyClick,
   price = 99,
 }: SheruBonusSectionProps) {
-  const [modalItems, setModalItems] = useState<SheruSampleVideo[]>([]);
-  const [activeIndex, setActiveIndex] = useState<number | null>(null);
-  const [modalLabel, setModalLabel] = useState<string>('Bonus Sample Preview');
-  const [fallbackIds, setFallbackIds] = useState<Record<string, boolean>>({});
-
   const bonusOne = SHERU_BONUSES[0];
   const bonusTwo = SHERU_BONUSES[1];
-
-  const openModal = (items: SheruSampleVideo[], index: number, label: string) => {
-    setModalItems(items);
-    setActiveIndex(index);
-    setModalLabel(label);
-  };
-
-  const getThumbnailSrc = (item: SheruSampleVideo) => {
-    if (fallbackIds[item.id] && item.fallbackThumbnailUrl) {
-      return item.fallbackThumbnailUrl;
-    }
-    return item.thumbnailUrl;
-  };
 
   return (
     <section
@@ -66,7 +46,7 @@ export default function SheruBonusSection({
         </div>
 
         <div className="space-y-6">
-          {/* BONUS #1: 500+ SNAKE ULTI DUNIYA + 4 DRIVE SAMPLES */}
+          {/* BONUS #1: 500+ SNAKE ULTI DUNIYA + 4 INLINE SAMPLES */}
           <div className="rounded-3xl bg-white border-2 border-purple-200/80 shadow-lg p-4 sm:p-6 md:p-7 overflow-hidden">
             <div className="grid grid-cols-1 md:grid-cols-[270px_1fr] gap-5 items-center">
               {/* Bonus 1 Image */}
@@ -127,60 +107,24 @@ export default function SheruBonusSection({
               </div>
             </div>
 
-            {/* 4 Sample Videos for Snake Bonus */}
+            {/* 4 Inline Sample Videos for Snake Bonus */}
             <div className="mt-6 pt-5 border-t border-slate-100">
               <div className="flex flex-wrap items-center justify-between gap-2 mb-3">
                 <p className="text-xs sm:text-sm font-black text-slate-900 flex items-center gap-1.5">
                   <Play className="w-4 h-4 text-[#6c3cf0] fill-[#6c3cf0]" />
-                  Bonus #1 Sample Videos — Tap Any Reel to Preview
+                  Bonus #1 Sample Videos — Tap Any Reel to Play Here
                 </p>
                 <span className="text-[11px] font-bold text-purple-700 bg-purple-50 px-2.5 py-0.5 rounded-full">
                   4 Live Samples
                 </span>
               </div>
 
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 sm:gap-3.5">
-                {SNAKE_BONUS_SAMPLE_VIDEOS.map((sample, idx) => (
-                  <button
-                    key={sample.id}
-                    type="button"
-                    onClick={() =>
-                      openModal(SNAKE_BONUS_SAMPLE_VIDEOS, idx, 'Bonus #1: Snake Ulti Duniya')
-                    }
-                    className="group relative w-full aspect-[9/16] rounded-2xl overflow-hidden bg-slate-900 border border-slate-200 hover:border-purple-500 shadow-sm hover:shadow-lg transition-all text-left cursor-pointer"
-                    aria-label={`Play ${sample.title}`}
-                  >
-                    <img
-                      src={getThumbnailSrc(sample)}
-                      alt={sample.title}
-                      loading="lazy"
-                      onError={() => {
-                        if (!fallbackIds[sample.id] && sample.fallbackThumbnailUrl) {
-                          setFallbackIds((prev) => ({ ...prev, [sample.id]: true }));
-                        }
-                      }}
-                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/20 to-transparent" />
-                    <div className="absolute top-2 left-2 px-2 py-0.5 rounded-md bg-slate-950/75 text-[10px] font-extrabold text-white">
-                      Snake #{idx + 1}
-                    </div>
-                    <div className="absolute inset-0 flex items-center justify-center">
-                      <span className="w-10 h-10 sm:w-11 sm:h-11 rounded-full bg-white/95 text-slate-950 flex items-center justify-center shadow-xl group-hover:scale-110 transition-transform">
-                        <Play className="w-4 h-4 sm:w-5 sm:h-5 fill-slate-950 ml-0.5" />
-                      </span>
-                    </div>
-                    <div className="absolute bottom-0 inset-x-0 p-2.5">
-                      <p className="text-[11px] font-bold text-white line-clamp-1">
-                        {sample.title}
-                      </p>
-                      <p className="text-[10px] font-semibold text-purple-300">
-                        Tap to Watch →
-                      </p>
-                    </div>
-                  </button>
-                ))}
-              </div>
+              <InlineSampleVideoGrid
+                items={SNAKE_BONUS_SAMPLE_VIDEOS}
+                gridClassName="grid grid-cols-2 sm:grid-cols-4 gap-2.5 sm:gap-3.5"
+                labelPrefix="Snake"
+                cardBorderClass="border-slate-200 hover:border-purple-500"
+              />
             </div>
           </div>
 
@@ -242,25 +186,6 @@ export default function SheruBonusSection({
                     <span>Ultra-High Watch Time Niche</span>
                   </div>
                 </div>
-
-                {STICKMAN_BONUS_SAMPLE_VIDEOS.length > 0 && (
-                  <div className="pt-2">
-                    <button
-                      type="button"
-                      onClick={() =>
-                        openModal(
-                          STICKMAN_BONUS_SAMPLE_VIDEOS,
-                          0,
-                          'Bonus #2: Stickman Animation'
-                        )
-                      }
-                      className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-xs sm:text-sm font-bold shadow transition-all cursor-pointer"
-                    >
-                      <Play className="w-4 h-4 fill-white text-white" />
-                      <span>Watch Stickman Bonus Sample Reel</span>
-                    </button>
-                  </div>
-                )}
               </div>
             </div>
           </div>
@@ -288,16 +213,6 @@ export default function SheruBonusSection({
           )}
         </div>
       </div>
-
-      <VideoPreviewModal
-        items={modalItems}
-        activeIndex={activeIndex}
-        onClose={() => setActiveIndex(null)}
-        onSelectIndex={(idx) => setActiveIndex(idx)}
-        onBuyClick={onBuyClick}
-        ctaLabel={`Get Main Pack + Both Bonuses — ₹${price}`}
-        sectionLabel={modalLabel}
-      />
     </section>
   );
 }
