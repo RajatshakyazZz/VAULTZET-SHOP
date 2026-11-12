@@ -82,15 +82,21 @@ export async function POST(request: Request) {
       let capiStatus = storedOrder?.purchase_event_status || 'pending';
       let capiSentAt = storedOrder?.purchase_event_sent_at || null;
 
-      // 1. Dispatch CAPI if not already delivered
+      // 1. Dispatch CAPI if not already delivered (using persisted fbc/fbp/IP/UA from order creation)
       if (!isCapiDelivered) {
         try {
+          const storedMeta = storedOrder?.meta_attribution || {};
           const capiResult = await sendMetaCapiPurchase({
             orderId,
             totalAmount: Number(storedOrder?.totalAmount || paidAmount || 0),
             currency: 'INR',
             items: storedOrder?.items || [],
             customer: storedOrder?.customer,
+            clientIp: storedMeta.clientIp || undefined,
+            clientUserAgent: storedMeta.clientUserAgent || undefined,
+            fbp: storedMeta.fbp || undefined,
+            fbc: storedMeta.fbc || undefined,
+            eventSourceUrl: storedMeta.eventSourceUrl || undefined,
           });
 
           if (capiResult.success) {

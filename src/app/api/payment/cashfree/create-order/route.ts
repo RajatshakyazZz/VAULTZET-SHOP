@@ -3,7 +3,7 @@ import { createCashfreePgOrder } from '@/lib/cashfree';
 import { db } from '@/lib/firebase';
 import { doc, setDoc, serverTimestamp } from 'firebase/firestore';
 import { sendAbandonedOrPendingTelegramAlert } from '@/lib/telegram';
-import { generateOrderToken } from '@/lib/orderToken';
+import { generateOrderToken, extractClientMetadata } from '@/lib/orderToken';
 import { getResellerListingBySlug } from '@/lib/resellerService';
 import { BUNDLE_PRODUCTS, ORDER_BUMP, HOT_GIRLS_ORDER_BUMP } from '@/data/bundles';
 import { calculateCouponDiscount } from '@/lib/coupon';
@@ -243,7 +243,19 @@ export async function POST(request: Request) {
       returnUrl: `${returnBaseUrl}/api/payment/cashfree/return?order_id={order_id}&token=${encodeURIComponent(orderToken)}`,
     });
 
-    // 2. Persist Pending Order to Firestore
+    // 2. Persist Pending Order to Firestore (including Meta CAPI attribution metadata)
+    const serverMeta = extractClientMetadata(request);
+    const clientAttr = body.metaAttribution && typeof body.metaAttribution === 'object' ? body.metaAttribution : {};
+    const metaAttribution: Record<string, string> = {};
+    if (serverMeta.clientIp) metaAttribution.clientIp = serverMeta.clientIp;
+    if (serverMeta.clientUserAgent) metaAttribution.clientUserAgent = serverMeta.clientUserAgent;
+    const resolvedFbp = String(serverMeta.fbp || clientAttr.fbp || '').trim();
+    const resolvedFbc = String(serverMeta.fbc || clientAttr.fbc || '').trim();
+    const resolvedSourceUrl = String(clientAttr.eventSourceUrl || '').trim();
+    if (resolvedFbp) metaAttribution.fbp = resolvedFbp;
+    if (resolvedFbc) metaAttribution.fbc = resolvedFbc;
+    if (resolvedSourceUrl) metaAttribution.eventSourceUrl = resolvedSourceUrl;
+
     if (db) {
       try {
         const orderRef = doc(db, 'orders', orderNumber);
@@ -276,6 +288,7 @@ export async function POST(request: Request) {
           order_token: orderToken,
           applied_coupon: appliedCouponDetails || null,
           discount_amount: appliedCouponDetails?.discount_amount || 0,
+          meta_attribution: Object.keys(metaAttribution).length > 0 ? metaAttribution : null,
           ...resellerAttribution,
         });
       } catch (firestoreErr) {

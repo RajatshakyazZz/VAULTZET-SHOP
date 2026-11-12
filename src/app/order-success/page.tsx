@@ -178,6 +178,7 @@ function OrderSuccessContent() {
               tax: 0,
               shipping: 0,
               items: purchaseItems,
+              customer: data.customer,
             });
           }
         } else {

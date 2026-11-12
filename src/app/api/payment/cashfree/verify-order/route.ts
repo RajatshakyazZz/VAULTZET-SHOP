@@ -246,16 +246,18 @@ async function handleVerify(
     // Send server-side Meta Conversions API (CAPI) purchase event once
     if (!isCapiDelivered) {
       try {
+        const storedMeta = storedOrder?.meta_attribution || {};
         const capiResult = await sendMetaCapiPurchase({
           orderId,
           totalAmount: Number(storedOrder?.totalAmount || verification.order_amount || 0),
           currency: 'INR',
           items: storedOrder?.items || [],
           customer: storedOrder?.customer,
-          clientIp: clientMeta?.clientIp,
-          clientUserAgent: clientMeta?.clientUserAgent,
-          fbp: clientMeta?.fbp,
-          fbc: clientMeta?.fbc,
+          clientIp: clientMeta?.clientIp || storedMeta.clientIp || undefined,
+          clientUserAgent: clientMeta?.clientUserAgent || storedMeta.clientUserAgent || undefined,
+          fbp: clientMeta?.fbp || storedMeta.fbp || undefined,
+          fbc: clientMeta?.fbc || storedMeta.fbc || undefined,
+          eventSourceUrl: storedMeta.eventSourceUrl || undefined,
         });
 
         if (capiResult.success) {

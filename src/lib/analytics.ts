@@ -111,6 +111,87 @@ function omitUndefined(obj: Record<string, any>): Record<string, any> {
   return result;
 }
 
+function readCookieValue(name: string): string | undefined {
+  if (typeof document === 'undefined') return undefined;
+  try {
+    const prefix = `${name}=`;
+    const parts = document.cookie.split(';');
+    for (const part of parts) {
+      const trimmed = part.trim();
+      if (trimmed.startsWith(prefix)) {
+        return decodeURIComponent(trimmed.slice(prefix.length)).trim() || undefined;
+      }
+    }
+  } catch {}
+  return undefined;
+}
+
+/**
+ * Captures Meta Click ID (fbclid -> _fbc), _fbp cookie, and landing URL across navigations
+ * so attribution persists even if UPI payment switches between Instagram In-App Browser and Chrome.
+ */
+export function captureMetaAttributionParams(): void {
+  if (typeof window === 'undefined') return;
+  try {
+    const params = new URLSearchParams(window.location.search);
+    const fbclid = params.get('fbclid')?.trim();
+
+    if (fbclid) {
+      const existingFbc = readCookieValue('_fbc');
+      if (!existingFbc || !existingFbc.endsWith(`.${fbclid}`)) {
+        const fbcVal = `fb.1.${Date.now()}.${fbclid}`;
+        try {
+          localStorage.setItem('vaultzet_meta_fbc', fbcVal);
+        } catch {}
+        try {
+          document.cookie = `_fbc=${encodeURIComponent(fbcVal)}; path=/; max-age=7776000; SameSite=Lax`;
+        } catch {}
+      } else {
+        try {
+          localStorage.setItem('vaultzet_meta_fbc', existingFbc);
+        } catch {}
+      }
+    } else {
+      const cookieFbc = readCookieValue('_fbc');
+      if (cookieFbc) {
+        try {
+          localStorage.setItem('vaultzet_meta_fbc', cookieFbc);
+        } catch {}
+      }
+    }
+
+    const cookieFbp = readCookieValue('_fbp');
+    if (cookieFbp) {
+      try {
+        localStorage.setItem('vaultzet_meta_fbp', cookieFbp);
+      } catch {}
+    }
+
+    if (!sessionStorage.getItem('vaultzet_landing_url')) {
+      sessionStorage.setItem('vaultzet_landing_url', window.location.href);
+    }
+  } catch {}
+}
+
+/**
+ * Retrieves preserved Meta attribution values (_fbp, _fbc, landing URL) for server CAPI.
+ */
+export function getMetaAttributionData(): { fbp?: string; fbc?: string; eventSourceUrl?: string } {
+  if (typeof window === 'undefined') return {};
+  captureMetaAttributionParams();
+  let fbp = readCookieValue('_fbp');
+  let fbc = readCookieValue('_fbc');
+  let eventSourceUrl: string | undefined;
+
+  try {
+    if (!fbp) fbp = localStorage.getItem('vaultzet_meta_fbp') || undefined;
+    if (!fbc) fbc = localStorage.getItem('vaultzet_meta_fbc') || undefined;
+    eventSourceUrl = sessionStorage.getItem('vaultzet_landing_url') || window.location.href;
+  } catch {}
+
+  return omitUndefined({ fbp, fbc, eventSourceUrl });
+}
+
 /**
  * Ensures Meta Pixel queue stub and fbevents.js loader are synchronously ready for the
  * single primary pixel (1715650960276913), so early React mount events never get dropped.
@@ -306,6 +387,18 @@ function bridgeToMetaPixel(event: AnalyticsEventName, payload: Record<string, an
       case 'purchase': {
         const orderId = payload.transaction_id || payload.order_id || '';
         const eventId = payload.event_id || (orderId ? `purchase_${orderId}` : `purchase_${Date.now()}`);
+        if (payload.customer && typeof payload.customer === 'object') {
+          const email = String(payload.customer.email || '').trim().toLowerCase();
+          let phoneDigits = String(payload.customer.phone || '').replace(/\D/g, '');
+          if (phoneDigits.length === 10 && /^[6-9]/.test(phoneDigits)) {
+            phoneDigits = `91${phoneDigits}`;
+          }
+          const fn = String(payload.customer.fullName || '').trim().split(/\s+/)[0]?.toLowerCase() || '';
+          const userData = omitUndefined({ em: email || undefined, ph: phoneDigits || undefined, fn: fn || undefined });
+          if (Object.keys(userData).length > 0) {
+            window.fbq('init', PRIMARY_META_PIXEL_ID, userData);
+          }
+        }
         const fbData = omitUndefined({
           ...buildMetaProductPayload(payload),
           order_id: orderId || undefined,

@@ -25,7 +25,7 @@ import {
 } from 'lucide-react';
 import { useCart } from '@/context/CartContext';
 import { getOrderBumpForContext } from '@/data/bundles';
-import { track } from '@/lib/analytics';
+import { track, getMetaAttributionData } from '@/lib/analytics';
 import { resolveBundleSlug, isEligibleForFreeBundleGift } from '@/lib/bundleResolver';
 import { fetchCustomProductBySlug } from '@/lib/customProducts';
 
@@ -599,6 +599,7 @@ function CheckoutContent() {
       totalAmount: checkoutTotal,
       resellerSlug: resellerSlug || undefined,
       couponCode: appliedCoupon ? appliedCoupon.code : undefined,
+      metaAttribution: getMetaAttributionData(),
     };
 
     try {

@@ -2,7 +2,7 @@
 
 import { useEffect, useRef } from 'react';
 import { usePathname, useSearchParams } from 'next/navigation';
-import { track, sanitizePagePath } from '@/lib/analytics';
+import { track, sanitizePagePath, captureMetaAttributionParams } from '@/lib/analytics';
 
 export default function AnalyticsTracker() {
   const pathname = usePathname();
@@ -13,6 +13,8 @@ export default function AnalyticsTracker() {
   // Track page_view on route change (including query string changes)
   useEffect(() => {
     if (typeof window === 'undefined') return;
+
+    captureMetaAttributionParams();
 
     const fullUrl = window.location.pathname + window.location.search;
     const { cleanPath, trackingParams } = sanitizePagePath(fullUrl);
