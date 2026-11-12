@@ -24,15 +24,18 @@ export default function FloatingSheruButton() {
 
   // Mobile bottom nav check: WhatsApp button is at bottom-20 (80px) on mobile with h-14 (56px) -> occupies up to 136px.
   // We place Sheru button directly above WhatsApp with a clean gap: bottom-[148px] on mobile, sm:bottom-[92px] on desktop.
+  const isProductPage = pathname?.startsWith('/product/');
   const hasMobileBottomNav =
     !pathname?.startsWith('/r/') &&
     pathname !== '/r' &&
     !pathname?.startsWith('/earn') &&
     pathname !== '/earn';
 
-  const positionClass = hasMobileBottomNav
-    ? 'bottom-[148px] right-4 sm:bottom-[92px] sm:right-6'
-    : 'bottom-[148px] md:bottom-[92px] right-4 sm:right-6';
+  const positionClass = isProductPage
+    ? 'bottom-[212px] right-3 md:bottom-[92px] md:right-6'
+    : hasMobileBottomNav
+      ? 'bottom-[148px] right-4 sm:bottom-[92px] sm:right-6'
+      : 'bottom-[148px] md:bottom-[92px] right-4 sm:right-6';
 
   return (
     <div
