@@ -525,7 +525,7 @@ export default function ReelsFeedClient({
                 <h2 className="max-w-[84%] text-[15px] sm:text-[17px] font-extrabold leading-snug tracking-tight text-white drop-shadow-md">
                   <Link
                     href={getProductUrlForReel(reel)}
-                    className="hover:text-purple-300 transition-colors inline"
+                    className="hover:text-red-400 transition-colors inline"
                   >
                     <span>{reel.bundleTitle || reel.title}</span>
                     <span className="inline-block ml-1 text-white/90 text-sm">↗</span>

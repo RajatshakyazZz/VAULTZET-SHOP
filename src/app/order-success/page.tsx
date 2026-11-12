@@ -247,32 +247,32 @@ function OrderSuccessContent() {
   const cleanWhatsappNumber = (settings?.supportWhatsapp || '+91 7895317940').replace(/[^0-9]/g, '');
 
   return (
-    <div className="rbt-page py-6 sm:py-12 bg-gradient-to-b from-white via-[#faf9ff] to-[#f6f3ff] min-h-screen text-[#17214a]">
+    <div className="rbt-page py-6 sm:py-12 bg-gradient-to-b from-white via-[#faf9f6] to-[#f8fafc] min-h-screen text-slate-950">
       <div className="rbt-container max-w-[1180px] mx-auto px-4 sm:px-6 space-y-6 sm:space-y-8">
 
         {/* 1. STATE: VERIFYING PAYMENT */}
         {status === 'verifying' && (
-          <div className="bg-white rounded-3xl p-8 sm:p-14 border border-purple-100 shadow-[0_12px_36px_rgba(95,57,220,0.08)] text-center space-y-6 max-w-2xl mx-auto my-12">
-            <div className="w-20 h-20 rounded-full bg-purple-50 text-purple-600 flex items-center justify-center mx-auto shadow-inner animate-pulse">
+          <div className="bg-white rounded-3xl p-8 sm:p-14 border border-red-100 shadow-[0_12px_36px_rgba(239,68,68,0.08)] text-center space-y-6 max-w-2xl mx-auto my-12">
+            <div className="w-20 h-20 rounded-full bg-red-50 text-red-600 flex items-center justify-center mx-auto shadow-inner animate-pulse">
               <Lock className="w-10 h-10 stroke-[2.2]" />
             </div>
 
             <div className="space-y-2">
-              <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-black uppercase tracking-wider bg-purple-100 text-purple-800">
+              <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-black uppercase tracking-wider bg-red-100 text-red-800">
                 <ShieldCheck className="w-3.5 h-3.5" />
                 Security Verification
               </div>
-              <h1 className="text-2xl sm:text-3xl font-black text-[#17214a]">
+              <h1 className="text-2xl sm:text-3xl font-black text-slate-950">
                 Verifying Payment &amp; Unlocking Files...
               </h1>
-              <p className="text-sm text-[#5e6888] font-medium max-w-md mx-auto leading-relaxed">
+              <p className="text-sm text-slate-600 font-medium max-w-md mx-auto leading-relaxed">
                 We are securely confirming your transaction status with the Cashfree gateway.
                 Your Google Drive access links will appear immediately upon verification.
               </p>
             </div>
 
-            <div className="p-4 rounded-2xl bg-purple-50/70 border border-purple-100 inline-flex items-center gap-2 text-xs font-mono font-bold text-purple-700">
-              <RefreshCw className="w-4 h-4 animate-spin text-purple-600" />
+            <div className="p-4 rounded-2xl bg-red-50/70 border border-red-100 inline-flex items-center gap-2 text-xs font-mono font-bold text-red-700">
+              <RefreshCw className="w-4 h-4 animate-spin text-red-600" />
               <span>Verifying Order: {orderId}</span>
             </div>
           </div>
@@ -289,10 +289,10 @@ function OrderSuccessContent() {
               <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-black uppercase tracking-wider bg-rose-100 text-rose-800">
                 Access Protected
               </div>
-              <h1 className="text-2xl sm:text-3xl font-black text-[#17214a]">
+              <h1 className="text-2xl sm:text-3xl font-black text-slate-950">
                 Payment Not Confirmed Yet
               </h1>
-              <p className="text-sm text-[#5e6888] font-medium max-w-md mx-auto leading-relaxed">
+              <p className="text-sm text-slate-600 font-medium max-w-md mx-auto leading-relaxed">
                 Google Drive files are locked and only accessible after a confirmed payment.
                 If you already paid via UPI or Card, click below to re-check your payment status.
               </p>
@@ -308,7 +308,7 @@ function OrderSuccessContent() {
               <button
                 type="button"
                 onClick={() => setRetryCount((c) => c + 1)}
-                className="w-full sm:w-auto px-7 py-3 rounded-full bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white text-xs font-black flex items-center justify-center gap-2 shadow-lg shadow-purple-600/30 transition-transform hover:scale-[1.02]"
+                className="w-full sm:w-auto px-7 py-3 rounded-full bg-gradient-to-r from-red-600 via-rose-600 to-red-600 hover:from-red-700 hover:to-rose-700 text-white text-xs font-black flex items-center justify-center gap-2 shadow-lg shadow-red-500/25 transition-transform hover:scale-[1.02] cursor-pointer"
               >
                 <RefreshCw className="w-4 h-4" />
                 <span>Re-Check Payment Status</span>
@@ -332,15 +332,15 @@ function OrderSuccessContent() {
         {status === 'paid' && isResellerOrder && (
           <div className="max-w-2xl mx-auto space-y-6 sm:space-y-8 animate-fadeIn">
             {/* Top Minimal Brand Bar */}
-            <div className="flex items-center justify-between pb-4 border-b border-purple-100 text-xs text-slate-500">
+            <div className="flex items-center justify-between pb-4 border-b border-slate-200 text-xs text-slate-500">
               <span className="font-bold text-slate-700">Vaultzet Order Confirmation</span>
-              <span className="font-mono text-[11px] bg-purple-50 text-purple-700 px-2.5 py-1 rounded-full font-bold">
+              <span className="font-mono text-[11px] bg-red-50 text-red-700 px-2.5 py-1 rounded-full font-bold">
                 Order #{verifiedData?.orderNumber || orderId}
               </span>
             </div>
 
             {/* Celebratory Hero Card */}
-            <div className="rounded-3xl p-6 sm:p-8 bg-gradient-to-br from-emerald-50 via-white to-purple-50/40 border border-emerald-200/80 shadow-lg text-center space-y-4">
+            <div className="rounded-3xl p-6 sm:p-8 bg-gradient-to-br from-emerald-50 via-white to-red-50/40 border border-emerald-200/80 shadow-lg text-center space-y-4">
               <div className="relative w-20 h-20 rounded-full bg-emerald-500 text-white flex items-center justify-center mx-auto shadow-lg shadow-emerald-500/25">
                 <Check className="w-10 h-10 stroke-[3.5]" />
                 <div className="absolute -inset-1 rounded-full border-2 border-emerald-400/50 animate-ping pointer-events-none" />
@@ -350,7 +350,7 @@ function OrderSuccessContent() {
                 <span className="text-xs font-black uppercase tracking-wider text-emerald-600 bg-emerald-100/80 px-3 py-1 rounded-full">
                   Payment Verified & Completed
                 </span>
-                <h1 className="text-2xl sm:text-3xl font-black text-[#17214a] pt-1">
+                <h1 className="text-2xl sm:text-3xl font-black text-slate-950 pt-1">
                   Thank You for Your Order!
                 </h1>
                 <p className="text-xs sm:text-sm text-slate-600 font-medium max-w-md mx-auto leading-relaxed">
@@ -367,7 +367,7 @@ function OrderSuccessContent() {
                   href={verifiedData?.items?.[0]?.googleDriveLink || 'https://drive.google.com'}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="w-full sm:w-auto inline-flex items-center justify-center gap-2.5 px-8 py-4 rounded-2xl bg-gradient-to-r from-emerald-600 via-teal-600 to-indigo-600 hover:from-emerald-500 hover:to-indigo-500 text-white font-black text-sm shadow-xl shadow-emerald-600/25 transition-transform hover:scale-[1.02] active:scale-[0.98]"
+                  className="w-full sm:w-auto inline-flex items-center justify-center gap-2.5 px-8 py-4 rounded-2xl bg-gradient-to-r from-emerald-600 via-teal-600 to-emerald-700 hover:from-emerald-500 hover:to-teal-500 text-white font-black text-sm shadow-xl shadow-emerald-600/25 transition-transform hover:scale-[1.02] active:scale-[0.98]"
                 >
                   <Download className="w-5 h-5 stroke-[2.5]" />
                   <span>Open Google Drive & Access Reels Now</span>
@@ -422,11 +422,11 @@ function OrderSuccessContent() {
                         />
                       )}
                       <div className="min-w-0 space-y-1">
-                        <h4 className="font-bold text-xs sm:text-sm text-[#17214a] leading-snug">
+                        <h4 className="font-bold text-xs sm:text-sm text-slate-950 leading-snug">
                           {item.title}
                         </h4>
                         <div className="flex flex-wrap items-center gap-1.5 text-[11px] text-slate-500">
-                          <span className="bg-purple-100 text-purple-700 font-bold px-2 py-0.5 rounded">
+                          <span className="bg-red-100 text-red-700 font-bold px-2 py-0.5 rounded">
                             1080x1920 HD
                           </span>
                           <span className="bg-emerald-100 text-emerald-800 font-bold px-2 py-0.5 rounded">
@@ -445,7 +445,7 @@ function OrderSuccessContent() {
                       href={item.googleDriveLink || 'https://drive.google.com'}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="w-full sm:w-auto px-4 py-2.5 rounded-xl bg-purple-600 hover:bg-purple-700 text-white text-xs font-bold flex items-center justify-center gap-1.5 shrink-0 transition-colors"
+                      className="w-full sm:w-auto px-4 py-2.5 rounded-xl bg-gradient-to-r from-red-600 to-rose-600 hover:from-red-700 hover:to-rose-700 text-white text-xs font-bold flex items-center justify-center gap-1.5 shrink-0 shadow-md shadow-red-500/20 transition-all"
                     >
                       <FolderOpen className="w-4 h-4" />
                       <span>Open Folder</span>
@@ -470,7 +470,7 @@ function OrderSuccessContent() {
                 </div>
                 <div className="p-3 rounded-xl bg-slate-50 col-span-2 sm:col-span-1">
                   <span className="text-[11px] text-slate-400 font-bold block">License Type</span>
-                  <strong className="text-xs font-bold text-purple-700">
+                  <strong className="text-xs font-bold text-red-700">
                     Lifetime Commercial
                   </strong>
                 </div>
@@ -483,16 +483,16 @@ function OrderSuccessContent() {
                 How to use your reels
               </h3>
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
-                <div className="p-3 rounded-xl bg-purple-50/60 border border-purple-100 space-y-1">
-                  <span className="text-purple-700 font-black block">1. Open Google Drive</span>
+                <div className="p-3 rounded-xl bg-red-50/60 border border-red-100 space-y-1">
+                  <span className="text-red-700 font-black block">1. Open Google Drive</span>
                   <p className="text-slate-600 text-[11px]">Click the button above to view your folder of high quality vertical videos.</p>
                 </div>
-                <div className="p-3 rounded-xl bg-purple-50/60 border border-purple-100 space-y-1">
-                  <span className="text-purple-700 font-black block">2. Save to Phone/PC</span>
+                <div className="p-3 rounded-xl bg-red-50/60 border border-red-100 space-y-1">
+                  <span className="text-red-700 font-black block">2. Save to Phone/PC</span>
                   <p className="text-slate-600 text-[11px]">Download individual reels or entire folders with 1 click without watermarks.</p>
                 </div>
-                <div className="p-3 rounded-xl bg-purple-50/60 border border-purple-100 space-y-1">
-                  <span className="text-purple-700 font-black block">3. Post & Grow</span>
+                <div className="p-3 rounded-xl bg-red-50/60 border border-red-100 space-y-1">
+                  <span className="text-red-700 font-black block">3. Post & Grow</span>
                   <p className="text-slate-600 text-[11px]">Upload to Instagram, YouTube Shorts, or Facebook. Edit or add trending audio as desired.</p>
                 </div>
               </div>
@@ -534,7 +534,7 @@ function OrderSuccessContent() {
             </div>
 
             {/* The ReelsBundles Signature Hero Card (.rbt-success) */}
-            <section className="relative rounded-[26px] p-6 sm:p-9 border border-[#e7e4f3] bg-gradient-to-r from-[#f0fff8] via-[#f7f7ff] to-[#fff3fb] shadow-[0_12px_36px_rgba(39,35,92,0.06)] overflow-hidden">
+            <section className="relative rounded-[26px] p-6 sm:p-9 border border-slate-200 bg-gradient-to-r from-[#f0fff8] via-[#ffffff] to-[#fff5f5] shadow-[0_12px_36px_rgba(15,23,42,0.06)] overflow-hidden">
               <div className="grid grid-cols-1 md:grid-cols-12 gap-6 items-center">
                 
                 {/* Big Green Check Circle Icon */}
@@ -551,16 +551,16 @@ function OrderSuccessContent() {
                     <Sparkles className="w-4 h-4 fill-emerald-500 text-emerald-500" />
                     Verified &amp; Payment Successful
                   </span>
-                  <h1 className="text-2xl sm:text-4xl font-black text-[#17214a] tracking-tight leading-tight">
+                  <h1 className="text-2xl sm:text-4xl font-black text-slate-950 tracking-tight leading-tight">
                     Order Completed Successfully!
                   </h1>
-                  <p className="text-xs sm:text-sm text-[#5e6888] font-medium max-w-xl leading-relaxed">
+                  <p className="text-xs sm:text-sm text-slate-600 font-medium max-w-xl leading-relaxed">
                     Thank you for your purchase! Your payment was verified and confirmed.
                     Your Google Drive reels access links are ready below
                     {verifiedData?.customer?.email && (
                       <>
                         {' '}and have also been sent to{' '}
-                        <strong className="text-slate-900 font-bold underline decoration-purple-300">
+                        <strong className="text-slate-900 font-bold underline decoration-red-300">
                           {verifiedData.customer.email}
                         </strong>.
                       </>
@@ -570,12 +570,12 @@ function OrderSuccessContent() {
 
                 {/* 3D Visual Art Badge on Desktop */}
                 <div className="md:col-span-3 hidden md:flex justify-end">
-                  <div className="w-[180px] h-[130px] rounded-[24px] bg-gradient-to-br from-[#7e3af2] via-[#6a32e4] to-[#5424cb] p-4 text-white shadow-[0_14px_30px_rgba(95,57,220,0.22)] relative flex flex-col items-center justify-center text-center overflow-hidden">
+                  <div className="w-[180px] h-[130px] rounded-[24px] bg-gradient-to-br from-red-600 via-rose-600 to-red-700 p-4 text-white shadow-[0_14px_30px_rgba(239,68,68,0.25)] relative flex flex-col items-center justify-center text-center overflow-hidden">
                     <div className="absolute -top-6 -right-6 w-20 h-20 rounded-full bg-white/10 pointer-events-none" />
                     <div className="w-11 h-11 rounded-2xl bg-white/20 backdrop-blur-md flex items-center justify-center mb-2 shadow-inner">
                       <Download className="w-6 h-6 text-white stroke-[2.5]" />
                     </div>
-                    <span className="text-[11px] font-black uppercase tracking-wider text-purple-200">
+                    <span className="text-[11px] font-black uppercase tracking-wider text-red-100">
                       Cloud Delivery
                     </span>
                     <strong className="text-xs font-extrabold text-white">
@@ -588,10 +588,10 @@ function OrderSuccessContent() {
             </section>
 
             {/* ReelsBundles 6-Column Order Summary Strip (.rbt-order-summary) */}
-            <section className="rounded-2xl border border-[#e7e4f3] bg-white p-4 sm:p-5 shadow-[0_6px_22px_rgba(39,35,92,0.04)]">
+            <section className="rounded-2xl border border-slate-200 bg-white p-4 sm:p-5 shadow-[0_6px_22px_rgba(15,23,42,0.04)]">
               <div className="flex items-center justify-between mb-3 pb-2.5 border-b border-slate-100">
-                <h3 className="text-xs font-black uppercase tracking-wider text-[#17214a] flex items-center gap-1.5">
-                  <Award className="w-4 h-4 text-purple-600" />
+                <h3 className="text-xs font-black uppercase tracking-wider text-slate-950 flex items-center gap-1.5">
+                  <Award className="w-4 h-4 text-red-600" />
                   <span>Order Summary &amp; Verification Details</span>
                 </h3>
                 <span className="text-[11px] font-bold text-emerald-600 bg-emerald-50 px-2.5 py-0.5 rounded-full border border-emerald-100 flex items-center gap-1">
@@ -603,12 +603,12 @@ function OrderSuccessContent() {
               <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 sm:gap-4">
                 {/* 1. Order Number */}
                 <div className="p-3 rounded-xl bg-slate-50/70 border border-slate-100 flex items-center gap-3">
-                  <div className="w-8 h-8 rounded-lg bg-purple-100 text-purple-700 flex items-center justify-center font-bold text-xs shrink-0">
+                  <div className="w-8 h-8 rounded-lg bg-red-100 text-red-700 flex items-center justify-center font-bold text-xs shrink-0">
                     #
                   </div>
                   <div className="min-w-0">
                     <small className="block text-[11px] font-bold text-slate-400">Order ID</small>
-                    <strong className="block text-xs font-black text-[#17214a] truncate">
+                    <strong className="block text-xs font-black text-slate-950 truncate">
                       {verifiedData?.orderNumber || orderId}
                     </strong>
                   </div>
@@ -616,12 +616,12 @@ function OrderSuccessContent() {
 
                 {/* 2. Date */}
                 <div className="p-3 rounded-xl bg-slate-50/70 border border-slate-100 flex items-center gap-3">
-                  <div className="w-8 h-8 rounded-lg bg-purple-100 text-purple-700 flex items-center justify-center shrink-0">
+                  <div className="w-8 h-8 rounded-lg bg-red-100 text-red-700 flex items-center justify-center shrink-0">
                     <Calendar className="w-4 h-4" />
                   </div>
                   <div className="min-w-0">
                     <small className="block text-[11px] font-bold text-slate-400">Date</small>
-                    <strong suppressHydrationWarning className="block text-xs font-black text-[#17214a]">
+                    <strong suppressHydrationWarning className="block text-xs font-black text-slate-950">
                       {new Date().toLocaleDateString('en-IN', {
                         day: 'numeric',
                         month: 'short',
@@ -633,12 +633,12 @@ function OrderSuccessContent() {
 
                 {/* 3. Customer Email */}
                 <div className="p-3 rounded-xl bg-slate-50/70 border border-slate-100 flex items-center gap-3 col-span-2 sm:col-span-1">
-                  <div className="w-8 h-8 rounded-lg bg-purple-100 text-purple-700 flex items-center justify-center shrink-0">
+                  <div className="w-8 h-8 rounded-lg bg-red-100 text-red-700 flex items-center justify-center shrink-0">
                     <Mail className="w-4 h-4" />
                   </div>
                   <div className="min-w-0">
                     <small className="block text-[11px] font-bold text-slate-400">Access Sent To</small>
-                    <strong className="block text-xs font-black text-[#17214a] truncate" title={verifiedData?.customer?.email || 'Your Gmail'}>
+                    <strong className="block text-xs font-black text-slate-950 truncate" title={verifiedData?.customer?.email || 'Your Gmail'}>
                       {verifiedData?.customer?.email || 'customer@gmail.com'}
                     </strong>
                   </div>
@@ -651,7 +651,7 @@ function OrderSuccessContent() {
                   </div>
                   <div className="min-w-0">
                     <small className="block text-[11px] font-bold text-slate-400">Total Paid</small>
-                    <strong suppressHydrationWarning className="block text-xs font-black text-[#17214a]">
+                    <strong suppressHydrationWarning className="block text-xs font-black text-slate-950">
                       ₹{verifiedData?.order_amount || verifiedData?.totalAmount || 0}.00
                     </strong>
                   </div>
@@ -674,7 +674,7 @@ function OrderSuccessContent() {
                 <div className="flex items-center justify-end col-span-2 sm:col-span-3 lg:col-span-1">
                   <Link
                     href="/my-order"
-                    className="w-full h-full min-h-[46px] px-3 rounded-xl bg-purple-50 hover:bg-purple-100 border border-purple-200 text-purple-700 text-xs font-black flex items-center justify-center gap-1.5 transition-colors"
+                    className="w-full h-full min-h-[46px] px-3 rounded-xl bg-red-50 hover:bg-red-100 border border-red-200 text-red-700 text-xs font-black flex items-center justify-center gap-1.5 transition-colors"
                   >
                     <FolderOpen className="w-3.5 h-3.5" />
                     <span>My Orders</span>
@@ -685,7 +685,7 @@ function OrderSuccessContent() {
 
             {/* SPECIAL VIP BANNER: IF ALL-ACCESS MEMBERSHIP PURCHASED */}
             {hasAllAccessPurchased && (
-              <section className="relative rounded-[26px] p-6 sm:p-8 bg-gradient-to-r from-[#5f1ec9] via-[#9128bd] to-[#d4369a] text-white shadow-[0_16px_40px_rgba(114,36,205,0.28)] overflow-hidden">
+              <section className="relative rounded-[26px] p-6 sm:p-8 bg-gradient-to-r from-red-600 via-rose-600 to-red-700 text-white shadow-[0_16px_40px_rgba(239,68,68,0.28)] overflow-hidden">
                 <div className="pointer-events-none absolute -top-12 -right-8 w-52 h-52 rounded-full bg-white/10" />
                 <div className="hidden sm:block absolute left-3.5 top-5 bottom-5 w-[4px] bg-white/95 rounded-full" />
 
@@ -699,7 +699,7 @@ function OrderSuccessContent() {
                     <h2 className="text-xl sm:text-3xl font-black text-white tracking-tight">
                       You Have Unlocked Every Reels Bundle in the Store!
                     </h2>
-                    <p className="text-xs sm:text-sm text-purple-100 max-w-2xl font-medium leading-relaxed">
+                    <p className="text-xs sm:text-sm text-red-50 max-w-2xl font-medium leading-relaxed">
                       Congratulations! You now have lifetime master access to all {metrics.bundleCount} published reels bundles ({metrics.totalReelsFormatted} viral HD videos), future upcoming releases, and commercial reseller rights.
                     </p>
                   </div>
@@ -707,19 +707,19 @@ function OrderSuccessContent() {
                   <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 pt-2">
                     <div className="p-3 rounded-xl bg-white/10 backdrop-blur-sm border border-white/15">
                       <strong className="block text-base sm:text-lg font-black text-white">{metrics.categoryCount}</strong>
-                      <span className="text-[11px] text-purple-200 font-bold">Categories Included</span>
+                      <span className="text-[11px] text-red-100 font-bold">Categories Included</span>
                     </div>
                     <div className="p-3 rounded-xl bg-white/10 backdrop-blur-sm border border-white/15">
                       <strong className="block text-base sm:text-lg font-black text-white">{metrics.totalReelsFormatted}</strong>
-                      <span className="text-[11px] text-purple-200 font-bold">Ready-to-Post Reels</span>
+                      <span className="text-[11px] text-red-100 font-bold">Ready-to-Post Reels</span>
                     </div>
                     <div className="p-3 rounded-xl bg-white/10 backdrop-blur-sm border border-white/15">
                       <strong className="block text-base sm:text-lg font-black text-white">Reseller</strong>
-                      <span className="text-[11px] text-purple-200 font-bold">Commercial License</span>
+                      <span className="text-[11px] text-red-100 font-bold">Commercial License</span>
                     </div>
                     <div className="p-3 rounded-xl bg-white/10 backdrop-blur-sm border border-white/15">
                       <strong className="block text-base sm:text-lg font-black text-white">Lifetime</strong>
-                      <span className="text-[11px] text-purple-200 font-bold">Cloud Drive Updates</span>
+                      <span className="text-[11px] text-red-100 font-bold">Cloud Drive Updates</span>
                     </div>
                   </div>
                 </div>
@@ -730,11 +730,11 @@ function OrderSuccessContent() {
             <section className="space-y-4">
               <div className="flex items-center justify-between gap-4 flex-wrap">
                 <div className="flex items-center gap-3">
-                  <div className="w-9 h-9 rounded-xl bg-[#f0ebff] text-[#6c3cff] flex items-center justify-center font-black">
+                  <div className="w-9 h-9 rounded-xl bg-red-50 text-red-600 border border-red-200/60 flex items-center justify-center font-black">
                     <FolderOpen className="w-5 h-5" />
                   </div>
                   <div>
-                    <h2 className="text-lg sm:text-xl font-black text-[#17214a] leading-none">
+                    <h2 className="text-lg sm:text-xl font-black text-slate-950 leading-none">
                       Your Google Drive Download Links
                     </h2>
                     <small className="text-xs text-slate-500 font-medium">
@@ -743,7 +743,7 @@ function OrderSuccessContent() {
                   </div>
                 </div>
 
-                <span className="text-xs font-black text-purple-700 bg-purple-50 px-3 py-1 rounded-full border border-purple-100">
+                <span className="text-xs font-black text-red-700 bg-red-50 px-3 py-1 rounded-full border border-red-100">
                   {verifiedData?.items?.length || 1} Item(s) Ready
                 </span>
               </div>
@@ -758,7 +758,7 @@ function OrderSuccessContent() {
                   return (
                     <article
                       key={idx}
-                      className="rounded-[22px] border border-[#e7e4f3] bg-white p-4 sm:p-5 shadow-[0_8px_24px_rgba(39,35,92,0.05)] transition-all hover:shadow-[0_12px_32px_rgba(39,35,92,0.08)]"
+                      className="rounded-[22px] border border-slate-200 bg-white p-4 sm:p-5 shadow-[0_8px_24px_rgba(15,23,42,0.05)] transition-all hover:shadow-[0_12px_32px_rgba(15,23,42,0.08)]"
                     >
                       <div className="grid grid-cols-1 md:grid-cols-12 gap-5 items-center">
                         
@@ -790,8 +790,8 @@ function OrderSuccessContent() {
                             <span
                               className={`text-[10.5px] font-black uppercase tracking-wider px-2.5 py-0.5 rounded-full ${
                                 isReseller
-                                  ? 'bg-[#ffe4ee] text-[#9f1239]'
-                                  : 'bg-[#efe8ff] text-[#6c3cff]'
+                                  ? 'bg-rose-100 text-rose-800'
+                                  : 'bg-red-50 text-red-700'
                               }`}
                             >
                               {isReseller ? 'Reseller Rights Included' : 'Personal License'}
@@ -806,17 +806,17 @@ function OrderSuccessContent() {
                             </span>
                           </div>
 
-                          <h3 className="text-base sm:text-lg font-black text-[#17214a] leading-snug">
+                          <h3 className="text-base sm:text-lg font-black text-slate-950 leading-snug">
                             {item.title}
                           </h3>
 
-                          <p className="text-xs text-[#5e6888] font-medium leading-relaxed">
+                          <p className="text-xs text-slate-600 font-medium leading-relaxed">
                             Organized in high-speed Google Drive folders. Ready to post directly to Instagram Reels, YouTube Shorts &amp; TikTok with trending audio.
                           </p>
 
                           <div className="flex items-center gap-4 text-xs font-bold text-slate-600 pt-1">
                             <span className="flex items-center gap-1.5">
-                              <Zap className="w-3.5 h-3.5 text-purple-600" />
+                              <Zap className="w-3.5 h-3.5 text-red-600" />
                               <span>Instant Delivery</span>
                             </span>
                             <span>•</span>
@@ -857,13 +857,13 @@ function OrderSuccessContent() {
                                       className="p-2.5 rounded-xl bg-white border border-emerald-100 shadow-sm space-y-1.5"
                                     >
                                       <div className="flex items-center justify-between gap-1 text-[11px]">
-                                        <span className="font-bold text-[#17214a] truncate">
+                                        <span className="font-bold text-slate-950 truncate">
                                           {f.name || `Drive File #${fIdx + 1}`}
                                         </span>
                                         <button
                                           type="button"
                                           onClick={() => handleCopyLink(fUrl, fCopyKey)}
-                                          className="text-[10px] font-bold text-slate-500 hover:text-purple-700 shrink-0"
+                                          className="text-[10px] font-bold text-slate-500 hover:text-red-700 shrink-0"
                                         >
                                           {copiedKey === fCopyKey ? 'Copied' : 'Copy'}
                                         </button>
@@ -872,7 +872,7 @@ function OrderSuccessContent() {
                                         href={fUrl}
                                         target="_blank"
                                         rel="noopener noreferrer"
-                                        className="w-full py-2 px-3 rounded-lg bg-gradient-to-r from-[#6734ff] to-[#7d3dff] hover:from-[#5e2ae6] hover:to-[#6f33ea] text-white font-extrabold text-xs flex items-center justify-center gap-1.5 shadow-sm transition-transform hover:scale-[1.01]"
+                                        className="w-full py-2 px-3 rounded-lg bg-gradient-to-r from-red-600 via-rose-600 to-red-600 hover:from-red-700 hover:to-rose-700 text-white font-extrabold text-xs flex items-center justify-center gap-1.5 shadow-sm transition-transform hover:scale-[1.01]"
                                       >
                                         <Download className="w-3.5 h-3.5 stroke-[2.5]" />
                                         <span>Open Drive Folder</span>
@@ -888,7 +888,7 @@ function OrderSuccessContent() {
                                   href={driveUrl}
                                   target="_blank"
                                   rel="noopener noreferrer"
-                                  className="w-full py-3 px-4 rounded-xl bg-gradient-to-r from-[#6734ff] to-[#7d3dff] hover:from-[#5e2ae6] hover:to-[#6f33ea] text-white font-extrabold text-xs sm:text-sm flex items-center justify-center gap-2 shadow-[0_10px_22px_rgba(103,52,255,0.22)] transition-transform hover:scale-[1.02]"
+                                  className="w-full py-3 px-4 rounded-xl bg-gradient-to-r from-red-600 via-rose-600 to-red-600 hover:from-red-700 hover:to-rose-700 text-white font-extrabold text-xs sm:text-sm flex items-center justify-center gap-2 shadow-[0_10px_22px_rgba(239,68,68,0.25)] transition-transform hover:scale-[1.02]"
                                 >
                                   <Download className="w-4 h-4 stroke-[2.5]" />
                                   <span>Open Google Drive Folder</span>
@@ -899,7 +899,7 @@ function OrderSuccessContent() {
                                   <button
                                     type="button"
                                     onClick={() => handleCopyLink(driveUrl, copyKey)}
-                                    className="text-[11px] font-bold text-slate-500 hover:text-purple-700 flex items-center gap-1 transition-colors"
+                                    className="text-[11px] font-bold text-slate-500 hover:text-red-700 flex items-center gap-1 transition-colors"
                                   >
                                     {copiedKey === copyKey ? (
                                       <>
@@ -918,7 +918,7 @@ function OrderSuccessContent() {
                                     href={driveUrl}
                                     target="_blank"
                                     rel="noopener noreferrer"
-                                    className="text-[11px] font-bold text-purple-600 hover:underline flex items-center gap-1"
+                                    className="text-[11px] font-bold text-red-600 hover:underline flex items-center gap-1"
                                   >
                                     <span>Direct Link</span>
                                     <ExternalLink className="w-3 h-3" />
@@ -936,10 +936,10 @@ function OrderSuccessContent() {
 
                 {/* BONUS PACK IF ORDER BUMP ADDED */}
                 {verifiedData?.hasBump && (
-                  <article className="rounded-[22px] border border-amber-200 bg-gradient-to-r from-[#fffcf2] to-[#fffaf0] p-4 sm:p-5 shadow-[0_8px_24px_rgba(217,119,6,0.06)]">
+                  <article className="rounded-[22px] border border-red-200/80 bg-gradient-to-r from-red-50/40 to-rose-50/30 p-4 sm:p-5 shadow-[0_8px_24px_rgba(239,68,68,0.06)]">
                     <div className="grid grid-cols-1 md:grid-cols-12 gap-5 items-center">
                       <div className="md:col-span-3">
-                        <div className="relative aspect-[4/3] rounded-xl overflow-hidden bg-slate-900 border border-amber-200">
+                        <div className="relative aspect-[4/3] rounded-xl overflow-hidden bg-slate-900 border border-red-200">
                           {/* eslint-disable-next-line @next/next/no-img-element */}
                           <img
                             src="https://reelsbundles.in/wp-content/uploads/2026/10/3200-ultimate-twisted-world-reel-bundle-reels-bundle-1-2-768x576.png"
@@ -947,20 +947,20 @@ function OrderSuccessContent() {
                             className="w-full h-full object-cover"
                             loading="lazy"
                           />
-                          <div className="absolute top-2 left-2 px-2 py-0.5 rounded-md bg-amber-600 text-[10px] font-black uppercase text-white">
+                          <div className="absolute top-2 left-2 px-2 py-0.5 rounded-md bg-red-600 text-[10px] font-black uppercase text-white">
                             ★ EXCLUSIVE BONUS
                           </div>
                         </div>
                       </div>
 
                       <div className="md:col-span-5 space-y-2">
-                        <span className="text-[10.5px] font-black uppercase tracking-wider px-2.5 py-0.5 rounded-full bg-amber-100 text-amber-900">
+                        <span className="text-[10.5px] font-black uppercase tracking-wider px-2.5 py-0.5 rounded-full bg-red-100 text-red-900">
                           Order Bump Bonus Offer
                         </span>
-                        <h3 className="text-base sm:text-lg font-black text-amber-950">
+                        <h3 className="text-base sm:text-lg font-black text-slate-950">
                           1500+ Ultimate Twisted World &amp; Viral AI Reels Pack
                         </h3>
-                        <p className="text-xs text-amber-800 font-medium leading-relaxed">
+                        <p className="text-xs text-slate-600 font-medium leading-relaxed">
                           Extra bonus collection unlocked via checkout special offer. High retention surreal &amp; reverse world AI animations.
                         </p>
                       </div>
@@ -970,7 +970,7 @@ function OrderSuccessContent() {
                           href="https://drive.google.com/drive/folders/bonus-pack-twisted-world"
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="w-full py-3 px-4 rounded-xl bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white font-extrabold text-xs sm:text-sm flex items-center justify-center gap-2 shadow-[0_10px_22px_rgba(245,158,11,0.25)] transition-transform hover:scale-[1.02]"
+                          className="w-full py-3 px-4 rounded-xl bg-gradient-to-r from-red-600 via-rose-600 to-red-600 hover:from-red-700 hover:to-rose-700 text-white font-extrabold text-xs sm:text-sm flex items-center justify-center gap-2 shadow-md shadow-red-500/25 transition-transform hover:scale-[1.02]"
                         >
                           <Download className="w-4 h-4 stroke-[2.5]" />
                           <span>Open Bonus Drive Folder</span>
@@ -987,79 +987,79 @@ function OrderSuccessContent() {
             <section className="grid grid-cols-1 lg:grid-cols-12 gap-5 items-stretch">
               
               {/* Left 4-Step Walkthrough */}
-              <div className="lg:col-span-8 rounded-[24px] border border-[#e7e4f3] bg-white p-5 sm:p-7 shadow-[0_8px_24px_rgba(39,35,92,0.04)] space-y-4">
-                <div className="flex items-center gap-2 text-[#5432cf]">
-                  <Play className="w-4 h-4 fill-[#5432cf]" />
-                  <h3 className="text-sm sm:text-base font-black text-[#5432cf] uppercase tracking-wide">
+              <div className="lg:col-span-8 rounded-[24px] border border-slate-200 bg-white p-5 sm:p-7 shadow-[0_8px_24px_rgba(15,23,42,0.04)] space-y-4">
+                <div className="flex items-center gap-2 text-red-600">
+                  <Play className="w-4 h-4 fill-red-600" />
+                  <h3 className="text-sm sm:text-base font-black text-slate-950 uppercase tracking-wide">
                     How to Download &amp; Save to Google Drive
                   </h3>
                 </div>
 
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
                   {/* Step 1 */}
-                  <div className="relative rounded-2xl border border-purple-100 bg-purple-50/40 p-4 text-center flex flex-col items-center justify-center space-y-2">
-                    <span className="absolute top-2 left-2 w-5 h-5 rounded-full bg-[#6e42ff] text-white text-[11px] font-black flex items-center justify-center">
+                  <div className="relative rounded-2xl border border-red-100 bg-red-50/40 p-4 text-center flex flex-col items-center justify-center space-y-2">
+                    <span className="absolute top-2 left-2 w-5 h-5 rounded-full bg-red-600 text-white text-[11px] font-black flex items-center justify-center">
                       1
                     </span>
                     <span className="text-2xl">📂</span>
-                    <strong className="text-xs font-black text-[#17214a]">Open Drive</strong>
+                    <strong className="text-xs font-black text-slate-950">Open Drive</strong>
                     <p className="text-[11px] text-slate-500 font-medium">Click the button above to launch folder</p>
                   </div>
 
                   {/* Step 2 */}
-                  <div className="relative rounded-2xl border border-purple-100 bg-purple-50/40 p-4 text-center flex flex-col items-center justify-center space-y-2">
-                    <span className="absolute top-2 left-2 w-5 h-5 rounded-full bg-[#6e42ff] text-white text-[11px] font-black flex items-center justify-center">
+                  <div className="relative rounded-2xl border border-red-100 bg-red-50/40 p-4 text-center flex flex-col items-center justify-center space-y-2">
+                    <span className="absolute top-2 left-2 w-5 h-5 rounded-full bg-red-600 text-white text-[11px] font-black flex items-center justify-center">
                       2
                     </span>
                     <span className="text-2xl">⭐</span>
-                    <strong className="text-xs font-black text-[#17214a]">Add Shortcut</strong>
+                    <strong className="text-xs font-black text-slate-950">Add Shortcut</strong>
                     <p className="text-[11px] text-slate-500 font-medium">Click 3-dots to add shortcut or star</p>
                   </div>
 
                   {/* Step 3 */}
-                  <div className="relative rounded-2xl border border-purple-100 bg-purple-50/40 p-4 text-center flex flex-col items-center justify-center space-y-2">
-                    <span className="absolute top-2 left-2 w-5 h-5 rounded-full bg-[#6e42ff] text-white text-[11px] font-black flex items-center justify-center">
+                  <div className="relative rounded-2xl border border-red-100 bg-red-50/40 p-4 text-center flex flex-col items-center justify-center space-y-2">
+                    <span className="absolute top-2 left-2 w-5 h-5 rounded-full bg-red-600 text-white text-[11px] font-black flex items-center justify-center">
                       3
                     </span>
                     <span className="text-2xl">⬇️</span>
-                    <strong className="text-xs font-black text-[#17214a]">Download</strong>
+                    <strong className="text-xs font-black text-slate-950">Download</strong>
                     <p className="text-[11px] text-slate-500 font-medium">Download individual reels or whole folders</p>
                   </div>
 
                   {/* Step 4 */}
-                  <div className="relative rounded-2xl border border-purple-100 bg-purple-50/40 p-4 text-center flex flex-col items-center justify-center space-y-2">
-                    <span className="absolute top-2 left-2 w-5 h-5 rounded-full bg-[#6e42ff] text-white text-[11px] font-black flex items-center justify-center">
+                  <div className="relative rounded-2xl border border-red-100 bg-red-50/40 p-4 text-center flex flex-col items-center justify-center space-y-2">
+                    <span className="absolute top-2 left-2 w-5 h-5 rounded-full bg-red-600 text-white text-[11px] font-black flex items-center justify-center">
                       4
                     </span>
                     <span className="text-2xl">🚀</span>
-                    <strong className="text-xs font-black text-[#17214a]">Post &amp; Grow</strong>
+                    <strong className="text-xs font-black text-slate-950">Post &amp; Grow</strong>
                     <p className="text-[11px] text-slate-500 font-medium">Publish to Instagram, YouTube &amp; TikTok</p>
                   </div>
                 </div>
               </div>
 
               {/* Right Important Tips */}
-              <div className="lg:col-span-4 rounded-[24px] border border-[#fae8c8] bg-gradient-to-b from-[#fffaf0] to-white p-5 sm:p-7 shadow-[0_8px_24px_rgba(245,158,11,0.06)] space-y-3.5 flex flex-col justify-between">
+              <div className="lg:col-span-4 rounded-[24px] border border-red-100 bg-gradient-to-b from-red-50/20 to-white p-5 sm:p-7 shadow-[0_8px_24px_rgba(239,68,68,0.06)] space-y-3.5 flex flex-col justify-between">
                 <div className="space-y-3">
-                  <h3 className="text-sm sm:text-base font-black text-[#8b5900] uppercase tracking-wide flex items-center gap-2">
+                  <h3 className="text-sm sm:text-base font-black text-red-900 uppercase tracking-wide flex items-center gap-2">
                     <span>💡</span>
                     <span>Important Creator Tips</span>
                   </h3>
-                  <ul className="space-y-2 text-xs text-[#4a526c] font-medium">
+                  <ul className="space-y-2 text-xs text-slate-600 font-medium">
                     <li className="flex items-start gap-2">
-                      <span className="w-4 h-4 rounded-full bg-amber-400 text-white text-[10px] font-black flex items-center justify-center shrink-0 mt-0.5">
+                      <span className="w-4 h-4 rounded-full bg-red-500 text-white text-[10px] font-black flex items-center justify-center shrink-0 mt-0.5">
                         ✓
                       </span>
                       <span>Works seamlessly on Mobile (Google Drive App) &amp; PC / Mac.</span>
                     </li>
                     <li className="flex items-start gap-2">
-                      <span className="w-4 h-4 rounded-full bg-amber-400 text-white text-[10px] font-black flex items-center justify-center shrink-0 mt-0.5">
+                      <span className="w-4 h-4 rounded-full bg-red-500 text-white text-[10px] font-black flex items-center justify-center shrink-0 mt-0.5">
                         ✓
                       </span>
                       <span>No zip extraction required — preview and stream directly in the cloud.</span>
                     </li>
                     <li className="flex items-start gap-2">
-                      <span className="w-4 h-4 rounded-full bg-amber-400 text-white text-[10px] font-black flex items-center justify-center shrink-0 mt-0.5">
+                      <span className="w-4 h-4 rounded-full bg-red-500 text-white text-[10px] font-black flex items-center justify-center shrink-0 mt-0.5">
                         ✓
                       </span>
                       <span>1080p Full HD 9:16 vertical resolution with viral background audio.</span>
@@ -1067,9 +1067,9 @@ function OrderSuccessContent() {
                   </ul>
                 </div>
 
-                <div className="p-3 rounded-xl bg-amber-50/80 border border-amber-200/60 text-[11px] text-amber-900 font-semibold">
+                <div className="p-3 rounded-xl bg-red-50/80 border border-red-200/60 text-[11px] text-red-900 font-semibold">
                   Access anytime later by visiting our passwordless{' '}
-                  <Link href="/my-order" className="underline font-black text-amber-950">
+                  <Link href="/my-order" className="underline font-black text-red-950">
                     My Orders Portal
                   </Link>.
                 </div>
@@ -1079,40 +1079,40 @@ function OrderSuccessContent() {
 
             {/* UPSELL SECTION: IF USER BOUGHT A SINGLE BUNDLE, SHOW THE EXACT "Unlock Every Reels Bundle in One Plan" OFFER */}
             {!hasAllAccessPurchased && (
-              <section className="relative rounded-[28px] sm:rounded-[34px] bg-gradient-to-br from-[#f8f4ff] via-[#fdf9fc] to-[#fef4f8] border border-[#eee3f8] p-5 sm:p-8 space-y-6 shadow-[0_14px_45px_rgba(91,40,224,0.06)] overflow-hidden">
+              <section className="relative rounded-[28px] sm:rounded-[34px] bg-white border border-slate-200 p-5 sm:p-8 space-y-6 shadow-[0_14px_45px_rgba(15,23,42,0.06)] overflow-hidden">
                 {/* Top Accent Bar */}
-                <div className="absolute top-0 left-6 right-6 h-[3px] bg-gradient-to-r from-[#5e24d6] via-[#a22bc4] to-[#f43f85] rounded-b-full" />
+                <div className="absolute top-0 left-6 right-6 h-[3px] bg-gradient-to-r from-red-600 via-rose-600 to-red-500 rounded-b-full" />
 
-                {/* Purple-to-Pink Header Banner matching the user uploaded image */}
-                <div className="max-w-[660px] mx-auto relative rounded-[20px] bg-gradient-to-r from-[#5f1ec9] via-[#9128bd] to-[#d4369a] px-6 py-5 sm:px-8 sm:py-6 text-white shadow-[0_12px_30px_rgba(114,36,205,0.24)] overflow-hidden text-center">
-                  <div className="pointer-events-none absolute -top-12 -right-8 w-44 h-44 rounded-full bg-white/10" />
-                  <div className="hidden sm:block absolute left-3.5 top-4 bottom-4 w-[4px] bg-white/95 rounded-full" />
+                {/* Red/Obsidian Header Banner */}
+                <div className="max-w-[660px] mx-auto relative rounded-[20px] bg-gradient-to-r from-slate-950 via-slate-900 to-red-950 border border-red-500/30 px-6 py-5 sm:px-8 sm:py-6 text-white shadow-[0_12px_30px_rgba(15,23,42,0.2)] overflow-hidden text-center">
+                  <div className="pointer-events-none absolute -top-12 -right-8 w-44 h-44 rounded-full bg-red-500/15" />
+                  <div className="hidden sm:block absolute left-3.5 top-4 bottom-4 w-[4px] bg-red-500 rounded-full" />
 
                   <div className="relative space-y-1">
                     <h2 className="text-xl sm:text-[28px] font-black text-white tracking-tight leading-tight">
                       Unlock Every Reels Bundle in One Plan
                     </h2>
-                    <p className="text-xs sm:text-[13px] text-white/95 font-medium max-w-md mx-auto">
+                    <p className="text-xs sm:text-[13px] text-slate-200 font-medium max-w-md mx-auto">
                       Choose Personal or Reseller access, pay once, and unlock every bundle included with your plan.
                     </p>
                   </div>
                 </div>
 
                 {/* Segmented Switcher */}
-                <div className="max-w-[480px] mx-auto bg-[#eeeaf6] p-1.5 rounded-[18px] grid grid-cols-2 gap-1.5 border border-[#e2dcf0]">
+                <div className="max-w-[480px] mx-auto bg-slate-100 p-1.5 rounded-[18px] grid grid-cols-2 gap-1.5 border border-slate-200">
                   <button
                     type="button"
                     onClick={() => setUpsellTab('personal')}
                     className={`py-2 px-3 rounded-[14px] text-left transition-all ${
                       upsellTab === 'personal'
-                        ? 'bg-white shadow-[0_2px_10px_rgba(91,40,224,0.08)] border border-[#e5def5]'
+                        ? 'bg-white shadow-sm border border-red-200'
                         : 'hover:bg-white/50 border border-transparent'
                     }`}
                   >
-                    <div className={`text-xs font-extrabold ${upsellTab === 'personal' ? 'text-[#4c1d95]' : 'text-[#3f465a]'}`}>
+                    <div className={`text-xs font-extrabold ${upsellTab === 'personal' ? 'text-red-700' : 'text-slate-700'}`}>
                       Personal
                     </div>
-                    <div className="text-[10.5px] text-[#525a70] font-medium">For your own pages</div>
+                    <div className="text-[10.5px] text-slate-500 font-medium">For your own pages</div>
                   </button>
 
                   <button
@@ -1120,17 +1120,17 @@ function OrderSuccessContent() {
                     onClick={() => setUpsellTab('reseller')}
                     className={`py-2 px-3 rounded-[14px] text-left transition-all flex items-start justify-between gap-1 ${
                       upsellTab === 'reseller'
-                        ? 'bg-white shadow-[0_2px_10px_rgba(91,40,224,0.08)] border border-[#e5def5]'
+                        ? 'bg-white shadow-sm border border-red-200'
                         : 'hover:bg-white/50 border border-transparent'
                     }`}
                   >
                     <div>
-                      <div className={`text-xs font-extrabold ${upsellTab === 'reseller' ? 'text-[#4c1d95]' : 'text-[#3f465a]'}`}>
+                      <div className={`text-xs font-extrabold ${upsellTab === 'reseller' ? 'text-red-700' : 'text-slate-700'}`}>
                         Reseller
                       </div>
-                      <div className="text-[10.5px] text-[#525a70] font-medium">For resale &amp; clients</div>
+                      <div className="text-[10.5px] text-slate-500 font-medium">For resale &amp; clients</div>
                     </div>
-                    <span className="text-[9px] font-black uppercase text-[#9f1239] bg-[#ffe4ee] px-2 py-0.5 rounded-full shrink-0">
+                    <span className="text-[9px] font-black uppercase text-red-700 bg-red-100 px-2 py-0.5 rounded-full shrink-0">
                       POPULAR
                     </span>
                   </button>
@@ -1140,8 +1140,8 @@ function OrderSuccessContent() {
                 <div
                   className={`relative rounded-[24px] p-5 sm:p-7 space-y-6 transition-all ${
                     upsellTab === 'reseller'
-                      ? 'bg-gradient-to-b from-[#fff6f9] to-[#fffcfc] border border-[#f8dbe5]'
-                      : 'bg-gradient-to-b from-[#faf8ff] to-[#ffffff] border border-[#e8e1f7]'
+                      ? 'bg-gradient-to-b from-red-50/40 to-white border border-red-200/80'
+                      : 'bg-gradient-to-b from-slate-50 to-white border border-slate-200'
                   }`}
                 >
                   <div className="grid grid-cols-1 md:grid-cols-12 gap-5 items-center">
@@ -1152,8 +1152,8 @@ function OrderSuccessContent() {
                         <div
                           className={`w-11 h-11 rounded-2xl text-white flex items-center justify-center shrink-0 ${
                             upsellTab === 'reseller'
-                              ? 'bg-gradient-to-br from-[#ff4793] to-[#ec2677]'
-                              : 'bg-gradient-to-br from-[#7e3af2] to-[#6324d6]'
+                              ? 'bg-gradient-to-br from-red-600 to-rose-600'
+                              : 'bg-gradient-to-br from-slate-900 to-slate-800'
                           }`}
                         >
                           {upsellTab === 'reseller' ? (
@@ -1166,18 +1166,18 @@ function OrderSuccessContent() {
                           <span
                             className={`text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full ${
                               upsellTab === 'reseller'
-                                ? 'bg-[#ffe4ee] text-[#9f1239]'
-                                : 'bg-[#efe8ff] text-[#6c3cff]'
+                                ? 'bg-red-100 text-red-800'
+                                : 'bg-slate-100 text-slate-800'
                             }`}
                           >
                             {upsellTab === 'reseller' ? 'RESELLER ACCESS' : 'PERSONAL ACCESS'}
                           </span>
-                          <h4 className="text-base sm:text-lg font-black text-[#17214a] mt-1">
+                          <h4 className="text-base sm:text-lg font-black text-slate-950 mt-1">
                             {upsellTab === 'reseller'
                               ? 'All Bundles + Reseller Rights'
                               : 'All Bundles – Personal Use'}
                           </h4>
-                          <p className="text-xs text-[#5e6888] font-medium">
+                          <p className="text-xs text-slate-600 font-medium">
                             {upsellTab === 'reseller'
                               ? 'Built for resellers, agencies and creators who need broader commercial rights.'
                               : 'Premium ready-to-post reels for your own pages and channels.'}
@@ -1194,7 +1194,7 @@ function OrderSuccessContent() {
                           </span>
                         </div>
                         <div className="flex items-baseline gap-2">
-                          <strong className="text-2xl font-black text-[#ff2d75]">
+                          <strong className="text-2xl font-black text-red-600">
                             {upsellTab === 'reseller' ? `₹${ALL_ACCESS_PLANS[1].price}` : `₹${ALL_ACCESS_PLANS[0].price}`}
                           </strong>
                           <del className="text-xs font-bold text-slate-400">
@@ -1210,38 +1210,38 @@ function OrderSuccessContent() {
                     {/* Right: Bullet List & Best Value Badge */}
                     <div className="md:col-span-6 space-y-3">
                       <div className="flex justify-end">
-                        <span className="text-[10px] font-black uppercase tracking-wider text-white bg-[#ec2677] px-3 py-1 rounded-full shadow-sm">
+                        <span className="text-[10px] font-black uppercase tracking-wider text-white bg-red-600 px-3 py-1 rounded-full shadow-sm">
                           BEST VALUE
                         </span>
                       </div>
 
-                      <ul className="space-y-2 text-xs font-semibold text-[#20284c] border-t border-slate-100 pt-2">
+                      <ul className="space-y-2 text-xs font-semibold text-slate-800 border-t border-slate-100 pt-2">
                         <li className="flex items-center gap-2">
-                          <span className="w-4 h-4 rounded-full bg-pink-100 text-[#ec2677] flex items-center justify-center text-[10px] font-black">
+                          <span className="w-4 h-4 rounded-full bg-red-100 text-red-600 flex items-center justify-center text-[10px] font-black">
                             ✓
                           </span>
                           <span>Access to {metrics.bundleCount} published reels bundles</span>
                         </li>
-                        <li className="flex items-center gap-2 text-[#ec2677] font-bold">
-                          <span className="w-4 h-4 rounded-full bg-pink-100 text-[#ec2677] flex items-center justify-center text-[10px] font-black">
+                        <li className="flex items-center gap-2 text-red-600 font-bold">
+                          <span className="w-4 h-4 rounded-full bg-red-100 text-red-600 flex items-center justify-center text-[10px] font-black">
                             ↻
                           </span>
                           <span>Import all bundles in one click</span>
                         </li>
                         <li className="flex items-center gap-2">
-                          <span className="w-4 h-4 rounded-full bg-pink-100 text-[#ec2677] flex items-center justify-center text-[10px] font-black">
+                          <span className="w-4 h-4 rounded-full bg-red-100 text-red-600 flex items-center justify-center text-[10px] font-black">
                             ✓
                           </span>
                           <span>Everything in Personal Plan</span>
                         </li>
                         <li className="flex items-center gap-2">
-                          <span className="w-4 h-4 rounded-full bg-pink-100 text-[#ec2677] flex items-center justify-center text-[10px] font-black">
+                          <span className="w-4 h-4 rounded-full bg-red-100 text-red-600 flex items-center justify-center text-[10px] font-black">
                             ✓
                           </span>
                           <span>Reseller rights included</span>
                         </li>
                         <li className="flex items-center gap-2">
-                          <span className="w-4 h-4 rounded-full bg-pink-100 text-[#ec2677] flex items-center justify-center text-[10px] font-black">
+                          <span className="w-4 h-4 rounded-full bg-red-100 text-red-600 flex items-center justify-center text-[10px] font-black">
                             ✓
                           </span>
                           <span>Priority VIP support</span>
@@ -1251,10 +1251,10 @@ function OrderSuccessContent() {
 
                   </div>
 
-                  {/* Wide Button matching the screenshot */}
+                  {/* Wide Button */}
                   <Link
                     href={upsellTab === 'reseller' ? '/product/all-bundles-reseller-rights' : '/product/all-bundles-personal-use'}
-                    className="w-full py-4 rounded-2xl bg-gradient-to-r from-[#ef2f32] via-[#ff4f21] to-[#ff7a00] hover:from-[#e02629] hover:to-[#f07000] text-white font-black text-sm sm:text-base flex items-center justify-center gap-2 shadow-[0_12px_28px_rgba(238,72,27,0.28)] transition-transform hover:scale-[1.01]"
+                    className="w-full py-4 rounded-2xl bg-gradient-to-r from-red-600 via-rose-600 to-red-600 hover:from-red-700 hover:to-rose-700 text-white font-black text-sm sm:text-base flex items-center justify-center gap-2 shadow-[0_12px_28px_rgba(239,68,68,0.28)] transition-transform hover:scale-[1.01]"
                   >
                     <span>{upsellTab === 'reseller' ? 'Get Reseller Access' : 'Get Personal Access'}</span>
                     <ArrowRight className="w-5 h-5 stroke-[2.5]" />
@@ -1275,8 +1275,8 @@ function OrderSuccessContent() {
                 <div className="w-9 h-9 rounded-xl bg-emerald-100 text-emerald-700 flex items-center justify-center font-bold">
                   <MessageCircle className="w-5 h-5" />
                 </div>
-                <h4 className="text-sm font-black text-[#17214a]">VIP WhatsApp Support</h4>
-                <p className="text-xs text-[#5e6888] font-medium leading-relaxed">
+                <h4 className="text-sm font-black text-slate-950">VIP WhatsApp Support</h4>
+                <p className="text-xs text-slate-600 font-medium leading-relaxed">
                   Need help downloading your files or have any question? Chat with our team.
                 </p>
                 <div className="pt-1 text-xs font-black text-emerald-700 flex items-center gap-1">
@@ -1288,16 +1288,16 @@ function OrderSuccessContent() {
               {/* 2. My Orders Portal */}
               <Link
                 href="/my-order"
-                className="rounded-2xl border border-purple-200/80 bg-[#f8f6ff] p-4 space-y-2 hover:shadow-md transition-shadow"
+                className="rounded-2xl border border-red-200/80 bg-red-50/40 p-4 space-y-2 hover:shadow-md transition-shadow"
               >
-                <div className="w-9 h-9 rounded-xl bg-purple-100 text-purple-700 flex items-center justify-center font-bold">
+                <div className="w-9 h-9 rounded-xl bg-red-100 text-red-700 flex items-center justify-center font-bold">
                   <FolderOpen className="w-5 h-5" />
                 </div>
-                <h4 className="text-sm font-black text-[#17214a]">My Orders Portal</h4>
-                <p className="text-xs text-[#5e6888] font-medium leading-relaxed">
+                <h4 className="text-sm font-black text-slate-950">My Orders Portal</h4>
+                <p className="text-xs text-slate-600 font-medium leading-relaxed">
                   Access past orders and download folders anytime using your Gmail.
                 </p>
-                <div className="pt-1 text-xs font-black text-purple-700 flex items-center gap-1">
+                <div className="pt-1 text-xs font-black text-red-700 flex items-center gap-1">
                   <span>Open Portal</span>
                   <ArrowRight className="w-3.5 h-3.5" />
                 </div>
@@ -1313,8 +1313,8 @@ function OrderSuccessContent() {
                 <div className="w-9 h-9 rounded-xl bg-sky-100 text-sky-700 flex items-center justify-center font-bold">
                   <Send className="w-4 h-4" />
                 </div>
-                <h4 className="text-sm font-black text-[#17214a]">Creator Community</h4>
-                <p className="text-xs text-[#5e6888] font-medium leading-relaxed">
+                <h4 className="text-sm font-black text-slate-950">Creator Community</h4>
+                <p className="text-xs text-slate-600 font-medium leading-relaxed">
                   Join {metrics.creatorsCount} creators for daily trending audio, hooks &amp; viral reels updates.
                 </p>
                 <div className="pt-1 text-xs font-black text-sky-700 flex items-center gap-1">
@@ -1326,16 +1326,16 @@ function OrderSuccessContent() {
               {/* 4. Continue Shopping */}
               <Link
                 href="/shop"
-                className="rounded-2xl border border-purple-200/80 bg-[#fbf9ff] p-4 space-y-2 hover:shadow-md transition-shadow"
+                className="rounded-2xl border border-red-200/80 bg-red-50/30 p-4 space-y-2 hover:shadow-md transition-shadow"
               >
-                <div className="w-9 h-9 rounded-xl bg-purple-100 text-purple-700 flex items-center justify-center font-bold">
+                <div className="w-9 h-9 rounded-xl bg-red-100 text-red-700 flex items-center justify-center font-bold">
                   <Flame className="w-4 h-4" />
                 </div>
-                <h4 className="text-sm font-black text-[#17214a]">Browse 48+ Categories</h4>
-                <p className="text-xs text-[#5e6888] font-medium leading-relaxed">
+                <h4 className="text-sm font-black text-slate-950">Browse 48+ Categories</h4>
+                <p className="text-xs text-slate-600 font-medium leading-relaxed">
                   Discover AI influencers, luxury lifestyle, fitness, spiritual &amp; trending reels.
                 </p>
-                <div className="pt-1 text-xs font-black text-purple-700 flex items-center gap-1">
+                <div className="pt-1 text-xs font-black text-red-700 flex items-center gap-1">
                   <span>Explore Shop</span>
                   <ArrowRight className="w-3.5 h-3.5" />
                 </div>
@@ -1343,12 +1343,12 @@ function OrderSuccessContent() {
             </section>
 
             {/* TRUST STRIP (.rbt-trust) */}
-            <section className="rounded-2xl border border-[#e7e4f3] bg-white p-4 sm:p-5 shadow-[0_6px_20px_rgba(39,35,92,0.03)]">
+            <section className="rounded-2xl border border-slate-200 bg-white p-4 sm:p-5 shadow-[0_6px_20px_rgba(15,23,42,0.03)]">
               <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 text-center sm:text-left">
                 <div className="flex items-center gap-2.5 p-2">
                   <span className="text-xl">🛡️</span>
                   <div>
-                    <strong suppressHydrationWarning className="block text-xs font-black text-[#17214a]">Virus Free</strong>
+                    <strong suppressHydrationWarning className="block text-xs font-black text-slate-950">Virus Free</strong>
                     <small className="block text-[11px] text-slate-400 font-semibold">100% Clean Files</small>
                   </div>
                 </div>
@@ -1356,7 +1356,7 @@ function OrderSuccessContent() {
                 <div className="flex items-center gap-2.5 p-2">
                   <span className="text-xl">⚡</span>
                   <div>
-                    <strong suppressHydrationWarning className="block text-xs font-black text-[#17214a]">Instant Delivery</strong>
+                    <strong suppressHydrationWarning className="block text-xs font-black text-slate-950">Instant Delivery</strong>
                     <small className="block text-[11px] text-slate-400 font-semibold">Direct Cloud Access</small>
                   </div>
                 </div>
@@ -1364,7 +1364,7 @@ function OrderSuccessContent() {
                 <div className="flex items-center gap-2.5 p-2">
                   <span className="text-xl">🔄</span>
                   <div>
-                    <strong suppressHydrationWarning className="block text-xs font-black text-[#17214a]">Free Updates</strong>
+                    <strong suppressHydrationWarning className="block text-xs font-black text-slate-950">Free Updates</strong>
                     <small className="block text-[11px] text-slate-400 font-semibold">Lifetime Cloud Sync</small>
                   </div>
                 </div>
@@ -1372,7 +1372,7 @@ function OrderSuccessContent() {
                 <div className="flex items-center gap-2.5 p-2">
                   <span className="text-xl">🔒</span>
                   <div>
-                    <strong suppressHydrationWarning className="block text-xs font-black text-[#17214a]">256-Bit SSL</strong>
+                    <strong suppressHydrationWarning className="block text-xs font-black text-slate-950">256-Bit SSL</strong>
                     <small className="block text-[11px] text-slate-400 font-semibold">Cashfree Verified</small>
                   </div>
                 </div>
@@ -1380,7 +1380,7 @@ function OrderSuccessContent() {
                 <div className="flex items-center gap-2.5 p-2 col-span-2 sm:col-span-1">
                   <span className="text-xl">💬</span>
                   <div>
-                    <strong suppressHydrationWarning className="block text-xs font-black text-[#17214a]">24/7 Support</strong>
+                    <strong suppressHydrationWarning className="block text-xs font-black text-slate-950">24/7 Support</strong>
                     <small className="block text-[11px] text-slate-400 font-semibold">Creator Assistance</small>
                   </div>
                 </div>
@@ -1475,7 +1475,7 @@ export default function OrderSuccessPage() {
       <Suspense
         fallback={
           <div className="min-h-screen py-24 text-center space-y-4">
-            <div className="w-12 h-12 rounded-full border-4 border-purple-600 border-t-transparent animate-spin mx-auto" />
+            <div className="w-12 h-12 rounded-full border-4 border-red-600 border-t-transparent animate-spin mx-auto" />
             <p className="text-sm font-bold text-slate-500">Loading order verification...</p>
           </div>
         }

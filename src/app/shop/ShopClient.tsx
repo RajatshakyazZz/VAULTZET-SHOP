@@ -215,52 +215,52 @@ export default function ShopClient({ initialBundles }: ShopClientProps) {
         {/* Top Header & 3 Stat Cards */}
         <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 pb-1">
           <div>
-            <h1 className="text-2xl sm:text-4xl font-black text-[#162048] tracking-tight">
+            <h1 className="text-2xl sm:text-4xl font-black text-slate-950 tracking-tight">
               All Reels Bundles
             </h1>
-            <p className="text-xs sm:text-sm text-gray-500 font-medium mt-0.5 sm:mt-1">
+            <p className="text-xs sm:text-sm text-slate-500 font-medium mt-0.5 sm:mt-1">
               Search and find high-quality viral reels bundles ready to download and publish.
             </p>
           </div>
 
           <div className="grid grid-cols-3 gap-2 sm:gap-3">
-            <div className="bg-white border border-[#eee8fa] rounded-2xl p-2.5 sm:py-2.5 sm:px-4 shadow-sm flex items-center gap-2 sm:gap-3">
-              <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl bg-[#f5f1fd] text-[#6f33e8] flex items-center justify-center shrink-0">
-                <Sparkles className="w-3.5 h-3.5 sm:w-4 sm:h-4 fill-[#6f33e8]/20" />
+            <div className="bg-white border border-slate-200/90 rounded-2xl p-2.5 sm:py-2.5 sm:px-4 shadow-sm flex items-center gap-2 sm:gap-3">
+              <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl bg-red-50 text-red-600 border border-red-200/60 flex items-center justify-center shrink-0">
+                <Sparkles className="w-3.5 h-3.5 sm:w-4 sm:h-4 fill-red-500/20" />
               </div>
               <div className="min-w-0">
-                <div className="text-xs sm:text-base font-black text-[#162048] leading-tight truncate">
+                <div className="text-xs sm:text-base font-black text-slate-950 leading-tight truncate">
                   {allBundles.length}
                 </div>
-                <div className="text-[9px] sm:text-[11px] font-semibold text-gray-400 truncate">
+                <div className="text-[9px] sm:text-[11px] font-semibold text-slate-500 truncate">
                   Total Bundles
                 </div>
               </div>
             </div>
 
-            <div className="bg-white border border-[#eee8fa] rounded-2xl p-2.5 sm:py-2.5 sm:px-4 shadow-sm flex items-center gap-2 sm:gap-3">
-              <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl bg-[#f5f1fd] text-[#6f33e8] flex items-center justify-center shrink-0">
+            <div className="bg-white border border-slate-200/90 rounded-2xl p-2.5 sm:py-2.5 sm:px-4 shadow-sm flex items-center gap-2 sm:gap-3">
+              <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl bg-red-50 text-red-600 border border-red-200/60 flex items-center justify-center shrink-0">
                 <HardDrive className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
               </div>
               <div className="min-w-0">
-                <div className="text-xs sm:text-base font-black text-[#162048] leading-tight truncate">
+                <div className="text-xs sm:text-base font-black text-slate-950 leading-tight truncate">
                   Google Drive
                 </div>
-                <div className="text-[9px] sm:text-[11px] font-semibold text-gray-400 truncate">
+                <div className="text-[9px] sm:text-[11px] font-semibold text-slate-500 truncate">
                   Instant Access
                 </div>
               </div>
             </div>
 
-            <div className="bg-white border border-[#eee8fa] rounded-2xl p-2.5 sm:py-2.5 sm:px-4 shadow-sm flex items-center gap-2 sm:gap-3">
-              <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl bg-[#f5f1fd] text-[#6f33e8] flex items-center justify-center shrink-0">
+            <div className="bg-white border border-slate-200/90 rounded-2xl p-2.5 sm:py-2.5 sm:px-4 shadow-sm flex items-center gap-2 sm:gap-3">
+              <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl bg-red-50 text-red-600 border border-red-200/60 flex items-center justify-center shrink-0">
                 <IndianRupee className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
               </div>
               <div className="min-w-0">
-                <div className="text-xs sm:text-base font-black text-[#162048] leading-tight truncate">
+                <div className="text-xs sm:text-base font-black text-slate-950 leading-tight truncate">
                   ₹49.00
                 </div>
-                <div className="text-[9px] sm:text-[11px] font-semibold text-gray-400 truncate">
+                <div className="text-[9px] sm:text-[11px] font-semibold text-slate-500 truncate">
                   Starting from
                 </div>
               </div>
@@ -271,9 +271,9 @@ export default function ShopClient({ initialBundles }: ShopClientProps) {
         <FreeBundleOfferBanner variant="home" />
 
         {/* PROMINENT SEARCH BAR */}
-        <div ref={shopSearchRef} className="relative rounded-3xl bg-gradient-to-br from-[#f8f5ff] via-white to-[#f5f0ff] border border-[#e8ddfb] p-3.5 sm:p-6 shadow-sm space-y-3.5 z-30">
+        <div ref={shopSearchRef} className="relative rounded-3xl bg-white border border-slate-200/90 p-3.5 sm:p-6 shadow-sm space-y-3.5 z-30">
           <form onSubmit={handleSearchSubmit} className="relative flex items-center">
-            <div className="absolute inset-y-0 left-0 pl-3.5 sm:pl-5 flex items-center pointer-events-none text-[#6f33e8]">
+            <div className="absolute inset-y-0 left-0 pl-3.5 sm:pl-5 flex items-center pointer-events-none text-red-600">
               <Search className="w-4 h-4 sm:w-5 sm:h-5" />
             </div>
 
@@ -287,7 +287,7 @@ export default function ShopClient({ initialBundles }: ShopClientProps) {
                 if (searchTerm.trim()) setIsDropdownOpen(true);
               }}
               onChange={(e) => handleSearchChange(e.target.value)}
-              className="w-full pl-10 sm:pl-13 pr-28 sm:pr-36 py-3 sm:py-3.5 rounded-2xl bg-white border-2 border-[#e3d7fa] focus:border-[#6f33e8] focus:ring-4 focus:ring-purple-500/10 text-xs sm:text-base font-bold text-[#162048] placeholder:text-gray-400 focus:outline-none shadow-sm transition-all"
+              className="w-full pl-10 sm:pl-13 pr-28 sm:pr-36 py-3 sm:py-3.5 rounded-2xl bg-slate-50/70 border-2 border-slate-200 focus:border-red-500 focus:bg-white focus:ring-4 focus:ring-red-500/10 text-xs sm:text-base font-bold text-slate-950 placeholder:text-slate-400 focus:outline-none shadow-sm transition-all"
             />
 
             <div className="absolute inset-y-0 right-1.5 sm:right-2 flex items-center gap-1 sm:gap-1.5">
@@ -295,7 +295,7 @@ export default function ShopClient({ initialBundles }: ShopClientProps) {
                 <button
                   type="button"
                   onClick={handleClearSearch}
-                  className="p-1.5 sm:p-2 rounded-xl text-gray-400 hover:text-gray-700 hover:bg-gray-100 transition-colors cursor-pointer"
+                  className="p-1.5 sm:p-2 rounded-xl text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors cursor-pointer"
                   title="Clear search"
                   aria-label="Clear search"
                 >
@@ -305,7 +305,7 @@ export default function ShopClient({ initialBundles }: ShopClientProps) {
 
               <button
                 type="submit"
-                className="px-3.5 sm:px-5 py-2 sm:py-2 rounded-xl bg-gradient-to-r from-[#6f33e8] to-[#9333ea] hover:from-[#5b24d0] hover:to-[#7e22ce] text-white text-xs sm:text-sm font-bold shadow-md hover:shadow-lg transition-all flex items-center gap-1.5 shrink-0 active:scale-95 cursor-pointer"
+                className="px-3.5 sm:px-5 py-2 sm:py-2 rounded-xl bg-gradient-to-r from-red-600 via-rose-600 to-red-600 hover:from-red-700 hover:to-rose-700 text-white text-xs sm:text-sm font-black shadow-md shadow-red-500/20 hover:shadow-lg transition-all flex items-center gap-1.5 shrink-0 active:scale-95 cursor-pointer"
               >
                 <Search className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                 <span>Search</span>
@@ -314,43 +314,43 @@ export default function ShopClient({ initialBundles }: ShopClientProps) {
           </form>
 
           {isDropdownOpen && searchTerm.trim() && (
-            <div className="absolute top-[68px] sm:top-[78px] left-3.5 sm:left-6 right-3.5 sm:right-6 bg-white rounded-2xl shadow-2xl border border-purple-100 overflow-hidden z-50 animate-in fade-in zoom-in-95 duration-150">
-              <div className="p-2.5 sm:p-3 bg-gradient-to-r from-purple-50/80 to-pink-50/80 border-b border-purple-100 flex items-center justify-between">
-                <span className="text-[11px] sm:text-xs font-extrabold text-[#6f33e8] uppercase tracking-wider flex items-center gap-1.5">
-                  <Sparkles className="w-3.5 h-3.5" />
+            <div className="absolute top-[68px] sm:top-[78px] left-3.5 sm:left-6 right-3.5 sm:right-6 bg-white rounded-2xl shadow-2xl border border-slate-200 overflow-hidden z-50 animate-in fade-in zoom-in-95 duration-150">
+              <div className="p-2.5 sm:p-3 bg-slate-50 border-b border-slate-200 flex items-center justify-between">
+                <span className="text-[11px] sm:text-xs font-extrabold text-red-800 uppercase tracking-wider flex items-center gap-1.5">
+                  <Sparkles className="w-3.5 h-3.5 text-red-600" />
                   <span>{searchResults.length} Bundle{searchResults.length !== 1 ? 's' : ''} Found</span>
                 </span>
                 {searchResults.length > 0 && (
-                  <span className="text-[10px] sm:text-[11px] text-gray-400 font-semibold">Click product to open</span>
+                  <span className="text-[10px] sm:text-[11px] text-slate-400 font-semibold">Click product to open</span>
                 )}
               </div>
 
-              <div className="max-h-80 overflow-y-auto divide-y divide-purple-50 p-1 sm:p-1.5">
+              <div className="max-h-80 overflow-y-auto divide-y divide-slate-100 p-1 sm:p-1.5">
                 {searchResults.slice(0, 5).map((bundle) => (
                   <Link
                     key={bundle.id}
                     href={`/product/${bundle.slug}`}
                     onClick={() => setIsDropdownOpen(false)}
-                    className="flex items-center gap-3 p-2 sm:p-2.5 rounded-xl hover:bg-purple-50/80 transition-colors group"
+                    className="flex items-center gap-3 p-2 sm:p-2.5 rounded-xl hover:bg-red-50/70 transition-colors group"
                   >
                     <img
                       src={bundle.thumbnail}
                       alt={bundle.title}
-                      className="w-11 h-11 sm:w-12 sm:h-12 rounded-xl object-cover shrink-0 bg-slate-900 border border-purple-100"
+                      className="w-11 h-11 sm:w-12 sm:h-12 rounded-xl object-cover shrink-0 bg-slate-900 border border-slate-200"
                     />
                     <div className="min-w-0 flex-1">
-                      <h4 className="text-xs sm:text-sm font-bold text-[#162048] line-clamp-1 group-hover:text-[#6f33e8] transition-colors">
+                      <h4 className="text-xs sm:text-sm font-bold text-slate-900 line-clamp-1 group-hover:text-red-600 transition-colors">
                         {bundle.title}
                       </h4>
                       <div className="flex items-center gap-2 mt-0.5 sm:mt-1">
-                        <span className="text-[10px] font-bold text-[#6f33e8] bg-purple-50 px-2 py-0.5 rounded-md">
+                        <span className="text-[10px] font-bold text-red-800 bg-red-50 border border-red-200/60 px-2 py-0.5 rounded-md">
                           {bundle.reelCount}+ Reels
                         </span>
-                        <span className="text-xs sm:text-sm font-black text-[#162048]">
+                        <span className="text-xs sm:text-sm font-black text-slate-950">
                           ₹{bundle.personalPrice || 49}
                         </span>
                         {bundle.personalOriginalPrice && (
-                          <span className="text-[10px] sm:text-[11px] text-gray-400 line-through">
+                          <span className="text-[10px] sm:text-[11px] text-slate-400 line-through">
                             ₹{bundle.personalOriginalPrice}
                           </span>
                         )}
@@ -360,9 +360,9 @@ export default function ShopClient({ initialBundles }: ShopClientProps) {
                 ))}
 
                 {searchResults.length === 0 && (
-                  <div className="py-6 sm:py-8 text-center text-xs text-gray-500 space-y-1">
-                    <p className="font-bold text-gray-700">No matching bundles found</p>
-                    <p className="text-[11px] text-gray-400">Try searching AI, Horror, Gym, Premanand, Cartoon, Car</p>
+                  <div className="py-6 sm:py-8 text-center text-xs text-slate-500 space-y-1">
+                    <p className="font-bold text-slate-700">No matching bundles found</p>
+                    <p className="text-[11px] text-slate-400">Try searching AI, Horror, Gym, Premanand, Cartoon, Car</p>
                   </div>
                 )}
               </div>
@@ -371,7 +371,7 @@ export default function ShopClient({ initialBundles }: ShopClientProps) {
                 <button
                   type="button"
                   onClick={() => handleSearchSubmit()}
-                  className="w-full py-2.5 sm:py-3 bg-gradient-to-r from-[#6f33e8] to-[#9333ea] hover:from-[#5b24d0] hover:to-[#7e22ce] text-white text-xs sm:text-sm font-bold text-center block transition-all cursor-pointer"
+                  className="w-full py-2.5 sm:py-3 bg-gradient-to-r from-red-600 via-rose-600 to-red-600 hover:from-red-700 hover:to-rose-700 text-white text-xs sm:text-sm font-black text-center block transition-all cursor-pointer"
                 >
                   View all {searchResults.length} results in Shop &rarr;
                 </button>
@@ -380,8 +380,8 @@ export default function ShopClient({ initialBundles }: ShopClientProps) {
           )}
 
           <div className="flex items-center gap-1.5 sm:gap-2 overflow-x-auto no-scrollbar py-0.5">
-            <span className="text-[11px] sm:text-xs font-extrabold text-gray-500 shrink-0 flex items-center gap-1">
-              <TrendingUp className="w-3 h-3 text-[#6f33e8]" />
+            <span className="text-[11px] sm:text-xs font-extrabold text-slate-600 shrink-0 flex items-center gap-1">
+              <TrendingUp className="w-3 h-3 text-red-600" />
               <span>Popular:</span>
             </span>
             {POPULAR_SEARCH_TAGS.map((tag) => {
@@ -393,8 +393,8 @@ export default function ShopClient({ initialBundles }: ShopClientProps) {
                   onClick={() => handlePopularTagClick(tag.query)}
                   className={`px-3 py-1.5 rounded-full text-xs font-bold shrink-0 transition-all cursor-pointer ${
                     isActive
-                      ? 'bg-[#6f33e8] text-white shadow-xs'
-                      : 'bg-white border border-[#eee8fa] text-gray-700 hover:bg-purple-50/70 hover:border-purple-200'
+                      ? 'bg-red-600 text-white border border-red-500 shadow-xs font-black'
+                      : 'bg-white border border-slate-200 text-slate-700 hover:bg-red-50/70 hover:border-red-300 hover:text-red-600'
                   }`}
                 >
                   {tag.label}
@@ -405,14 +405,14 @@ export default function ShopClient({ initialBundles }: ShopClientProps) {
         </div>
 
         {/* Toolbar */}
-        <div className="flex flex-row items-center justify-between gap-2 bg-white p-3 sm:px-5 rounded-2xl border border-[#eee8fa] shadow-2xs">
+        <div className="flex flex-row items-center justify-between gap-2 bg-white p-3 sm:px-5 rounded-2xl border border-slate-200/90 shadow-2xs">
           <div className="flex items-center gap-2 truncate">
-            <span className="text-[11px] sm:text-[13px] font-bold text-gray-700 truncate">
+            <span className="text-[11px] sm:text-[13px] font-bold text-slate-700 truncate">
               Showing {filteredBundles.length > 0 ? (safePage - 1) * ITEMS_PER_PAGE + 1 : 0}–
               {Math.min(safePage * ITEMS_PER_PAGE, filteredBundles.length)} of {filteredBundles.length} bundles
             </span>
             {searchTerm && (
-              <span className="hidden sm:inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-extrabold bg-purple-50 text-[#6f33e8] border border-purple-200">
+              <span className="hidden sm:inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-extrabold bg-red-50 text-red-800 border border-red-200">
                 <span>&ldquo;{searchTerm}&rdquo;</span>
                 <button
                   type="button"
@@ -427,14 +427,14 @@ export default function ShopClient({ initialBundles }: ShopClientProps) {
           </div>
 
           <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
-            <span className="text-[11px] sm:text-xs font-bold text-gray-500 hidden sm:inline">Sort by:</span>
+            <span className="text-[11px] sm:text-xs font-bold text-slate-500 hidden sm:inline">Sort by:</span>
             <select
               value={sortBy}
               onChange={(e) => {
                 setSortBy(e.target.value as any);
                 setCurrentPage(1);
               }}
-              className="px-2.5 sm:px-3.5 py-1.5 rounded-xl border border-gray-200 text-xs font-bold text-gray-700 bg-white focus:outline-none focus:ring-2 focus:ring-[#6f33e8] shadow-2xs cursor-pointer"
+              className="px-2.5 sm:px-3.5 py-1.5 rounded-xl border border-slate-200 text-xs font-bold text-slate-800 bg-white focus:outline-none focus:ring-2 focus:ring-red-500 shadow-2xs cursor-pointer"
             >
               <option value="popular">Popular</option>
               <option value="price-low">Price: Low to High</option>
@@ -445,19 +445,19 @@ export default function ShopClient({ initialBundles }: ShopClientProps) {
         </div>
 
         {paginatedBundles.length === 0 && (
-          <div className="py-16 text-center bg-white rounded-3xl border border-[#eee8f8] p-8 space-y-3">
-            <div className="w-14 h-14 rounded-2xl bg-purple-50 text-[#6f33e8] flex items-center justify-center mx-auto text-2xl">
+          <div className="py-16 text-center bg-white rounded-3xl border border-slate-200/90 p-8 space-y-3">
+            <div className="w-14 h-14 rounded-2xl bg-red-50 text-red-700 border border-red-200/60 flex items-center justify-center mx-auto text-2xl">
               🔍
             </div>
-            <h3 className="text-lg font-bold text-[#162048]">
+            <h3 className="text-lg font-bold text-slate-950">
               {searchTerm ? `No bundles found for "${searchTerm}"` : 'No bundles found'}
             </h3>
-            <p className="text-xs text-gray-500 max-w-sm mx-auto">
+            <p className="text-xs text-slate-500 max-w-sm mx-auto">
               Try searching with another keyword like AI, Horror, Gym, Premanand, Cartoon, or Cars.
             </p>
             <button
               onClick={handleClearSearch}
-              className="px-5 py-2.5 rounded-xl bg-[#6f33e8] text-white text-xs font-bold hover:bg-[#5b24d0] transition-colors shadow-sm"
+              className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-red-600 to-rose-600 text-white text-xs font-black hover:from-red-700 hover:to-rose-700 transition-colors shadow-sm cursor-pointer"
             >
               Show All Bundles
             </button>
@@ -484,7 +484,7 @@ export default function ShopClient({ initialBundles }: ShopClientProps) {
             return (
               <div
                 key={bundle.id}
-                className="bg-white rounded-2xl sm:rounded-[24px] border border-[#eee8f8] shadow-[0_2px_12px_rgba(40,20,80,0.03)] hover:shadow-[0_12px_28px_rgba(108,60,240,0.12)] hover:-translate-y-1 transition-all duration-300 flex flex-col overflow-hidden group"
+                className="bg-white rounded-2xl sm:rounded-[24px] border border-slate-200/90 shadow-[0_2px_12px_rgba(15,23,42,0.03)] hover:shadow-[0_12px_28px_rgba(239,68,68,0.14)] hover:-translate-y-1 transition-all duration-300 flex flex-col overflow-hidden group"
               >
                 <Link
                   href={`/product/${bundle.slug}`}
@@ -515,12 +515,12 @@ export default function ShopClient({ initialBundles }: ShopClientProps) {
 
                   <div className="absolute top-0 right-0 overflow-hidden w-20 h-20 sm:w-24 sm:h-24 pointer-events-none">
                     {isBestSelling ? (
-                      <div className="absolute transform rotate-45 bg-gradient-to-r from-amber-500 to-orange-500 text-white font-black text-[7px] sm:text-[8px] py-0.5 sm:py-1 right-[-34px] sm:right-[-32px] top-[14px] sm:top-[18px] w-[110px] sm:w-[120px] text-center shadow-md flex items-center justify-center gap-0.5">
+                      <div className="absolute transform rotate-45 bg-gradient-to-r from-red-600 via-rose-600 to-red-600 text-white font-black text-[7px] sm:text-[8px] py-0.5 sm:py-1 right-[-34px] sm:right-[-32px] top-[14px] sm:top-[18px] w-[110px] sm:w-[120px] text-center shadow-md flex items-center justify-center gap-0.5">
                         <span>★</span>
                         <span>BEST SELLER</span>
                       </div>
                     ) : isTrending ? (
-                      <div className="absolute transform rotate-45 bg-gradient-to-r from-purple-600 to-indigo-600 text-white font-black text-[7px] sm:text-[8px] py-0.5 sm:py-1 right-[-34px] sm:right-[-32px] top-[14px] sm:top-[18px] w-[110px] sm:w-[120px] text-center shadow-md flex items-center justify-center gap-0.5">
+                      <div className="absolute transform rotate-45 bg-gradient-to-r from-slate-950 to-slate-900 text-red-400 border border-red-500/30 font-black text-[7px] sm:text-[8px] py-0.5 sm:py-1 right-[-34px] sm:right-[-32px] top-[14px] sm:top-[18px] w-[110px] sm:w-[120px] text-center shadow-md flex items-center justify-center gap-0.5">
                         <span>↗</span>
                         <span>TRENDING</span>
                       </div>
@@ -556,16 +556,16 @@ export default function ShopClient({ initialBundles }: ShopClientProps) {
                         })
                       }
                     >
-                      <h2 className="font-extrabold text-xs sm:text-[14px] text-[#162048] hover:text-[#6f33e8] transition-colors line-clamp-2 leading-snug min-h-[32px] sm:min-h-[40px]">
+                      <h2 className="font-extrabold text-xs sm:text-[14px] text-slate-900 hover:text-red-600 transition-colors line-clamp-2 leading-snug min-h-[32px] sm:min-h-[40px]">
                         {bundle.title}
                       </h2>
                     </Link>
 
                     <div className="flex items-center gap-1 sm:gap-1.5 flex-wrap">
-                      <span className="px-1.5 sm:px-2 py-0.5 rounded-md text-[9px] sm:text-[10px] font-extrabold bg-[#e6fbfb] text-[#0d9488]">
+                      <span className="px-1.5 sm:px-2 py-0.5 rounded-md text-[9px] sm:text-[10px] font-extrabold bg-red-50 text-red-800 border border-red-200/50">
                         {bundle.reelCount}+ Reels
                       </span>
-                      <span className="px-1.5 sm:px-2 py-0.5 rounded-md text-[9px] sm:text-[10px] font-bold bg-[#f1f2f6] text-[#64748b] flex items-center gap-0.5">
+                      <span className="px-1.5 sm:px-2 py-0.5 rounded-md text-[9px] sm:text-[10px] font-bold bg-slate-100 text-slate-600 flex items-center gap-0.5">
                         <Film className="w-2.5 h-2.5" />
                         <span>MP4</span>
                       </span>
@@ -575,14 +575,14 @@ export default function ShopClient({ initialBundles }: ShopClientProps) {
                   <div className="pt-2 border-t border-slate-100 space-y-2 sm:space-y-2.5">
                     <div className="flex items-baseline justify-between gap-1 flex-wrap">
                       <div className="flex items-baseline gap-1.5">
-                        <span className="text-[10px] sm:text-xs text-[#8d95b5] line-through font-semibold">
+                        <span className="text-[10px] sm:text-xs text-slate-400 line-through font-semibold">
                           ₹{bundle.personalOriginalPrice}.00
                         </span>
-                        <span className="text-sm sm:text-lg font-black text-[#162048]">
+                        <span className="text-sm sm:text-lg font-black text-slate-950">
                           ₹{bundle.personalPrice}.00
                         </span>
                       </div>
-                      <span className="px-1.5 py-0.5 rounded-md text-[9px] sm:text-[10px] font-extrabold bg-[#e8fbf3] text-[#087a55]">
+                      <span className="px-1.5 py-0.5 rounded-md text-[9px] sm:text-[10px] font-extrabold bg-emerald-50 text-emerald-700 border border-emerald-200">
                         {discount}% OFF
                       </span>
                     </div>
@@ -591,7 +591,7 @@ export default function ShopClient({ initialBundles }: ShopClientProps) {
                       <button
                         type="button"
                         onClick={() => addToCart(bundle, 'personal')}
-                        className="p-2 sm:p-2.5 rounded-xl border border-purple-200 bg-[#fbf9ff] hover:bg-purple-100 text-[#6f33e8] transition-colors shadow-2xs shrink-0 flex items-center justify-center active:scale-95"
+                        className="p-2 sm:p-2.5 rounded-xl border border-slate-200 bg-slate-50 hover:bg-red-50 hover:border-red-300 text-slate-700 hover:text-red-700 transition-colors shadow-2xs shrink-0 flex items-center justify-center active:scale-95 cursor-pointer"
                         aria-label="Add to cart"
                         title="Add to cart"
                       >
@@ -601,7 +601,7 @@ export default function ShopClient({ initialBundles }: ShopClientProps) {
                       <button
                         type="button"
                         onClick={() => buyNow(bundle, 'personal')}
-                        className="flex-1 py-2 sm:py-2.5 px-2 sm:px-4 rounded-xl bg-gradient-to-r from-[#6533e4] to-[#7839ee] hover:opacity-95 text-white font-extrabold text-[11px] sm:text-xs flex items-center justify-center shadow-md shadow-purple-500/20 transition-all active:scale-95"
+                        className="flex-1 py-2 sm:py-2.5 px-2 sm:px-4 rounded-xl bg-gradient-to-r from-red-600 via-rose-600 to-red-600 hover:from-red-700 hover:to-rose-700 text-white font-black text-[11px] sm:text-xs flex items-center justify-center shadow-md shadow-red-500/20 transition-all active:scale-95 cursor-pointer"
                       >
                         Buy Now
                       </button>
@@ -620,7 +620,7 @@ export default function ShopClient({ initialBundles }: ShopClientProps) {
               type="button"
               onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
               disabled={safePage === 1}
-              className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl border border-gray-200 bg-white text-gray-700 flex items-center justify-center text-xs font-bold disabled:opacity-40 disabled:cursor-not-allowed hover:bg-gray-50 transition-colors"
+              className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl border border-slate-200 bg-white text-slate-700 flex items-center justify-center text-xs font-bold disabled:opacity-40 disabled:cursor-not-allowed hover:bg-slate-50 transition-colors cursor-pointer"
               aria-label="Previous Page"
             >
               <ChevronLeft className="w-4 h-4" />
@@ -639,10 +639,10 @@ export default function ShopClient({ initialBundles }: ShopClientProps) {
                     key={pageNum}
                     type="button"
                     onClick={() => setCurrentPage(pageNum)}
-                    className={`w-8 h-8 sm:w-9 sm:h-9 rounded-xl text-xs font-black transition-colors ${
+                    className={`w-8 h-8 sm:w-9 sm:h-9 rounded-xl text-xs font-black transition-colors cursor-pointer ${
                       isActive
-                        ? 'bg-[#6f33e8] text-white shadow-sm'
-                        : 'bg-white border border-gray-200 text-gray-700 hover:bg-gray-50'
+                        ? 'bg-red-600 text-white border border-red-500 shadow-sm'
+                        : 'bg-white border border-slate-200 text-slate-700 hover:bg-slate-50'
                     }`}
                   >
                     {pageNum}
@@ -652,7 +652,7 @@ export default function ShopClient({ initialBundles }: ShopClientProps) {
 
               if (pageNum === safePage - 2 || pageNum === safePage + 2) {
                 return (
-                  <span key={pageNum} className="text-gray-400 text-xs px-1">
+                  <span key={pageNum} className="text-slate-400 text-xs px-1">
                     ...
                   </span>
                 );
@@ -665,7 +665,7 @@ export default function ShopClient({ initialBundles }: ShopClientProps) {
               type="button"
               onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
               disabled={safePage === totalPages}
-              className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl border border-gray-200 bg-white text-gray-700 flex items-center justify-center text-xs font-bold disabled:opacity-40 disabled:cursor-not-allowed hover:bg-gray-50 transition-colors"
+              className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl border border-slate-200 bg-white text-slate-700 flex items-center justify-center text-xs font-bold disabled:opacity-40 disabled:cursor-not-allowed hover:bg-slate-50 transition-colors cursor-pointer"
               aria-label="Next Page"
             >
               <ChevronRight className="w-4 h-4" />
@@ -674,34 +674,34 @@ export default function ShopClient({ initialBundles }: ShopClientProps) {
         )}
 
         {/* 3 Trust / Value Cards */}
-        <div className="rounded-3xl bg-white border border-[#eee8fa] p-4 sm:p-6 shadow-sm space-y-3.5 mt-8">
+        <div className="rounded-3xl bg-white border border-slate-200/90 p-4 sm:p-6 shadow-sm space-y-3.5 mt-8">
           <div className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center shrink-0">
-              <Zap className="w-4 h-4 fill-amber-500/20" />
+            <div className="w-8 h-8 rounded-xl bg-red-50 text-red-600 border border-red-200/60 flex items-center justify-center shrink-0">
+              <Zap className="w-4 h-4 fill-red-500/20" />
             </div>
             <div>
-              <h3 className="text-xs sm:text-sm font-extrabold text-[#162048]">Instant Access</h3>
-              <p className="text-[11px] sm:text-xs text-gray-500 font-medium">Get Google Drive files immediately after payment</p>
+              <h3 className="text-xs sm:text-sm font-extrabold text-slate-950">Instant Access</h3>
+              <p className="text-[11px] sm:text-xs text-slate-500 font-medium">Get Google Drive files immediately after payment</p>
             </div>
           </div>
 
           <div className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded-xl bg-purple-50 text-[#6f33e8] flex items-center justify-center shrink-0">
+            <div className="w-8 h-8 rounded-xl bg-rose-50 text-rose-600 border border-rose-200/60 flex items-center justify-center shrink-0">
               <ShieldCheck className="w-4 h-4" />
             </div>
             <div>
-              <h3 className="text-xs sm:text-sm font-extrabold text-[#162048]">High Quality</h3>
-              <p className="text-[11px] sm:text-xs text-gray-500 font-medium">Curated 1080P Full HD watermark-free digital content</p>
+              <h3 className="text-xs sm:text-sm font-extrabold text-slate-950">High Quality</h3>
+              <p className="text-[11px] sm:text-xs text-slate-500 font-medium">Curated 1080P Full HD watermark-free digital content</p>
             </div>
           </div>
 
           <div className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0">
+            <div className="w-8 h-8 rounded-xl bg-emerald-50 text-emerald-600 border border-emerald-200/60 flex items-center justify-center shrink-0">
               <RotateCcw className="w-4 h-4" />
             </div>
             <div>
-              <h3 className="text-xs sm:text-sm font-extrabold text-[#162048]">Regular Updates</h3>
-              <p className="text-[11px] sm:text-xs text-gray-500 font-medium">New bundles added regularly with lifetime access</p>
+              <h3 className="text-xs sm:text-sm font-extrabold text-slate-950">Regular Updates</h3>
+              <p className="text-[11px] sm:text-xs text-slate-500 font-medium">New bundles added regularly with lifetime access</p>
             </div>
           </div>
         </div>

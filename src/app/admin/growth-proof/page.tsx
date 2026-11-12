@@ -312,7 +312,7 @@ export default function AdminGrowthProofPage() {
           <Link
             href={`/product/${slug}?admin=1#growth-proof`}
             target="_blank"
-            className="px-4 py-2.5 rounded-xl bg-purple-600 hover:bg-purple-500 text-white text-xs font-black inline-flex items-center justify-center gap-1.5 shrink-0 self-start sm:self-auto"
+            className="px-4 py-2.5 rounded-xl bg-red-600 hover:bg-red-500 text-white text-xs font-black inline-flex items-center justify-center gap-1.5 shrink-0 self-start sm:self-auto"
           >
             Preview Live Section
             <ExternalLink className="w-3.5 h-3.5" />
@@ -372,7 +372,7 @@ export default function AdminGrowthProofPage() {
           <select
             value={slug}
             onChange={(e) => setSlug(e.target.value)}
-            className="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2.5 text-sm text-white focus:outline-none focus:border-purple-500"
+            className="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2.5 text-sm text-white focus:outline-none focus:border-red-500"
           >
             {PRODUCT_OPTIONS.map((opt) => (
               <option key={opt.slug} value={opt.slug}>
@@ -383,10 +383,10 @@ export default function AdminGrowthProofPage() {
         </div>
 
         {/* Upload / Add New Screenshot Card */}
-        <div className="p-5 rounded-3xl bg-slate-900 border border-purple-500/30 space-y-5">
+        <div className="p-5 rounded-3xl bg-slate-900 border border-red-500/30 space-y-5">
           <div className="flex flex-wrap items-center justify-between gap-2">
             <h2 className="text-base sm:text-lg font-black text-white flex items-center gap-2">
-              <ImagePlus className="w-5 h-5 text-purple-400" />
+              <ImagePlus className="w-5 h-5 text-red-400" />
               Add Growth Page Screenshot
             </h2>
             <span className="text-[11px] font-bold text-slate-400">
@@ -450,11 +450,11 @@ export default function AdminGrowthProofPage() {
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-1">
             {/* Option A: Direct Gallery / File Upload */}
-            <label className="flex flex-col items-center justify-center p-5 rounded-2xl border-2 border-dashed border-purple-500/50 hover:border-purple-400 bg-purple-500/10 hover:bg-purple-500/15 transition-all cursor-pointer text-center">
+            <label className="flex flex-col items-center justify-center p-5 rounded-2xl border-2 border-dashed border-red-500/50 hover:border-red-400 bg-red-500/10 hover:bg-red-500/15 transition-all cursor-pointer text-center">
               {isCompressing ? (
-                <Loader2 className="w-7 h-7 text-purple-300 animate-spin mb-2" />
+                <Loader2 className="w-7 h-7 text-red-300 animate-spin mb-2" />
               ) : (
-                <Upload className="w-7 h-7 text-purple-300 mb-2" />
+                <Upload className="w-7 h-7 text-red-300 mb-2" />
               )}
               <span className="text-sm font-black text-white">
                 {isCompressing
@@ -514,7 +514,7 @@ export default function AdminGrowthProofPage() {
                 type="button"
                 disabled={isSaving}
                 onClick={() => persistScreenshots(screenshots)}
-                className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-[#6c3cf0] to-[#ff4fb3] text-white font-black text-xs sm:text-sm inline-flex items-center gap-2 shadow-lg cursor-pointer disabled:opacity-50"
+                className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-red-600 to-rose-600 hover:from-red-700 hover:to-rose-700 text-white font-black text-xs sm:text-sm inline-flex items-center gap-2 shadow-lg cursor-pointer disabled:opacity-50"
               >
                 {isSaving ? (
                   <Loader2 className="w-4 h-4 animate-spin" />
@@ -528,7 +528,7 @@ export default function AdminGrowthProofPage() {
 
           {isLoading ? (
             <div className="p-10 rounded-2xl bg-slate-900 border border-slate-800 text-center text-slate-400 text-sm">
-              <Loader2 className="w-6 h-6 animate-spin mx-auto mb-2 text-purple-400" />
+              <Loader2 className="w-6 h-6 animate-spin mx-auto mb-2 text-red-400" />
               Loading screenshots...
             </div>
           ) : screenshots.length === 0 ? (
@@ -586,7 +586,7 @@ export default function AdminGrowthProofPage() {
                         updateItemField(idx, 'pageHandle', e.target.value)
                       }
                       placeholder="@page_handle"
-                      className="w-full bg-slate-800 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-purple-300 font-bold"
+                      className="w-full bg-slate-800 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-red-300 font-bold"
                     />
                     <input
                       type="text"

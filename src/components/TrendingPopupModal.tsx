@@ -65,15 +65,15 @@ export default function TrendingPopupModal() {
     >
       <div
         onClick={(e) => e.stopPropagation()}
-        className="relative w-full max-w-lg max-w-[calc(100vw-24px)] max-h-[92vh] overflow-y-auto rounded-3xl bg-white border border-purple-200 shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200"
+        className="relative w-full max-w-lg max-w-[calc(100vw-24px)] max-h-[92vh] overflow-y-auto rounded-3xl bg-white border border-red-200 shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200"
       >
         {/* Top Flame / Urgency Strip */}
-        <div className="bg-gradient-to-r from-[#d9222a] via-[#e5383b] to-[#f77f00] px-4 py-2 text-white flex items-center justify-between shadow-sm">
-          <div className="flex items-center gap-1.5 text-xs font-black uppercase tracking-wider">
-            <Flame className="w-4 h-4 fill-amber-300 text-amber-300 animate-bounce" />
-            <span>Trending #1 Viral Bundle Across India</span>
+        <div className="bg-gradient-to-r from-slate-950 via-red-900 to-red-700 pl-4 pr-12 py-2.5 text-white flex items-center justify-between gap-2 shadow-sm">
+          <div className="flex items-center gap-1.5 text-[11px] sm:text-xs font-black uppercase tracking-wider min-w-0">
+            <Flame className="w-4 h-4 fill-amber-300 text-amber-300 animate-bounce shrink-0" />
+            <span className="truncate">Trending #1 Viral Bundle Across India</span>
           </div>
-          <span className="text-[10px] font-extrabold bg-white/20 px-2 py-0.5 rounded-full">
+          <span className="text-[10px] font-extrabold bg-white/20 px-2 py-0.5 rounded-full whitespace-nowrap shrink-0">
             Limited Time 90% Off
           </span>
         </div>
@@ -96,7 +96,7 @@ export default function TrendingPopupModal() {
             className="flex gap-4 items-center group"
           >
             {/* Visual Thumbnail */}
-            <div className="relative w-24 sm:w-28 aspect-[3/4] rounded-2xl overflow-hidden bg-slate-900 border-2 border-purple-100 group-hover:border-purple-300 transition-colors shrink-0 shadow-md">
+            <div className="relative w-24 sm:w-28 aspect-[3/4] rounded-2xl overflow-hidden bg-slate-900 border-2 border-red-100 group-hover:border-red-300 transition-colors shrink-0 shadow-md">
               <img
                 src={sheruProduct.thumbnail || '/sheru-bhai-cover.png'}
                 alt={sheruProduct.title}
@@ -110,8 +110,8 @@ export default function TrendingPopupModal() {
                 <span className="self-start text-[8px] font-black uppercase tracking-wider px-1.5 py-0.5 bg-red-600 rounded text-white shadow-xs">
                   HOT
                 </span>
-                <div className="w-6 h-6 rounded-full bg-white/90 flex items-center justify-center mx-auto text-[#6734f7] shadow-sm">
-                  <Play className="w-2.5 h-2.5 fill-[#6734f7] ml-0.5" />
+                <div className="w-6 h-6 rounded-full bg-white/90 flex items-center justify-center mx-auto text-red-600 shadow-sm">
+                  <Play className="w-2.5 h-2.5 fill-red-600 ml-0.5" />
                 </div>
                 <span className="text-[9px] font-bold text-center text-amber-300">
                   3000+ Clips
@@ -121,13 +121,13 @@ export default function TrendingPopupModal() {
 
             {/* Product Meta */}
             <div className="flex-1 min-w-0 space-y-1.5">
-              <span className="inline-block px-2 py-0.5 rounded-md bg-purple-100 text-purple-800 text-[10px] font-extrabold uppercase tracking-wide">
+              <span className="inline-block px-2 py-0.5 rounded-md bg-red-100 text-red-800 text-[10px] font-extrabold uppercase tracking-wide">
                 Comedy & Dialogue Reels
               </span>
 
               <h3
                 id="trending-modal-title"
-                className="text-sm sm:text-base font-black text-slate-900 group-hover:text-[#6734f7] transition-colors leading-snug line-clamp-2"
+                className="text-sm sm:text-base font-black text-slate-900 group-hover:text-red-600 transition-colors leading-snug line-clamp-2"
               >
                 {sheruProduct.title}
               </h3>
@@ -140,7 +140,7 @@ export default function TrendingPopupModal() {
 
               {/* Price Banner */}
               <div className="flex items-baseline gap-2 pt-0.5">
-                <span className="text-2xl font-black text-[#6734f7]">₹{sheruProduct.personalPrice}</span>
+                <span className="text-2xl font-black text-red-600">₹{sheruProduct.personalPrice}</span>
                 <span className="text-xs text-slate-400 line-through font-semibold">₹{sheruProduct.personalOriginalPrice}</span>
                 <span className="px-1.5 py-0.5 rounded bg-emerald-100 text-emerald-800 text-[10px] font-black">
                   90% OFF
@@ -150,7 +150,7 @@ export default function TrendingPopupModal() {
           </Link>
 
           {/* Quick Value Highlights */}
-          <div className="grid grid-cols-2 gap-2 text-[11px] sm:text-xs text-slate-700 font-bold bg-purple-50/70 p-3 rounded-xl border border-purple-100">
+          <div className="grid grid-cols-2 gap-2 text-[11px] sm:text-xs text-slate-700 font-bold bg-red-50/70 p-3 rounded-xl border border-red-100">
             <div className="flex items-center gap-1.5">
               <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
               <span>3000+ Full HD Reels</span>
@@ -174,7 +174,7 @@ export default function TrendingPopupModal() {
             <Link
               href={productUrl}
               onClick={handleClose}
-              className="w-full py-3.5 px-5 rounded-2xl bg-gradient-to-r from-[#6734f7] via-[#a32bf6] to-[#ec288d] text-white font-black text-sm shadow-lg hover:shadow-xl hover:scale-[1.01] active:scale-95 transition-all flex items-center justify-center gap-2 cursor-pointer"
+              className="w-full py-3.5 px-5 rounded-2xl bg-gradient-to-r from-red-600 via-rose-600 to-red-600 hover:from-red-700 hover:to-rose-700 text-white font-black text-sm shadow-lg shadow-red-500/25 hover:shadow-xl hover:scale-[1.01] active:scale-95 transition-all flex items-center justify-center gap-2 cursor-pointer"
             >
               <Zap className="w-4 h-4 fill-white" />
               <span>View Bundle &amp; Buy — Just ₹{sheruProduct.personalPrice}</span>
@@ -183,7 +183,7 @@ export default function TrendingPopupModal() {
             <Link
               href={productUrl}
               onClick={handleClose}
-              className="w-full py-2 px-4 rounded-xl text-center text-xs font-bold text-slate-600 hover:text-purple-700 hover:bg-slate-50 transition-colors flex items-center justify-center gap-1"
+              className="w-full py-2 px-4 rounded-xl text-center text-xs font-bold text-slate-600 hover:text-red-700 hover:bg-red-50/50 transition-colors flex items-center justify-center gap-1"
             >
               <span>Watch Previews &amp; Full Details</span>
               <ArrowRight className="w-3.5 h-3.5" />

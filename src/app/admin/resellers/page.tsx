@@ -350,7 +350,7 @@ export default function AdminResellersManagementPage() {
             </Link>
             <Link
               href="/admin/growth-proof"
-              className="px-4 py-2 bg-purple-600/20 hover:bg-purple-600/30 border border-purple-500/40 rounded-xl text-xs font-bold text-purple-200 flex items-center gap-1.5 transition"
+              className="px-4 py-2 bg-red-600/20 hover:bg-red-600/30 border border-red-500/40 rounded-xl text-xs font-bold text-red-200 flex items-center gap-1.5 transition"
             >
               <span>📸 Growth Screenshots</span>
             </Link>
@@ -416,7 +416,7 @@ export default function AdminResellersManagementPage() {
             onClick={() => setActiveTab('settings')}
             className={`px-5 py-2.5 rounded-xl font-bold text-sm flex items-center gap-2 transition ${
               activeTab === 'settings'
-                ? 'bg-purple-500 text-slate-950 shadow-lg shadow-purple-500/20'
+                ? 'bg-red-600 text-white shadow-lg shadow-red-500/20'
                 : 'text-slate-400 hover:text-white hover:bg-slate-900'
             }`}
           >
@@ -598,7 +598,7 @@ export default function AdminResellersManagementPage() {
                 {[
                   { key: 'all', label: 'All Requests', count: withdrawals.length },
                   { key: 'pending', label: 'Pending Review', count: pendingCount, color: 'text-amber-400' },
-                  { key: 'processing', label: 'Processing', count: processingCount, color: 'text-purple-400' },
+                  { key: 'processing', label: 'Processing', count: processingCount, color: 'text-red-400' },
                   { key: 'approved', label: 'Approved (Awaiting UPI)', count: approvedCount, color: 'text-cyan-400' },
                   { key: 'paid', label: 'Paid & Settled', count: paidCount, color: 'text-emerald-400' },
                   { key: 'rejected', label: 'Rejected (Refunded)', count: rejectedCount, color: 'text-rose-400' },
@@ -700,7 +700,7 @@ export default function AdminResellersManagementPage() {
                                   <ShieldCheck className="w-3 h-3" /> Approved
                                 </span>
                               ) : w.status === 'processing' ? (
-                                <span className="px-2.5 py-1 rounded-full text-xs font-semibold bg-purple-500/10 text-purple-400 border border-purple-500/20 inline-flex items-center gap-1">
+                                <span className="px-2.5 py-1 rounded-full text-xs font-semibold bg-red-500/10 text-red-400 border border-red-500/20 inline-flex items-center gap-1">
                                   <Clock className="w-3 h-3" /> Processing
                                 </span>
                               ) : w.status === 'rejected' ? (
@@ -737,7 +737,7 @@ export default function AdminResellersManagementPage() {
                                     <button
                                       onClick={() => handleQuickStatus(w.id, 'processing')}
                                       disabled={processingId === w.id}
-                                      className="px-2.5 py-1.5 bg-purple-500/10 hover:bg-purple-500/20 border border-purple-500/30 text-purple-300 rounded-lg text-xs font-semibold transition"
+                                      className="px-2.5 py-1.5 bg-red-500/10 hover:bg-red-500/20 border border-red-500/30 text-red-300 rounded-lg text-xs font-semibold transition"
                                       title="Mark Processing while you execute manual transfer"
                                     >
                                       Processing
@@ -926,7 +926,7 @@ export default function AdminResellersManagementPage() {
         {activeTab === 'settings' && (
           <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 max-w-2xl">
             <h2 className="text-lg font-bold text-white flex items-center gap-2 mb-2">
-              <ShieldCheck className="w-5 h-5 text-purple-400" />
+              <ShieldCheck className="w-5 h-5 text-red-400" />
               Reseller Program Rules & Safeguards
             </h2>
             <p className="text-slate-400 text-xs mb-6">
@@ -956,7 +956,7 @@ export default function AdminResellersManagementPage() {
                   min={1}
                   value={settings.min_markup}
                   onChange={(e) => setSettings({ ...settings, min_markup: Number(e.target.value) })}
-                  className="w-full bg-slate-800 border border-slate-700 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-purple-500 font-mono"
+                  className="w-full bg-slate-800 border border-slate-700 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-red-500 font-mono"
                 />
                 <span className="text-[11px] text-slate-500 mt-1 block">
                   Resellers cannot set resale price below base price + this markup.
@@ -972,7 +972,7 @@ export default function AdminResellersManagementPage() {
                   min={100}
                   value={settings.max_price}
                   onChange={(e) => setSettings({ ...settings, max_price: Number(e.target.value) })}
-                  className="w-full bg-slate-800 border border-slate-700 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-purple-500 font-mono"
+                  className="w-full bg-slate-800 border border-slate-700 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-red-500 font-mono"
                 />
               </div>
 
@@ -983,7 +983,7 @@ export default function AdminResellersManagementPage() {
                 <select
                   value={settings.settlement_policy}
                   onChange={(e) => setSettings({ ...settings, settlement_policy: e.target.value })}
-                  className="w-full bg-slate-800 border border-slate-700 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-purple-500"
+                  className="w-full bg-slate-800 border border-slate-700 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-red-500"
                 >
                   <option value="immediate">Immediate (Credited to Available on verified order)</option>
                   <option value="hold_7d">7-Day Cooling Period (Credited to Pending first)</option>
@@ -994,7 +994,7 @@ export default function AdminResellersManagementPage() {
                 <button
                   type="submit"
                   disabled={processingId === 'settings'}
-                  className="px-6 py-2.5 bg-purple-500 hover:bg-purple-600 text-white font-bold rounded-xl text-sm transition"
+                  className="px-6 py-2.5 bg-red-600 hover:bg-red-700 text-white font-bold rounded-xl text-sm transition"
                 >
                   {processingId === 'settings' ? 'Saving...' : 'Save Settings'}
                 </button>

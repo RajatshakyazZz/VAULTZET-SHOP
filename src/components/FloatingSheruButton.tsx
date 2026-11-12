@@ -44,13 +44,13 @@ export default function FloatingSheruButton() {
         className="relative group block cursor-pointer"
       >
         {/* Subtle glowing ring that never overflows */}
-        <span className="absolute -inset-1 rounded-full bg-gradient-to-r from-red-500 via-pink-500 to-amber-400 opacity-60 blur-xs animate-pulse pointer-events-none" />
+        <span className="absolute -inset-1 rounded-full bg-gradient-to-r from-red-600 via-rose-500 to-red-500 opacity-60 blur-xs animate-pulse pointer-events-none" />
 
         {/* Circular Avatar Floating Button */}
         <div
-          className="relative w-14 h-14 sm:w-16 sm:h-16 rounded-full overflow-hidden border-[2.5px] border-amber-400 bg-slate-900 shadow-xl group-hover:scale-105 group-active:scale-95 transition-transform duration-200"
+          className="relative w-14 h-14 sm:w-16 sm:h-16 rounded-full overflow-hidden border-[2.5px] border-red-400 bg-slate-900 shadow-xl group-hover:scale-105 group-active:scale-95 transition-transform duration-200"
           style={{
-            boxShadow: '0 8px 24px -2px rgba(235, 40, 110, 0.45), 0 4px 10px -2px rgba(0,0,0,0.2)',
+            boxShadow: '0 8px 24px -2px rgba(220, 38, 38, 0.45), 0 4px 10px -2px rgba(0,0,0,0.2)',
           }}
         >
           <img
@@ -68,7 +68,7 @@ export default function FloatingSheruButton() {
 
           {/* Play Icon in Center */}
           <div className="absolute inset-0 flex items-center justify-center">
-            <span className="w-5 h-5 rounded-full bg-white/95 text-[#6734f7] flex items-center justify-center shadow-md">
+            <span className="w-5 h-5 rounded-full bg-white/95 text-red-600 flex items-center justify-center shadow-md">
               <span className="text-[9px] font-black leading-none ml-0.5">▶</span>
             </span>
           </div>
@@ -83,7 +83,7 @@ export default function FloatingSheruButton() {
 
         {/* Badge on Top Right */}
         <span
-          className="absolute -top-1.5 -right-1 px-1.5 py-0.5 bg-gradient-to-r from-red-600 to-orange-500 border border-white text-white text-[8.5px] font-black uppercase tracking-wider rounded-full shadow-md z-10"
+          className="absolute -top-1.5 -right-1 px-1.5 py-0.5 bg-gradient-to-r from-red-600 to-rose-600 border border-white text-white text-[8.5px] font-black uppercase tracking-wider rounded-full shadow-md z-10"
         >
           HOT
         </span>

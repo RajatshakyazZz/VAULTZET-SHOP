@@ -312,11 +312,11 @@ export default function ResellerWalletPage() {
   );
 
   return (
-    <div className="space-y-6 max-w-7xl mx-auto pb-24 sm:pb-12 text-[#162048]">
+    <div className="space-y-6 max-w-7xl mx-auto pb-24 sm:pb-12 text-slate-950">
       {/* ------------------------------------------------------------- */}
       {/* HEADER BANNER */}
       {/* ------------------------------------------------------------- */}
-      <div className="p-6 sm:p-8 rounded-3xl bg-gradient-to-br from-[#162048] via-[#221652] to-[#3a1b63] text-white flex flex-col sm:flex-row sm:items-center justify-between gap-5 shadow-xl shadow-purple-950/20 relative overflow-hidden">
+      <div className="p-6 sm:p-8 rounded-3xl bg-gradient-to-br from-slate-950 via-slate-900 to-red-950 border border-red-500/20 text-white flex flex-col sm:flex-row sm:items-center justify-between gap-5 shadow-xl shadow-slate-950/25 relative overflow-hidden">
         <div className="absolute top-0 right-0 w-80 h-80 bg-emerald-500/10 rounded-full blur-3xl pointer-events-none" />
 
         <div className="relative z-10 space-y-2">
@@ -394,13 +394,13 @@ export default function ResellerWalletPage() {
         </div>
 
         {/* Lifetime Gross Margin */}
-        <div className="p-4 sm:p-5 rounded-3xl bg-white border border-purple-100/90 shadow-xs space-y-2 hover:shadow-md transition-shadow">
-          <div className="w-10 h-10 rounded-2xl bg-purple-100 text-[#6734f7] flex items-center justify-center shadow-inner">
+        <div className="p-4 sm:p-5 rounded-3xl bg-white border border-slate-200 shadow-xs space-y-2 hover:shadow-md transition-shadow">
+          <div className="w-10 h-10 rounded-2xl bg-red-50 text-red-600 flex items-center justify-center shadow-inner">
             <TrendingUp className="w-5 h-5" />
           </div>
           <div>
             <div className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Lifetime Gross Margin</div>
-            <div className="text-2xl sm:text-3xl font-black text-[#162048] tracking-tight">
+            <div className="text-2xl sm:text-3xl font-black text-slate-950 tracking-tight">
               ₹{wallet?.totalEarned?.toLocaleString('en-IN') || '0'}
             </div>
             <span className="text-[10px] text-slate-400 font-medium block mt-0.5">
@@ -416,7 +416,7 @@ export default function ResellerWalletPage() {
           </div>
           <div>
             <div className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Total Transferred</div>
-            <div className="text-2xl sm:text-3xl font-black text-[#162048] tracking-tight">
+            <div className="text-2xl sm:text-3xl font-black text-slate-950 tracking-tight">
               ₹{wallet?.totalWithdrawn?.toLocaleString('en-IN') || '0'}
             </div>
             <span className="text-[10px] text-blue-600 font-bold block mt-0.5">
@@ -429,10 +429,10 @@ export default function ResellerWalletPage() {
       {/* ------------------------------------------------------------- */}
       {/* WITHDRAWAL METHODS SECTION */}
       {/* ------------------------------------------------------------- */}
-      <div className="bg-white border border-purple-100/90 rounded-3xl p-5 sm:p-6 shadow-xs space-y-4">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-purple-50 pb-4">
+      <div className="bg-white border border-slate-200 rounded-3xl p-5 sm:p-6 shadow-xs space-y-4">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-4">
           <div>
-            <h2 className="text-base font-black text-[#162048] flex items-center gap-2">
+            <h2 className="text-base font-black text-slate-950 flex items-center gap-2">
               <QrCode className="w-5 h-5 text-emerald-600" />
               <span>Withdrawal Method</span>
             </h2>
@@ -446,7 +446,7 @@ export default function ResellerWalletPage() {
               setMethodSuccess(null);
               setIsMethodModalOpen(true);
             }}
-            className="px-4 py-2 bg-purple-50 hover:bg-purple-100 text-[#6734f7] rounded-xl text-xs font-bold flex items-center gap-1.5 transition active:scale-95 cursor-pointer self-start sm:self-auto"
+            className="px-4 py-2 bg-red-50 hover:bg-red-100 text-red-600 rounded-xl text-xs font-bold flex items-center gap-1.5 transition active:scale-95 cursor-pointer self-start sm:self-auto"
           >
             <Edit2 className="w-3.5 h-3.5" />
             <span>{payoutMethod?.upiId ? 'Update UPI Details' : 'Add UPI Method'}</span>
@@ -455,14 +455,14 @@ export default function ResellerWalletPage() {
 
         <div>
           {payoutMethod?.upiId ? (
-            <div className="p-4 rounded-2xl bg-purple-50/40 border border-purple-100 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
               <div className="flex items-center gap-3">
                 <div className="w-11 h-11 rounded-2xl bg-emerald-100 border border-emerald-200 flex items-center justify-center text-emerald-700 shrink-0">
                   <CreditCard className="w-5 h-5" />
                 </div>
                 <div>
                   <div className="flex items-center gap-2">
-                    <span className="text-sm font-bold text-[#162048] font-mono">
+                    <span className="text-sm font-bold text-slate-950 font-mono">
                       {maskUpiId(payoutMethod.upiId)}
                     </span>
                     <span className="text-[10px] font-bold bg-emerald-100 text-emerald-800 px-2.5 py-0.5 rounded-full border border-emerald-200">
@@ -501,10 +501,10 @@ export default function ResellerWalletPage() {
       {/* ------------------------------------------------------------- */}
       {/* PAYOUT REQUEST HISTORY */}
       {/* ------------------------------------------------------------- */}
-      <div className="bg-white border border-purple-100/90 rounded-3xl overflow-hidden shadow-xs">
-        <div className="p-5 sm:p-6 border-b border-purple-50 flex items-center justify-between">
+      <div className="bg-white border border-slate-200 rounded-3xl overflow-hidden shadow-xs">
+        <div className="p-5 sm:p-6 border-b border-slate-100 flex items-center justify-between">
           <div>
-            <h2 className="text-base font-black text-[#162048] flex items-center gap-2">
+            <h2 className="text-base font-black text-slate-950 flex items-center gap-2">
               <Clock className="w-5 h-5 text-amber-500" />
               <span>Payout Request History</span>
             </h2>
@@ -514,7 +514,7 @@ export default function ResellerWalletPage() {
           </div>
           <button
             onClick={() => loadWalletData()}
-            className="p-2 text-slate-400 hover:text-[#6734f7] rounded-xl hover:bg-purple-50 transition"
+            className="p-2 text-slate-400 hover:text-red-600 rounded-xl hover:bg-red-50 transition"
             title="Refresh Data"
           >
             <RefreshCw className="w-4 h-4" />
@@ -529,7 +529,7 @@ export default function ResellerWalletPage() {
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-left text-xs">
-              <thead className="border-b border-purple-100 text-slate-400 uppercase font-extrabold text-[10px] bg-purple-50/30">
+              <thead className="border-b border-slate-200 text-slate-400 uppercase font-extrabold text-[10px] bg-slate-50">
                 <tr>
                   <th className="py-3 px-4">Reference ID</th>
                   <th className="py-3 px-3">Reseller UID</th>
@@ -540,7 +540,7 @@ export default function ResellerWalletPage() {
                   <th className="py-3 px-4 text-right">Payment UTR</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-purple-50">
+              <tbody className="divide-y divide-slate-100">
                 {withdrawals.map((w) => {
                   const displayUpi = w.payoutDetails?.upiId
                     ? maskUpiId(w.payoutDetails.upiId)
@@ -549,8 +549,8 @@ export default function ResellerWalletPage() {
                     : 'UPI';
 
                   return (
-                    <tr key={w.id} className="hover:bg-purple-50/30 transition">
-                      <td className="py-3.5 px-4 font-mono text-xs text-[#162048] font-bold">
+                    <tr key={w.id} className="hover:bg-red-50/40 transition">
+                      <td className="py-3.5 px-4 font-mono text-xs text-slate-950 font-bold">
                         {w.id}
                       </td>
                       <td className="py-3.5 px-3 font-mono text-xs text-amber-700 font-bold">
@@ -572,7 +572,7 @@ export default function ResellerWalletPage() {
                             <ShieldCheck className="w-3 h-3" /> Approved
                           </span>
                         ) : w.status === 'processing' ? (
-                          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-purple-50 text-purple-700 border border-purple-200">
+                          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-red-50 text-red-700 border border-red-200">
                             <Clock className="w-3 h-3" /> Processing
                           </span>
                         ) : w.status === 'rejected' ? (
@@ -613,9 +613,9 @@ export default function ResellerWalletPage() {
       {/* ------------------------------------------------------------- */}
       {/* FINANCIAL LEDGER TRANSACTIONS */}
       {/* ------------------------------------------------------------- */}
-      <div className="bg-white border border-purple-100/90 rounded-3xl overflow-hidden shadow-xs">
-        <div className="p-5 sm:p-6 border-b border-purple-50">
-          <h2 className="text-base font-black text-[#162048] flex items-center gap-2">
+      <div className="bg-white border border-slate-200 rounded-3xl overflow-hidden shadow-xs">
+        <div className="p-5 sm:p-6 border-b border-slate-100">
+          <h2 className="text-base font-black text-slate-950 flex items-center gap-2">
             <TrendingUp className="w-5 h-5 text-blue-600" />
             <span>Financial Activity Ledger</span>
           </h2>
@@ -631,7 +631,7 @@ export default function ResellerWalletPage() {
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-left text-xs">
-              <thead className="border-b border-purple-100 text-slate-400 uppercase font-extrabold text-[10px] bg-purple-50/30">
+              <thead className="border-b border-slate-200 text-slate-400 uppercase font-extrabold text-[10px] bg-slate-50">
                 <tr>
                   <th className="py-3 px-4">Transaction ID</th>
                   <th className="py-3 px-3">Type</th>
@@ -640,14 +640,14 @@ export default function ResellerWalletPage() {
                   <th className="py-3 px-4 text-right">Date</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-purple-50">
+              <tbody className="divide-y divide-slate-100">
                 {transactions.map((tx) => (
-                  <tr key={tx.id} className="hover:bg-purple-50/30 transition">
+                  <tr key={tx.id} className="hover:bg-red-50/40 transition">
                     <td className="py-3.5 px-4 font-mono text-xs text-slate-500">
                       {tx.id}
                     </td>
                     <td className="py-3.5 px-3">
-                      <span className="text-[10px] px-2 py-0.5 rounded-md bg-purple-50 font-mono text-[#6734f7] font-bold">
+                      <span className="text-[10px] px-2 py-0.5 rounded-md bg-red-50 font-mono text-red-600 font-bold">
                         {tx.type}
                       </span>
                     </td>
@@ -675,7 +675,7 @@ export default function ResellerWalletPage() {
       {/* ------------------------------------------------------------- */}
       {isMethodModalOpen && (
         <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-white border border-purple-100 w-full max-w-md rounded-3xl p-6 sm:p-8 shadow-2xl relative text-[#162048]">
+          <div className="bg-white border border-slate-200 w-full max-w-md rounded-3xl p-6 sm:p-8 shadow-2xl relative text-slate-950">
             <button
               onClick={() => setIsMethodModalOpen(false)}
               className="absolute top-4 right-4 text-slate-400 hover:text-slate-700 p-1 rounded-xl"
@@ -688,7 +688,7 @@ export default function ResellerWalletPage() {
                 <QrCode className="w-6 h-6" />
               </div>
               <div>
-                <h3 className="text-lg font-black text-[#162048]">Save UPI Payout Method</h3>
+                <h3 className="text-lg font-black text-slate-950">Save UPI Payout Method</h3>
                 <p className="text-xs text-slate-500">Payouts will be sent directly to this UPI address</p>
               </div>
             </div>
@@ -717,7 +717,7 @@ export default function ResellerWalletPage() {
                   placeholder="e.g. yourname@okaxis, 9876543210@paytm"
                   value={upiIdInput}
                   onChange={(e) => setUpiIdInput(e.target.value)}
-                  className="w-full bg-slate-50 border border-purple-100 rounded-xl px-4 py-2.5 text-sm text-[#162048] focus:outline-none focus:border-[#6734f7] focus:ring-2 focus:ring-purple-100 font-mono font-bold"
+                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm text-slate-950 focus:outline-none focus:border-red-600 focus:ring-2 focus:ring-red-100 font-mono font-bold"
                 />
                 <span className="text-[10px] text-slate-400 mt-1 block">
                   Must be in valid <code>username@provider</code> format
@@ -734,7 +734,7 @@ export default function ResellerWalletPage() {
                   placeholder="e.g. Rahul Sharma"
                   value={holderNameInput}
                   onChange={(e) => setHolderNameInput(e.target.value)}
-                  className="w-full bg-slate-50 border border-purple-100 rounded-xl px-4 py-2.5 text-sm text-[#162048] focus:outline-none focus:border-[#6734f7] focus:ring-2 focus:ring-purple-100 font-medium"
+                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm text-slate-950 focus:outline-none focus:border-red-600 focus:ring-2 focus:ring-red-100 font-medium"
                 />
               </div>
 
@@ -747,7 +747,7 @@ export default function ResellerWalletPage() {
                   placeholder="e.g. Primary Bank UPI"
                   value={labelInput}
                   onChange={(e) => setLabelInput(e.target.value)}
-                  className="w-full bg-slate-50 border border-purple-100 rounded-xl px-4 py-2.5 text-sm text-[#162048] focus:outline-none focus:border-[#6734f7] focus:ring-2 focus:ring-purple-100 font-medium"
+                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm text-slate-950 focus:outline-none focus:border-red-600 focus:ring-2 focus:ring-red-100 font-medium"
                 />
               </div>
 
@@ -770,7 +770,7 @@ export default function ResellerWalletPage() {
       {/* ------------------------------------------------------------- */}
       {isWithdrawModalOpen && (
         <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-white border border-purple-100 w-full max-w-lg rounded-3xl p-6 sm:p-8 shadow-2xl relative text-[#162048]">
+          <div className="bg-white border border-slate-200 w-full max-w-lg rounded-3xl p-6 sm:p-8 shadow-2xl relative text-slate-950">
             <button
               onClick={() => setIsWithdrawModalOpen(false)}
               className="absolute top-4 right-4 text-slate-400 hover:text-slate-700 p-1 rounded-xl"
@@ -784,16 +784,16 @@ export default function ResellerWalletPage() {
                   <CheckCircle2 className="w-9 h-9" />
                 </div>
                 <div className="space-y-1">
-                  <h3 className="text-xl font-black text-[#162048]">Withdrawal Request Submitted!</h3>
+                  <h3 className="text-xl font-black text-slate-950">Withdrawal Request Submitted!</h3>
                   <p className="text-xs text-slate-500">
                     Your request has been placed under review and dispatched to admin for instant processing.
                   </p>
                 </div>
 
-                <div className="bg-purple-50/60 border border-purple-100 rounded-2xl p-4 text-left space-y-2 text-xs font-mono">
+                <div className="bg-slate-50 border border-slate-200 rounded-2xl p-4 text-left space-y-2 text-xs font-mono">
                   <div className="flex justify-between">
                     <span className="text-slate-400">Reference ID:</span>
-                    <span className="text-[#162048] font-bold">{confirmedWithdrawal.id}</span>
+                    <span className="text-slate-950 font-bold">{confirmedWithdrawal.id}</span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-slate-400">Reseller UID:</span>
@@ -805,7 +805,7 @@ export default function ResellerWalletPage() {
                   </div>
                   <div className="flex justify-between">
                     <span className="text-slate-400">Payout Method:</span>
-                    <span className="text-[#162048]">{maskUpiId(confirmedWithdrawal.payoutDetails?.upiId || '')}</span>
+                    <span className="text-slate-950">{maskUpiId(confirmedWithdrawal.payoutDetails?.upiId || '')}</span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-slate-400">Status:</span>
@@ -815,7 +815,7 @@ export default function ResellerWalletPage() {
 
                 <button
                   onClick={() => setIsWithdrawModalOpen(false)}
-                  className="w-full py-3.5 bg-[#6734f7] hover:bg-[#5827dc] text-white font-bold rounded-2xl text-sm transition shadow-md shadow-purple-500/20 active:scale-95"
+                  className="w-full py-3.5 bg-red-600 hover:bg-red-700 text-white font-bold rounded-2xl text-sm transition shadow-md shadow-red-500/20 active:scale-95"
                 >
                   Done
                 </button>
@@ -827,7 +827,7 @@ export default function ResellerWalletPage() {
                     <ArrowUpRight className="w-6 h-6 stroke-[2.5]" />
                   </div>
                   <div>
-                    <h3 className="text-lg font-black text-[#162048]">Request Payout</h3>
+                    <h3 className="text-lg font-black text-slate-950">Request Payout</h3>
                     <p className="text-xs text-slate-500">Transfer available commission to your bank account via UPI</p>
                   </div>
                 </div>
@@ -854,7 +854,7 @@ export default function ResellerWalletPage() {
                     <div className="bg-white rounded-xl p-3 space-y-1.5 font-mono text-xs text-slate-700 border border-amber-100">
                       <div className="flex justify-between">
                         <span className="text-slate-400">Request ID:</span>
-                        <strong className="text-[#162048]">{activePendingWithdrawal.id}</strong>
+                        <strong className="text-slate-950">{activePendingWithdrawal.id}</strong>
                       </div>
                       <div className="flex justify-between">
                         <span className="text-slate-400">Reserved Amount:</span>
@@ -881,7 +881,7 @@ export default function ResellerWalletPage() {
                 )}
 
                 <form onSubmit={handleWithdrawalSubmit} className="space-y-4">
-                  <div className="bg-purple-50/60 border border-purple-100 rounded-2xl p-4 space-y-1">
+                  <div className="bg-slate-50 border border-slate-200 rounded-2xl p-4 space-y-1">
                     <div className="text-xs font-bold text-slate-400 uppercase tracking-wider">Available to Withdraw:</div>
                     <div className="text-3xl font-black text-emerald-600 tracking-tight">
                       ₹{wallet?.availableBalance?.toLocaleString('en-IN') || 0}
@@ -906,7 +906,7 @@ export default function ResellerWalletPage() {
                       max={wallet?.availableBalance || 1}
                       value={amount}
                       onChange={(e) => setAmount(Number(e.target.value))}
-                      className="w-full bg-slate-50 border border-purple-100 rounded-xl px-4 py-2.5 text-lg font-black text-[#162048] focus:outline-none focus:border-[#6734f7] focus:ring-2 focus:ring-purple-100 font-mono"
+                      className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-lg font-black text-slate-950 focus:outline-none focus:border-red-600 focus:ring-2 focus:ring-red-100 font-mono"
                     />
 
                     {/* Quick Amount Chips */}
@@ -916,7 +916,7 @@ export default function ResellerWalletPage() {
                           key={val}
                           type="button"
                           onClick={() => setAmount(val)}
-                          className="px-3 py-1 text-xs rounded-lg bg-purple-50 hover:bg-purple-100 text-[#6734f7] font-bold font-mono transition"
+                          className="px-3 py-1 text-xs rounded-lg bg-red-50 hover:bg-red-100 text-red-600 font-bold font-mono transition"
                         >
                           ₹{val}
                         </button>
@@ -938,9 +938,9 @@ export default function ResellerWalletPage() {
                       Payout Destination
                     </label>
                     {payoutMethod?.upiId ? (
-                      <div className="p-3 bg-purple-50/50 border border-purple-100 rounded-xl flex items-center justify-between text-xs">
+                      <div className="p-3 bg-slate-50 border border-slate-200 rounded-xl flex items-center justify-between text-xs">
                         <div>
-                          <div className="font-mono text-[#162048] font-bold">
+                          <div className="font-mono text-slate-950 font-bold">
                             {maskUpiId(payoutMethod.upiId)}
                           </div>
                           <div className="text-slate-400 text-[11px]">
@@ -953,7 +953,7 @@ export default function ResellerWalletPage() {
                             setIsWithdrawModalOpen(false);
                             setIsMethodModalOpen(true);
                           }}
-                          className="text-xs text-[#6734f7] hover:underline font-bold"
+                          className="text-xs text-red-600 hover:underline font-bold"
                         >
                           Change
                         </button>
@@ -961,7 +961,7 @@ export default function ResellerWalletPage() {
                     ) : (
                       <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200 space-y-3">
                         <div className="flex items-center justify-between text-xs">
-                          <span className="font-bold text-[#162048]">Enter Direct UPI ID</span>
+                          <span className="font-bold text-slate-950">Enter Direct UPI ID</span>
                           <span className="text-[10px] text-emerald-600 font-bold">Direct Bank Transfer</span>
                         </div>
                         <div>
@@ -974,7 +974,7 @@ export default function ResellerWalletPage() {
                             placeholder="e.g. yourname@okaxis, 9876543210@paytm"
                             value={inlineUpiInput}
                             onChange={(e) => setInlineUpiInput(e.target.value)}
-                            className="w-full bg-white border border-purple-100 rounded-xl px-3 py-2 text-xs font-mono font-bold text-[#162048] focus:outline-none focus:border-[#6734f7]"
+                            className="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-xs font-mono font-bold text-slate-950 focus:outline-none focus:border-red-600"
                           />
                         </div>
                         <div>
@@ -987,7 +987,7 @@ export default function ResellerWalletPage() {
                             placeholder="e.g. Rahul Sharma"
                             value={inlineHolderInput}
                             onChange={(e) => setInlineHolderInput(e.target.value)}
-                            className="w-full bg-white border border-purple-100 rounded-xl px-3 py-2 text-xs font-medium text-[#162048] focus:outline-none focus:border-[#6734f7]"
+                            className="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-xs font-medium text-slate-950 focus:outline-none focus:border-red-600"
                           />
                         </div>
                       </div>

@@ -308,44 +308,44 @@ export default async function CategoryPage({ params }: CategoryPageProps) {
         dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd) }}
       />
 
-      <div className="py-6 sm:py-10 bg-[#faf9ff] min-h-screen text-[#182247]">
+      <div className="py-6 sm:py-10 bg-slate-50 min-h-screen text-slate-900">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-10">
           
           {/* Breadcrumb Navigation */}
           <nav aria-label="Breadcrumb" className="flex items-center gap-2 text-xs sm:text-sm font-semibold text-slate-500">
-            <Link href="/" className="hover:text-purple-600 transition-colors">Home</Link>
+            <Link href="/" className="hover:text-red-600 transition-colors">Home</Link>
             <span>/</span>
-            <Link href="/shop" className="hover:text-purple-600 transition-colors">Shop</Link>
+            <Link href="/shop" className="hover:text-red-600 transition-colors">Shop</Link>
             <span>/</span>
             <span className="text-slate-900 font-bold">{category.name}</span>
           </nav>
 
           {/* Hero Hub Header with Focused Original Intro */}
-          <header className="rounded-3xl p-6 sm:p-10 bg-gradient-to-br from-white via-purple-50/40 to-pink-50/30 border border-purple-100/80 shadow-sm space-y-4">
-            <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs font-black bg-purple-100 text-purple-700">
+          <header className="rounded-3xl p-6 sm:p-10 bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 text-white border border-red-500/30 shadow-lg space-y-4">
+            <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs font-black bg-red-600/20 text-red-300 border border-red-500/30">
               <span>{category.icon || '🔥'}</span>
               <span>Trending Collection</span>
             </div>
 
-            <h1 className="text-2xl sm:text-4xl lg:text-5xl font-black text-[#17151f] tracking-tight">
+            <h1 className="text-2xl sm:text-4xl lg:text-5xl font-black text-white tracking-tight">
               {editorial.title}
             </h1>
 
-            <p className="text-sm sm:text-base text-slate-600 max-w-3xl leading-relaxed">
+            <p className="text-sm sm:text-base text-slate-300 max-w-3xl leading-relaxed">
               {editorial.intro}
             </p>
 
-            <div className="flex flex-wrap items-center gap-4 pt-2 text-xs font-bold text-slate-700">
-              <span className="flex items-center gap-1.5 bg-white px-3 py-1.5 rounded-xl border border-slate-200 shadow-xs">
-                <FolderOpen className="w-4 h-4 text-purple-600" />
+            <div className="flex flex-wrap items-center gap-3 pt-2 text-xs font-bold text-slate-200">
+              <span className="flex items-center gap-1.5 bg-white/10 px-3 py-1.5 rounded-xl border border-white/15">
+                <FolderOpen className="w-4 h-4 text-red-400" />
                 Google Drive Instant Delivery
               </span>
-              <span className="flex items-center gap-1.5 bg-white px-3 py-1.5 rounded-xl border border-slate-200 shadow-xs">
-                <ShieldCheck className="w-4 h-4 text-emerald-600" />
+              <span className="flex items-center gap-1.5 bg-white/10 px-3 py-1.5 rounded-xl border border-white/15">
+                <ShieldCheck className="w-4 h-4 text-emerald-400" />
                 Zero Watermarks · 1080P HD
               </span>
-              <span className="flex items-center gap-1.5 bg-white px-3 py-1.5 rounded-xl border border-slate-200 shadow-xs">
-                <TrendingUp className="w-4 h-4 text-pink-600" />
+              <span className="flex items-center gap-1.5 bg-white/10 px-3 py-1.5 rounded-xl border border-white/15">
+                <TrendingUp className="w-4 h-4 text-rose-400" />
                 Commercial & Reseller Rights
               </span>
             </div>
@@ -353,9 +353,9 @@ export default async function CategoryPage({ params }: CategoryPageProps) {
 
           {/* Products Grid */}
           <section className="space-y-6">
-            <div className="flex items-end justify-between border-b border-purple-100 pb-4">
+            <div className="flex items-end justify-between border-b border-slate-200 pb-4">
               <div>
-                <h2 className="text-xl sm:text-2xl font-black text-[#17151f] tracking-tight">
+                <h2 className="text-xl sm:text-2xl font-black text-slate-950 tracking-tight">
                   Available {category.name} Bundles ({displayProducts.length})
                 </h2>
                 <p className="text-xs sm:text-sm text-slate-500 mt-0.5">
@@ -364,7 +364,7 @@ export default async function CategoryPage({ params }: CategoryPageProps) {
               </div>
               <Link
                 href="/shop"
-                className="text-xs font-bold text-purple-600 hover:text-purple-700 flex items-center gap-1"
+                className="text-xs font-bold text-red-600 hover:text-red-700 flex items-center gap-1"
               >
                 <span>View all shop bundles</span>
                 <ArrowRight className="w-3.5 h-3.5" />
@@ -379,7 +379,7 @@ export default async function CategoryPage({ params }: CategoryPageProps) {
                 return (
                   <article
                     key={bundle.id}
-                    className="group bg-white rounded-2xl border border-slate-200/80 overflow-hidden shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all flex flex-col justify-between"
+                    className="group bg-white rounded-2xl border border-slate-200/90 overflow-hidden shadow-sm hover:shadow-[0_12px_28px_rgba(239,68,68,0.14)] hover:-translate-y-1 transition-all flex flex-col justify-between"
                   >
                     <Link href={`/product/${bundle.slug}`} className="block relative aspect-[4/3] bg-slate-900 overflow-hidden">
                       <img
@@ -390,21 +390,21 @@ export default async function CategoryPage({ params }: CategoryPageProps) {
                         loading="lazy"
                         className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                       />
-                      <span className="absolute top-2.5 right-2.5 px-2 py-0.5 rounded-full text-[10px] font-black uppercase bg-pink-600 text-white shadow-sm">
+                      <span className="absolute top-2.5 right-2.5 px-2 py-0.5 rounded-full text-[10px] font-black uppercase bg-red-600 text-white shadow-sm">
                         {discount}% OFF
                       </span>
-                      <span className="absolute bottom-2.5 left-2.5 px-2 py-0.5 rounded-md text-[10px] font-bold bg-black/70 text-white backdrop-blur-xs">
+                      <span className="absolute bottom-2.5 left-2.5 px-2 py-0.5 rounded-md text-[10px] font-bold bg-black/75 text-white backdrop-blur-xs">
                         {bundle.reelCount}+ Reels
                       </span>
                     </Link>
 
                     <div className="p-4 space-y-3 flex-1 flex flex-col justify-between">
                       <div className="space-y-1">
-                        <span className="text-[10px] font-extrabold uppercase tracking-wider text-purple-600">
+                        <span className="text-[10px] font-extrabold uppercase tracking-wider text-red-700">
                           {bundle.category}
                         </span>
                         <Link href={`/product/${bundle.slug}`}>
-                          <h3 className="text-xs sm:text-sm font-extrabold text-[#17151f] line-clamp-2 group-hover:text-purple-600 transition-colors leading-snug">
+                          <h3 className="text-xs sm:text-sm font-extrabold text-slate-900 line-clamp-2 group-hover:text-red-600 transition-colors leading-snug">
                             {bundle.title}
                           </h3>
                         </Link>
@@ -412,7 +412,7 @@ export default async function CategoryPage({ params }: CategoryPageProps) {
 
                       <div className="pt-2 border-t border-slate-100 flex items-center justify-between">
                         <div>
-                          <div className="text-base sm:text-lg font-black text-[#17151f]">
+                          <div className="text-base sm:text-lg font-black text-slate-950">
                             ₹{price}.00
                           </div>
                           <div className="text-[11px] text-slate-400 line-through">
@@ -422,7 +422,7 @@ export default async function CategoryPage({ params }: CategoryPageProps) {
 
                         <Link
                           href={`/product/${bundle.slug}`}
-                          className="px-3 py-1.5 rounded-xl bg-purple-600 hover:bg-purple-700 text-white text-xs font-bold shadow-xs active:scale-95 transition-transform"
+                          className="px-3 py-1.5 rounded-xl bg-gradient-to-r from-red-600 to-rose-600 hover:from-red-700 hover:to-rose-700 text-white text-xs font-black shadow-xs active:scale-95 transition-transform"
                         >
                           View Bundle
                         </Link>
@@ -437,11 +437,11 @@ export default async function CategoryPage({ params }: CategoryPageProps) {
           {/* Useful Collection FAQs Section */}
           <section className="rounded-3xl p-6 sm:p-8 bg-white border border-slate-200/90 shadow-xs space-y-5">
             <div className="flex items-center gap-2.5">
-              <span className="w-8 h-8 rounded-lg bg-purple-100 text-purple-700 flex items-center justify-center">
+              <span className="w-8 h-8 rounded-lg bg-red-50 text-red-600 border border-red-200/60 flex items-center justify-center">
                 <HelpCircle className="w-4 h-4" />
               </span>
               <div>
-                <h2 className="text-lg sm:text-xl font-black text-[#17151f] tracking-tight">
+                <h2 className="text-lg sm:text-xl font-black text-slate-950 tracking-tight">
                   Frequently Asked Questions About {category.name}
                 </h2>
                 <p className="text-xs text-slate-500">
@@ -465,7 +465,7 @@ export default async function CategoryPage({ params }: CategoryPageProps) {
           </section>
 
           {/* Internal Linking Footer Block to Explore Other Collections & Shop */}
-          <section className="p-6 rounded-3xl bg-white border border-purple-100/80 space-y-4">
+          <section className="p-6 rounded-3xl bg-white border border-slate-200/90 space-y-4">
             <h3 className="text-sm font-bold text-slate-900">Explore More Popular Reels Categories:</h3>
             <div className="flex flex-wrap gap-2">
               {COMPETITOR_CATEGORIES.slice(0, 12).map((cat) => (
@@ -474,8 +474,8 @@ export default async function CategoryPage({ params }: CategoryPageProps) {
                   href={`/category/${cat.slug}`}
                   className={`px-3 py-1.5 rounded-full text-xs font-semibold border transition-all ${
                     cat.slug === category.slug
-                      ? 'bg-purple-600 text-white border-purple-600 shadow-xs'
-                      : 'bg-slate-50 text-slate-700 border-slate-200 hover:bg-purple-50 hover:text-purple-700 hover:border-purple-200'
+                      ? 'bg-red-600 text-white border-red-600 shadow-xs'
+                      : 'bg-slate-50 text-slate-700 border-slate-200 hover:bg-red-50 hover:text-red-700 hover:border-red-200'
                   }`}
                 >
                   {cat.icon || '✨'} {cat.name}
@@ -483,7 +483,7 @@ export default async function CategoryPage({ params }: CategoryPageProps) {
               ))}
               <Link
                 href="/shop"
-                className="px-3.5 py-1.5 rounded-full text-xs font-bold bg-purple-50 text-purple-700 border border-purple-200 hover:bg-purple-100 transition-colors"
+                className="px-3.5 py-1.5 rounded-full text-xs font-bold bg-red-50 text-red-700 border border-red-200 hover:bg-red-100 transition-colors"
               >
                 Browse All in Shop &rarr;
               </Link>

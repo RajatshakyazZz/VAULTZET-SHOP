@@ -17,7 +17,7 @@ function InlineSampleCard({
   sample,
   index,
   labelPrefix,
-  cardBorderClass = 'border-white/15 hover:border-purple-400/70',
+  cardBorderClass = 'border-white/15 hover:border-red-400/70',
 }: InlineSampleCardProps) {
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const [isPlaying, setIsPlaying] = useState(false);
@@ -131,7 +131,7 @@ function InlineSampleCard({
           type="button"
           onClick={handleTogglePlay}
           aria-label={`Play ${sample.title}`}
-          className="absolute inset-0 w-full h-full text-left cursor-pointer focus:outline-none focus:ring-2 focus:ring-purple-400"
+          className="absolute inset-0 w-full h-full text-left cursor-pointer focus:outline-none focus:ring-2 focus:ring-red-400"
         >
           {!hasStarted && (
             <img
@@ -171,7 +171,7 @@ function InlineSampleCard({
             <p className="text-[11px] sm:text-xs font-extrabold text-white line-clamp-1">
               {sample.title}
             </p>
-            <p className="text-[10px] font-semibold text-purple-300 mt-0.5">
+            <p className="text-[10px] font-semibold text-red-300 mt-0.5">
               {hasStarted ? 'Tap to Resume ▶' : 'Tap to Play Here ▶'}
             </p>
           </div>
@@ -184,7 +184,7 @@ function InlineSampleCard({
           <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-slate-950/80 border border-white/15 text-[10px] font-bold text-white">
             {isBuffering ? (
               <>
-                <Loader2 className="w-3 h-3 animate-spin text-purple-300" />
+                <Loader2 className="w-3 h-3 animate-spin text-red-300" />
                 <span>Loading...</span>
               </>
             ) : (

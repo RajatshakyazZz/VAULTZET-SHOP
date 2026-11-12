@@ -13,7 +13,7 @@ export const metadata: Metadata = {
 
 export default function ClaimOfferPage() {
   return (
-    <Suspense fallback={<div className="min-h-screen bg-[#f7f4ff] p-8 text-center text-slate-500">Loading offer details...</div>}>
+    <Suspense fallback={<div className="min-h-screen bg-slate-50 p-8 text-center text-slate-500">Loading offer details...</div>}>
       <ClaimOfferClient />
     </Suspense>
   );

@@ -82,17 +82,17 @@ export default function EarnLandingPage() {
   ];
 
   return (
-    <div className="min-h-screen bg-[#faf9ff] text-[#162048] antialiased selection:bg-[#6c3cf0]/20 selection:text-[#6c3cf0]">
+    <div className="min-h-screen bg-slate-50 text-slate-950 antialiased selection:bg-red-600/20 selection:text-red-700">
       {/* ------------------------------------------------------------- */}
       {/* HERO SECTION */}
       {/* ------------------------------------------------------------- */}
       <section className="relative overflow-hidden pt-8 pb-16 sm:pt-16 sm:pb-24 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
         {/* Ambient Subtle Gradients */}
-        <div className="absolute top-12 left-1/2 -translate-x-1/2 w-[700px] h-[350px] bg-gradient-to-tr from-purple-400/15 via-pink-300/15 to-transparent rounded-full blur-3xl pointer-events-none -z-10" />
+        <div className="absolute top-12 left-1/2 -translate-x-1/2 w-[700px] h-[350px] bg-gradient-to-tr from-red-400/15 via-rose-300/15 to-transparent rounded-full blur-3xl pointer-events-none -z-10" />
 
         <div className="max-w-4xl mx-auto text-center space-y-6">
           {/* Top Live Badge */}
-          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white border border-[#6c3cf0]/20 shadow-xs text-xs font-black text-[#6c3cf0]">
+          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-red-50 border border-red-200/80 shadow-xs text-xs font-black text-red-700">
             <span className="relative flex h-2 w-2">
               <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75" />
               <span className="relative inline-flex rounded-full h-2 w-2 bg-green-500" />
@@ -101,23 +101,23 @@ export default function EarnLandingPage() {
           </div>
 
           {/* Main Title */}
-          <h1 className="text-4xl sm:text-6xl lg:text-7xl font-black tracking-tight leading-[1.08] text-[#111836]">
+          <h1 className="text-4xl sm:text-6xl lg:text-7xl font-black tracking-tight leading-[1.08] text-slate-950">
             Resell Viral Reels. <br />
-            <span className="bg-gradient-to-r from-[#6734f7] via-[#942bf6] to-[#ec288d] bg-clip-text text-transparent">
+            <span className="bg-gradient-to-r from-red-600 via-rose-600 to-red-500 bg-clip-text text-transparent">
               Set Your Price & Earn.
             </span>
           </h1>
 
           {/* Subtitle */}
           <p className="text-base sm:text-lg text-slate-600 font-medium max-w-2xl mx-auto leading-relaxed">
-            Pick from {metrics.totalReelsFormatted} viral reels across {metrics.bundleCount} bundles, customize the title and selling price, and share your personal link. We deliver the Google Drive files automatically; you keep <strong className="text-[#162048] font-bold">100% of your profit margin</strong>.
+            Pick from {metrics.totalReelsFormatted} viral reels across {metrics.bundleCount} bundles, customize the title and selling price, and share your personal link. We deliver the Google Drive files automatically; you keep <strong className="text-slate-950 font-bold">100% of your profit margin</strong>.
           </p>
 
           {/* Primary Action Buttons */}
           <div className="flex flex-col sm:flex-row items-center justify-center gap-3.5 pt-2">
             <Link
               href="/earn/signup"
-              className="w-full sm:w-auto px-8 py-4 rounded-2xl bg-gradient-to-r from-[#6734f7] via-[#8534f5] to-[#ec288d] text-white font-black text-base shadow-xl shadow-[#6734f7]/25 hover:shadow-2xl hover:scale-[1.02] active:scale-[0.98] transition-all flex items-center justify-center gap-2 group"
+              className="w-full sm:w-auto px-8 py-4 rounded-2xl bg-gradient-to-r from-red-600 via-rose-600 to-red-600 hover:from-red-700 hover:to-rose-700 text-white font-black text-base shadow-xl shadow-red-500/25 hover:shadow-2xl hover:scale-[1.02] active:scale-[0.98] transition-all flex items-center justify-center gap-2 group"
             >
               <span>Start Reselling Free</span>
               <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
@@ -125,25 +125,25 @@ export default function EarnLandingPage() {
 
             <Link
               href="/earn/login"
-              className="w-full sm:w-auto px-7 py-4 rounded-2xl bg-white border border-purple-200/80 text-[#162048] font-black text-base shadow-xs hover:bg-purple-50/70 hover:border-purple-300 active:scale-[0.98] transition-all flex items-center justify-center gap-2"
+              className="w-full sm:w-auto px-7 py-4 rounded-2xl bg-white border border-slate-200 text-slate-950 font-black text-base shadow-xs hover:bg-red-50/70 hover:border-red-300 active:scale-[0.98] transition-all flex items-center justify-center gap-2"
             >
-              <Lock className="w-4 h-4 text-[#6734f7]" />
+              <Lock className="w-4 h-4 text-red-600" />
               <span>Partner Login</span>
             </Link>
           </div>
 
           {/* Key Value Micro-pills */}
           <div className="flex flex-wrap items-center justify-center gap-3 sm:gap-6 pt-4 text-xs font-bold text-slate-600">
-            <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white/80 border border-purple-100">
+            <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white/80 border border-slate-200">
               <CheckCircle2 className="w-4 h-4 text-green-600" />
               <span>₹0 Capital Required</span>
             </div>
-            <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white/80 border border-purple-100">
+            <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white/80 border border-slate-200">
               <Zap className="w-4 h-4 text-amber-500 fill-amber-500" />
               <span>Instant Google Drive Delivery</span>
             </div>
-            <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white/80 border border-purple-100">
-              <ShieldCheck className="w-4 h-4 text-[#6734f7]" />
+            <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white/80 border border-slate-200">
+              <ShieldCheck className="w-4 h-4 text-red-600" />
               <span>UPI Payouts (Min ₹1)</span>
             </div>
           </div>
@@ -154,16 +154,16 @@ export default function EarnLandingPage() {
       {/* INTERACTIVE EARNINGS CALCULATOR (High-Converting Feature) */}
       {/* ------------------------------------------------------------- */}
       <section className="px-4 sm:px-6 lg:px-8 max-w-5xl mx-auto pb-20">
-        <div className="rounded-3xl bg-gradient-to-br from-[#162048] via-[#1d1645] to-[#2b1754] text-white p-6 sm:p-10 shadow-2xl border border-purple-900/40 relative overflow-hidden">
+        <div className="rounded-3xl bg-gradient-to-br from-slate-950 via-slate-900 to-red-950 text-white p-6 sm:p-10 shadow-2xl border border-red-500/20 relative overflow-hidden">
           {/* Subtle Ambient Radial Glow */}
-          <div className="absolute -right-20 -bottom-20 w-80 h-80 bg-[#ec288d]/20 rounded-full blur-3xl pointer-events-none" />
-          <div className="absolute -left-20 -top-20 w-80 h-80 bg-[#6734f7]/20 rounded-full blur-3xl pointer-events-none" />
+          <div className="absolute -right-20 -bottom-20 w-80 h-80 bg-rose-600/20 rounded-full blur-3xl pointer-events-none" />
+          <div className="absolute -left-20 -top-20 w-80 h-80 bg-red-600/20 rounded-full blur-3xl pointer-events-none" />
 
           <div className="relative z-10 grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
             {/* Left Column: Sliders & Controls */}
             <div className="lg:col-span-7 space-y-6">
               <div className="space-y-1">
-                <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/10 text-pink-300 text-[10px] font-black uppercase tracking-wider">
+                <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-red-500/20 border border-red-400/30 text-red-300 text-[10px] font-black uppercase tracking-wider">
                   <Sparkles className="w-3.5 h-3.5" />
                   <span>Interactive Profit Simulator</span>
                 </div>
@@ -179,7 +179,7 @@ export default function EarnLandingPage() {
               <div className="p-4 rounded-2xl bg-white/5 border border-white/10 space-y-2">
                 <div className="flex items-center justify-between text-xs">
                   <span className="font-bold text-slate-300">Bundle Sales Per Day</span>
-                  <span className="font-black text-white bg-purple-500/30 border border-purple-400/40 px-2.5 py-0.5 rounded-lg text-sm">
+                  <span className="font-black text-white bg-red-500/30 border border-red-400/40 px-2.5 py-0.5 rounded-lg text-sm">
                     {salesPerDay} {salesPerDay === 1 ? 'sale' : 'sales'} / day
                   </span>
                 </div>
@@ -190,7 +190,7 @@ export default function EarnLandingPage() {
                   step="1"
                   value={salesPerDay}
                   onChange={(e) => setSalesPerDay(Number(e.target.value))}
-                  className="w-full accent-[#ec288d] cursor-pointer h-2 bg-white/20 rounded-lg appearance-none"
+                  className="w-full accent-red-500 cursor-pointer h-2 bg-white/20 rounded-lg appearance-none"
                 />
                 <div className="flex justify-between text-[10px] text-slate-400 font-mono">
                   <span>1 sale</span>
@@ -223,7 +223,7 @@ export default function EarnLandingPage() {
                 </div>
               </div>
 
-              <div className="text-[11px] text-purple-200/80 font-medium flex items-center gap-1.5">
+              <div className="text-[11px] text-red-200/80 font-medium flex items-center gap-1.5">
                 <ShieldCheck className="w-4 h-4 text-green-400 shrink-0" />
                 <span>Example: Vaultzet Base ₹299 + Your ₹{marginPerBundle} Markup = Buyer pays ₹{299 + marginPerBundle}</span>
               </div>
@@ -231,7 +231,7 @@ export default function EarnLandingPage() {
 
             {/* Right Column: High-Impact Projected Output Card */}
             <div className="lg:col-span-5 p-6 rounded-3xl bg-white/10 backdrop-blur-md border border-white/15 text-center space-y-5">
-              <span className="text-[11px] font-black uppercase tracking-widest text-pink-300 block">
+              <span className="text-[11px] font-black uppercase tracking-widest text-red-300 block">
                 Projected Net Profit
               </span>
 
@@ -251,7 +251,7 @@ export default function EarnLandingPage() {
                 </div>
                 <div className="p-2.5 rounded-xl bg-white/5 border border-white/10">
                   <span className="text-[10px] text-slate-300 block font-medium">Annualized</span>
-                  <span className="text-base font-black text-purple-300">₹{yearlyEarnings.toLocaleString('en-IN')}</span>
+                  <span className="text-base font-black text-red-300">₹{yearlyEarnings.toLocaleString('en-IN')}</span>
                 </div>
               </div>
 
@@ -272,10 +272,10 @@ export default function EarnLandingPage() {
       {/* ------------------------------------------------------------- */}
       <section className="px-4 sm:px-6 lg:px-8 max-w-6xl mx-auto pb-20">
         <div className="text-center max-w-2xl mx-auto space-y-2 mb-12">
-          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-purple-100 text-[#6734f7] text-[10px] font-black uppercase tracking-wider">
+          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-red-50 border border-red-200/60 text-red-700 text-[10px] font-black uppercase tracking-wider">
             <span>Simple 4-Step Process</span>
           </div>
-          <h2 className="text-2xl sm:text-4xl font-black text-[#111836]">
+          <h2 className="text-2xl sm:text-4xl font-black text-slate-950">
             How Vaultzet Reselling Works
           </h2>
           <p className="text-xs sm:text-sm text-slate-500 font-medium">
@@ -285,44 +285,44 @@ export default function EarnLandingPage() {
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
           {/* Step 1 */}
-          <div className="p-6 rounded-3xl bg-white border border-purple-100/80 shadow-xs hover:shadow-md transition-all space-y-3 relative group">
-            <div className="w-12 h-12 rounded-2xl bg-purple-100 text-[#6734f7] font-black text-lg flex items-center justify-center group-hover:scale-105 transition-transform">
+          <div className="p-6 rounded-3xl bg-white border border-slate-200 shadow-xs hover:shadow-md transition-all space-y-3 relative group">
+            <div className="w-12 h-12 rounded-2xl bg-red-50 text-red-600 border border-red-200/60 font-black text-lg flex items-center justify-center group-hover:scale-105 transition-transform">
               1
             </div>
-            <h3 className="text-base font-black text-[#162048]">Pick Any Reel Bundle</h3>
+            <h3 className="text-base font-black text-slate-950">Pick Any Reel Bundle</h3>
             <p className="text-xs text-slate-500 leading-relaxed font-medium">
               Explore {metrics.totalReelsFormatted} viral reels across {metrics.categoryCount} niches including AI, Motivation, Fitness, Devotional, and Finance. Select the one your audience loves.
             </p>
           </div>
 
           {/* Step 2 */}
-          <div className="p-6 rounded-3xl bg-white border border-purple-100/80 shadow-xs hover:shadow-md transition-all space-y-3 relative group">
-            <div className="w-12 h-12 rounded-2xl bg-pink-100 text-[#ec288d] font-black text-lg flex items-center justify-center group-hover:scale-105 transition-transform">
+          <div className="p-6 rounded-3xl bg-white border border-slate-200 shadow-xs hover:shadow-md transition-all space-y-3 relative group">
+            <div className="w-12 h-12 rounded-2xl bg-rose-50 text-rose-600 border border-rose-200/60 font-black text-lg flex items-center justify-center group-hover:scale-105 transition-transform">
               2
             </div>
-            <h3 className="text-base font-black text-[#162048]">Set Your Custom Price</h3>
+            <h3 className="text-base font-black text-slate-950">Set Your Custom Price</h3>
             <p className="text-xs text-slate-500 leading-relaxed font-medium">
               Keep base store price (e.g. ₹299) and set your resale price to ₹499 or ₹699. Add your custom title and marketing description.
             </p>
           </div>
 
           {/* Step 3 */}
-          <div className="p-6 rounded-3xl bg-white border border-purple-100/80 shadow-xs hover:shadow-md transition-all space-y-3 relative group">
+          <div className="p-6 rounded-3xl bg-white border border-slate-200 shadow-xs hover:shadow-md transition-all space-y-3 relative group">
             <div className="w-12 h-12 rounded-2xl bg-blue-100 text-blue-600 font-black text-lg flex items-center justify-center group-hover:scale-105 transition-transform">
               3
             </div>
-            <h3 className="text-base font-black text-[#162048]">Share Your Custom Link</h3>
+            <h3 className="text-base font-black text-slate-950">Share Your Custom Link</h3>
             <p className="text-xs text-slate-500 leading-relaxed font-medium">
-              You receive a personalized link <code className="bg-purple-50 px-1 py-0.5 rounded text-[10px] text-[#6734f7] font-mono">vaultzet.shop/r/your-slug</code>. Share it in Instagram bio, WhatsApp, or Telegram.
+              You receive a personalized link <code className="bg-red-50 px-1 py-0.5 rounded text-[10px] text-red-700 font-mono">vaultzet.shop/r/your-slug</code>. Share it in Instagram bio, WhatsApp, or Telegram.
             </p>
           </div>
 
           {/* Step 4 */}
-          <div className="p-6 rounded-3xl bg-white border border-purple-100/80 shadow-xs hover:shadow-md transition-all space-y-3 relative group">
+          <div className="p-6 rounded-3xl bg-white border border-slate-200 shadow-xs hover:shadow-md transition-all space-y-3 relative group">
             <div className="w-12 h-12 rounded-2xl bg-green-100 text-green-600 font-black text-lg flex items-center justify-center group-hover:scale-105 transition-transform">
               4
             </div>
-            <h3 className="text-base font-black text-[#162048]">Instant UPI Cashout</h3>
+            <h3 className="text-base font-black text-slate-950">Instant UPI Cashout</h3>
             <p className="text-xs text-slate-500 leading-relaxed font-medium">
               When a buyer purchases, Vaultzet delivers the files automatically. Your markup is credited to your wallet & can be withdrawn to UPI anytime!
             </p>
@@ -334,10 +334,10 @@ export default function EarnLandingPage() {
       {/* COMPARISON: PHYSICAL DROPSHIPPING VS VAULTZET DIGITAL RESELLING */}
       {/* ------------------------------------------------------------- */}
       <section className="px-4 sm:px-6 lg:px-8 max-w-5xl mx-auto pb-20">
-        <div className="rounded-3xl bg-white border border-purple-100 shadow-sm p-6 sm:p-8 space-y-6">
+        <div className="rounded-3xl bg-white border border-slate-200 shadow-sm p-6 sm:p-8 space-y-6">
           <div className="text-center max-w-xl mx-auto space-y-1">
-            <span className="text-[10px] font-black uppercase tracking-wider text-[#6734f7]">Why Vaultzet Reselling Wins</span>
-            <h2 className="text-xl sm:text-3xl font-black text-[#162048]">
+            <span className="text-[10px] font-black uppercase tracking-wider text-red-600">Why Vaultzet Reselling Wins</span>
+            <h2 className="text-xl sm:text-3xl font-black text-slate-950">
               Compare with Traditional Dropshipping
             </h2>
           </div>
@@ -345,35 +345,35 @@ export default function EarnLandingPage() {
           <div className="overflow-x-auto">
             <table className="w-full text-xs text-left">
               <thead>
-                <tr className="border-b border-purple-100 text-slate-400 font-extrabold uppercase text-[10px]">
+                <tr className="border-b border-slate-200 text-slate-400 font-extrabold uppercase text-[10px]">
                   <th className="py-3 px-3">Business Factor</th>
                   <th className="py-3 px-3 text-red-500">Traditional Physical Dropshipping</th>
                   <th className="py-3 px-3 text-green-700 bg-green-50/60 rounded-t-xl">Vaultzet Digital Reselling</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-purple-50">
+              <tbody className="divide-y divide-slate-100">
                 <tr>
-                  <td className="py-3.5 px-3 font-bold text-[#162048]">Upfront Investment</td>
+                  <td className="py-3.5 px-3 font-bold text-slate-950">Upfront Investment</td>
                   <td className="py-3.5 px-3 text-slate-500">₹20,000–₹50,000 for stock/ads</td>
                   <td className="py-3.5 px-3 font-black text-green-700 bg-green-50/60">₹0 (Zero Risk)</td>
                 </tr>
                 <tr>
-                  <td className="py-3.5 px-3 font-bold text-[#162048]">Customer Delivery Time</td>
+                  <td className="py-3.5 px-3 font-bold text-slate-950">Customer Delivery Time</td>
                   <td className="py-3.5 px-3 text-slate-500">5 to 9 Days Shipping</td>
                   <td className="py-3.5 px-3 font-black text-green-700 bg-green-50/60">Instant 0 Seconds (Google Drive)</td>
                 </tr>
                 <tr>
-                  <td className="py-3.5 px-3 font-bold text-[#162048]">Return / RTO Losses</td>
+                  <td className="py-3.5 px-3 font-bold text-slate-950">Return / RTO Losses</td>
                   <td className="py-3.5 px-3 text-slate-500">30%–40% RTO courier losses</td>
                   <td className="py-3.5 px-3 font-black text-green-700 bg-green-50/60">0% RTO (Digital product)</td>
                 </tr>
                 <tr>
-                  <td className="py-3.5 px-3 font-bold text-[#162048]">Profit Margins</td>
+                  <td className="py-3.5 px-3 font-bold text-slate-950">Profit Margins</td>
                   <td className="py-3.5 px-3 text-slate-500">10%–20% after shipping</td>
                   <td className="py-3.5 px-3 font-black text-green-700 bg-green-50/60">60%–80%+ 100% Yours</td>
                 </tr>
                 <tr>
-                  <td className="py-3.5 px-3 font-bold text-[#162048]">Payout Speed</td>
+                  <td className="py-3.5 px-3 font-bold text-slate-950">Payout Speed</td>
                   <td className="py-3.5 px-3 text-slate-500">Weekly/Bi-weekly after RTO reconciliation</td>
                   <td className="py-3.5 px-3 font-black text-green-700 bg-green-50/60">Direct UPI Payouts (Min ₹1)</td>
                 </tr>
@@ -388,8 +388,8 @@ export default function EarnLandingPage() {
       {/* ------------------------------------------------------------- */}
       <section className="px-4 sm:px-6 lg:px-8 max-w-5xl mx-auto pb-20">
         <div className="text-center max-w-xl mx-auto space-y-2 mb-8">
-          <span className="text-[10px] font-black uppercase tracking-wider text-[#6734f7]">High-Demand Content</span>
-          <h2 className="text-2xl sm:text-3xl font-black text-[#162048]">
+          <span className="text-[10px] font-black uppercase tracking-wider text-red-600">High-Demand Content</span>
+          <h2 className="text-2xl sm:text-3xl font-black text-slate-950">
             Hottest Reel Niches That Sell Daily
           </h2>
           <p className="text-xs text-slate-500 font-medium">
@@ -398,62 +398,62 @@ export default function EarnLandingPage() {
         </div>
 
         <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 sm:gap-4">
-          <div className="p-4 rounded-2xl bg-white border border-purple-100 shadow-xs flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-purple-100 text-[#6734f7] flex items-center justify-center font-bold text-base">
+          <div className="p-4 rounded-2xl bg-white border border-slate-200 shadow-xs flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-red-100 text-red-600 flex items-center justify-center font-bold text-base">
               🤖
             </div>
             <div>
-              <h4 className="text-xs font-black text-[#162048]">AI Avatars & Tech</h4>
+              <h4 className="text-xs font-black text-slate-950">AI Avatars & Tech</h4>
               <span className="text-[10px] text-green-600 font-bold">🔥 45,000+ Sold</span>
             </div>
           </div>
 
-          <div className="p-4 rounded-2xl bg-white border border-purple-100 shadow-xs flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-pink-100 text-[#ec288d] flex items-center justify-center font-bold text-base">
+          <div className="p-4 rounded-2xl bg-white border border-slate-200 shadow-xs flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-rose-100 text-rose-600 flex items-center justify-center font-bold text-base">
               🚀
             </div>
             <div>
-              <h4 className="text-xs font-black text-[#162048]">Luxury & Motivation</h4>
+              <h4 className="text-xs font-black text-slate-950">Luxury & Motivation</h4>
               <span className="text-[10px] text-green-600 font-bold">🔥 High Conversion</span>
             </div>
           </div>
 
-          <div className="p-4 rounded-2xl bg-white border border-purple-100 shadow-xs flex items-center gap-3">
+          <div className="p-4 rounded-2xl bg-white border border-slate-200 shadow-xs flex items-center gap-3">
             <div className="w-10 h-10 rounded-xl bg-amber-100 text-amber-600 flex items-center justify-center font-bold text-base">
               💪
             </div>
             <div>
-              <h4 className="text-xs font-black text-[#162048]">Gym & Fitness</h4>
+              <h4 className="text-xs font-black text-slate-950">Gym & Fitness</h4>
               <span className="text-[10px] text-green-600 font-bold">🔥 30,000+ Sold</span>
             </div>
           </div>
 
-          <div className="p-4 rounded-2xl bg-white border border-purple-100 shadow-xs flex items-center gap-3">
+          <div className="p-4 rounded-2xl bg-white border border-slate-200 shadow-xs flex items-center gap-3">
             <div className="w-10 h-10 rounded-xl bg-red-100 text-red-600 flex items-center justify-center font-bold text-base">
               🕉️
             </div>
             <div>
-              <h4 className="text-xs font-black text-[#162048]">Sanatan & Devotional</h4>
+              <h4 className="text-xs font-black text-slate-950">Sanatan & Devotional</h4>
               <span className="text-[10px] text-green-600 font-bold">🔥 Viral Audio Reels</span>
             </div>
           </div>
 
-          <div className="p-4 rounded-2xl bg-white border border-purple-100 shadow-xs flex items-center gap-3">
+          <div className="p-4 rounded-2xl bg-white border border-slate-200 shadow-xs flex items-center gap-3">
             <div className="w-10 h-10 rounded-xl bg-blue-100 text-blue-600 flex items-center justify-center font-bold text-base">
               💰
             </div>
             <div>
-              <h4 className="text-xs font-black text-[#162048]">Crypto & Finance</h4>
+              <h4 className="text-xs font-black text-slate-950">Crypto & Finance</h4>
               <span className="text-[10px] text-green-600 font-bold">🔥 High Ticket Margin</span>
             </div>
           </div>
 
-          <div className="p-4 rounded-2xl bg-white border border-purple-100 shadow-xs flex items-center gap-3">
+          <div className="p-4 rounded-2xl bg-white border border-slate-200 shadow-xs flex items-center gap-3">
             <div className="w-10 h-10 rounded-xl bg-emerald-100 text-emerald-600 flex items-center justify-center font-bold text-base">
               🎨
             </div>
             <div>
-              <h4 className="text-xs font-black text-[#162048]">Anime & 4K Edits</h4>
+              <h4 className="text-xs font-black text-slate-950">Anime & 4K Edits</h4>
               <span className="text-[10px] text-green-600 font-bold">🔥 Youth Favorite</span>
             </div>
           </div>
@@ -465,8 +465,8 @@ export default function EarnLandingPage() {
       {/* ------------------------------------------------------------- */}
       <section className="px-4 sm:px-6 lg:px-8 max-w-4xl mx-auto pb-20">
         <div className="text-center max-w-xl mx-auto space-y-2 mb-8">
-          <span className="text-[10px] font-black uppercase tracking-wider text-[#6734f7]">Partner FAQ</span>
-          <h2 className="text-2xl sm:text-3xl font-black text-[#162048]">
+          <span className="text-[10px] font-black uppercase tracking-wider text-red-600">Partner FAQ</span>
+          <h2 className="text-2xl sm:text-3xl font-black text-slate-950">
             Frequently Asked Questions
           </h2>
           <p className="text-xs text-slate-500 font-medium">
@@ -480,22 +480,22 @@ export default function EarnLandingPage() {
             return (
               <div
                 key={faq.q}
-                className="rounded-2xl bg-white border border-purple-100 shadow-xs overflow-hidden transition-all"
+                className="rounded-2xl bg-white border border-slate-200 shadow-xs overflow-hidden transition-all"
               >
                 <button
                   type="button"
                   onClick={() => setOpenFaq(isOpen ? null : idx)}
-                  className="w-full p-4 sm:p-5 text-left flex items-center justify-between gap-4 font-bold text-xs sm:text-sm text-[#162048] hover:text-[#6734f7] transition-colors"
+                  className="w-full p-4 sm:p-5 text-left flex items-center justify-between gap-4 font-bold text-xs sm:text-sm text-slate-950 hover:text-red-600 transition-colors"
                 >
                   <span>{faq.q}</span>
                   <ChevronDown
-                    className={`w-4 h-4 text-purple-500 shrink-0 transition-transform duration-200 ${
+                    className={`w-4 h-4 text-red-500 shrink-0 transition-transform duration-200 ${
                       isOpen ? 'rotate-180' : ''
                     }`}
                   />
                 </button>
                 {isOpen && (
-                  <div className="px-4 sm:px-5 pb-5 text-xs text-slate-600 font-medium leading-relaxed border-t border-purple-50 pt-3">
+                  <div className="px-4 sm:px-5 pb-5 text-xs text-slate-600 font-medium leading-relaxed border-t border-slate-100 pt-3">
                     {faq.a}
                   </div>
                 )}
@@ -509,7 +509,7 @@ export default function EarnLandingPage() {
       {/* FINAL HIGH-CONVERTING BOTTOM CTA */}
       {/* ------------------------------------------------------------- */}
       <section className="px-4 sm:px-6 lg:px-8 max-w-5xl mx-auto pb-24">
-        <div className="p-8 sm:p-12 rounded-3xl bg-gradient-to-r from-[#6734f7] via-[#8534f5] to-[#ec288d] text-white text-center shadow-xl space-y-5 relative overflow-hidden">
+        <div className="p-8 sm:p-12 rounded-3xl bg-gradient-to-r from-red-600 via-rose-600 to-red-700 text-white text-center shadow-xl shadow-red-500/25 space-y-5 relative overflow-hidden">
           <div className="relative z-10 max-w-xl mx-auto space-y-3">
             <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/20 text-white text-[10px] font-black uppercase tracking-wider">
               <Gift className="w-3.5 h-3.5" />
@@ -524,10 +524,10 @@ export default function EarnLandingPage() {
             <div className="pt-2">
               <Link
                 href="/earn/signup"
-                className="inline-flex items-center gap-2 px-8 py-4 rounded-2xl bg-white text-[#162048] font-black text-sm shadow-xl hover:bg-purple-50 active:scale-95 transition-all"
+                className="inline-flex items-center gap-2 px-8 py-4 rounded-2xl bg-white text-slate-950 font-black text-sm shadow-xl hover:bg-red-50 active:scale-95 transition-all"
               >
                 <span>Create Free Partner Account</span>
-                <ArrowRight className="w-4 h-4 text-[#6734f7]" />
+                <ArrowRight className="w-4 h-4 text-red-600" />
               </Link>
             </div>
           </div>

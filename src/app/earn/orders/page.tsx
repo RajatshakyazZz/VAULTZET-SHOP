@@ -52,10 +52,10 @@ export default function ResellerOrdersPage() {
   return (
     <div className="space-y-6 pb-24 sm:pb-8">
       {/* Header Banner */}
-      <div className="p-6 sm:p-8 rounded-3xl bg-white border border-purple-100 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <div className="p-6 sm:p-8 rounded-3xl bg-white border border-slate-200 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div className="space-y-1">
           <div className="flex items-center gap-2.5 flex-wrap">
-            <h1 className="text-xl sm:text-2xl font-black text-[#162048] tracking-tight">
+            <h1 className="text-xl sm:text-2xl font-black text-slate-950 tracking-tight">
               Attributed Customer Orders
             </h1>
             {profile?.resellerUid && (
@@ -69,7 +69,7 @@ export default function ResellerOrdersPage() {
           </p>
         </div>
 
-        <div className="p-4 rounded-2xl bg-gradient-to-br from-purple-50 via-pink-50/30 to-purple-50 border border-purple-100/90 flex items-center justify-between sm:block sm:text-right shrink-0">
+        <div className="p-4 rounded-2xl bg-gradient-to-br from-slate-50 via-red-50/40 to-slate-50 border border-red-200/70 flex items-center justify-between sm:block sm:text-right shrink-0">
           <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider block">
             Total Commissions Earned
           </span>
@@ -87,8 +87,8 @@ export default function ResellerOrdersPage() {
             onClick={() => setFilter('all')}
             className={`px-4 py-2 rounded-xl transition-all shrink-0 ${
               filter === 'all'
-                ? 'bg-[#6734f7] text-white shadow-xs'
-                : 'bg-white border border-purple-100 text-slate-600 hover:bg-purple-50/50'
+                ? 'bg-red-600 text-white shadow-xs'
+                : 'bg-white border border-slate-200 text-slate-600 hover:bg-red-50/60 hover:text-red-600'
             }`}
           >
             All Orders ({orders.length})
@@ -99,7 +99,7 @@ export default function ResellerOrdersPage() {
             className={`px-4 py-2 rounded-xl transition-all shrink-0 ${
               filter === 'completed'
                 ? 'bg-emerald-600 text-white shadow-xs'
-                : 'bg-white border border-purple-100 text-slate-600 hover:bg-purple-50/50'
+                : 'bg-white border border-slate-200 text-slate-600 hover:bg-red-50/60 hover:text-red-600'
             }`}
           >
             Completed ({orders.filter((o) => o.orderStatus === 'completed').length})
@@ -110,7 +110,7 @@ export default function ResellerOrdersPage() {
             className={`px-4 py-2 rounded-xl transition-all shrink-0 ${
               filter === 'pending'
                 ? 'bg-amber-600 text-white shadow-xs'
-                : 'bg-white border border-purple-100 text-slate-600 hover:bg-purple-50/50'
+                : 'bg-white border border-slate-200 text-slate-600 hover:bg-red-50/60 hover:text-red-600'
             }`}
           >
             Pending ({orders.filter((o) => o.orderStatus === 'pending').length})
@@ -125,24 +125,24 @@ export default function ResellerOrdersPage() {
               placeholder="Search by order #, title..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-9 pr-3 py-2 rounded-xl bg-white border border-purple-100 text-xs font-medium text-[#162048] focus:outline-none focus:border-[#6734f7] focus:ring-2 focus:ring-purple-100"
+              className="w-full pl-9 pr-3 py-2 rounded-xl bg-white border border-slate-200 text-xs font-medium text-slate-950 focus:outline-none focus:border-red-600 focus:ring-2 focus:ring-red-100"
             />
           </div>
         )}
       </div>
 
       {/* Orders Container */}
-      <div className="rounded-3xl bg-white border border-purple-100/90 shadow-xs overflow-hidden">
+      <div className="rounded-3xl bg-white border border-slate-200 shadow-xs overflow-hidden">
         {isLoading ? (
           <div className="p-12 text-center text-xs text-slate-400 font-bold">
             Loading attributed orders...
           </div>
         ) : filteredOrders.length === 0 ? (
           <div className="p-10 sm:p-14 text-center space-y-3">
-            <div className="w-12 h-12 rounded-2xl bg-purple-100 text-[#6734f7] flex items-center justify-center mx-auto">
+            <div className="w-12 h-12 rounded-2xl bg-red-50 text-red-600 flex items-center justify-center mx-auto">
               <ShoppingBag className="w-6 h-6" />
             </div>
-            <h3 className="text-sm font-black text-[#162048]">No Attributed Orders Found</h3>
+            <h3 className="text-sm font-black text-slate-950">No Attributed Orders Found</h3>
             <p className="text-xs text-slate-500 max-w-sm mx-auto font-medium">
               Sales made through your reseller links will automatically show up here with live commission calculations.
             </p>
@@ -150,11 +150,11 @@ export default function ResellerOrdersPage() {
         ) : (
           <div>
             {/* Mobile Cards (block md:hidden) */}
-            <div className="block md:hidden divide-y divide-purple-50">
+            <div className="block md:hidden divide-y divide-slate-100">
               {filteredOrders.map((ord) => (
                 <div key={ord.orderId} className="p-4 space-y-3">
                   <div className="flex items-center justify-between">
-                    <span className="font-mono text-xs font-bold text-[#162048]">#{ord.orderNumber}</span>
+                    <span className="font-mono text-xs font-bold text-slate-950">#{ord.orderNumber}</span>
                     <span
                       className={`px-2.5 py-0.5 rounded-full text-[9px] font-extrabold uppercase tracking-wider ${
                         ord.orderStatus === 'completed'
@@ -167,14 +167,14 @@ export default function ResellerOrdersPage() {
                   </div>
 
                   <div>
-                    <h4 className="font-bold text-xs text-[#162048]">{ord.productTitle}</h4>
+                    <h4 className="font-bold text-xs text-slate-950">{ord.productTitle}</h4>
                     <span className="text-[10px] text-slate-400 font-mono">/r/{ord.listingSlug}</span>
                   </div>
 
-                  <div className="grid grid-cols-2 p-3 rounded-2xl bg-purple-50/50 border border-purple-100 text-xs">
+                  <div className="grid grid-cols-2 p-3 rounded-2xl bg-slate-50 border border-slate-200 text-xs">
                     <div>
                       <span className="text-slate-400 text-[10px] block font-bold">Customer</span>
-                      <span className="font-medium text-[#162048] truncate block">{ord.customerName}</span>
+                      <span className="font-medium text-slate-950 truncate block">{ord.customerName}</span>
                     </div>
                     <div className="text-right">
                       <span className="text-slate-400 text-[10px] block font-bold">Your Commission</span>
@@ -194,7 +194,7 @@ export default function ResellerOrdersPage() {
             <div className="hidden md:block overflow-x-auto">
               <table className="w-full text-left text-xs">
                 <thead>
-                  <tr className="border-b border-purple-100 text-slate-400 font-extrabold uppercase text-[10px] bg-purple-50/40">
+                  <tr className="border-b border-slate-200 text-slate-400 font-extrabold uppercase text-[10px] bg-slate-50">
                     <th className="py-3.5 px-4">Order Number</th>
                     <th className="py-3.5 px-3">Product</th>
                     <th className="py-3.5 px-3">Customer</th>
@@ -204,15 +204,15 @@ export default function ResellerOrdersPage() {
                     <th className="py-3.5 px-4 text-right">Date</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-purple-50">
+                <tbody className="divide-y divide-slate-100">
                   {filteredOrders.map((ord) => (
-                    <tr key={ord.orderId} className="hover:bg-purple-50/30 transition-colors">
-                      <td className="py-3.5 px-4 font-bold font-mono text-[#162048]">
+                    <tr key={ord.orderId} className="hover:bg-red-50/40 transition-colors">
+                      <td className="py-3.5 px-4 font-bold font-mono text-slate-950">
                         #{ord.orderNumber}
                       </td>
 
                       <td className="py-3.5 px-3 max-w-xs pr-2">
-                        <span className="font-bold text-[#162048] line-clamp-1 block">{ord.productTitle}</span>
+                        <span className="font-bold text-slate-950 line-clamp-1 block">{ord.productTitle}</span>
                         <span className="text-[10px] text-slate-400 font-mono">/r/{ord.listingSlug}</span>
                       </td>
 
@@ -225,7 +225,7 @@ export default function ResellerOrdersPage() {
                         </span>
                       </td>
 
-                      <td className="py-3.5 px-3 font-black text-[#162048]">₹{ord.resalePrice}</td>
+                      <td className="py-3.5 px-3 font-black text-slate-950">₹{ord.resalePrice}</td>
 
                       <td className="py-3.5 px-3">
                         <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-emerald-50 text-emerald-700 font-black text-[11px] border border-emerald-200">

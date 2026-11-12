@@ -319,7 +319,7 @@ export function track(event: AnalyticsEventName, payload: Record<string, any> = 
   forwardToGtag(event, payload);
 
   if (isDebugMode()) {
-    console.log(`%c[Analytics DataLayer] ${event}`, 'color: #7c3aed; font-weight: bold;', eventPayload);
+    console.log(`%c[Analytics DataLayer] ${event}`, 'color: #dc2626; font-weight: bold;', eventPayload);
   }
 
   bridgeToMetaPixel(event, payload);

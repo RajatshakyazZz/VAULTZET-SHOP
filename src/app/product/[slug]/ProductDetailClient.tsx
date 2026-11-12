@@ -186,37 +186,37 @@ export default function ProductDetailClient({ product }: ProductDetailClientProp
   const getAudienceIcon = (icon: string) => {
     switch (icon) {
       case 'creator':
-        return <Video className="w-4 h-4 text-purple-600" />;
+        return <Video className="w-4 h-4 text-red-600" />;
       case 'affiliate':
-        return <TrendingUp className="w-4 h-4 text-pink-600" />;
+        return <TrendingUp className="w-4 h-4 text-rose-600" />;
       case 'manager':
-        return <Layers className="w-4 h-4 text-blue-600" />;
+        return <Layers className="w-4 h-4 text-slate-700" />;
       case 'theme':
         return <Sparkles className="w-4 h-4 text-emerald-600" />;
       case 'family':
-        return <Heart className="w-4 h-4 text-orange-600" />;
+        return <Heart className="w-4 h-4 text-red-500" />;
       case 'agency':
-        return <Target className="w-4 h-4 text-amber-600" />;
+        return <Target className="w-4 h-4 text-red-600" />;
       default:
-        return <Sparkles className="w-4 h-4 text-purple-600" />;
+        return <Sparkles className="w-4 h-4 text-red-600" />;
     }
   };
 
   return (
-    <div className="bg-[#fcfbfe] min-h-screen text-[#1a1725] pb-28 sm:pb-16 antialiased">
+    <div className="bg-slate-50 min-h-screen text-slate-900 pb-28 sm:pb-16 antialiased">
       {/* Top Container */}
       <div className="max-w-6xl mx-auto px-4 sm:px-6 pt-3 sm:pt-6 space-y-6 sm:space-y-10">
         
         {/* Navigation / Breadcrumb */}
         <div className="flex items-center justify-between gap-3 text-xs font-semibold text-slate-500">
           <nav aria-label="Breadcrumb" className="hidden sm:flex items-center gap-2">
-            <Link href="/" className="hover:text-purple-600 transition-colors">Home</Link>
+            <Link href="/" className="hover:text-red-600 transition-colors">Home</Link>
             <span className="text-slate-300">/</span>
-            <Link href="/shop" className="hover:text-purple-600 transition-colors">Shop</Link>
+            <Link href="/shop" className="hover:text-red-600 transition-colors">Shop</Link>
             <span className="text-slate-300">/</span>
             <Link
               href={`/category/${p.categorySlug || 'ai-reels'}`}
-              className="hover:text-purple-600 transition-colors"
+              className="hover:text-red-600 transition-colors"
             >
               {p.category || 'Reels Bundle'}
             </Link>
@@ -283,7 +283,7 @@ export default function ProductDetailClient({ product }: ProductDetailClientProp
                     onClick={() => setSelectedImage(img)}
                     className={`w-16 h-16 rounded-xl overflow-hidden border-2 transition-all shrink-0 bg-slate-50 cursor-pointer ${
                       currentImage === img
-                        ? 'border-purple-600 ring-2 ring-purple-200'
+                        ? 'border-red-500 ring-2 ring-red-200'
                         : 'border-slate-200 opacity-70 hover:opacity-100'
                     }`}
                   >
@@ -303,7 +303,7 @@ export default function ProductDetailClient({ product }: ProductDetailClientProp
             {/* Clean Trust Reassurance Strip */}
             <div className="grid grid-cols-3 gap-2 p-3 rounded-2xl bg-white border border-slate-200/80 shadow-2xs text-center text-xs">
               <div className="flex items-center justify-center gap-1.5 py-1 font-semibold text-slate-700">
-                <FolderOpen className="w-3.5 h-3.5 text-purple-600 shrink-0" />
+                <FolderOpen className="w-3.5 h-3.5 text-red-600 shrink-0" />
                 <span className="text-[11px] sm:text-xs">Google Drive</span>
               </div>
               <div className="flex items-center justify-center gap-1.5 py-1 font-semibold text-slate-700 border-x border-slate-100">
@@ -311,7 +311,7 @@ export default function ProductDetailClient({ product }: ProductDetailClientProp
                 <span className="text-[11px] sm:text-xs">Safe UPI</span>
               </div>
               <div className="flex items-center justify-center gap-1.5 py-1 font-semibold text-slate-700">
-                <Sparkles className="w-3.5 h-3.5 text-amber-500 shrink-0" />
+                <Sparkles className="w-3.5 h-3.5 text-red-500 shrink-0" />
                 <span className="text-[11px] sm:text-xs">No Watermark</span>
               </div>
             </div>
@@ -327,18 +327,18 @@ export default function ProductDetailClient({ product }: ProductDetailClientProp
                   <div className="flex items-center gap-2">
                     <Link
                       href={`/category/${p.categorySlug || 'ai-reels'}`}
-                      className="px-2.5 py-0.5 rounded-full bg-purple-50 text-purple-700 hover:bg-purple-100 transition-colors font-extrabold text-[11px] uppercase tracking-wider border border-purple-100 flex items-center gap-1"
+                      className="px-2.5 py-0.5 rounded-full bg-red-50 text-red-900 hover:bg-red-100 transition-colors font-extrabold text-[11px] uppercase tracking-wider border border-red-200/60 flex items-center gap-1"
                       title={`View all ${p.category || 'Reels'} bundles`}
                     >
                       <span>{p.category || 'Reels Bundle'}</span>
-                      <ChevronRight className="w-3 h-3 text-purple-500" />
+                      <ChevronRight className="w-3 h-3 text-red-500" />
                     </Link>
                     <span className="text-slate-300">•</span>
                     <span className="text-[11px] text-slate-500 font-semibold">
                       {p.reelCount || 1000}+ Clips
                     </span>
                   </div>
-                  <span className="text-[11px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-md border border-emerald-200">
+                  <span className="text-[11px] font-bold text-red-700 bg-red-50 px-2 py-0.5 rounded-md border border-red-200">
                     Verified Digital Bundle
                   </span>
                 </div>
@@ -380,13 +380,13 @@ export default function ProductDetailClient({ product }: ProductDetailClientProp
 
               {/* Special Free Bundles Offer Banner (Replaced with clean Ad Offer Strip on Sheru Page) */}
               {isSheruPage ? (
-                <div className="rounded-2xl bg-gradient-to-r from-[#6c3cf0]/10 via-fuchsia-50 to-amber-50 border border-purple-200/80 px-3.5 py-2.5 flex items-center justify-between gap-2">
+                <div className="rounded-2xl bg-red-50/70 border border-red-200/80 px-3.5 py-2.5 flex items-center justify-between gap-2">
                   <p className="text-[11px] sm:text-xs font-extrabold text-slate-900 leading-snug">
                     🔥 Trending Ad Offer • Includes 2 Free Bonus Bundles Worth ₹498 (6,000+ Reels Total)
                   </p>
                   <a
                     href="#sheru-bonuses"
-                    className="text-[11px] font-black text-[#6c3cf0] underline underline-offset-2 shrink-0"
+                    className="text-[11px] font-black text-red-700 hover:text-red-800 underline underline-offset-2 shrink-0"
                   >
                     See Bonuses ↓
                   </a>
@@ -397,20 +397,20 @@ export default function ProductDetailClient({ product }: ProductDetailClientProp
 
               {/* Key Highlights */}
               <div className="grid grid-cols-2 gap-2 text-xs font-bold text-slate-700">
-                <div className="flex items-center gap-1.5 p-2 rounded-xl bg-purple-50/50 border border-purple-100/60">
-                  <Check className="w-3.5 h-3.5 text-purple-600 shrink-0" />
+                <div className="flex items-center gap-1.5 p-2 rounded-xl bg-slate-50 border border-slate-200/80">
+                  <Check className="w-3.5 h-3.5 text-red-600 shrink-0" />
                   <span>{p.reelCount || 1000}+ HD Video Clips</span>
                 </div>
-                <div className="flex items-center gap-1.5 p-2 rounded-xl bg-purple-50/50 border border-purple-100/60">
-                  <Check className="w-3.5 h-3.5 text-purple-600 shrink-0" />
+                <div className="flex items-center gap-1.5 p-2 rounded-xl bg-slate-50 border border-slate-200/80">
+                  <Check className="w-3.5 h-3.5 text-red-600 shrink-0" />
                   <span>100% Watermark-Free</span>
                 </div>
-                <div className="flex items-center gap-1.5 p-2 rounded-xl bg-purple-50/50 border border-purple-100/60">
-                  <Check className="w-3.5 h-3.5 text-purple-600 shrink-0" />
+                <div className="flex items-center gap-1.5 p-2 rounded-xl bg-slate-50 border border-slate-200/80">
+                  <Check className="w-3.5 h-3.5 text-red-600 shrink-0" />
                   <span>9:16 Vertical (Reels/Shorts)</span>
                 </div>
-                <div className="flex items-center gap-1.5 p-2 rounded-xl bg-purple-50/50 border border-purple-100/60">
-                  <Check className="w-3.5 h-3.5 text-purple-600 shrink-0" />
+                <div className="flex items-center gap-1.5 p-2 rounded-xl bg-slate-50 border border-slate-200/80">
+                  <Check className="w-3.5 h-3.5 text-red-600 shrink-0" />
                   <span>Instant Drive Link Access</span>
                 </div>
               </div>
@@ -431,7 +431,7 @@ export default function ProductDetailClient({ product }: ProductDetailClientProp
                   onClick={() =>
                     buyNow(p, 'personal', isSheruPage ? isHotGirlsBumpAdded : false)
                   }
-                  className="w-full py-4 px-6 rounded-2xl btn-gradient-orange text-white font-black text-base shadow-lg hover:shadow-xl hover:scale-[1.01] active:scale-[0.98] transition-all flex items-center justify-center gap-2 cursor-pointer"
+                  className="w-full py-4 px-6 rounded-2xl bg-gradient-to-r from-red-600 via-rose-600 to-red-600 hover:from-red-700 hover:to-rose-700 text-white font-black text-base shadow-lg shadow-red-500/25 hover:scale-[1.01] active:scale-[0.98] transition-all flex items-center justify-center gap-2 cursor-pointer"
                 >
                   <Zap className="w-4 h-4 fill-white" />
                   <span>
@@ -444,7 +444,7 @@ export default function ProductDetailClient({ product }: ProductDetailClientProp
                 </button>
 
                 <p className="text-center text-[11px] text-slate-500 font-medium flex items-center justify-center gap-1.5">
-                  <FolderOpen className="w-3.5 h-3.5 text-purple-600 shrink-0" />
+                  <FolderOpen className="w-3.5 h-3.5 text-red-600 shrink-0" />
                   <span>Drive link appears on screen immediately & is sent to your email.</span>
                 </p>
 
@@ -464,7 +464,7 @@ export default function ProductDetailClient({ product }: ProductDetailClientProp
                 </div>
 
                 {/* Secondary Resell & Earn Option Card */}
-                <div className="p-3.5 rounded-2xl bg-gradient-to-r from-purple-50/90 via-pink-50/70 to-purple-50/90 border border-purple-200/80 text-center space-y-1.5 shadow-2xs">
+                <div className="p-3.5 rounded-2xl bg-slate-50 border border-slate-200 text-center space-y-1.5 shadow-2xs">
                   <button
                     type="button"
                     onClick={() => {
@@ -474,11 +474,11 @@ export default function ProductDetailClient({ product }: ProductDetailClientProp
                         setIsAuthModalOpen(true);
                       }
                     }}
-                    className="w-full py-3 px-5 rounded-xl bg-white hover:bg-purple-50/80 border border-purple-300 text-[#6734f7] font-black text-sm flex items-center justify-center gap-2 shadow-xs hover:shadow-md transition-all active:scale-95 cursor-pointer"
+                    className="w-full py-3 px-5 rounded-xl bg-white hover:bg-red-50/70 border border-red-200 text-red-800 font-black text-sm flex items-center justify-center gap-2 shadow-xs hover:shadow-md transition-all active:scale-95 cursor-pointer"
                   >
-                    <Briefcase className="w-4 h-4 text-[#ec288d]" />
+                    <Briefcase className="w-4 h-4 text-red-600" />
                     <span>Resell & Earn on This Bundle</span>
-                    <span className="px-2 py-0.5 rounded-full bg-gradient-to-r from-[#6734f7] to-[#ec288d] text-white text-[10px] font-extrabold uppercase">
+                    <span className="px-2 py-0.5 rounded-full bg-gradient-to-r from-red-600 to-rose-600 text-white text-[10px] font-extrabold uppercase">
                       Keep 100% Margin
                     </span>
                   </button>
@@ -515,7 +515,7 @@ export default function ProductDetailClient({ product }: ProductDetailClientProp
         {/* SECTION 1: HOW IT WORKS (3 Simple Steps) */}
         <section className="bg-white rounded-2xl sm:rounded-3xl border border-slate-200/90 p-5 sm:p-7 shadow-xs space-y-5">
           <div className="text-center sm:text-left">
-            <span className="text-xs font-black uppercase tracking-wider text-purple-700 block">
+            <span className="text-xs font-black uppercase tracking-wider text-red-700 block">
               100% Instant Delivery
             </span>
             <h2 className="text-lg sm:text-xl font-black text-slate-900 tracking-tight mt-0.5">
@@ -528,7 +528,7 @@ export default function ProductDetailClient({ product }: ProductDetailClientProp
 
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3.5">
             <div className="p-4 rounded-xl bg-slate-50 border border-slate-200/70 space-y-2">
-              <div className="w-7 h-7 rounded-lg bg-purple-100 text-purple-700 font-black text-xs flex items-center justify-center">
+              <div className="w-7 h-7 rounded-lg bg-red-100 text-red-900 font-black text-xs flex items-center justify-center">
                 1
               </div>
               <h3 className="text-xs sm:text-sm font-bold text-slate-900">30-Second Checkout</h3>
@@ -548,7 +548,7 @@ export default function ProductDetailClient({ product }: ProductDetailClientProp
             </div>
 
             <div className="p-4 rounded-xl bg-slate-50 border border-slate-200/70 space-y-2">
-              <div className="w-7 h-7 rounded-lg bg-blue-100 text-blue-700 font-black text-xs flex items-center justify-center">
+              <div className="w-7 h-7 rounded-lg bg-slate-200 text-slate-800 font-black text-xs flex items-center justify-center">
                 3
               </div>
               <h3 className="text-xs sm:text-sm font-bold text-slate-900">Download & Post</h3>
@@ -562,7 +562,7 @@ export default function ProductDetailClient({ product }: ProductDetailClientProp
         {/* SECTION 2: BUNDLE DETAILS & DESCRIPTION */}
         <section className="bg-white rounded-2xl sm:rounded-3xl border border-slate-200/90 p-5 sm:p-7 shadow-xs space-y-5">
           <div>
-            <span className="text-xs font-black uppercase tracking-wider text-purple-700 block">
+            <span className="text-xs font-black uppercase tracking-wider text-red-700 block">
               Bundle Specifications
             </span>
             <h2 className="text-lg sm:text-xl font-black text-slate-900 tracking-tight mt-0.5">
@@ -617,14 +617,14 @@ export default function ProductDetailClient({ product }: ProductDetailClientProp
                 Licensing, Delivery & Permitted Usage Guide
               </h4>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
-                <div className="p-3 rounded-xl bg-purple-50/60 border border-purple-100 space-y-1">
-                  <strong className="text-purple-900 block font-bold">1. Personal Creation License</strong>
+                <div className="p-3 rounded-xl bg-red-50/60 border border-red-200/70 space-y-1">
+                  <strong className="text-red-950 block font-bold">1. Personal Creation License</strong>
                   <p className="text-slate-600 leading-relaxed">
                     Post watermark-free on your Instagram Reels, YouTube Shorts & Facebook pages. Add your own handle, text hooks or music with zero copyright strikes.
                   </p>
                 </div>
-                <div className="p-3 rounded-xl bg-pink-50/60 border border-pink-100 space-y-1">
-                  <strong className="text-pink-900 block font-bold">2. Master Resell Rights (MRR)</strong>
+                <div className="p-3 rounded-xl bg-rose-50/60 border border-rose-200/70 space-y-1">
+                  <strong className="text-rose-950 block font-bold">2. Master Resell Rights (MRR)</strong>
                   <p className="text-slate-600 leading-relaxed">
                     Resell this bundle to your audience or clients at any price point and keep 100% of every sale directly to your bank account.
                   </p>
@@ -635,8 +635,8 @@ export default function ProductDetailClient({ product }: ProductDetailClientProp
                     Permanent access link opens on screen right after UPI/card payment and is sent to your registered Gmail for lifetime downloads.
                   </p>
                 </div>
-                <div className="p-3 rounded-xl bg-blue-50/60 border border-blue-100 space-y-1">
-                  <strong className="text-blue-900 block font-bold">4. Mobile & Desktop Ready</strong>
+                <div className="p-3 rounded-xl bg-slate-100/80 border border-slate-200 space-y-1">
+                  <strong className="text-slate-900 block font-bold">4. Mobile & Desktop Ready</strong>
                   <p className="text-slate-600 leading-relaxed">
                     Standard 1080x1920 vertical MP4 format. No transcoding or resizing needed; upload directly from your smartphone.
                   </p>
@@ -648,13 +648,13 @@ export default function ProductDetailClient({ product }: ProductDetailClientProp
                 <span className="text-slate-500 font-medium">Explore related:</span>
                 <Link
                   href={`/category/${p.categorySlug || 'ai-reels'}`}
-                  className="px-2.5 py-1 rounded-lg bg-slate-100 hover:bg-purple-50 text-purple-700 hover:text-purple-800 font-semibold border border-slate-200 transition-colors"
+                  className="px-2.5 py-1 rounded-lg bg-slate-100 hover:bg-red-50 text-red-800 hover:text-red-900 font-semibold border border-slate-200 transition-colors"
                 >
                   More {p.category || 'Reels'} Bundles &rarr;
                 </Link>
                 <Link
                   href="/shop"
-                  className="px-2.5 py-1 rounded-lg bg-slate-100 hover:bg-purple-50 text-purple-700 hover:text-purple-800 font-semibold border border-slate-200 transition-colors"
+                  className="px-2.5 py-1 rounded-lg bg-slate-100 hover:bg-red-50 text-red-800 hover:text-red-900 font-semibold border border-slate-200 transition-colors"
                 >
                   Browse Full Shop Catalog &rarr;
                 </Link>
@@ -666,7 +666,7 @@ export default function ProductDetailClient({ product }: ProductDetailClientProp
         {/* SECTION 3: WHO IS THIS FOR */}
         <section className="bg-white rounded-2xl sm:rounded-3xl border border-slate-200/90 p-5 sm:p-7 shadow-xs space-y-4">
           <div>
-            <span className="text-xs font-black uppercase tracking-wider text-purple-700 block">
+            <span className="text-xs font-black uppercase tracking-wider text-red-700 block">
               Audience
             </span>
             <h2 className="text-lg sm:text-xl font-black text-slate-900 tracking-tight mt-0.5">
@@ -696,7 +696,7 @@ export default function ProductDetailClient({ product }: ProductDetailClientProp
         <section className="bg-white rounded-2xl sm:rounded-3xl border border-slate-200/90 p-5 sm:p-7 shadow-xs space-y-5">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-4">
             <div>
-              <span className="text-xs font-black uppercase tracking-wider text-purple-700 block">
+              <span className="text-xs font-black uppercase tracking-wider text-red-700 block">
                 Verified Reviews
               </span>
               <h2 className="text-lg sm:text-xl font-black text-slate-900 tracking-tight mt-0.5">
@@ -721,7 +721,7 @@ export default function ProductDetailClient({ product }: ProductDetailClientProp
                   <div className="space-y-1.5">
                     <div className="flex items-center justify-between gap-2">
                       <div className="flex items-center gap-2">
-                        <div className="w-7 h-7 rounded-full bg-purple-600 text-white font-bold text-xs flex items-center justify-center">
+                        <div className="w-7 h-7 rounded-full bg-gradient-to-r from-red-600 to-rose-600 text-white font-bold text-xs flex items-center justify-center">
                           {rev.author.charAt(0)}
                         </div>
                         <div>
@@ -763,7 +763,7 @@ export default function ProductDetailClient({ product }: ProductDetailClientProp
         {/* SECTION 5: FREQUENTLY ASKED QUESTIONS */}
         <section className="bg-white rounded-2xl sm:rounded-3xl border border-slate-200/90 p-5 sm:p-7 shadow-xs space-y-4">
           <div>
-            <span className="text-xs font-black uppercase tracking-wider text-purple-700 block">
+            <span className="text-xs font-black uppercase tracking-wider text-red-700 block">
               FAQ
             </span>
             <h2 className="text-lg sm:text-xl font-black text-slate-900 tracking-tight mt-0.5">
@@ -785,7 +785,7 @@ export default function ProductDetailClient({ product }: ProductDetailClientProp
                     className="w-full p-3.5 text-left font-bold text-xs sm:text-sm text-slate-900 flex justify-between items-center gap-3 hover:bg-slate-50 cursor-pointer"
                   >
                     <span>{faq.question}</span>
-                    <span className="text-purple-600 font-black text-sm shrink-0">
+                    <span className="text-red-600 font-black text-sm shrink-0">
                       {isOpen ? '−' : '+'}
                     </span>
                   </button>
@@ -837,7 +837,7 @@ export default function ProductDetailClient({ product }: ProductDetailClientProp
             </h2>
             <Link
               href="/shop"
-              className="text-xs font-bold text-purple-700 hover:underline flex items-center gap-0.5"
+              className="text-xs font-bold text-red-700 hover:underline flex items-center gap-0.5"
             >
               <span>View All</span>
               <ChevronRight className="w-3.5 h-3.5" />
@@ -869,7 +869,7 @@ export default function ProductDetailClient({ product }: ProductDetailClientProp
 
                 <div className="space-y-1">
                   <Link href={`/product/${rel.slug}`}>
-                    <h3 className="font-bold text-xs text-slate-900 line-clamp-2 hover:text-purple-600 transition-colors leading-snug">
+                    <h3 className="font-bold text-xs text-slate-900 line-clamp-2 hover:text-red-600 transition-colors leading-snug">
                       {rel.title}
                     </h3>
                   </Link>
@@ -881,7 +881,7 @@ export default function ProductDetailClient({ product }: ProductDetailClientProp
                     <button
                       type="button"
                       onClick={() => buyNow(rel, 'personal')}
-                      className="px-2.5 py-1 rounded-md bg-purple-900 hover:bg-purple-800 text-white text-[10px] font-bold shadow-2xs active:scale-95 transition-transform cursor-pointer"
+                      className="px-2.5 py-1 rounded-md bg-gradient-to-r from-red-600 to-rose-600 hover:from-red-700 hover:to-rose-700 text-white text-[10px] font-black shadow-2xs active:scale-95 transition-transform cursor-pointer"
                     >
                       Buy Now
                     </button>
@@ -932,10 +932,10 @@ export default function ProductDetailClient({ product }: ProductDetailClientProp
                   setIsAuthModalOpen(true);
                 }
               }}
-              className="py-2.5 px-2.5 rounded-xl bg-purple-50 hover:bg-purple-100 border border-purple-200 text-purple-700 font-bold text-xs flex items-center justify-center gap-1 active:scale-95 transition-transform cursor-pointer shrink-0"
+              className="py-2.5 px-2.5 rounded-xl bg-red-50 hover:bg-red-100 border border-red-200 text-red-800 font-bold text-xs flex items-center justify-center gap-1 active:scale-95 transition-transform cursor-pointer shrink-0"
               title="Resell this bundle and earn margin"
             >
-              <Briefcase className="w-3.5 h-3.5 text-pink-600" />
+              <Briefcase className="w-3.5 h-3.5 text-red-600" />
               <span>Resell</span>
             </button>
             <button
@@ -943,7 +943,7 @@ export default function ProductDetailClient({ product }: ProductDetailClientProp
               onClick={() =>
                 buyNow(p, 'personal', isSheruPage ? isHotGirlsBumpAdded : false)
               }
-              className="flex-1 py-3 px-4 rounded-xl btn-gradient-orange text-white font-black text-sm shadow-md active:scale-95 transition-all flex items-center justify-center gap-1.5 cursor-pointer"
+              className="flex-1 py-3 px-4 rounded-xl bg-gradient-to-r from-red-600 via-rose-600 to-red-600 hover:from-red-700 hover:to-rose-700 text-white font-black text-sm shadow-md shadow-red-500/25 active:scale-95 transition-all flex items-center justify-center gap-1.5 cursor-pointer"
             >
               <Zap className="w-3.5 h-3.5 fill-white" />
               <span>

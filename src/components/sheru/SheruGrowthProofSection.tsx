@@ -147,7 +147,7 @@ export default function SheruGrowthProofSection({
                 href="/admin/growth-proof"
                 className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold shadow transition-all"
               >
-                <ImagePlus className="w-4 h-4 text-purple-300" />
+                <ImagePlus className="w-4 h-4 text-red-400" />
                 Manage Growth Screenshots
               </Link>
             </div>
@@ -163,7 +163,7 @@ export default function SheruGrowthProofSection({
                   key={shot.id}
                   type="button"
                   onClick={() => setLightboxIndex(idx)}
-                  className="group relative flex flex-col rounded-2xl overflow-hidden bg-slate-950 border border-slate-200 hover:border-purple-500 shadow-sm hover:shadow-xl transition-all text-left cursor-pointer"
+                  className="group relative flex flex-col rounded-2xl overflow-hidden bg-slate-950 border border-slate-200 hover:border-red-500 shadow-sm hover:shadow-xl transition-all text-left cursor-pointer"
                   aria-label={`View growth screenshot ${shot.caption || shot.pageHandle || idx + 1}`}
                 >
                   {/* Full-frame uncropped analytics viewer */}
@@ -194,7 +194,7 @@ export default function SheruGrowthProofSection({
                   {/* Footer Meta */}
                   <div className="p-2.5 sm:p-3 bg-white border-t border-slate-100 w-full min-w-0">
                     {shot.pageHandle && (
-                      <p className="text-[11px] font-extrabold text-[#6c3cf0] flex items-center gap-1 truncate">
+                      <p className="text-[11px] font-extrabold text-red-600 flex items-center gap-1 truncate">
                         <Instagram className="w-3 h-3 shrink-0" />
                         <span className="truncate">{shot.pageHandle}</span>
                       </p>
@@ -218,10 +218,10 @@ export default function SheruGrowthProofSection({
               return (
                 <div
                   key={item.label}
-                  className="p-5 rounded-2xl bg-gradient-to-br from-slate-50 to-purple-50/40 border border-slate-200/80 flex flex-col gap-2"
+                  className="p-5 rounded-2xl bg-gradient-to-br from-slate-50 to-red-50/40 border border-slate-200/80 flex flex-col gap-2"
                 >
                   <div className="flex items-center justify-between gap-2">
-                    <span className="w-10 h-10 rounded-xl bg-white border border-purple-100 text-[#6c3cf0] flex items-center justify-center shadow-sm">
+                    <span className="w-10 h-10 rounded-xl bg-white border border-red-100 text-red-600 flex items-center justify-center shadow-sm">
                       <IconComponent className="w-5 h-5" />
                     </span>
                     <span className="px-2.5 py-1 rounded-full bg-emerald-100 text-emerald-800 text-[11px] font-black">
@@ -277,7 +277,7 @@ export default function SheruGrowthProofSection({
             <div className="flex items-center justify-between gap-2 px-4 py-3 border-b border-white/10">
               <div className="min-w-0">
                 {activeShot.pageHandle && (
-                  <p className="text-xs font-extrabold text-purple-300 truncate">
+                  <p className="text-xs font-extrabold text-red-400 truncate">
                     {activeShot.pageHandle}
                   </p>
                 )}

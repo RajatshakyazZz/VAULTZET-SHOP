@@ -130,10 +130,10 @@ export default function FreeBundlesModal() {
       {/* Modal Card */}
       <div
         ref={modalRef}
-        className="relative w-full max-w-2xl bg-white rounded-3xl shadow-[0_24px_64px_rgba(15,23,42,0.28)] border border-[#e3dbfa] overflow-hidden flex flex-col max-h-[92vh] z-10 animate-in fade-in zoom-in-95 duration-200"
+        className="relative w-full max-w-2xl bg-white rounded-3xl shadow-[0_24px_64px_rgba(15,23,42,0.28)] border border-slate-200 overflow-hidden flex flex-col max-h-[92vh] z-10 animate-in fade-in zoom-in-95 duration-200"
       >
         {/* Header */}
-        <div className="p-5 sm:p-6 bg-gradient-to-r from-[#f7f3ff] via-[#fbf9ff] to-[#f4effe] border-b border-[#e3dbfa] relative">
+        <div className="p-5 sm:p-6 bg-slate-50 border-b border-slate-200 relative">
           <button
             type="button"
             onClick={() => setIsFreeBundleModalOpen(false)}
@@ -144,21 +144,21 @@ export default function FreeBundlesModal() {
           </button>
 
           <div className="flex items-start gap-3.5 pr-8">
-            <div className="w-11 h-11 rounded-2xl bg-[#5126c9] text-white flex items-center justify-center shrink-0 shadow-md shadow-[#5126c9]/25">
+            <div className="w-11 h-11 rounded-2xl bg-gradient-to-br from-red-600 to-rose-600 text-white flex items-center justify-center shrink-0 shadow-md shadow-red-500/25">
               <Gift className="w-6 h-6 stroke-[2.2]" />
             </div>
             <div>
-              <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-[#ede5ff] text-[#5126c9] text-[11px] font-black uppercase tracking-wider mb-1">
-                <Sparkles className="w-3.5 h-3.5" />
+              <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-red-50 text-red-900 border border-red-200 text-[11px] font-black uppercase tracking-wider mb-1">
+                <Sparkles className="w-3.5 h-3.5 text-red-600" />
                 <span>Special Offer Unlocked</span>
               </div>
               <h2
                 id="free-bundles-modal-title"
-                className="text-lg sm:text-xl font-black text-[#182247] tracking-[-0.01em] leading-snug"
+                className="text-lg sm:text-xl font-black text-slate-950 tracking-[-0.01em] leading-snug"
               >
                 Choose Your 2 Free Gift Bundles
               </h2>
-              <p className="text-xs sm:text-[13px] text-[#4e4668] font-medium mt-0.5 leading-relaxed">
+              <p className="text-xs sm:text-[13px] text-slate-600 font-medium mt-0.5 leading-relaxed">
                 {isQualifiedForFreeOffer
                   ? `Your cart qualifies (min. ₹149)! Pick any 2 bundles below to add to your order for FREE (₹0).`
                   : `Your current cart subtotal is ₹${subtotal}. Reach ₹149 to claim these 2 bundles for 100% free!`}
@@ -175,8 +175,8 @@ export default function FreeBundlesModal() {
                   key={slotIdx}
                   className={`p-2.5 rounded-xl border flex items-center gap-2.5 transition-all ${
                     item
-                      ? 'bg-white border-[#5126c9] shadow-[0_2px_10px_rgba(81,38,201,0.08)]'
-                      : 'bg-white/60 border-dashed border-[#dcd0fa] text-slate-400'
+                      ? 'bg-white border-red-500 shadow-[0_2px_10px_rgba(239,68,68,0.15)]'
+                      : 'bg-white/60 border-dashed border-slate-300 text-slate-400'
                   }`}
                 >
                   {item ? (
@@ -192,7 +192,7 @@ export default function FreeBundlesModal() {
                         <span className="text-[10px] font-bold uppercase tracking-wider text-[#076647] bg-[#e6f7f0] px-1.5 py-0.2 rounded">
                           Free Gift {slotIdx + 1}
                         </span>
-                        <p className="text-xs font-bold text-[#182247] truncate leading-tight mt-0.5">
+                        <p className="text-xs font-bold text-slate-950 truncate leading-tight mt-0.5">
                           {item.title}
                         </p>
                       </div>
@@ -207,7 +207,7 @@ export default function FreeBundlesModal() {
                     </>
                   ) : (
                     <div className="py-1 px-1 text-center w-full">
-                      <span className="text-[11px] font-semibold text-[#6d628c]">
+                      <span className="text-[11px] font-semibold text-slate-500">
                         + Pick Free Bundle {slotIdx + 1}
                       </span>
                     </div>
@@ -219,7 +219,7 @@ export default function FreeBundlesModal() {
         </div>
 
         {/* Search & Category Filter */}
-        <div className="p-3 sm:p-4 border-b border-slate-100 bg-[#faf9ff] space-y-2.5">
+        <div className="p-3 sm:p-4 border-b border-slate-200 bg-slate-50 space-y-2.5">
           <div className="relative">
             <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
             <input
@@ -227,7 +227,7 @@ export default function FreeBundlesModal() {
               placeholder="Search reels bundles (e.g. AI, Horror, Gym, Motivation)..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-9 pr-9 py-2 rounded-xl text-xs sm:text-sm bg-white border border-[#e3dbfa] focus:outline-none focus:ring-2 focus:ring-[#5126c9] text-[#182247] placeholder:text-slate-400"
+              className="w-full pl-9 pr-9 py-2 rounded-xl text-xs sm:text-sm bg-white border border-slate-200 focus:outline-none focus:ring-2 focus:ring-red-500 text-slate-900 placeholder:text-slate-400"
             />
             {searchQuery && (
               <button
@@ -248,8 +248,8 @@ export default function FreeBundlesModal() {
                 onClick={() => setActiveCategory(cat)}
                 className={`px-3 py-1 rounded-full font-bold whitespace-nowrap transition-colors capitalize ${
                   activeCategory === cat
-                    ? 'bg-[#5126c9] text-white'
-                    : 'bg-white text-slate-600 border border-slate-200 hover:border-[#5126c9]'
+                    ? 'bg-slate-950 text-red-400 border border-red-500/40'
+                    : 'bg-white text-slate-600 border border-slate-200 hover:border-red-400'
                 }`}
               >
                 {cat === 'all' ? 'All Bundles' : cat}
@@ -263,7 +263,7 @@ export default function FreeBundlesModal() {
           {filteredBundles.length === 0 ? (
             <div className="text-center py-12 space-y-2">
               <ShoppingBag className="w-10 h-10 text-slate-300 mx-auto" />
-              <p className="text-sm font-bold text-[#182247]">No bundles found</p>
+              <p className="text-sm font-bold text-slate-900">No bundles found</p>
               <p className="text-xs text-slate-500">Try a different search keyword or category.</p>
             </div>
           ) : (
@@ -276,7 +276,7 @@ export default function FreeBundlesModal() {
                   key={bundle.id}
                   className={`pt-2.5 first:pt-0 flex items-center justify-between gap-3 p-2.5 rounded-2xl transition-all ${
                     isSelected
-                      ? 'bg-[#f4effe] border border-[#5126c9]/40'
+                      ? 'bg-red-50/70 border border-red-400/60'
                       : 'hover:bg-slate-50'
                   }`}
                 >
@@ -289,17 +289,17 @@ export default function FreeBundlesModal() {
                       className="w-12 h-12 rounded-xl object-cover shrink-0 border border-slate-200"
                     />
                     <div className="min-w-0">
-                      <h4 className="text-xs sm:text-[13px] font-bold text-[#182247] truncate leading-tight">
+                      <h4 className="text-xs sm:text-[13px] font-bold text-slate-900 truncate leading-tight">
                         {bundle.title}
                       </h4>
                       <div className="flex items-center gap-2 mt-1">
-                        <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-purple-100 text-[#5126c9]">
+                        <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-red-50 text-red-900 border border-red-200/50">
                           {bundle.reelCount}+ Reels
                         </span>
                         <span className="text-[11px] text-slate-400 line-through tabular-nums">
                           ₹{bundle.personalPrice}
                         </span>
-                        <span className="text-[11px] font-black text-[#076647] tabular-nums">
+                        <span className="text-[11px] font-black text-emerald-700 tabular-nums">
                           FREE ₹0
                         </span>
                       </div>
@@ -309,12 +309,12 @@ export default function FreeBundlesModal() {
                   <button
                     type="button"
                     onClick={() => handleToggleSelect(bundle)}
-                    className={`px-3.5 py-1.5 sm:px-4 sm:py-2 rounded-xl text-xs font-black transition-all shrink-0 flex items-center gap-1.5 ${
+                    className={`px-3.5 py-1.5 sm:px-4 sm:py-2 rounded-xl text-xs font-black transition-all shrink-0 flex items-center gap-1.5 cursor-pointer ${
                       isSelected
-                        ? 'bg-[#076647] text-white shadow-sm'
+                        ? 'bg-emerald-700 text-white shadow-sm'
                         : isMaxSelected
-                        ? 'bg-slate-100 text-slate-400 cursor-pointer hover:bg-purple-100 hover:text-[#5126c9]'
-                        : 'bg-[#5126c9] hover:bg-[#4320a8] text-white shadow-md shadow-[#5126c9]/20'
+                        ? 'bg-slate-100 text-slate-400 hover:bg-red-100 hover:text-red-900'
+                        : 'bg-gradient-to-r from-red-600 to-rose-600 text-white shadow-md shadow-red-500/20'
                     }`}
                   >
                     {isSelected ? (
@@ -335,14 +335,14 @@ export default function FreeBundlesModal() {
         </div>
 
         {/* Footer Actions */}
-        <div className="p-4 sm:p-5 border-t border-[#e3dbfa] bg-gradient-to-r from-[#fbf9ff] to-[#f4effe] flex flex-col sm:flex-row items-center justify-between gap-3">
-          <div className="text-xs text-[#4e4668] text-center sm:text-left">
-            <span className="font-extrabold text-[#182247] tabular-nums">
+        <div className="p-4 sm:p-5 border-t border-slate-200 bg-slate-50 flex flex-col sm:flex-row items-center justify-between gap-3">
+          <div className="text-xs text-slate-600 text-center sm:text-left">
+            <span className="font-extrabold text-slate-950 tabular-nums">
               {selected.length} of 2
             </span>{' '}
             free bundles selected.{' '}
             {selected.length < 2 && (
-              <span className="text-[#5126c9] font-bold">
+              <span className="text-red-800 font-bold">
                 (You can choose {2 - selected.length} more)
               </span>
             )}
@@ -352,7 +352,7 @@ export default function FreeBundlesModal() {
             <button
               type="button"
               onClick={() => setIsFreeBundleModalOpen(false)}
-              className="px-4 py-2.5 rounded-xl border border-slate-300 text-slate-600 font-bold text-xs hover:bg-slate-100 transition-colors"
+              className="px-4 py-2.5 rounded-xl border border-slate-300 text-slate-700 font-bold text-xs hover:bg-slate-100 transition-colors cursor-pointer"
             >
               Cancel
             </button>
@@ -360,10 +360,10 @@ export default function FreeBundlesModal() {
               type="button"
               disabled={selected.length === 0}
               onClick={handleClaim}
-              className={`flex-1 sm:flex-none inline-flex items-center justify-center gap-2 px-6 py-2.5 rounded-xl text-white font-black text-xs sm:text-[13px] transition-all ${
+              className={`flex-1 sm:flex-none inline-flex items-center justify-center gap-2 px-6 py-2.5 rounded-xl text-white font-black text-xs sm:text-[13px] transition-all cursor-pointer ${
                 selected.length > 0
-                  ? 'bg-gradient-to-r from-[#5126c9] via-[#6e35f5] to-[#7c3aed] shadow-lg shadow-[#5126c9]/30 hover:scale-[1.02] active:scale-[0.98]'
-                  : 'bg-slate-300 cursor-not-allowed text-slate-500'
+                  ? 'bg-gradient-to-r from-red-600 via-rose-600 to-red-600 shadow-lg shadow-red-500/25 hover:from-red-700 hover:to-rose-700 active:scale-[0.98]'
+                  : 'bg-slate-200 cursor-not-allowed text-slate-400'
               }`}
             >
               <Gift className="w-4 h-4 stroke-[2.2]" />

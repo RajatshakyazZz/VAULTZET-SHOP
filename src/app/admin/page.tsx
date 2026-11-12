@@ -8,7 +8,7 @@ export default function AdminHubPage() {
       <div className="max-w-4xl mx-auto space-y-6">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-6 border-b border-slate-800">
           <div>
-            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-purple-500/15 text-purple-300 border border-purple-500/30">
+            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-red-500/15 text-red-300 border border-red-500/30">
               <ShieldCheck className="w-3.5 h-3.5" />
               Vaultzet Store Admin
             </span>
@@ -31,10 +31,10 @@ export default function AdminHubPage() {
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <Link
             href="/admin/growth-proof"
-            className="group p-6 rounded-2xl bg-slate-900/90 hover:bg-slate-900 border border-purple-500/30 hover:border-purple-400 transition-all shadow-lg flex flex-col justify-between gap-4"
+            className="group p-6 rounded-2xl bg-slate-900/90 hover:bg-slate-900 border border-red-500/30 hover:border-red-400 transition-all shadow-lg flex flex-col justify-between gap-4"
           >
             <div>
-              <div className="w-11 h-11 rounded-xl bg-purple-500/20 text-purple-300 flex items-center justify-center mb-4">
+              <div className="w-11 h-11 rounded-xl bg-red-500/20 text-red-300 flex items-center justify-center mb-4">
                 <ImagePlus className="w-6 h-6" />
               </div>
               <h2 className="text-lg font-black text-white">
@@ -44,7 +44,7 @@ export default function AdminHubPage() {
                 Upload Instagram / YouTube Insights proof screenshots for the Sheru Bhai ad landing page.
               </p>
             </div>
-            <span className="text-xs font-extrabold text-purple-300 inline-flex items-center gap-1.5 group-hover:translate-x-0.5 transition-transform">
+            <span className="text-xs font-extrabold text-red-300 inline-flex items-center gap-1.5 group-hover:translate-x-0.5 transition-transform">
               Open Screenshot Uploader
               <ArrowRight className="w-4 h-4" />
             </span>

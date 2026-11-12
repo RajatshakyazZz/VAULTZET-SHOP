@@ -28,7 +28,7 @@ export const viewport: Viewport = {
   initialScale: 1,
   maximumScale: 5,
   viewportFit: 'cover',
-  themeColor: '#6c35ff',
+  themeColor: '#dc2626',
 };
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -177,7 +177,7 @@ export default function RootLayout({
           dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
         />
       </head>
-      <body className="min-h-screen flex flex-col antialiased selection:bg-rb-purple selection:text-white pb-[calc(4.5rem+env(safe-area-inset-bottom,0px))] md:pb-0">
+      <body className="min-h-screen flex flex-col antialiased selection:bg-red-600 selection:text-white pb-[calc(4.5rem+env(safe-area-inset-bottom,0px))] md:pb-0">
         {/* Meta Pixel (noscript) — single primary pixel only */}
         {META_PIXEL_ID && (
           <noscript>

@@ -47,7 +47,7 @@ export default async function HomePage() {
       <div className="w-full max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 pt-2 overflow-hidden">
         <Link
           href="/product/3000-sheru-bhai-mega-reel-bundle-pack"
-          className="w-full flex items-center justify-between gap-2 p-2.5 sm:py-2.5 sm:px-4 rounded-2xl bg-gradient-to-r from-[#591ba5] via-[#82189f] to-[#e62078] text-white shadow-md hover:shadow-lg transition-all border border-pink-400/30 group overflow-hidden"
+          className="w-full flex items-center justify-between gap-2 p-2.5 sm:py-2.5 sm:px-4 rounded-2xl bg-gradient-to-r from-slate-950 via-red-900 to-red-700 text-white shadow-md hover:shadow-lg transition-all border border-red-500/30 group overflow-hidden"
         >
           <div className="flex items-center gap-2 min-w-0 max-w-full overflow-hidden">
             <span className="px-2 py-0.5 rounded-full bg-amber-400 text-slate-950 text-[10px] sm:text-xs font-black uppercase tracking-wider shrink-0 flex items-center gap-1 shadow-xs">
@@ -60,7 +60,7 @@ export default async function HomePage() {
           </div>
           <div className="flex items-center gap-2 shrink-0">
             <span className="text-xs sm:text-sm font-black text-amber-300">₹99</span>
-            <span className="px-2.5 py-1 rounded-xl bg-white text-[#6734f7] font-black text-[11px] sm:text-xs group-hover:bg-amber-300 group-hover:text-slate-950 transition-colors flex items-center gap-1 shadow-xs">
+            <span className="px-2.5 py-1 rounded-xl bg-white text-red-600 font-black text-[11px] sm:text-xs group-hover:bg-amber-300 group-hover:text-slate-950 transition-colors flex items-center gap-1 shadow-xs">
               <span>Get Now</span>
               <ArrowRight className="w-3 h-3" />
             </span>

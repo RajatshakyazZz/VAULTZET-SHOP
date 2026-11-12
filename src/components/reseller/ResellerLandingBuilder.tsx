@@ -312,25 +312,25 @@ export default function ResellerLandingBuilder({
   return (
     <div className="space-y-6">
       {/* Top Action Bar */}
-      <div className="p-4 sm:p-6 rounded-3xl bg-white border border-purple-100 shadow-xs flex flex-wrap items-center justify-between gap-4">
+      <div className="p-4 sm:p-6 rounded-3xl bg-white border border-slate-200 shadow-xs flex flex-wrap items-center justify-between gap-4">
         <div className="flex items-center gap-3">
           <Link
             href="/earn/products"
-            className="w-10 h-10 rounded-2xl bg-purple-50 hover:bg-purple-100 text-[#162048] flex items-center justify-center transition-colors shrink-0"
+            className="w-10 h-10 rounded-2xl bg-red-50 hover:bg-red-100 text-slate-950 flex items-center justify-center transition-colors shrink-0"
           >
             <ArrowLeft className="w-5 h-5" />
           </Link>
           <div>
             <div className="flex items-center gap-2">
-              <h1 className="text-base sm:text-lg font-black text-[#162048]">
+              <h1 className="text-base sm:text-lg font-black text-slate-950">
                 {mode === 'create' ? 'Create Reseller Landing Page' : 'Edit Reseller Landing Page'}
               </h1>
-              <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-purple-100 text-[#6734f7] uppercase tracking-wider">
+              <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-red-50 text-red-600 uppercase tracking-wider">
                 {mode}
               </span>
             </div>
             <p className="text-xs text-slate-500 font-medium">
-              Based on wholesale template: <span className="font-bold text-[#162048]">{originalProduct.title}</span> (Wholesale Base: ₹{basePrice})
+              Based on wholesale template: <span className="font-bold text-slate-950">{originalProduct.title}</span> (Wholesale Base: ₹{basePrice})
             </p>
           </div>
         </div>
@@ -342,7 +342,7 @@ export default function ResellerLandingBuilder({
             <button
               onClick={() => setPreviewMode('desktop')}
               className={`px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1.5 transition-all ${
-                previewMode === 'desktop' ? 'bg-white shadow-xs text-[#162048]' : 'text-slate-500 hover:text-slate-900'
+                previewMode === 'desktop' ? 'bg-white shadow-xs text-slate-950' : 'text-slate-500 hover:text-slate-900'
               }`}
             >
               <Monitor className="w-3.5 h-3.5" />
@@ -351,7 +351,7 @@ export default function ResellerLandingBuilder({
             <button
               onClick={() => setPreviewMode('mobile')}
               className={`px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1.5 transition-all ${
-                previewMode === 'mobile' ? 'bg-white shadow-xs text-[#162048]' : 'text-slate-500 hover:text-slate-900'
+                previewMode === 'mobile' ? 'bg-white shadow-xs text-slate-950' : 'text-slate-500 hover:text-slate-900'
               }`}
             >
               <Smartphone className="w-3.5 h-3.5" />
@@ -362,7 +362,7 @@ export default function ResellerLandingBuilder({
           <button
             onClick={() => handleSubmit('paused')}
             disabled={isSubmitting}
-            className="px-4 py-2.5 rounded-xl border border-purple-200 hover:bg-purple-50 text-[#162048] text-xs font-bold transition-all disabled:opacity-50"
+            className="px-4 py-2.5 rounded-xl border border-slate-200 hover:bg-slate-50 text-slate-950 text-xs font-bold transition-all disabled:opacity-50"
           >
             Save Draft
           </button>
@@ -370,7 +370,7 @@ export default function ResellerLandingBuilder({
           <button
             onClick={() => handleSubmit('active')}
             disabled={isSubmitting || !isPriceValid}
-            className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-[#6734f7] to-[#ec288d] text-white text-xs font-black shadow-md hover:scale-105 active:scale-95 transition-all disabled:opacity-50 flex items-center gap-2"
+            className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-red-600 to-rose-600 hover:from-red-700 hover:to-rose-700 text-white text-xs font-black shadow-md shadow-red-500/20 hover:scale-105 active:scale-95 transition-all disabled:opacity-50 flex items-center gap-2"
           >
             <Zap className="w-3.5 h-3.5 fill-current" />
             <span>{isSubmitting ? 'Publishing...' : 'Publish Listing'}</span>
@@ -404,7 +404,7 @@ export default function ResellerLandingBuilder({
           </div>
 
           <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 pt-2">
-            <div className="px-4 py-2.5 rounded-xl bg-white border border-emerald-200 text-xs font-mono font-bold text-[#162048] truncate flex-1">
+            <div className="px-4 py-2.5 rounded-xl bg-white border border-emerald-200 text-xs font-mono font-bold text-slate-950 truncate flex-1">
               {typeof window !== 'undefined' ? `${window.location.origin}/r/${publishedListing.slug}` : `/r/${publishedListing.slug}`}
             </div>
 
@@ -443,11 +443,11 @@ export default function ResellerLandingBuilder({
         {/* LEFT COLUMN: CUSTOMIZATION TABS & FIELDS */}
         <div className="lg:col-span-5 space-y-4">
           {/* Tab Navigation */}
-          <div className="grid grid-cols-5 p-1 rounded-2xl bg-white border border-purple-100 text-[11px] sm:text-xs font-bold">
+          <div className="grid grid-cols-5 p-1 rounded-2xl bg-white border border-slate-200 text-[11px] sm:text-xs font-bold">
             <button
               onClick={() => setActiveTab('pricing')}
               className={`py-2 rounded-xl transition-all ${
-                activeTab === 'pricing' ? 'bg-[#6734f7] text-white shadow-xs' : 'text-slate-500 hover:text-slate-900'
+                activeTab === 'pricing' ? 'bg-red-600 text-white shadow-xs' : 'text-slate-500 hover:text-slate-900'
               }`}
             >
               Pricing
@@ -455,7 +455,7 @@ export default function ResellerLandingBuilder({
             <button
               onClick={() => setActiveTab('content')}
               className={`py-2 rounded-xl transition-all ${
-                activeTab === 'content' ? 'bg-[#6734f7] text-white shadow-xs' : 'text-slate-500 hover:text-slate-900'
+                activeTab === 'content' ? 'bg-red-600 text-white shadow-xs' : 'text-slate-500 hover:text-slate-900'
               }`}
             >
               Content
@@ -463,7 +463,7 @@ export default function ResellerLandingBuilder({
             <button
               onClick={() => setActiveTab('visuals')}
               className={`py-2 rounded-xl transition-all ${
-                activeTab === 'visuals' ? 'bg-[#6734f7] text-white shadow-xs' : 'text-slate-500 hover:text-slate-900'
+                activeTab === 'visuals' ? 'bg-red-600 text-white shadow-xs' : 'text-slate-500 hover:text-slate-900'
               }`}
             >
               Theme
@@ -471,7 +471,7 @@ export default function ResellerLandingBuilder({
             <button
               onClick={() => setActiveTab('benefits')}
               className={`py-2 rounded-xl transition-all ${
-                activeTab === 'benefits' ? 'bg-[#6734f7] text-white shadow-xs' : 'text-slate-500 hover:text-slate-900'
+                activeTab === 'benefits' ? 'bg-red-600 text-white shadow-xs' : 'text-slate-500 hover:text-slate-900'
               }`}
             >
               Features
@@ -487,12 +487,12 @@ export default function ResellerLandingBuilder({
           </div>
 
           {/* Form Box */}
-          <div className="p-6 rounded-3xl bg-white border border-purple-100 shadow-xs space-y-5">
+          <div className="p-6 rounded-3xl bg-white border border-slate-200 shadow-xs space-y-5">
             {/* TAB 1: PRICING & ESSENTIALS */}
             {activeTab === 'pricing' && (
               <div className="space-y-4">
                 <div>
-                  <label className="text-xs font-black text-[#162048] block mb-1">
+                  <label className="text-xs font-black text-slate-950 block mb-1">
                     Product Title *
                   </label>
                   <input
@@ -500,12 +500,12 @@ export default function ResellerLandingBuilder({
                     value={customTitle}
                     onChange={(e) => setCustomTitle(e.target.value)}
                     placeholder="Enter catchy product title..."
-                    className="w-full px-4 py-2.5 rounded-xl border border-purple-100 text-xs text-[#162048] focus:border-[#6734f7] focus:outline-none"
+                    className="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-xs text-slate-950 focus:border-red-600 focus:outline-none"
                   />
                 </div>
 
                 <div>
-                  <label className="text-xs font-black text-[#162048] block mb-1">
+                  <label className="text-xs font-black text-slate-950 block mb-1">
                     Your Selling Price (₹) *
                   </label>
                   <div className="relative">
@@ -515,23 +515,23 @@ export default function ResellerLandingBuilder({
                       value={resalePrice}
                       onChange={(e) => setResalePrice(Number(e.target.value))}
                       min={basePrice + 1}
-                      className="w-full pl-8 pr-4 py-2.5 rounded-xl border border-purple-100 text-xs font-black text-[#162048] focus:border-[#6734f7] focus:outline-none"
+                      className="w-full pl-8 pr-4 py-2.5 rounded-xl border border-slate-200 text-xs font-black text-slate-950 focus:border-red-600 focus:outline-none"
                     />
                   </div>
                 </div>
 
                 {/* Profit Margin Math Card */}
-                <div className="p-4 rounded-2xl bg-purple-50/60 border border-purple-100 space-y-2 text-xs">
+                <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200 space-y-2 text-xs">
                   <div className="flex items-center justify-between text-slate-500">
                     <span>Wholesale Base Price:</span>
                     <span className="font-bold">₹{basePrice}</span>
                   </div>
                   <div className="flex items-center justify-between text-slate-500">
                     <span>Your Selling Price:</span>
-                    <span className="font-bold text-[#162048]">₹{resalePrice}</span>
+                    <span className="font-bold text-slate-950">₹{resalePrice}</span>
                   </div>
-                  <div className="border-t border-purple-200/60 pt-2 flex items-center justify-between font-black">
-                    <span className="text-[#162048]">Your Profit Per Sale:</span>
+                  <div className="border-t border-slate-200 pt-2 flex items-center justify-between font-black">
+                    <span className="text-slate-950">Your Profit Per Sale:</span>
                     <span className={grossMargin > 0 ? 'text-emerald-600' : 'text-red-500'}>
                       {grossMargin > 0 ? `+₹${grossMargin}` : 'Invalid Price'}
                     </span>
@@ -539,7 +539,7 @@ export default function ResellerLandingBuilder({
                 </div>
 
                 <div>
-                  <label className="text-xs font-black text-[#162048] block mb-1">
+                  <label className="text-xs font-black text-slate-950 block mb-1">
                     Promotional Tag Badge
                   </label>
                   <input
@@ -547,12 +547,12 @@ export default function ResellerLandingBuilder({
                     value={promoBadge}
                     onChange={(e) => setPromoBadge(e.target.value)}
                     placeholder="e.g. 🔥 70% OFF TODAY or ⚡ BESTSELLER"
-                    className="w-full px-4 py-2.5 rounded-xl border border-purple-100 text-xs text-[#162048] focus:border-[#6734f7] focus:outline-none"
+                    className="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-xs text-slate-950 focus:border-red-600 focus:outline-none"
                   />
                 </div>
 
                 <div>
-                  <label className="text-xs font-black text-[#162048] block mb-1">
+                  <label className="text-xs font-black text-slate-950 block mb-1">
                     Call To Action Button Text
                   </label>
                   <input
@@ -560,7 +560,7 @@ export default function ResellerLandingBuilder({
                     value={ctaText}
                     onChange={(e) => setCtaText(e.target.value)}
                     placeholder="e.g. Download HD Bundle Now"
-                    className="w-full px-4 py-2.5 rounded-xl border border-purple-100 text-xs text-[#162048] focus:border-[#6734f7] focus:outline-none"
+                    className="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-xs text-slate-950 focus:border-red-600 focus:outline-none"
                   />
                 </div>
               </div>
@@ -570,7 +570,7 @@ export default function ResellerLandingBuilder({
             {activeTab === 'content' && (
               <div className="space-y-4">
                 <div>
-                  <label className="text-xs font-black text-[#162048] block mb-1">
+                  <label className="text-xs font-black text-slate-950 block mb-1">
                     Marketing Headline
                   </label>
                   <textarea
@@ -578,12 +578,12 @@ export default function ResellerLandingBuilder({
                     value={customHeadline}
                     onChange={(e) => setCustomHeadline(e.target.value)}
                     placeholder="Engaging high-converting headline..."
-                    className="w-full px-4 py-2.5 rounded-xl border border-purple-100 text-xs text-[#162048] focus:border-[#6734f7] focus:outline-none"
+                    className="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-xs text-slate-950 focus:border-red-600 focus:outline-none"
                   />
                 </div>
 
                 <div>
-                  <label className="text-xs font-black text-[#162048] block mb-1">
+                  <label className="text-xs font-black text-slate-950 block mb-1">
                     Subtitle / Pill Label
                   </label>
                   <input
@@ -591,12 +591,12 @@ export default function ResellerLandingBuilder({
                     value={customSubtitle}
                     onChange={(e) => setCustomSubtitle(e.target.value)}
                     placeholder="e.g. Premium Ready-to-Post HD Reels Bundle"
-                    className="w-full px-4 py-2.5 rounded-xl border border-purple-100 text-xs text-[#162048] focus:border-[#6734f7] focus:outline-none"
+                    className="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-xs text-slate-950 focus:border-red-600 focus:outline-none"
                   />
                 </div>
 
                 <div>
-                  <label className="text-xs font-black text-[#162048] block mb-1">
+                  <label className="text-xs font-black text-slate-950 block mb-1">
                     Short Description
                   </label>
                   <textarea
@@ -604,12 +604,12 @@ export default function ResellerLandingBuilder({
                     value={customShortDescription}
                     onChange={(e) => setCustomShortDescription(e.target.value)}
                     placeholder="Brief 2-3 sentence teaser..."
-                    className="w-full px-4 py-2.5 rounded-xl border border-purple-100 text-xs text-[#162048] focus:border-[#6734f7] focus:outline-none"
+                    className="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-xs text-slate-950 focus:border-red-600 focus:outline-none"
                   />
                 </div>
 
                 <div>
-                  <label className="text-xs font-black text-[#162048] block mb-1">
+                  <label className="text-xs font-black text-slate-950 block mb-1">
                     Full Product Description
                   </label>
                   <textarea
@@ -617,7 +617,7 @@ export default function ResellerLandingBuilder({
                     value={customDescription}
                     onChange={(e) => setCustomDescription(e.target.value)}
                     placeholder="Detailed explanation of what buyers receive..."
-                    className="w-full px-4 py-2.5 rounded-xl border border-purple-100 text-xs text-[#162048] focus:border-[#6734f7] focus:outline-none font-mono"
+                    className="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-xs text-slate-950 focus:border-red-600 focus:outline-none font-mono"
                   />
                 </div>
               </div>
@@ -627,7 +627,7 @@ export default function ResellerLandingBuilder({
             {activeTab === 'visuals' && (
               <div className="space-y-5">
                 <div>
-                  <label className="text-xs font-black text-[#162048] block mb-2">
+                  <label className="text-xs font-black text-slate-950 block mb-2">
                     Approved Theme Preset
                   </label>
                   <div className="grid grid-cols-2 gap-2.5">
@@ -638,22 +638,22 @@ export default function ResellerLandingBuilder({
                         onClick={() => setThemePreset(t.id)}
                         className={`p-3 rounded-2xl border text-left flex items-center justify-between transition-all ${
                           themePreset === t.id
-                            ? 'border-[#6734f7] bg-purple-50/50 shadow-xs ring-1 ring-[#6734f7]'
-                            : 'border-purple-100 hover:border-purple-200 bg-white'
+                            ? 'border-red-600 bg-red-50/50 shadow-xs ring-1 ring-red-600'
+                            : 'border-slate-200 hover:border-red-200 bg-white'
                         }`}
                       >
                         <div className="flex items-center gap-2">
                           <span className={`w-3 h-3 rounded-full ${t.dotColor}`} />
-                          <span className="text-xs font-bold text-[#162048]">{t.name}</span>
+                          <span className="text-xs font-bold text-slate-950">{t.name}</span>
                         </div>
-                        {themePreset === t.id && <Check className="w-4 h-4 text-[#6734f7]" />}
+                        {themePreset === t.id && <Check className="w-4 h-4 text-red-600" />}
                       </button>
                     ))}
                   </div>
                 </div>
 
                 <div>
-                  <label className="text-xs font-black text-[#162048] block mb-1">
+                  <label className="text-xs font-black text-slate-950 block mb-1">
                     Cover Image URL
                   </label>
                   <input
@@ -661,7 +661,7 @@ export default function ResellerLandingBuilder({
                     value={coverImage}
                     onChange={(e) => setCoverImage(e.target.value)}
                     placeholder="https://..."
-                    className="w-full px-4 py-2.5 rounded-xl border border-purple-100 text-xs text-[#162048] focus:border-[#6734f7] focus:outline-none"
+                    className="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-xs text-slate-950 focus:border-red-600 focus:outline-none"
                   />
                   <p className="text-[10px] text-gray-400 mt-1">
                     Defaults to original product license cover. Custom image must comply with bundle rights.
@@ -670,7 +670,7 @@ export default function ResellerLandingBuilder({
 
                 {/* Gallery Images List */}
                 <div className="space-y-2">
-                  <label className="text-xs font-black text-[#162048] block">
+                  <label className="text-xs font-black text-slate-950 block">
                     Gallery Images ({galleryImages.length})
                   </label>
                   <div className="flex gap-2">
@@ -679,12 +679,12 @@ export default function ResellerLandingBuilder({
                       value={newGalleryInput}
                       onChange={(e) => setNewGalleryInput(e.target.value)}
                       placeholder="Add gallery image URL..."
-                      className="flex-1 px-3 py-2 rounded-xl border border-purple-100 text-xs focus:border-[#6734f7] focus:outline-none"
+                      className="flex-1 px-3 py-2 rounded-xl border border-slate-200 text-xs focus:border-red-600 focus:outline-none"
                     />
                     <button
                       type="button"
                       onClick={handleAddGallery}
-                      className="px-3 py-2 rounded-xl bg-purple-100 text-[#6734f7] text-xs font-bold hover:bg-purple-200"
+                      className="px-3 py-2 rounded-xl bg-red-50 text-red-600 text-xs font-bold hover:bg-red-100"
                     >
                       <Plus className="w-4 h-4" />
                     </button>
@@ -692,7 +692,7 @@ export default function ResellerLandingBuilder({
 
                   <div className="flex flex-wrap gap-2 pt-1">
                     {galleryImages.map((img, i) => (
-                      <div key={i} className="relative group w-14 h-14 rounded-xl overflow-hidden border border-purple-100">
+                      <div key={i} className="relative group w-14 h-14 rounded-xl overflow-hidden border border-slate-200">
                         <img src={img} alt="" className="w-full h-full object-cover" />
                         <button
                           type="button"
@@ -713,7 +713,7 @@ export default function ResellerLandingBuilder({
               <div className="space-y-5">
                 {/* Benefits */}
                 <div className="space-y-2">
-                  <label className="text-xs font-black text-[#162048] block">
+                  <label className="text-xs font-black text-slate-950 block">
                     Product Benefits Checklist ({benefits.length})
                   </label>
                   <div className="flex gap-2">
@@ -722,12 +722,12 @@ export default function ResellerLandingBuilder({
                       value={newBenefitInput}
                       onChange={(e) => setNewBenefitInput(e.target.value)}
                       placeholder="e.g. 1080x1920 HD MP4 vertical video format"
-                      className="flex-1 px-3 py-2 rounded-xl border border-purple-100 text-xs focus:border-[#6734f7] focus:outline-none"
+                      className="flex-1 px-3 py-2 rounded-xl border border-slate-200 text-xs focus:border-red-600 focus:outline-none"
                     />
                     <button
                       type="button"
                       onClick={handleAddBenefit}
-                      className="px-3 py-2 rounded-xl bg-purple-100 text-[#6734f7] text-xs font-bold hover:bg-purple-200"
+                      className="px-3 py-2 rounded-xl bg-red-50 text-red-600 text-xs font-bold hover:bg-red-100"
                     >
                       <Plus className="w-4 h-4" />
                     </button>
@@ -737,9 +737,9 @@ export default function ResellerLandingBuilder({
                     {benefits.map((b, i) => (
                       <div
                         key={i}
-                        className="flex items-center justify-between p-2.5 rounded-xl bg-purple-50/50 border border-purple-100 text-xs"
+                        className="flex items-center justify-between p-2.5 rounded-xl bg-slate-50 border border-slate-200 text-xs"
                       >
-                        <div className="flex items-center gap-2 text-[#162048] font-medium">
+                        <div className="flex items-center gap-2 text-slate-950 font-medium">
                           <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
                           <span>{b}</span>
                         </div>
@@ -756,8 +756,8 @@ export default function ResellerLandingBuilder({
                 </div>
 
                 {/* Feature Cards */}
-                <div className="space-y-2 border-t border-purple-100 pt-4">
-                  <label className="text-xs font-black text-[#162048] block">
+                <div className="space-y-2 border-t border-slate-200 pt-4">
+                  <label className="text-xs font-black text-slate-950 block">
                     Feature Cards ({features.length})
                   </label>
                   <div className="flex gap-2">
@@ -766,12 +766,12 @@ export default function ResellerLandingBuilder({
                       value={newFeatureInput}
                       onChange={(e) => setNewFeatureInput(e.target.value)}
                       placeholder="e.g. Over 1,000+ viral reel concepts"
-                      className="flex-1 px-3 py-2 rounded-xl border border-purple-100 text-xs focus:border-[#6734f7] focus:outline-none"
+                      className="flex-1 px-3 py-2 rounded-xl border border-slate-200 text-xs focus:border-red-600 focus:outline-none"
                     />
                     <button
                       type="button"
                       onClick={handleAddFeature}
-                      className="px-3 py-2 rounded-xl bg-purple-100 text-[#6734f7] text-xs font-bold hover:bg-purple-200"
+                      className="px-3 py-2 rounded-xl bg-red-50 text-red-600 text-xs font-bold hover:bg-red-100"
                     >
                       <Plus className="w-4 h-4" />
                     </button>
@@ -781,9 +781,9 @@ export default function ResellerLandingBuilder({
                     {features.map((f, i) => (
                       <div
                         key={i}
-                        className="flex items-center justify-between p-2.5 rounded-xl bg-purple-50/50 border border-purple-100 text-xs"
+                        className="flex items-center justify-between p-2.5 rounded-xl bg-slate-50 border border-slate-200 text-xs"
                       >
-                        <span className="text-[#162048] font-medium">{f}</span>
+                        <span className="text-slate-950 font-medium">{f}</span>
                         <button
                           type="button"
                           onClick={() => handleRemoveFeature(i)}
@@ -814,9 +814,9 @@ export default function ResellerLandingBuilder({
                 </div>
 
                 {/* Main Toggle Switch: Enable / Remove */}
-                <div className="p-4 rounded-2xl border border-purple-100 bg-white flex items-center justify-between shadow-xs">
+                <div className="p-4 rounded-2xl border border-slate-200 bg-white flex items-center justify-between shadow-xs">
                   <div>
-                    <span className="text-xs font-black text-[#162048] block">
+                    <span className="text-xs font-black text-slate-950 block">
                       Show WhatsApp Button on Landing Page
                     </span>
                     <span className="text-[11px] text-slate-500 block mt-0.5 font-medium">
@@ -848,7 +848,7 @@ export default function ResellerLandingBuilder({
                 {whatsappButtonEnabled ? (
                   <div className="p-4 rounded-2xl border border-emerald-100 bg-emerald-50/40 space-y-3">
                     <div>
-                      <label className="text-xs font-black text-[#162048] block mb-1">
+                      <label className="text-xs font-black text-slate-950 block mb-1">
                         Your WhatsApp Number (Optional)
                       </label>
                       <div className="relative">
@@ -858,7 +858,7 @@ export default function ResellerLandingBuilder({
                           value={whatsappNumber}
                           onChange={(e) => setWhatsappNumber(e.target.value.replace(/\D/g, '').slice(0, 10))}
                           placeholder="7895317940"
-                          className="w-full pl-11 pr-4 py-2.5 rounded-xl border border-emerald-200 bg-white text-xs font-black text-[#162048] focus:border-[#25D366] focus:outline-none"
+                          className="w-full pl-11 pr-4 py-2.5 rounded-xl border border-emerald-200 bg-white text-xs font-black text-slate-950 focus:border-[#25D366] focus:outline-none"
                         />
                       </div>
                       <p className="text-[10px] text-slate-500 mt-1.5 font-medium leading-relaxed">
@@ -880,7 +880,7 @@ export default function ResellerLandingBuilder({
         <div className="lg:col-span-7 space-y-3 sticky top-6">
           <div className="flex items-center justify-between text-xs px-2 font-bold text-slate-500">
             <span className="flex items-center gap-1.5">
-              <Eye className="w-4 h-4 text-[#6734f7]" />
+              <Eye className="w-4 h-4 text-red-600" />
               <span>Real-Time Customer Preview</span>
             </span>
             <span className="font-mono text-[10px] text-gray-400">
@@ -896,15 +896,15 @@ export default function ResellerLandingBuilder({
               }`}
             >
               {/* Simulated Page in Preview */}
-              <div className="bg-[#0b0819] text-white p-4 sm:p-6 space-y-6 text-xs max-h-[750px] overflow-y-auto">
+              <div className="bg-slate-950 text-white p-4 sm:p-6 space-y-6 text-xs max-h-[750px] overflow-y-auto">
                 {/* Header Badge */}
                 <div className="flex items-center justify-between border-b border-white/10 pb-2">
                   <span className="text-[10px] text-white/60 font-bold">⚡ Instant Google Drive Download</span>
-                  <span className="text-[10px] font-bold text-purple-400">Vaultzet Verified</span>
+                  <span className="text-[10px] font-bold text-red-400">Vaultzet Verified</span>
                 </div>
 
                 {/* Media & Badge */}
-                <div className="relative aspect-[9/11] max-h-[300px] rounded-2xl overflow-hidden border border-purple-500/20 bg-slate-900 group mx-auto w-full">
+                <div className="relative aspect-[9/11] max-h-[300px] rounded-2xl overflow-hidden border border-red-500/20 bg-slate-900 group mx-auto w-full">
                   {coverImage ? (
                     <img src={coverImage} alt="" className="w-full h-full object-cover" />
                   ) : (
@@ -915,7 +915,7 @@ export default function ResellerLandingBuilder({
 
                   {promoBadge && (
                     <div className="absolute top-2.5 left-2.5">
-                      <span className="px-2.5 py-1 rounded-full bg-gradient-to-r from-red-600 to-pink-600 text-[10px] font-black text-white shadow-md flex items-center gap-1">
+                      <span className="px-2.5 py-1 rounded-full bg-gradient-to-r from-red-600 to-rose-600 text-[10px] font-black text-white shadow-md flex items-center gap-1">
                         <Flame className="w-3 h-3 fill-current" />
                         <span>{promoBadge}</span>
                       </span>
@@ -930,14 +930,14 @@ export default function ResellerLandingBuilder({
 
                 {/* Title & Copy */}
                 <div className="space-y-1.5 text-center">
-                  <span className="text-[10px] text-purple-300 uppercase tracking-wider font-extrabold block">
+                  <span className="text-[10px] text-red-300 uppercase tracking-wider font-extrabold block">
                     {customSubtitle}
                   </span>
                   <h2 className="text-lg sm:text-xl font-black leading-tight text-white">
                     {customTitle || 'Your Product Title'}
                   </h2>
                   {customHeadline && (
-                    <p className="text-[11px] text-purple-200/70 font-medium">
+                    <p className="text-[11px] text-slate-300 font-medium">
                       {customHeadline}
                     </p>
                   )}
@@ -951,7 +951,7 @@ export default function ResellerLandingBuilder({
                 </div>
 
                 {/* Price Box */}
-                <div className="p-4 rounded-2xl bg-white/5 border border-purple-500/20 space-y-3">
+                <div className="p-4 rounded-2xl bg-white/5 border border-red-500/20 space-y-3">
                   <div className="flex items-baseline justify-between">
                     <div>
                       <span className="text-[10px] text-white/50 block">Offer Price</span>
@@ -965,7 +965,7 @@ export default function ResellerLandingBuilder({
                     </span>
                   </div>
 
-                  <button className="w-full py-3 rounded-xl bg-gradient-to-r from-[#6734f7] to-[#ec288d] text-white font-black text-xs flex items-center justify-center gap-2 shadow-lg">
+                  <button className="w-full py-3 rounded-xl bg-gradient-to-r from-red-600 to-rose-600 text-white font-black text-xs flex items-center justify-center gap-2 shadow-lg shadow-red-500/20">
                     <Zap className="w-4 h-4 fill-current" />
                     <span>{ctaText || 'Download HD Bundle Now'}</span>
                     <ArrowRight className="w-4 h-4" />
@@ -973,7 +973,7 @@ export default function ResellerLandingBuilder({
 
                   <div className="flex items-center justify-between text-[10px] text-white/60 pt-1 font-medium">
                     <span className="flex items-center gap-1">
-                      <FolderOpen className="w-3 h-3 text-purple-400" />
+                      <FolderOpen className="w-3 h-3 text-red-400" />
                       <span>Google Drive Link</span>
                     </span>
                     <span className="flex items-center gap-1">

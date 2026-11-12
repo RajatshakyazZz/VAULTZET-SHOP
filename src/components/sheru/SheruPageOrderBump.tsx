@@ -26,23 +26,23 @@ export default function SheruPageOrderBump({
     <div
       className={`rounded-2xl border-2 transition-all overflow-hidden ${
         checked
-          ? 'border-[#6c3cf0] bg-gradient-to-br from-purple-50 via-white to-pink-50 shadow-md ring-2 ring-[#6c3cf0]/15'
-          : 'border-dashed border-amber-400 bg-gradient-to-br from-amber-50/80 via-white to-orange-50/40 hover:border-amber-500'
+          ? 'border-red-600 bg-gradient-to-br from-red-50 via-white to-rose-50 shadow-md ring-2 ring-red-500/15'
+          : 'border-dashed border-red-300 bg-gradient-to-br from-red-50/40 via-white to-rose-50/30 hover:border-red-500'
       }`}
     >
       {/* Top Attention Bar */}
       <div
         className={`px-3.5 py-1.5 flex items-center justify-between gap-2 text-[11px] font-black tracking-wide ${
           checked
-            ? 'bg-gradient-to-r from-[#6c3cf0] to-[#ff4fb3] text-white'
-            : 'bg-amber-400/90 text-slate-950'
+            ? 'bg-gradient-to-r from-red-600 via-rose-600 to-red-600 text-white'
+            : 'bg-slate-900 text-white'
         }`}
       >
         <span className="inline-flex items-center gap-1 truncate">
-          <Flame className="w-3.5 h-3.5 shrink-0 fill-current" />
+          <Flame className="w-3.5 h-3.5 shrink-0 fill-current text-red-400" />
           <span className="truncate">ONE-TIME ADD-ON OFFER • ONLY ON THIS PAGE</span>
         </span>
-        <span className="px-1.5 py-0.5 rounded bg-black/15 text-[10px] shrink-0">
+        <span className="px-1.5 py-0.5 rounded bg-red-600 text-white text-[10px] shrink-0">
           {discountPercent}% OFF
         </span>
       </div>
@@ -59,8 +59,8 @@ export default function SheruPageOrderBump({
         <span
           className={`mt-1 w-6 h-6 rounded-lg border-2 flex items-center justify-center shrink-0 transition-all ${
             checked
-              ? 'bg-[#6c3cf0] border-[#6c3cf0] text-white shadow-sm'
-              : 'bg-white border-amber-500 text-amber-600'
+              ? 'bg-red-600 border-red-600 text-white shadow-sm'
+              : 'bg-white border-red-500 text-red-600'
           }`}
         >
           {checked ? (
@@ -103,7 +103,7 @@ export default function SheruPageOrderBump({
           <div className="mt-2 flex flex-wrap items-center justify-between gap-2 pt-2 border-t border-slate-200/70">
             <span
               className={`text-[11px] font-extrabold ${
-                checked ? 'text-[#6c3cf0]' : 'text-amber-900'
+                checked ? 'text-red-700' : 'text-red-900'
               }`}
             >
               {checked

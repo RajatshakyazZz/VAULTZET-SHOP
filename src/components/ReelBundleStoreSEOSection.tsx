@@ -131,8 +131,8 @@ export default function ReelBundleStoreSEOSection({
             </p>
           </div>
 
-          <div className="p-5 rounded-2xl bg-white border border-slate-200/80 shadow-xs hover:border-sky-300 transition-all">
-            <div className="w-10 h-10 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center mb-3">
+          <div className="p-5 rounded-2xl bg-white border border-slate-200/80 shadow-xs hover:border-red-300 transition-all">
+            <div className="w-10 h-10 rounded-xl bg-red-50 text-red-600 flex items-center justify-center mb-3">
               <Zap className="w-5 h-5" />
             </div>
             <h3 className="font-bold text-slate-900 text-base mb-1">Resell & Commercial Rights</h3>

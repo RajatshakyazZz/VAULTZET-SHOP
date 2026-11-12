@@ -63,8 +63,8 @@ export default function ResellerSettingsPage() {
   return (
     <div className="space-y-6 max-w-3xl">
       {/* Header */}
-      <div className="p-6 sm:p-8 rounded-3xl bg-white border border-purple-100 shadow-xs">
-        <h1 className="text-xl sm:text-2xl font-black text-[#162048]">Account & Payout Settings</h1>
+      <div className="p-6 sm:p-8 rounded-3xl bg-white border border-slate-200 shadow-xs">
+        <h1 className="text-xl sm:text-2xl font-black text-slate-950">Account & Payout Settings</h1>
         <p className="text-xs text-slate-500 mt-1 font-medium">
           Manage your reseller profile, contact information, and default payout destinations.
         </p>
@@ -96,14 +96,14 @@ export default function ResellerSettingsPage() {
       </div>
 
       {/* Cross-Device Sync Status Card */}
-      <div className="p-5 rounded-3xl bg-white border border-purple-100 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+      <div className="p-5 rounded-3xl bg-white border border-slate-200 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 rounded-2xl bg-green-50 text-green-600 flex items-center justify-center shrink-0">
             <ShieldCheck className="w-5 h-5" />
           </div>
           <div>
             <div className="flex items-center gap-2">
-              <h4 className="text-xs font-black text-[#162048]">Cross-Device Cloud Sync</h4>
+              <h4 className="text-xs font-black text-slate-950">Cross-Device Cloud Sync</h4>
               <span className="px-2 py-0.5 rounded-full bg-green-100 text-green-700 text-[9px] font-extrabold uppercase">
                 Active
               </span>
@@ -122,7 +122,7 @@ export default function ResellerSettingsPage() {
               alert('Cloud sync refreshed successfully!');
             }
           }}
-          className="px-4 py-2 rounded-xl bg-purple-50 hover:bg-purple-100 text-[#6734f7] text-xs font-bold shrink-0 transition"
+          className="px-4 py-2 rounded-xl bg-red-50 hover:bg-red-100 text-red-600 text-xs font-bold shrink-0 transition"
         >
           Sync Now
         </button>
@@ -144,9 +144,9 @@ export default function ResellerSettingsPage() {
 
       <form onSubmit={handleSave} className="space-y-6">
         {/* Profile Card */}
-        <div className="p-6 rounded-3xl bg-white border border-purple-100 shadow-xs space-y-4 text-xs font-medium">
-          <h2 className="text-sm font-black text-[#162048] flex items-center gap-2 border-b border-purple-50 pb-3">
-            <User className="w-4 h-4 text-[#6734f7]" />
+        <div className="p-6 rounded-3xl bg-white border border-slate-200 shadow-xs space-y-4 text-xs font-medium">
+          <h2 className="text-sm font-black text-slate-950 flex items-center gap-2 border-b border-slate-100 pb-3">
+            <User className="w-4 h-4 text-red-600" />
             <span>Profile Details</span>
           </h2>
 
@@ -158,7 +158,7 @@ export default function ResellerSettingsPage() {
                 required
                 value={displayName}
                 onChange={(e) => setDisplayName(e.target.value)}
-                className="w-full px-3.5 py-2.5 rounded-xl border border-gray-200 text-xs font-bold text-[#162048] focus:outline-none focus:border-[#6734f7]"
+                className="w-full px-3.5 py-2.5 rounded-xl border border-gray-200 text-xs font-bold text-slate-950 focus:outline-none focus:border-red-600"
               />
             </div>
 
@@ -181,15 +181,15 @@ export default function ResellerSettingsPage() {
                 maxLength={10}
                 value={phone}
                 onChange={(e) => setPhone(e.target.value.replace(/\D/g, '').slice(0, 10))}
-                className="w-full max-w-sm px-3.5 py-2.5 rounded-xl border border-gray-200 text-xs text-[#162048] focus:outline-none focus:border-[#6734f7]"
+                className="w-full max-w-sm px-3.5 py-2.5 rounded-xl border border-gray-200 text-xs text-slate-950 focus:outline-none focus:border-red-600"
               />
             </div>
           </div>
         </div>
 
         {/* Payout Details Card */}
-        <div className="p-6 rounded-3xl bg-white border border-purple-100 shadow-xs space-y-4 text-xs font-medium">
-          <h2 className="text-sm font-black text-[#162048] flex items-center gap-2 border-b border-purple-50 pb-3">
+        <div className="p-6 rounded-3xl bg-white border border-slate-200 shadow-xs space-y-4 text-xs font-medium">
+          <h2 className="text-sm font-black text-slate-950 flex items-center gap-2 border-b border-slate-100 pb-3">
             <ShieldCheck className="w-4 h-4 text-green-600" />
             <span>Default Payout Destination</span>
           </h2>
@@ -202,7 +202,7 @@ export default function ResellerSettingsPage() {
                 onClick={() => setPayoutMethod('upi')}
                 className={`py-2 px-4 rounded-xl border text-xs font-bold transition-all ${
                   payoutMethod === 'upi'
-                    ? 'border-[#6734f7] bg-purple-50 text-[#6734f7]'
+                    ? 'border-red-600 bg-red-50 text-red-600'
                     : 'border-gray-200 text-gray-600 hover:bg-gray-50'
                 }`}
               >
@@ -213,7 +213,7 @@ export default function ResellerSettingsPage() {
                 onClick={() => setPayoutMethod('bank')}
                 className={`py-2 px-4 rounded-xl border text-xs font-bold transition-all ${
                   payoutMethod === 'bank'
-                    ? 'border-[#6734f7] bg-purple-50 text-[#6734f7]'
+                    ? 'border-red-600 bg-red-50 text-red-600'
                     : 'border-gray-200 text-gray-600 hover:bg-gray-50'
                 }`}
               >
@@ -230,7 +230,7 @@ export default function ResellerSettingsPage() {
                 placeholder="e.g. mobile@paytm or username@okhdfcbank"
                 value={upiId}
                 onChange={(e) => setUpiId(e.target.value)}
-                className="w-full px-3.5 py-2.5 rounded-xl border border-gray-200 text-xs text-[#162048] focus:outline-none focus:border-[#6734f7]"
+                className="w-full px-3.5 py-2.5 rounded-xl border border-gray-200 text-xs text-slate-950 focus:outline-none focus:border-red-600"
               />
             </div>
           ) : (
@@ -242,7 +242,7 @@ export default function ResellerSettingsPage() {
                   placeholder="Official Name on Bank Account"
                   value={accountHolderName}
                   onChange={(e) => setAccountHolderName(e.target.value)}
-                  className="w-full px-3.5 py-2.5 rounded-xl border border-gray-200 text-xs text-[#162048] focus:outline-none focus:border-[#6734f7]"
+                  className="w-full px-3.5 py-2.5 rounded-xl border border-gray-200 text-xs text-slate-950 focus:outline-none focus:border-red-600"
                 />
               </div>
 
@@ -253,7 +253,7 @@ export default function ResellerSettingsPage() {
                   placeholder="Bank Account Number"
                   value={accountNumber}
                   onChange={(e) => setAccountNumber(e.target.value)}
-                  className="w-full px-3.5 py-2.5 rounded-xl border border-gray-200 text-xs text-[#162048] focus:outline-none focus:border-[#6734f7]"
+                  className="w-full px-3.5 py-2.5 rounded-xl border border-gray-200 text-xs text-slate-950 focus:outline-none focus:border-red-600"
                 />
               </div>
 
@@ -264,7 +264,7 @@ export default function ResellerSettingsPage() {
                   placeholder="e.g. HDFC0001234"
                   value={ifscCode}
                   onChange={(e) => setIfscCode(e.target.value.toUpperCase())}
-                  className="w-full px-3.5 py-2.5 rounded-xl border border-gray-200 text-xs text-[#162048] focus:outline-none focus:border-[#6734f7]"
+                  className="w-full px-3.5 py-2.5 rounded-xl border border-gray-200 text-xs text-slate-950 focus:outline-none focus:border-red-600"
                 />
               </div>
             </div>
@@ -272,8 +272,8 @@ export default function ResellerSettingsPage() {
         </div>
 
         {/* Reseller Terms Agreement Card */}
-        <div className="p-6 rounded-3xl bg-white border border-purple-100 shadow-xs space-y-2 text-xs">
-          <h3 className="font-bold text-[#162048]">Reseller Policy & Payout Terms</h3>
+        <div className="p-6 rounded-3xl bg-white border border-slate-200 shadow-xs space-y-2 text-xs">
+          <h3 className="font-bold text-slate-950">Reseller Policy & Payout Terms</h3>
           <p className="text-gray-500 text-[11px] leading-relaxed">
             Vaultzet operates on a transparent gross-margin payout policy. You set your custom resale price above the official base price and receive 100% of that margin upon verified customer payment. Payouts are made directly to your provided UPI or Bank account with minimum ₹200 threshold.
           </p>
@@ -282,7 +282,7 @@ export default function ResellerSettingsPage() {
         <button
           type="submit"
           disabled={isSaving}
-          className="px-8 py-3.5 rounded-xl bg-gradient-to-r from-[#6734f7] to-[#ec288d] text-white text-xs font-black flex items-center gap-2 shadow-md hover:scale-105 active:scale-95 transition-transform disabled:opacity-50 cursor-pointer"
+          className="px-8 py-3.5 rounded-xl bg-gradient-to-r from-red-600 to-rose-600 hover:from-red-700 hover:to-rose-700 text-white text-xs font-black flex items-center gap-2 shadow-md shadow-red-500/20 hover:scale-105 active:scale-95 transition-all disabled:opacity-50 cursor-pointer"
         >
           <Save className="w-4 h-4" />
           <span>{isSaving ? 'Saving Settings...' : 'Save Settings'}</span>
