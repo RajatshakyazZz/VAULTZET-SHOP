@@ -170,6 +170,8 @@ export async function POST(request: Request) {
           totalAmount: Number(storedOrder?.totalAmount || orderData.order_amount || 0),
           paymentStatus: 'PAID (Webhook Verified)',
           paymentMethod: 'Cashfree Webhook',
+          metaAttribution: storedOrder?.meta_attribution || null,
+          resellerSlug: storedOrder?.reseller_slug || undefined,
         });
       }
     }

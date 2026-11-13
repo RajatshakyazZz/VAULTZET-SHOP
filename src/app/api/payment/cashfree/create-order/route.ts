@@ -243,7 +243,7 @@ export async function POST(request: Request) {
       returnUrl: `${returnBaseUrl}/api/payment/cashfree/return?order_id={order_id}&token=${encodeURIComponent(orderToken)}`,
     });
 
-    // 2. Persist Pending Order to Firestore (including Meta CAPI attribution metadata)
+    // 2. Persist Pending Order to Firestore (including Meta CAPI and traffic attribution metadata)
     const serverMeta = extractClientMetadata(request);
     const clientAttr = body.metaAttribution && typeof body.metaAttribution === 'object' ? body.metaAttribution : {};
     const metaAttribution: Record<string, string> = {};
@@ -255,6 +255,11 @@ export async function POST(request: Request) {
     if (resolvedFbp) metaAttribution.fbp = resolvedFbp;
     if (resolvedFbc) metaAttribution.fbc = resolvedFbc;
     if (resolvedSourceUrl) metaAttribution.eventSourceUrl = resolvedSourceUrl;
+    if (clientAttr.referrer) metaAttribution.referrer = String(clientAttr.referrer).trim();
+    if (clientAttr.utmSource) metaAttribution.utmSource = String(clientAttr.utmSource).trim();
+    if (clientAttr.utmMedium) metaAttribution.utmMedium = String(clientAttr.utmMedium).trim();
+    if (clientAttr.utmCampaign) metaAttribution.utmCampaign = String(clientAttr.utmCampaign).trim();
+    if (clientAttr.utmContent) metaAttribution.utmContent = String(clientAttr.utmContent).trim();
 
     if (db) {
       try {
@@ -296,7 +301,7 @@ export async function POST(request: Request) {
       }
     }
 
-    // 3. Dispatch Instant Telegram Alert for Checkout Started (Non-blocking background delivery)
+    // 3. Dispatch Instant Telegram Alert for Checkout Started (Non-blocking background delivery with traffic source)
     sendAbandonedOrPendingTelegramAlert(
       {
         orderNumber,
@@ -306,10 +311,17 @@ export async function POST(request: Request) {
           phone: cleanPhone || '',
         },
         items: items || [],
-        orderBump: orderBump || null,
-        totalAmount: Number(totalAmount),
+        orderBump: resolvedOrderBump
+          ? {
+              title: resolvedOrderBump.title,
+              price: resolvedOrderBump.discountPrice,
+            }
+          : null,
+        totalAmount: Number(finalTotalAmount),
         paymentStatus: 'CHECKOUT_STARTED',
         paymentMethod: 'Cashfree UPI / Card',
+        metaAttribution: Object.keys(metaAttribution).length > 0 ? metaAttribution : null,
+        resellerSlug: resellerSlug || undefined,
       },
       'checkout_initiated'
     ).catch((tErr) => {

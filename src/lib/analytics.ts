@@ -167,29 +167,101 @@ export function captureMetaAttributionParams(): void {
       } catch {}
     }
 
+    // Capture UTM tracking parameters across site navigation & external payment browser shifts
+    const utmKeys = ['utm_source', 'utm_medium', 'utm_campaign', 'utm_term', 'utm_content'];
+    utmKeys.forEach((key) => {
+      const val = params.get(key)?.trim();
+      if (val) {
+        try {
+          localStorage.setItem(`vaultzet_${key}`, val);
+          sessionStorage.setItem(`vaultzet_${key}`, val);
+        } catch {}
+      }
+    });
+
+    // Capture document referrer (if from external domain)
+    if (document.referrer && !document.referrer.includes(window.location.hostname)) {
+      try {
+        localStorage.setItem('vaultzet_referrer', document.referrer);
+        sessionStorage.setItem('vaultzet_referrer', document.referrer);
+      } catch {}
+    }
+
+    // Persist landing URL in both sessionStorage and persistent localStorage
+    const currentUrl = window.location.href;
     if (!sessionStorage.getItem('vaultzet_landing_url')) {
-      sessionStorage.setItem('vaultzet_landing_url', window.location.href);
+      sessionStorage.setItem('vaultzet_landing_url', currentUrl);
+    }
+    if (!localStorage.getItem('vaultzet_landing_url') || fbclid || params.get('utm_source')) {
+      localStorage.setItem('vaultzet_landing_url', currentUrl);
     }
   } catch {}
 }
 
 /**
- * Retrieves preserved Meta attribution values (_fbp, _fbc, landing URL) for server CAPI.
+ * Retrieves preserved Meta and traffic attribution values (_fbp, _fbc, UTMs, referrer, landing URL) for server CAPI & Telegram alerts.
  */
-export function getMetaAttributionData(): { fbp?: string; fbc?: string; eventSourceUrl?: string } {
+export function getMetaAttributionData(): {
+  fbp?: string;
+  fbc?: string;
+  eventSourceUrl?: string;
+  referrer?: string;
+  utmSource?: string;
+  utmMedium?: string;
+  utmCampaign?: string;
+  utmContent?: string;
+} {
   if (typeof window === 'undefined') return {};
   captureMetaAttributionParams();
   let fbp = readCookieValue('_fbp');
   let fbc = readCookieValue('_fbc');
   let eventSourceUrl: string | undefined;
+  let referrer: string | undefined;
+  let utmSource: string | undefined;
+  let utmMedium: string | undefined;
+  let utmCampaign: string | undefined;
+  let utmContent: string | undefined;
 
   try {
     if (!fbp) fbp = localStorage.getItem('vaultzet_meta_fbp') || undefined;
     if (!fbc) fbc = localStorage.getItem('vaultzet_meta_fbc') || undefined;
-    eventSourceUrl = sessionStorage.getItem('vaultzet_landing_url') || window.location.href;
+    eventSourceUrl =
+      sessionStorage.getItem('vaultzet_landing_url') ||
+      localStorage.getItem('vaultzet_landing_url') ||
+      window.location.href;
+    referrer =
+      sessionStorage.getItem('vaultzet_referrer') ||
+      localStorage.getItem('vaultzet_referrer') ||
+      (document.referrer && !document.referrer.includes(window.location.hostname) ? document.referrer : undefined) ||
+      undefined;
+    utmSource =
+      sessionStorage.getItem('vaultzet_utm_source') ||
+      localStorage.getItem('vaultzet_utm_source') ||
+      undefined;
+    utmMedium =
+      sessionStorage.getItem('vaultzet_utm_medium') ||
+      localStorage.getItem('vaultzet_utm_medium') ||
+      undefined;
+    utmCampaign =
+      sessionStorage.getItem('vaultzet_utm_campaign') ||
+      localStorage.getItem('vaultzet_utm_campaign') ||
+      undefined;
+    utmContent =
+      sessionStorage.getItem('vaultzet_utm_content') ||
+      localStorage.getItem('vaultzet_utm_content') ||
+      undefined;
   } catch {}
 
-  return omitUndefined({ fbp, fbc, eventSourceUrl });
+  return omitUndefined({
+    fbp,
+    fbc,
+    eventSourceUrl,
+    referrer,
+    utmSource,
+    utmMedium,
+    utmCampaign,
+    utmContent,
+  });
 }
 
 /**

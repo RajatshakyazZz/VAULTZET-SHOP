@@ -206,6 +206,58 @@ export interface OrderAlertData {
   paymentStatus?: string;
   paymentMethod?: string;
   reason?: string;
+  metaAttribution?: any;
+  resellerSlug?: string;
+}
+
+export function formatTrafficAttributionHtml(metaAttribution?: any, resellerSlug?: string): string {
+  if (resellerSlug) {
+    return `📍 <b>Traffic Source (Kahan Se Aayi):</b>\n   • <b>Channel:</b> 👥 <b>Reseller Store</b> (<code>@${escapeHtml(resellerSlug)}</code>)\n   • <b>Status:</b> Reseller Listing Sale`;
+  }
+
+  const meta = (metaAttribution && typeof metaAttribution === 'object') ? metaAttribution : {};
+  const rawUrl = String(meta.eventSourceUrl || '').trim();
+  const rawReferrer = String(meta.referrer || '').trim();
+  const utmSource = String(meta.utmSource || '').toLowerCase().trim();
+  const utmCampaign = String(meta.utmCampaign || '').trim();
+  const fbc = String(meta.fbc || '').trim();
+
+  let channel = '🌐 Direct Website / Bio Link';
+  let badge = 'Direct Visit';
+  const details: string[] = [];
+
+  const lowerUrl = rawUrl.toLowerCase();
+  const lowerRef = rawReferrer.toLowerCase();
+
+  if (utmSource.includes('chatgpt') || lowerUrl.includes('chatgpt.com') || lowerRef.includes('chatgpt')) {
+    channel = '🤖 <b>ChatGPT AI Search</b> (100% Free Organic Viral Sale!)';
+    badge = 'Organic AI Recommendation';
+  } else if (fbc || lowerUrl.includes('fbclid') || utmSource.includes('meta') || utmSource.includes('facebook') || utmSource.includes('instagram')) {
+    channel = '🎯 <b>Meta Ads</b> (Instagram / Facebook Paid Ad)';
+    badge = fbc ? '✅ Meta Click ID (fbc) Captured' : '⚠️ Ad Traffic (CAPI Matched)';
+    if (utmCampaign) {
+      details.push(`• <b>Campaign:</b> ${escapeHtml(utmCampaign)}`);
+    }
+  } else if (utmSource.includes('google') || lowerRef.includes('google.') || lowerUrl.includes('google')) {
+    channel = '🔍 <b>Google Organic Search</b> (Free SEO Sale)';
+    badge = 'Organic Search';
+  } else if (utmSource.includes('youtube') || lowerRef.includes('youtube') || lowerRef.includes('youtu.be')) {
+    channel = '▶️ <b>YouTube Organic</b>';
+    badge = 'Organic Video Link';
+  } else if (rawUrl.includes('/product/')) {
+    channel = '📱 <b>Direct Product Link / Social Share</b>';
+    badge = 'Direct Product Traffic';
+  }
+
+  let html = `📍 <b>Traffic Source (Kahan Se Aayi):</b>\n   • <b>Channel:</b> ${channel}\n   • <b>Tracking Status:</b> <code>${escapeHtml(badge)}</code>`;
+  if (details.length > 0) {
+    html += `\n   ${details.join('\n   ')}`;
+  }
+  if (rawUrl) {
+    const cleanDisplayUrl = rawUrl.length > 60 ? rawUrl.substring(0, 57) + '...' : rawUrl;
+    html += `\n   • <b>Landing URL:</b> <code>${escapeHtml(cleanDisplayUrl)}</code>`;
+  }
+  return html;
 }
 
 function resolveDriveLinkForItem(item: { id?: string; title?: string; googleDriveLink?: string }): string {
@@ -272,11 +324,15 @@ export async function sendAbandonedOrPendingTelegramAlert(
       ? `❌ <b>ABANDONED / NOT PAID (${escapeHtml(data.paymentStatus || 'INCOMPLETE')})</b>`
       : `⏳ <b>AWAITING PAYMENT (Checkout Opened)</b>`;
 
+  const attributionBlock = formatTrafficAttributionHtml(data.metaAttribution, data.resellerSlug);
+
   const text = `${header}
 
 🆔 <b>Order ID:</b> <code>${escapeHtml(data.orderNumber)}</code>
 📌 <b>Status:</b> ${statusBadge}
 💰 <b>Cart Value:</b> <b>₹${totalAmount}.00</b> (20% Off Recovery: <b>₹${discountedAmount}</b>)
+
+${attributionBlock}
 
 👤 <b>Customer Details:</b>
    • <b>Name:</b> ${escapeHtml(customerName)}
@@ -374,6 +430,8 @@ export async function sendSaleSuccessTelegramAlert(data: OrderAlertData): Promis
     ? `\n🎁 <b>Order Bump Included:</b> ${escapeHtml(data.orderBump.title)} (+₹${data.orderBump.price})`
     : '';
 
+  const attributionBlock = formatTrafficAttributionHtml(data.metaAttribution, data.resellerSlug);
+
   const text = `🎉💰 <b>NEW SALE CONFIRMED — VAULTZET!</b> 🚀🔥
 ━━━━━━━━━━━━━━━━━━━━━━
 
@@ -381,6 +439,8 @@ export async function sendSaleSuccessTelegramAlert(data: OrderAlertData): Promis
 ✅ <b>Payment Status:</b> <b>PAID &amp; VERIFIED</b>
 💵 <b>Total Paid:</b> <b>₹${data.totalAmount}.00</b>
 💳 <b>Gateway:</b> ${escapeHtml(data.paymentMethod || 'Cashfree UPI / Card')}
+
+${attributionBlock}
 
 👤 <b>Buyer Information:</b>
    • <b>Name:</b> ${escapeHtml(customerName)}
@@ -449,9 +509,13 @@ export async function sendLeadCapturedTelegramAlert(data: OrderAlertData): Promi
           .join('\n')
       : '   • Viral Reels Bundle';
 
+  const attributionBlock = formatTrafficAttributionHtml(data.metaAttribution, data.resellerSlug);
+
   const text = `🔥👀 <b>LIVE HIGH-INTENT BUYER ON CHECKOUT!</b> 👀🔥
 ━━━━━━━━━━━━━━━━━━━━━━
 <i>A customer just entered their WhatsApp number on the checkout page!</i>
+
+${attributionBlock}
 
 👤 <b>Lead Details:</b>
    • <b>Name:</b> ${escapeHtml(customerName)}

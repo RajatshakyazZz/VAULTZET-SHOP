@@ -53,6 +53,8 @@ export async function GET(request: Request) {
       totalAmount: Number(storedOrder?.totalAmount || verification.order_amount || 0),
       paymentStatus: verification.order_status || (verification.paid ? 'PAID' : 'ABANDONED'),
       paymentMethod: 'Cashfree UPI / Card',
+      metaAttribution: storedOrder?.meta_attribution || null,
+      resellerSlug: storedOrder?.reseller_slug || undefined,
     };
 
     const expectedAmount = Number(storedOrder?.totalAmount || 0);

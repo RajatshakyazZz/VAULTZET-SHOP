@@ -207,6 +207,8 @@ async function handleVerify(
     totalAmount: Number(storedOrder?.totalAmount || verification.order_amount || 0),
     paymentStatus: verification.order_status || (verification.paid ? 'PAID' : 'INCOMPLETE'),
     paymentMethod: 'Cashfree UPI / Card',
+    metaAttribution: storedOrder?.meta_attribution || null,
+    resellerSlug: storedOrder?.reseller_slug || undefined,
   };
 
   if (verification.paid) {
