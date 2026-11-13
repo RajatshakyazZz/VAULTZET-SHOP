@@ -164,6 +164,45 @@ class PortalApiClient {
       .sort((a, b) => b.revenue - a.revenue)
       .slice(0, 4);
 
+    // Multi-day trend for the last 7 days in IST
+    const dailyMap = new Map<string, { revenue: number; orders: number }>();
+    paidOrders.forEach((o) => {
+      const d = new Date(o.date_created);
+      if (isNaN(d.getTime())) return;
+      const key = new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Kolkata' }).format(d);
+      if (!dailyMap.has(key)) {
+        dailyMap.set(key, { revenue: Number(o.total || 0), orders: 1 });
+      } else {
+        const item = dailyMap.get(key)!;
+        item.revenue += Number(o.total || 0);
+        item.orders += 1;
+      }
+    });
+
+    const now = new Date();
+    const todayKey = new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Kolkata' }).format(now);
+    const yesterdayDate = new Date(now.getTime() - 24 * 60 * 60 * 1000);
+    const yesterdayKey = new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Kolkata' }).format(yesterdayDate);
+
+    const sevenDayTrend: Array<{ date: string; revenue: number; orders: number }> = [];
+    for (let i = 6; i >= 0; i--) {
+      const cur = new Date(now.getTime() - i * 24 * 60 * 60 * 1000);
+      const key = new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Kolkata' }).format(cur);
+      const dayData = dailyMap.get(key) || { revenue: 0, orders: 0 };
+      const isToday = key === todayKey;
+      const isYesterday = key === yesterdayKey;
+      const displayDate = isToday
+        ? 'Today'
+        : isYesterday
+        ? 'Yesterday'
+        : new Intl.DateTimeFormat('en-IN', { day: '2-digit', month: 'short', timeZone: 'Asia/Kolkata' }).format(cur);
+      sevenDayTrend.push({
+        date: displayDate,
+        revenue: dayData.revenue,
+        orders: dayData.orders,
+      });
+    }
+
     return {
       sales: totalSales,
       orders: paidOrders.length,
@@ -175,9 +214,7 @@ class PortalApiClient {
       average_order_value: paidOrders.length > 0 ? Math.round(totalSales / paidOrders.length) : 0,
       currency: 'INR',
       currency_symbol: '₹',
-      revenue_trend: [
-        { date: 'Today', revenue: totalSales, orders: paidOrders.length },
-      ],
+      revenue_trend: sevenDayTrend,
       top_selling_bundles: topSellingBundles,
       site_mode: 'LIVE',
       connector_status: {
@@ -729,7 +766,42 @@ class PortalApiClient {
               })),
               payment_method: data.paymentMethod || 'UPI / Instant QR',
               transaction_id: data.transactionId || `UPI-${docId.slice(0, 8)}`,
-              date_created: data.timestampIso || new Date().toISOString(),
+              date_created: (() => {
+                if (data.timestampIso && !isNaN(new Date(data.timestampIso).getTime())) {
+                  return new Date(data.timestampIso).toISOString();
+                }
+                if (data.createdAt?.toDate && typeof data.createdAt.toDate === 'function') {
+                  try {
+                    const d = data.createdAt.toDate();
+                    if (!isNaN(d.getTime())) return d.toISOString();
+                  } catch {}
+                }
+                if (data.createdAt instanceof Date && !isNaN(data.createdAt.getTime())) {
+                  return data.createdAt.toISOString();
+                }
+                if (typeof data.createdAt === 'string' && !isNaN(new Date(data.createdAt).getTime())) {
+                  return new Date(data.createdAt).toISOString();
+                }
+                if (typeof data.createdAt === 'number' && !isNaN(new Date(data.createdAt).getTime())) {
+                  return new Date(data.createdAt).toISOString();
+                }
+                if (data.created_at?.toDate && typeof data.created_at.toDate === 'function') {
+                  try {
+                    const d = data.created_at.toDate();
+                    if (!isNaN(d.getTime())) return d.toISOString();
+                  } catch {}
+                }
+                if (typeof data.created_at === 'string' && !isNaN(new Date(data.created_at).getTime())) {
+                  return new Date(data.created_at).toISOString();
+                }
+                if (data.date_created && !isNaN(new Date(data.date_created).getTime())) {
+                  return new Date(data.date_created).toISOString();
+                }
+                if (data.date && !isNaN(new Date(data.date).getTime())) {
+                  return new Date(data.date).toISOString();
+                }
+                return new Date().toISOString();
+              })(),
               google_drive_sent: rawStatus === 'completed',
             } as Order);
           }

@@ -45,21 +45,161 @@ export default function Dashboard() {
 
   const { status, errorMessage, openModal } = useBackendHealth();
 
+  // Helper to extract YYYY-MM-DD in Indian Standard Time (Asia/Kolkata)
+  const getIstDateKey = (dateVal: any): string => {
+    if (!dateVal) return '';
+    const d = new Date(dateVal);
+    if (isNaN(d.getTime())) return '';
+    return new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Kolkata' }).format(d);
+  };
+
+  const now = new Date();
+  const todayKey = getIstDateKey(now);
+  const yesterdayDate = new Date(now.getTime() - 24 * 60 * 60 * 1000);
+  const yesterdayKey = getIstDateKey(yesterdayDate);
+
   // Compute live metrics strictly from COMPLETED (paid) orders so pending/abandoned checkouts are NEVER counted in revenue
   const paidOrders = React.useMemo(
     () => orders.filter((o: any) => o.status === 'completed'),
     [orders]
   );
-  const liveNetRevenue = paidOrders.reduce((sum: number, o: any) => sum + Number(o.total || 0), 0);
-  const liveTotalOrders = paidOrders.length;
-  const liveActiveCustomers = new Set(
-    paidOrders.map((o: any) => o.customer?.email).filter(Boolean)
-  ).size;
+
+  // 1. All-Time Metrics
+  const totalNetRevenue = React.useMemo(
+    () => paidOrders.reduce((sum: number, o: any) => sum + Number(o.total || 0), 0),
+    [paidOrders]
+  );
+  const totalCompletedOrders = paidOrders.length;
+  const liveActiveCustomers = React.useMemo(
+    () => new Set(paidOrders.map((o: any) => o.customer?.email).filter(Boolean)).size,
+    [paidOrders]
+  );
   const livePendingOrders = orders.filter(
     (o: any) => o.status === 'pending' || o.status === 'processing' || o.status === 'failed'
   ).length;
-  const liveAvgAov = liveTotalOrders > 0 ? Math.round(liveNetRevenue / liveTotalOrders) : 0;
-  const liveRevenueTrend = [{ date: 'Today', revenue: liveNetRevenue, orders: liveTotalOrders }];
+  const liveAvgAov = totalCompletedOrders > 0 ? Math.round(totalNetRevenue / totalCompletedOrders) : 0;
+
+  // 2. Today's Metrics (IST)
+  const todayPaidOrders = React.useMemo(
+    () => paidOrders.filter((o: any) => getIstDateKey(o.date_created) === todayKey),
+    [paidOrders, todayKey]
+  );
+  const todayNetRevenue = todayPaidOrders.reduce((sum: number, o: any) => sum + Number(o.total || 0), 0);
+  const todayOrdersCount = todayPaidOrders.length;
+
+  // 3. Yesterday's Metrics (IST)
+  const yesterdayPaidOrders = React.useMemo(
+    () => paidOrders.filter((o: any) => getIstDateKey(o.date_created) === yesterdayKey),
+    [paidOrders, yesterdayKey]
+  );
+  const yesterdayNetRevenue = yesterdayPaidOrders.reduce((sum: number, o: any) => sum + Number(o.total || 0), 0);
+  const yesterdayOrdersCount = yesterdayPaidOrders.length;
+
+  // 4. Timeframe state for detailed sales graph
+  const [timeframe, setTimeframe] = React.useState<'7d' | '14d' | '30d' | 'all'>('7d');
+
+  // 5. Detailed continuous multi-day revenue trend across real order dates
+  const liveRevenueTrend = React.useMemo(() => {
+    const dailyMap = new Map<string, { revenue: number; orders: number }>();
+    paidOrders.forEach((o: any) => {
+      const key = getIstDateKey(o.date_created);
+      if (!key) return;
+      if (!dailyMap.has(key)) {
+        dailyMap.set(key, { revenue: Number(o.total || 0), orders: 1 });
+      } else {
+        const item = dailyMap.get(key)!;
+        item.revenue += Number(o.total || 0);
+        item.orders += 1;
+      }
+    });
+
+    const endDate = new Date();
+    let startDate = new Date();
+
+    if (timeframe === '7d') {
+      startDate = new Date(endDate.getTime() - 6 * 24 * 60 * 60 * 1000);
+    } else if (timeframe === '14d') {
+      startDate = new Date(endDate.getTime() - 13 * 24 * 60 * 60 * 1000);
+    } else if (timeframe === '30d') {
+      startDate = new Date(endDate.getTime() - 29 * 24 * 60 * 60 * 1000);
+    } else {
+      // 'all': from earliest order date to today (at least 7 days for a smooth graph)
+      let earliest = new Date(endDate.getTime() - 6 * 24 * 60 * 60 * 1000);
+      paidOrders.forEach((o: any) => {
+        const d = new Date(o.date_created);
+        if (!isNaN(d.getTime()) && d < earliest) {
+          earliest = d;
+        }
+      });
+      startDate = earliest;
+    }
+
+    const points: Array<{
+      dateKey: string;
+      displayDate: string;
+      fullDate: string;
+      revenue: number;
+      orders: number;
+    }> = [];
+
+    const cur = new Date(startDate);
+    cur.setHours(0, 0, 0, 0);
+    const end = new Date(endDate);
+    end.setHours(23, 59, 59, 999);
+
+    let safety = 0;
+    while (cur <= end && safety < 400) {
+      safety++;
+      const key = getIstDateKey(cur);
+      const dayData = dailyMap.get(key) || { revenue: 0, orders: 0 };
+      const isToday = key === todayKey;
+      const isYesterday = key === yesterdayKey;
+
+      const dayMonth = new Intl.DateTimeFormat('en-IN', {
+        day: '2-digit',
+        month: 'short',
+        timeZone: 'Asia/Kolkata',
+      }).format(cur);
+
+      const fullDateStr = new Intl.DateTimeFormat('en-IN', {
+        weekday: 'short',
+        day: '2-digit',
+        month: 'short',
+        year: 'numeric',
+        timeZone: 'Asia/Kolkata',
+      }).format(cur);
+
+      points.push({
+        dateKey: key,
+        displayDate: isToday ? 'Today' : isYesterday ? 'Yesterday' : dayMonth,
+        fullDate: fullDateStr + (isToday ? ' (Today)' : isYesterday ? ' (Yesterday)' : ''),
+        revenue: dayData.revenue,
+        orders: dayData.orders,
+      });
+
+      cur.setDate(cur.getDate() + 1);
+    }
+
+    if (points.length === 1) {
+      const prev = new Date(endDate.getTime() - 24 * 60 * 60 * 1000);
+      const prevKey = getIstDateKey(prev);
+      const prevData = dailyMap.get(prevKey) || { revenue: 0, orders: 0 };
+      const prevDayMonth = new Intl.DateTimeFormat('en-IN', {
+        day: '2-digit',
+        month: 'short',
+        timeZone: 'Asia/Kolkata',
+      }).format(prev);
+      points.unshift({
+        dateKey: prevKey,
+        displayDate: prevDayMonth,
+        fullDate: prevDayMonth + ' (Yesterday)',
+        revenue: prevData.revenue,
+        orders: prevData.orders,
+      });
+    }
+
+    return points;
+  }, [paidOrders, timeframe, todayKey, yesterdayKey]);
 
   const liveTopBundles = React.useMemo(() => {
     const map = new Map<string, { id: string | number; name: string; sales_count: number; revenue: number }>();
@@ -207,36 +347,55 @@ export default function Dashboard() {
         </div>
       </div>
 
-      {/* 4 KPI Cards (2-col on mobile so all 4 are visible at a glance, 4-col on desktop) */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-5">
-        <StatCard
-          title="Net Revenue Today"
-          value={formatCurrency(liveNetRevenue)}
-          subtitle="Real-time gross"
-          icon={IndianRupee}
-          color="emerald"
-        />
-        <StatCard
-          title="Total Orders"
-          value={liveTotalOrders}
-          subtitle="Completed sales"
-          icon={ShoppingCart}
-          color="purple"
-        />
-        <StatCard
-          title="Active Customers"
-          value={liveActiveCustomers}
-          subtitle="Verified buyers"
-          icon={Users}
-          color="blue"
-        />
-        <StatCard
-          title="Pending Fulfillment"
-          value={livePendingOrders}
-          subtitle="Awaiting payment"
-          icon={Clock}
-          color="amber"
-        />
+      {/* 6 KPI Cards: Row 1 = Revenue (Total vs Today vs Yesterday), Row 2 = Volume & Buyers */}
+      <div className="space-y-3.5">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-5">
+          <StatCard
+            title="Total Sales (All-Time)"
+            value={formatCurrency(totalNetRevenue)}
+            subtitle={`${totalCompletedOrders} completed orders all-time`}
+            icon={IndianRupee}
+            color="emerald"
+          />
+          <StatCard
+            title="Today's Sales"
+            value={formatCurrency(todayNetRevenue)}
+            subtitle={`${todayOrdersCount} completed orders today`}
+            icon={Flame}
+            color="purple"
+          />
+          <StatCard
+            title="Yesterday's Sales"
+            value={formatCurrency(yesterdayNetRevenue)}
+            subtitle={`${yesterdayOrdersCount} completed orders yesterday`}
+            icon={Clock}
+            color="amber"
+          />
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-5">
+          <StatCard
+            title="Total Orders"
+            value={totalCompletedOrders}
+            subtitle="All verified completed sales"
+            icon={ShoppingCart}
+            color="blue"
+          />
+          <StatCard
+            title="Active Customers"
+            value={liveActiveCustomers}
+            subtitle="Unique verified buyers"
+            icon={Users}
+            color="purple"
+          />
+          <StatCard
+            title="Pending Fulfillment"
+            value={livePendingOrders}
+            subtitle="Checkouts awaiting payment"
+            icon={Clock}
+            color="rose"
+          />
+        </div>
       </div>
 
       {/* Revenue Trend Chart & Connector Widget */}
@@ -244,19 +403,61 @@ export default function Dashboard() {
         
         {/* Recharts Area Chart */}
         <div className="lg:col-span-8 p-4 sm:p-6 rounded-2xl bg-slate-900/80 border border-slate-800 space-y-4">
-          <div className="flex flex-wrap items-center justify-between gap-2">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
             <div>
-              <h3 className="text-sm font-bold text-white">7-Day Revenue & Volume Curve</h3>
+              <div className="flex items-center gap-2">
+                <h3 className="text-sm sm:text-base font-bold text-white">
+                  {timeframe === 'all'
+                    ? 'All-Time'
+                    : timeframe === '30d'
+                    ? '30-Day'
+                    : timeframe === '14d'
+                    ? '14-Day'
+                    : '7-Day'}{' '}
+                  Revenue &amp; Volume Curve
+                </h3>
+                <span className="text-[10px] font-bold text-slate-400 bg-slate-800 px-2 py-0.5 rounded-full">
+                  {liveRevenueTrend.length} days plotted
+                </span>
+              </div>
               <p className="text-xs text-slate-400 font-medium">Daily completed transaction total in INR</p>
             </div>
-            <span className="text-xs font-extrabold text-emerald-400 bg-emerald-500/10 px-2.5 py-1 rounded-lg border border-emerald-500/20">
-              Avg AOV: ₹{liveAvgAov}
-            </span>
+
+            <div className="flex flex-wrap items-center gap-2">
+              {/* Timeframe pill tabs */}
+              <div className="inline-flex items-center bg-slate-950 p-1 rounded-xl border border-slate-800">
+                {(
+                  [
+                    { key: '7d', label: '7 Days' },
+                    { key: '14d', label: '14 Days' },
+                    { key: '30d', label: '30 Days' },
+                    { key: 'all', label: 'All Sales' },
+                  ] as const
+                ).map((t) => (
+                  <button
+                    key={t.key}
+                    type="button"
+                    onClick={() => setTimeframe(t.key)}
+                    className={`px-2.5 py-1 rounded-lg text-xs font-bold transition-all ${
+                      timeframe === t.key
+                        ? 'bg-purple-600 text-white shadow-xs'
+                        : 'text-slate-400 hover:text-white hover:bg-slate-800/60'
+                    }`}
+                  >
+                    {t.label}
+                  </button>
+                ))}
+              </div>
+
+              <span className="text-xs font-extrabold text-emerald-400 bg-emerald-500/10 px-2.5 py-1.5 rounded-lg border border-emerald-500/20 shrink-0">
+                Avg AOV: ₹{liveAvgAov}
+              </span>
+            </div>
           </div>
 
           <div className="h-56 sm:h-72 w-full pt-2 sm:pt-4">
             <ResponsiveContainer width="100%" height="100%">
-              <AreaChart data={liveRevenueTrend}>
+              <AreaChart data={liveRevenueTrend} margin={{ top: 10, right: 10, left: -10, bottom: 0 }}>
                 <defs>
                   <linearGradient id="revenueGrad" x1="0" y1="0" x2="0" y2="1">
                     <stop offset="5%" stopColor="#8b5cf6" stopOpacity={0.4} />
@@ -264,12 +465,14 @@ export default function Dashboard() {
                   </linearGradient>
                 </defs>
                 <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" />
-                <XAxis dataKey="date" stroke="#64748b" fontSize={11} tickLine={false} />
+                <XAxis dataKey="displayDate" stroke="#64748b" fontSize={11} tickLine={false} />
                 <YAxis
                   stroke="#64748b"
                   fontSize={11}
                   tickLine={false}
-                  tickFormatter={(v) => `₹${v / 1000}k`}
+                  tickFormatter={(v) =>
+                    v === 0 ? '₹0' : v >= 1000 ? `₹${(v / 1000).toFixed(v % 1000 === 0 ? 0 : 1)}k` : `₹${v}`
+                  }
                 />
                 <Tooltip
                   contentStyle={{
@@ -278,19 +481,56 @@ export default function Dashboard() {
                     borderRadius: '12px',
                     fontSize: '12px',
                     color: '#fff',
+                    boxShadow: '0 10px 25px rgba(0,0,0,0.5)',
                   }}
-                  formatter={(value: any) => [`₹${value}`, 'Revenue']}
+                  formatter={(value: any, name: string) => {
+                    if (name === 'Gross Revenue' || name === 'revenue') {
+                      return [`₹${Number(value).toLocaleString('en-IN')}`, 'Gross Revenue'];
+                    }
+                    if (name === 'Paid Orders' || name === 'orders') {
+                      return [`${value} orders`, 'Paid Orders'];
+                    }
+                    return [value, name];
+                  }}
+                  labelFormatter={(label, payload) => {
+                    const item = payload?.[0]?.payload;
+                    return item?.fullDate || label;
+                  }}
                 />
                 <Area
                   type="monotone"
                   dataKey="revenue"
+                  name="Gross Revenue"
                   stroke="#8b5cf6"
                   strokeWidth={3}
                   fillOpacity={1}
                   fill="url(#revenueGrad)"
+                  dot={{ r: 3, fill: '#8b5cf6', strokeWidth: 1, stroke: '#fff' }}
+                  activeDot={{ r: 6, fill: '#a855f7', stroke: '#fff', strokeWidth: 2 }}
                 />
               </AreaChart>
             </ResponsiveContainer>
+          </div>
+
+          {/* Quick period summary footer */}
+          <div className="pt-2 border-t border-slate-800/80 flex flex-wrap items-center justify-between gap-2 text-xs text-slate-400">
+            <span className="flex items-center gap-1.5">
+              <span className="w-2 h-2 rounded-full bg-purple-500" />
+              <span>
+                Period Revenue:{' '}
+                <strong className="text-white">
+                  ₹{liveRevenueTrend.reduce((sum, d) => sum + d.revenue, 0).toLocaleString('en-IN')}
+                </strong>
+              </span>
+            </span>
+            <span className="flex items-center gap-1.5">
+              <span>
+                Period Orders:{' '}
+                <strong className="text-white">
+                  {liveRevenueTrend.reduce((sum, d) => sum + d.orders, 0)} completed
+                </strong>
+              </span>
+            </span>
           </div>
         </div>
 
