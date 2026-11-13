@@ -218,9 +218,20 @@ export function formatTrafficAttributionHtml(metaAttribution?: any, resellerSlug
   const meta = (metaAttribution && typeof metaAttribution === 'object') ? metaAttribution : {};
   const rawUrl = String(meta.eventSourceUrl || '').trim();
   const rawReferrer = String(meta.referrer || '').trim();
-  const utmSource = String(meta.utmSource || '').toLowerCase().trim();
-  const utmCampaign = String(meta.utmCampaign || '').trim();
   const fbc = String(meta.fbc || '').trim();
+
+  let urlObj: URL | null = null;
+  try {
+    if (rawUrl) {
+      urlObj = new URL(rawUrl, 'https://www.vaultzet.shop');
+    }
+  } catch {}
+
+  const utmSource = String(meta.utmSource || urlObj?.searchParams.get('utm_source') || '').toLowerCase().trim();
+  const utmCampaign = String(meta.utmCampaign || urlObj?.searchParams.get('utm_campaign') || '').trim();
+  const utmContent = String(meta.utmContent || urlObj?.searchParams.get('utm_content') || '').trim();
+  const utmTerm = String(meta.utmTerm || urlObj?.searchParams.get('utm_term') || '').trim();
+  const utmMedium = String(meta.utmMedium || urlObj?.searchParams.get('utm_medium') || '').toLowerCase().trim();
 
   let channel = '🌐 Direct Website / Bio Link';
   let badge = 'Direct Visit';
@@ -232,11 +243,28 @@ export function formatTrafficAttributionHtml(metaAttribution?: any, resellerSlug
   if (utmSource.includes('chatgpt') || lowerUrl.includes('chatgpt.com') || lowerRef.includes('chatgpt')) {
     channel = '🤖 <b>ChatGPT AI Search</b> (100% Free Organic Viral Sale!)';
     badge = 'Organic AI Recommendation';
-  } else if (fbc || lowerUrl.includes('fbclid') || utmSource.includes('meta') || utmSource.includes('facebook') || utmSource.includes('instagram')) {
-    channel = '🎯 <b>Meta Ads</b> (Instagram / Facebook Paid Ad)';
+  } else if (
+    fbc ||
+    lowerUrl.includes('fbclid') ||
+    utmSource.includes('meta') ||
+    utmSource.includes('facebook') ||
+    utmSource.includes('instagram') ||
+    utmSource === 'ig' ||
+    utmSource === 'fb' ||
+    utmMedium === 'paid_social' ||
+    lowerUrl.includes('paid_social')
+  ) {
+    const platformLabel = utmSource === 'ig' ? 'Instagram' : utmSource === 'fb' ? 'Facebook' : 'Instagram / Facebook';
+    channel = `🎯 <b>Meta Ads</b> (${platformLabel} Paid Social)`;
     badge = fbc ? '✅ Meta Click ID (fbc) Captured' : '⚠️ Ad Traffic (CAPI Matched)';
     if (utmCampaign) {
       details.push(`• <b>Campaign:</b> ${escapeHtml(utmCampaign)}`);
+    }
+    if (utmContent) {
+      details.push(`• <b>Ad Creative:</b> ${escapeHtml(utmContent)}`);
+    }
+    if (utmTerm) {
+      details.push(`• <b>Placement:</b> ${escapeHtml(utmTerm)}`);
     }
   } else if (utmSource.includes('google') || lowerRef.includes('google.') || lowerUrl.includes('google')) {
     channel = '🔍 <b>Google Organic Search</b> (Free SEO Sale)';
