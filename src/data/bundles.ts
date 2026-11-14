@@ -27,6 +27,56 @@ export const HOT_GIRLS_ORDER_BUMP: OrderBumpItem = {
   reelCount: 10000,
 };
 
+export const SHERU_ADDON_BUMPS: OrderBumpItem[] = [
+  {
+    id: 'rb-twisted-3200',
+    slug: '3200-ultimate-twisted-world-reel-bundle',
+    title: '3200+ Ultimate Twisted World Reel Bundle',
+    subtitle: 'Special Sheru Add-On: 3200+ viral fantasy creature & twisted world stories for just ₹60!',
+    originalPrice: 399,
+    discountPrice: 60,
+    discountPercentage: 85,
+    thumbnail: 'https://reelsbundles.in/wp-content/uploads/2026/10/3200-ultimate-twisted-world-reel-bundle-reels-bundle-1-2-768x576.png',
+    reelCount: 3200,
+  },
+  {
+    id: 'rb-1000-ulti-pulti-duniya-ulti-duniya-reverse-world-ai-reels-bundle',
+    slug: '1000-ulti-pulti-duniya-ulti-duniya-reverse-world-ai-reels-bundle',
+    title: '1000+ Ulti Pulti Duniya AI Reels Bundle',
+    subtitle: 'Special Sheru Add-On: 1000+ viral reverse world / ulti duniya AI reels for just ₹60!',
+    originalPrice: 499,
+    discountPrice: 60,
+    discountPercentage: 88,
+    thumbnail: 'https://reelsbundles.in/wp-content/uploads/2026/10/1000-ulti-pulti-duniya-ulti-duniya-reverse-world-ai-reels-bundle-2.png',
+    reelCount: 1000,
+  },
+  {
+    id: 'rb-upcoming-gym-animated',
+    slug: '1000-animated-gym-workout-reels-bundle',
+    title: '1000+ Animated Gym Workout Reels Bundle',
+    subtitle: 'Special Sheru Add-On: 1000+ viral animated fitness & gym motivation reels for just ₹60!',
+    originalPrice: 399,
+    discountPrice: 60,
+    discountPercentage: 85,
+    thumbnail: 'https://reelsbundles.in/wp-content/uploads/2026/10/animated_gym_reels_bundle-reels-bundle-7-2-1024x768.png',
+    reelCount: 1000,
+  },
+];
+
+export function getSheruBump(value?: string | null): OrderBumpItem | null {
+  if (!value) return null;
+  const clean = String(value).trim().toLowerCase();
+  return (
+    SHERU_ADDON_BUMPS.find(
+      (b) => b.id.toLowerCase() === clean || b.slug?.toLowerCase() === clean
+    ) ||
+    (clean.includes('twisted') ? SHERU_ADDON_BUMPS[0] : null) ||
+    (clean.includes('duniya') || clean.includes('reverse') ? SHERU_ADDON_BUMPS[1] : null) ||
+    (clean.includes('gym') ? SHERU_ADDON_BUMPS[2] : null) ||
+    null
+  );
+}
+
 export function isSheruBhaiIdentifier(value?: string | null): boolean {
   if (!value) return false;
   const clean = String(value).trim().toLowerCase();
@@ -54,7 +104,7 @@ export function getOrderBumpForContext(
           isSheruBhaiIdentifier(i?.product?.slug)
       ));
 
-  return isSheruContext ? HOT_GIRLS_ORDER_BUMP : ORDER_BUMP;
+  return isSheruContext ? SHERU_ADDON_BUMPS[0] : ORDER_BUMP;
 }
 
 export const BUNDLE_PRODUCTS: BundleProduct[] = [

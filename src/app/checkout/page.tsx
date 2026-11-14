@@ -24,7 +24,8 @@ import {
   ShoppingBag,
 } from 'lucide-react';
 import { useCart } from '@/context/CartContext';
-import { getOrderBumpForContext } from '@/data/bundles';
+import { getOrderBumpForContext, SHERU_ADDON_BUMPS, isSheruBhaiIdentifier } from '@/data/bundles';
+import type { OrderBumpItem } from '@/types';
 import { track, getMetaAttributionData } from '@/lib/analytics';
 import { resolveBundleSlug, isEligibleForFreeBundleGift } from '@/lib/bundleResolver';
 import { fetchCustomProductBySlug } from '@/lib/customProducts';
@@ -312,9 +313,72 @@ function CheckoutContent() {
     }
   };
 
+  const isSheruContext =
+    isSheruBhaiIdentifier(productParam) ||
+    isSheruBhaiIdentifier(buyNowItem?.product?.id) ||
+    isSheruBhaiIdentifier(buyNowItem?.product?.slug) ||
+    checkoutItems.some(
+      (i) =>
+        isSheruBhaiIdentifier(i?.product?.id) ||
+        isSheruBhaiIdentifier(i?.product?.slug)
+    );
+
+  const [selectedBumps, setSelectedBumps] = useState<OrderBumpItem[]>([]);
+
+  // Hydrate stored selected bumps
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    try {
+      const raw =
+        sessionStorage.getItem('vaultzet_selected_bumps') ||
+        localStorage.getItem('vaultzet_selected_bumps');
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          setSelectedBumps(parsed);
+          setOrderBumpAdded(true);
+        }
+      }
+    } catch {}
+  }, []);
+
+  const handleToggleSheruCheckoutBump = (bump: OrderBumpItem) => {
+    setSelectedBumps((prev) => {
+      const exists = prev.some((b) => b.id === bump.id || b.slug === bump.slug);
+      let next: OrderBumpItem[];
+      if (exists) {
+        next = prev.filter((b) => b.id !== bump.id && b.slug !== bump.slug);
+      } else {
+        next = [...prev, bump];
+      }
+      const hasAny = next.length > 0;
+      setOrderBumpAdded(hasAny);
+      try {
+        localStorage.setItem('vaultzet_bump', JSON.stringify(hasAny));
+        if (hasAny) {
+          localStorage.setItem('vaultzet_selected_bumps', JSON.stringify(next));
+          sessionStorage.setItem('vaultzet_selected_bumps', JSON.stringify(next));
+        } else {
+          localStorage.removeItem('vaultzet_selected_bumps');
+          sessionStorage.removeItem('vaultzet_selected_bumps');
+        }
+      } catch {}
+      return next;
+    });
+  };
+
   // Dynamically calculate gross total and discount with page-specific order bump
   const checkoutOrderBump = getOrderBumpForContext(checkoutItems, buyNowItem, productParam);
-  const grossSubtotal = checkoutSubtotal + (orderBumpAdded ? checkoutOrderBump.discountPrice : 0);
+  const activeBumps: OrderBumpItem[] = isSheruContext
+    ? (orderBumpAdded && selectedBumps.length > 0
+        ? selectedBumps
+        : orderBumpAdded
+        ? [SHERU_ADDON_BUMPS[0]]
+        : [])
+    : (orderBumpAdded ? [checkoutOrderBump] : []);
+
+  const bumpTotal = activeBumps.reduce((sum, b) => sum + (b.discountPrice || 0), 0);
+  const grossSubtotal = checkoutSubtotal + bumpTotal;
   const couponDiscount = appliedCoupon
     ? appliedCoupon.discountType === 'percent' && appliedCoupon.discountPercent
       ? Math.round((grossSubtotal * appliedCoupon.discountPercent) / 100)
@@ -506,10 +570,10 @@ function CheckoutContent() {
                 price: Number(i?.price || 0),
                 isFreeBonus: Boolean(i?.isFreeBonus),
               })),
-              orderBump: orderBumpAdded
+              orderBump: activeBumps.length > 0
                 ? {
-                    title: checkoutOrderBump.title,
-                    price: checkoutOrderBump.discountPrice,
+                    title: activeBumps.map((b) => b.title).join(' + '),
+                    price: bumpTotal,
                   }
                 : null,
               totalAmount: checkoutTotal,
@@ -580,14 +644,20 @@ function CheckoutContent() {
         price: Number(i?.price || 0),
         isFreeBonus: Boolean(i?.isFreeBonus),
       })),
-      orderBump: orderBumpAdded
+      orderBump: activeBumps.length > 0
         ? {
-            id: checkoutOrderBump.id,
-            slug: checkoutOrderBump.slug,
-            title: checkoutOrderBump.title,
-            price: checkoutOrderBump.discountPrice,
+            id: activeBumps[0].id,
+            slug: activeBumps[0].slug,
+            title: activeBumps[0].title,
+            price: activeBumps[0].discountPrice,
           }
         : null,
+      orderBumps: activeBumps.map((b) => ({
+        id: b.id,
+        slug: b.slug,
+        title: b.title,
+        price: b.discountPrice,
+      })),
       totalAmount: checkoutTotal,
       resellerSlug: resellerSlug || undefined,
       couponCode: appliedCoupon ? appliedCoupon.code : undefined,
@@ -1131,45 +1201,103 @@ function CheckoutContent() {
                     </div>
                   </div>
 
-                  <div className="flex gap-4 items-start">
-                    <img
-                      src={checkoutOrderBump.thumbnail}
-                      alt={checkoutOrderBump.title}
-                      className="w-20 sm:w-24 aspect-[4/3] rounded-xl object-cover shrink-0 border border-red-200 shadow-sm"
-                    />
-                    <div className="flex-1 min-w-0">
-                      <h3 className="font-extrabold text-sm text-slate-950 leading-snug">
-                        {checkoutOrderBump.title}
-                      </h3>
-                      <p className="text-xs text-slate-500 mt-1 line-clamp-2">
-                        {checkoutOrderBump.subtitle}
+                  {isSheruContext ? (
+                    <div className="space-y-3">
+                      <p className="text-xs font-bold text-slate-800">
+                        Special Sheru Add-On Bundles for just ₹60 each (Regular up to ₹499):
                       </p>
-                      <div className="flex items-center gap-2 mt-2">
-                        <span className="font-black text-sm text-red-700">
-                          ₹{checkoutOrderBump.discountPrice}.00
-                        </span>
-                        <span className="text-xs text-slate-400 line-through">
-                          ₹{checkoutOrderBump.originalPrice}.00
-                        </span>
-                        <span className="px-1.5 py-0.5 rounded text-[10px] font-black bg-red-100 text-red-800 border border-red-200">
-                          {checkoutOrderBump.discountPercentage}% OFF
-                        </span>
+                      <div className="space-y-2.5">
+                        {SHERU_ADDON_BUMPS.map((bump) => {
+                          const isSelected = activeBumps.some(
+                            (b) => b.id === bump.id || b.slug === bump.slug
+                          );
+                          return (
+                            <label
+                              key={bump.id}
+                              className={`flex gap-3 items-center p-3 rounded-2xl border-2 transition-all cursor-pointer ${
+                                isSelected
+                                  ? 'border-red-600 bg-red-50/90 shadow-xs ring-1 ring-red-500/20'
+                                  : 'border-slate-200 bg-white hover:border-red-300'
+                              }`}
+                            >
+                              <input
+                                type="checkbox"
+                                checked={isSelected}
+                                onChange={() => handleToggleSheruCheckoutBump(bump)}
+                                className="w-5 h-5 rounded text-red-600 focus:ring-red-500 border-slate-300 cursor-pointer shrink-0"
+                              />
+                              <img
+                                src={bump.thumbnail}
+                                alt={bump.title}
+                                className="w-14 h-14 sm:w-16 sm:h-16 aspect-square rounded-xl object-cover shrink-0 border border-red-200 shadow-xs"
+                              />
+                              <div className="flex-1 min-w-0">
+                                <h4 className="font-extrabold text-xs sm:text-sm text-slate-950 leading-snug line-clamp-1">
+                                  {bump.title}
+                                </h4>
+                                <p className="text-[11px] text-slate-500 line-clamp-1 mt-0.5">
+                                  {bump.subtitle}
+                                </p>
+                                <div className="flex items-center gap-2 mt-1">
+                                  <span className="font-black text-xs sm:text-sm text-emerald-700">
+                                    +₹{bump.discountPrice}.00
+                                  </span>
+                                  <span className="text-[11px] text-slate-400 line-through">
+                                    ₹{bump.originalPrice}.00
+                                  </span>
+                                  <span className="px-1.5 py-0.5 rounded text-[10px] font-black bg-red-100 text-red-800 border border-red-200">
+                                    {bump.discountPercentage}% OFF
+                                  </span>
+                                </div>
+                              </div>
+                            </label>
+                          );
+                        })}
                       </div>
                     </div>
-                  </div>
+                  ) : (
+                    <>
+                      <div className="flex gap-4 items-start">
+                        <img
+                          src={checkoutOrderBump.thumbnail}
+                          alt={checkoutOrderBump.title}
+                          className="w-20 sm:w-24 aspect-[4/3] rounded-xl object-cover shrink-0 border border-red-200 shadow-sm"
+                        />
+                        <div className="flex-1 min-w-0">
+                          <h3 className="font-extrabold text-sm text-slate-950 leading-snug">
+                            {checkoutOrderBump.title}
+                          </h3>
+                          <p className="text-xs text-slate-500 mt-1 line-clamp-2">
+                            {checkoutOrderBump.subtitle}
+                          </p>
+                          <div className="flex items-center gap-2 mt-2">
+                            <span className="font-black text-sm text-red-700">
+                              ₹{checkoutOrderBump.discountPrice}.00
+                            </span>
+                            <span className="text-xs text-slate-400 line-through">
+                              ₹{checkoutOrderBump.originalPrice}.00
+                            </span>
+                            <span className="px-1.5 py-0.5 rounded text-[10px] font-black bg-red-100 text-red-800 border border-red-200">
+                              {checkoutOrderBump.discountPercentage}% OFF
+                            </span>
+                          </div>
+                        </div>
+                      </div>
 
-                  {/* Switcher Toggle */}
-                  <label className="mt-4 pt-3 border-t border-red-200/80 flex items-center gap-3 cursor-pointer select-none">
-                    <input
-                      type="checkbox"
-                      checked={orderBumpAdded}
-                      onChange={() => setOrderBumpAdded(!orderBumpAdded)}
-                      className="w-5 h-5 rounded text-red-600 focus:ring-red-500 border-slate-300 cursor-pointer"
-                    />
-                    <span className="text-xs font-extrabold text-slate-950">
-                      Yes! Add this {checkoutOrderBump.reelCount.toLocaleString('en-IN')}+ reels mega pack to my order for just ₹{checkoutOrderBump.discountPrice}
-                    </span>
-                  </label>
+                      {/* Switcher Toggle */}
+                      <label className="mt-4 pt-3 border-t border-red-200/80 flex items-center gap-3 cursor-pointer select-none">
+                        <input
+                          type="checkbox"
+                          checked={orderBumpAdded}
+                          onChange={() => setOrderBumpAdded(!orderBumpAdded)}
+                          className="w-5 h-5 rounded text-red-600 focus:ring-red-500 border-slate-300 cursor-pointer"
+                        />
+                        <span className="text-xs font-extrabold text-slate-950">
+                          Yes! Add this {checkoutOrderBump.reelCount.toLocaleString('en-IN')}+ reels mega pack to my order for just ₹{checkoutOrderBump.discountPrice}
+                        </span>
+                      </label>
+                    </>
+                  )}
                 </div>
               )}
 
@@ -1301,33 +1429,70 @@ function CheckoutContent() {
                   ))}
 
                   {orderBumpAdded && (
-                    <div className="flex gap-3 items-center justify-between p-2.5 rounded-xl bg-red-50/70 border border-red-200">
-                      <img
-                        src={checkoutOrderBump.thumbnail}
-                        alt={checkoutOrderBump.title}
-                        className="w-12 h-14 object-cover rounded-lg shrink-0"
-                      />
-                      <div className="flex-1 min-w-0 px-1">
-                        <h4 className="font-bold text-xs text-red-950 line-clamp-1">
-                          {checkoutOrderBump.title}
-                        </h4>
-                        <span className="text-[10px] font-bold text-red-800 bg-red-200 px-1.5 py-0.5 rounded">
-                          Bonus Offer
-                        </span>
-                      </div>
-                      <div className="text-right shrink-0">
-                        <div className="font-extrabold text-xs text-red-950">
-                          ₹{checkoutOrderBump.discountPrice}.00
+                    <>
+                      {isSheruContext && activeBumps.length > 0 ? (
+                        activeBumps.map((b) => (
+                          <div
+                            key={b.id}
+                            className="flex gap-3 items-center justify-between p-2.5 rounded-xl bg-red-50/70 border border-red-200"
+                          >
+                            <img
+                              src={b.thumbnail}
+                              alt={b.title}
+                              className="w-12 h-14 object-cover rounded-lg shrink-0"
+                            />
+                            <div className="flex-1 min-w-0 px-1">
+                              <h4 className="font-bold text-xs text-red-950 line-clamp-1">
+                                {b.title}
+                              </h4>
+                              <span className="text-[10px] font-bold text-red-800 bg-red-200 px-1.5 py-0.5 rounded">
+                                Sheru Add-On (₹60)
+                              </span>
+                            </div>
+                            <div className="text-right shrink-0">
+                              <div className="font-extrabold text-xs text-red-950">
+                                +₹{b.discountPrice}.00
+                              </div>
+                              <button
+                                type="button"
+                                onClick={() => handleToggleSheruCheckoutBump(b)}
+                                className="text-slate-400 hover:text-red-500 text-xs p-1 cursor-pointer"
+                              >
+                                <Trash2 className="w-3.5 h-3.5" />
+                              </button>
+                            </div>
+                          </div>
+                        ))
+                      ) : (
+                        <div className="flex gap-3 items-center justify-between p-2.5 rounded-xl bg-red-50/70 border border-red-200">
+                          <img
+                            src={checkoutOrderBump.thumbnail}
+                            alt={checkoutOrderBump.title}
+                            className="w-12 h-14 object-cover rounded-lg shrink-0"
+                          />
+                          <div className="flex-1 min-w-0 px-1">
+                            <h4 className="font-bold text-xs text-red-950 line-clamp-1">
+                              {checkoutOrderBump.title}
+                            </h4>
+                            <span className="text-[10px] font-bold text-red-800 bg-red-200 px-1.5 py-0.5 rounded">
+                              Bonus Offer
+                            </span>
+                          </div>
+                          <div className="text-right shrink-0">
+                            <div className="font-extrabold text-xs text-red-950">
+                              ₹{checkoutOrderBump.discountPrice}.00
+                            </div>
+                            <button
+                              type="button"
+                              onClick={() => setOrderBumpAdded(false)}
+                              className="text-slate-400 hover:text-red-500 text-xs p-1 cursor-pointer"
+                            >
+                              <Trash2 className="w-3.5 h-3.5" />
+                            </button>
+                          </div>
                         </div>
-                        <button
-                          type="button"
-                          onClick={() => setOrderBumpAdded(false)}
-                          className="text-slate-400 hover:text-red-500 text-xs p-1 cursor-pointer"
-                        >
-                          <Trash2 className="w-3.5 h-3.5" />
-                        </button>
-                      </div>
-                    </div>
+                      )}
+                    </>
                   )}
 
                   {/* Free Bonus Bundles (Promotional Offer) */}
@@ -1494,10 +1659,12 @@ function CheckoutContent() {
                     <span>Subtotal</span>
                     <span className="text-slate-800">₹{checkoutSubtotal}.00</span>
                   </div>
-                  {orderBumpAdded && (
+                  {orderBumpAdded && bumpTotal > 0 && (
                     <div className="flex justify-between text-green-600">
-                      <span>Order Bump ({checkoutOrderBump.discountPercentage}% Off)</span>
-                      <span>+₹{checkoutOrderBump.discountPrice}.00</span>
+                      <span>
+                        Order Add-on{activeBumps.length > 1 ? `s (${activeBumps.length})` : ''}
+                      </span>
+                      <span>+₹{bumpTotal}.00</span>
                     </div>
                   )}
                   {appliedCoupon && couponDiscount > 0 && (

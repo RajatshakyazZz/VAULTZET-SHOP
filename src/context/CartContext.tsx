@@ -12,7 +12,12 @@ interface CartContextType {
   buyNowItem: CartItem | null;
   setBuyNowItem: (item: CartItem | null) => void;
   addToCart: (product: BundleProduct, license?: LicenseType) => void;
-  buyNow: (product: BundleProduct, license?: LicenseType, withOrderBump?: boolean) => void;
+  buyNow: (
+    product: BundleProduct,
+    license?: LicenseType,
+    withOrderBump?: boolean,
+    selectedBumps?: OrderBumpItem[]
+  ) => void;
   removeFromCart: (productId: string, license: LicenseType) => void;
   clearBuyNowItem: () => void;
   clearCart: () => void;
@@ -174,7 +179,12 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     setIsCartOpen(true);
   };
 
-  const buyNow = (product: BundleProduct, license: LicenseType = 'personal', withOrderBump?: boolean) => {
+  const buyNow = (
+    product: BundleProduct,
+    license: LicenseType = 'personal',
+    withOrderBump?: boolean,
+    selectedBumps?: OrderBumpItem[]
+  ) => {
     const price = Number(license === 'reseller' ? product.resellerPrice : product.personalPrice);
     const singleItem: CartItem = { product, license, price };
     setBuyNowItem(singleItem);
@@ -184,12 +194,22 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
       if (exists) return prev;
       return [...prev, singleItem];
     });
-    if (typeof withOrderBump === 'boolean') {
-      setOrderBumpAdded(withOrderBump);
-      try {
-        localStorage.setItem('vaultzet_bump', JSON.stringify(withOrderBump));
-      } catch {}
-    }
+
+    const hasBumps = Array.isArray(selectedBumps) && selectedBumps.length > 0;
+    const shouldAddBump = typeof withOrderBump === 'boolean' ? withOrderBump : hasBumps;
+
+    setOrderBumpAdded(shouldAddBump);
+    try {
+      localStorage.setItem('vaultzet_bump', JSON.stringify(shouldAddBump));
+      if (hasBumps) {
+        localStorage.setItem('vaultzet_selected_bumps', JSON.stringify(selectedBumps));
+        sessionStorage.setItem('vaultzet_selected_bumps', JSON.stringify(selectedBumps));
+      } else if (shouldAddBump === false) {
+        localStorage.removeItem('vaultzet_selected_bumps');
+        sessionStorage.removeItem('vaultzet_selected_bumps');
+      }
+    } catch {}
+
     try {
       sessionStorage.setItem('vaultzet_buynow_item', JSON.stringify(singleItem));
       localStorage.setItem('vaultzet_buynow_item', JSON.stringify(singleItem));
