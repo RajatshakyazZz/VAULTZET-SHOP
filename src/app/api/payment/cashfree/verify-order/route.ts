@@ -8,6 +8,7 @@ import {
 } from '@/lib/telegram';
 import { BUNDLE_PRODUCTS, isSheruBhaiIdentifier } from '@/data/bundles';
 import { sendMetaCapiPurchase } from '@/lib/metaCapi';
+import { sendGa4ServerPurchase } from '@/lib/ga4MeasurementProtocol';
 import { extractClientMetadata, verifyOrderToken, generateOrderToken } from '@/lib/orderToken';
 import { recordSaleEarning, getResellerProfile, getResellerWallet } from '@/lib/resellerService';
 import { sendResellerSaleTelegramAlert } from '@/lib/telegramReseller';
@@ -273,6 +274,37 @@ async function handleVerify(
       }
     }
 
+    // Send server-side Google Analytics 4 (Measurement Protocol) purchase event once
+    const isGa4Delivered = storedOrder?.ga4_purchase_status === 'delivered';
+    let ga4Status = storedOrder?.ga4_purchase_status || 'pending';
+    let ga4SentAt = storedOrder?.ga4_purchase_sent_at || null;
+
+    if (!isGa4Delivered) {
+      try {
+        const storedMeta = storedOrder?.meta_attribution || {};
+        const ga4Result = await sendGa4ServerPurchase({
+          orderId,
+          totalAmount: Number(storedOrder?.totalAmount || verification.order_amount || 0),
+          currency: 'INR',
+          items: storedOrder?.items || [],
+          customer: storedOrder?.customer,
+          gaClientId: (clientMeta as any)?.gaClientId || storedMeta.gaClientId || undefined,
+          clientIp: clientMeta?.clientIp || storedMeta.clientIp || undefined,
+          clientUserAgent: clientMeta?.clientUserAgent || storedMeta.clientUserAgent || undefined,
+          eventSourceUrl: storedMeta.eventSourceUrl || undefined,
+        });
+
+        if (ga4Result.success) {
+          ga4Status = 'delivered';
+          ga4SentAt = new Date().toISOString();
+        } else if (!ga4Result.skipped) {
+          ga4Status = 'failed';
+        }
+      } catch (ga4Err) {
+        console.error('[GA4 Server] Error dispatching event during verification:', ga4Err);
+      }
+    }
+
     if (db) {
       try {
         const orderRef = doc(db, 'orders', orderId);
@@ -281,9 +313,13 @@ async function handleVerify(
           purchase_event_id: `purchase_${orderId}`,
           purchase_event_status: capiStatus,
           purchase_event_attempts: (storedOrder?.purchase_event_attempts || 0) + 1,
+          ga4_purchase_status: ga4Status,
         };
         if (capiSentAt) {
           updatePayload.purchase_event_sent_at = capiSentAt;
+        }
+        if (ga4SentAt) {
+          updatePayload.ga4_purchase_sent_at = ga4SentAt;
         }
         if (storedOrder?.reseller_id) {
           updatePayload.earning_status = 'recorded';
@@ -351,16 +387,29 @@ async function handleVerify(
       ? [...storedOrder.items]
       : [{ id: 'bundle', title: 'Viral Reels Bundle', license: 'personal' }];
 
-    // If order bump was added, include it in delivered items so customer gets instant Google Drive access
-    if (storedOrder?.orderBump) {
-      const bumpId = storedOrder.orderBump.id || 'rb-sheru-bhai-3000';
+    // If order bump(s) were added, include them in delivered items so customer gets instant Google Drive access
+    const bumpsToDeliver: any[] = Array.isArray(storedOrder?.orderBumps) && storedOrder.orderBumps.length > 0
+      ? storedOrder.orderBumps
+      : storedOrder?.orderBump
+      ? [storedOrder.orderBump]
+      : [];
+
+    for (const b of bumpsToDeliver) {
+      if (!b) continue;
+      const bumpId = b.id || 'rb-sheru-bhai-3000';
       const bumpSlug =
-        storedOrder.orderBump.slug ||
+        b.slug ||
         (bumpId === 'rb-hot-girls-reels-bundle'
           ? 'hot-girls-reels-bundle'
+          : bumpId === 'rb-twisted-3200'
+          ? '3200-ultimate-twisted-world-reel-bundle'
+          : bumpId === 'rb-1000-ulti-pulti-duniya-ulti-duniya-reverse-world-ai-reels-bundle'
+          ? '1000-ulti-pulti-duniya-ulti-duniya-reverse-world-ai-reels-bundle'
+          : bumpId === 'rb-upcoming-gym-animated'
+          ? '1000-animated-gym-workout-reels-bundle'
           : '3000-sheru-bhai-mega-reel-bundle-pack');
-      const bumpTitle = storedOrder.orderBump.title || '3000+ Sheru Bhai Mega Reel Bundle Pack';
-      if (!rawItems.some((it: any) => it.id === bumpId || (it.slug && it.slug === bumpSlug))) {
+      const bumpTitle = b.title || 'Bonus Reel Bundle';
+      if (!rawItems.some((it: any) => (bumpId && it.id === bumpId) || (bumpSlug && it.slug === bumpSlug))) {
         rawItems.push({
           id: bumpId,
           slug: bumpSlug,

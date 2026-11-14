@@ -35,6 +35,7 @@ export function extractClientMetadata(request: Request): {
   clientUserAgent: string;
   fbp?: string;
   fbc?: string;
+  gaClientId?: string;
 } {
   const headers = request.headers;
   
@@ -50,6 +51,7 @@ export function extractClientMetadata(request: Request): {
   const cookieHeader = headers.get('cookie') || '';
   let fbp: string | undefined;
   let fbc: string | undefined;
+  let gaClientId: string | undefined;
 
   if (cookieHeader) {
     const cookies = cookieHeader.split(';').map((c) => c.trim());
@@ -58,6 +60,14 @@ export function extractClientMetadata(request: Request): {
         fbp = c.slice(5).trim();
       } else if (c.startsWith('_fbc=')) {
         fbc = c.slice(5).trim();
+      } else if (c.startsWith('_ga=')) {
+        const rawGa = c.slice(4).trim();
+        const parts = rawGa.split('.');
+        if (parts.length >= 4) {
+          gaClientId = `${parts[2]}.${parts[3]}`;
+        } else if (parts.length >= 2) {
+          gaClientId = parts.slice(-2).join('.');
+        }
       }
     }
   }
@@ -67,5 +77,6 @@ export function extractClientMetadata(request: Request): {
     clientUserAgent,
     fbp,
     fbc,
+    gaClientId,
   };
 }

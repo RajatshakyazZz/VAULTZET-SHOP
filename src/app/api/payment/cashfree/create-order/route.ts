@@ -5,7 +5,7 @@ import { doc, setDoc, serverTimestamp } from 'firebase/firestore';
 import { sendAbandonedOrPendingTelegramAlert } from '@/lib/telegram';
 import { generateOrderToken, extractClientMetadata } from '@/lib/orderToken';
 import { getResellerListingBySlug } from '@/lib/resellerService';
-import { BUNDLE_PRODUCTS, ORDER_BUMP, HOT_GIRLS_ORDER_BUMP } from '@/data/bundles';
+import { BUNDLE_PRODUCTS, ORDER_BUMP, HOT_GIRLS_ORDER_BUMP, SHERU_ADDON_BUMPS } from '@/data/bundles';
 import { calculateCouponDiscount } from '@/lib/coupon';
 import { fetchCustomProductBySlug } from '@/lib/customProducts';
 import { isEligibleForFreeBundleGift } from '@/lib/bundleResolver';
@@ -13,7 +13,7 @@ import { isEligibleForFreeBundleGift } from '@/lib/bundleResolver';
 export async function POST(request: Request) {
   try {
     const body = await request.json();
-    const { orderNumber, customer, items, orderBump, totalAmount, resellerSlug, couponCode } = body;
+    const { orderNumber, customer, items, orderBump, orderBumps, totalAmount, resellerSlug, couponCode } = body;
 
     const cleanEmail = String(customer?.email || '').trim().toLowerCase();
     const cleanPhone = String(customer?.phone || '').replace(/\D/g, '');
@@ -48,13 +48,48 @@ export async function POST(request: Request) {
       );
     }
 
-    const resolvedOrderBump = orderBump
-      ? orderBump.id === HOT_GIRLS_ORDER_BUMP.id ||
-        orderBump.slug === HOT_GIRLS_ORDER_BUMP.slug ||
-        String(orderBump.title || '').toLowerCase().includes('hot girls')
-        ? HOT_GIRLS_ORDER_BUMP
-        : ORDER_BUMP
-      : null;
+    // Resolve order bump(s) with support for multiple add-ons (Sheru page bump offers at ₹60 each)
+    const incomingBumps: any[] = Array.isArray(orderBumps) && orderBumps.length > 0
+      ? orderBumps
+      : orderBump
+      ? [orderBump]
+      : [];
+
+    const resolvedBumps: any[] = [];
+    for (const b of incomingBumps) {
+      if (!b) continue;
+      const bId = String(b.id || '').trim().toLowerCase();
+      const bSlug = String(b.slug || '').trim().toLowerCase();
+      const bTitle = String(b.title || '').trim().toLowerCase();
+
+      const matchedSheruBump = SHERU_ADDON_BUMPS.find(
+        (sb) =>
+          sb.id.toLowerCase() === bId ||
+          sb.slug?.toLowerCase() === bSlug ||
+          (bSlug && sb.slug?.toLowerCase().includes(bSlug)) ||
+          (bTitle && sb.title.toLowerCase().includes(bTitle))
+      );
+
+      if (matchedSheruBump) {
+        if (!resolvedBumps.some((x) => x.id === matchedSheruBump.id)) {
+          resolvedBumps.push(matchedSheruBump);
+        }
+      } else if (
+        bId === HOT_GIRLS_ORDER_BUMP.id.toLowerCase() ||
+        bSlug === HOT_GIRLS_ORDER_BUMP.slug?.toLowerCase() ||
+        bTitle.includes('hot girls')
+      ) {
+        if (!resolvedBumps.some((x) => x.id === HOT_GIRLS_ORDER_BUMP.id)) {
+          resolvedBumps.push(HOT_GIRLS_ORDER_BUMP);
+        }
+      } else {
+        if (!resolvedBumps.some((x) => x.id === ORDER_BUMP.id)) {
+          resolvedBumps.push(ORDER_BUMP);
+        }
+      }
+    }
+
+    const resolvedOrderBump = resolvedBumps.length > 0 ? resolvedBumps[0] : null;
 
     // Server-authoritative price calculation and anti-tampering enforcement
     let finalTotalAmount = Number(totalAmount);
@@ -113,7 +148,7 @@ export async function POST(request: Request) {
       const resellerEarning = Math.max(0, approvedResalePrice - basePrice);
 
       // Authoritative order total derived strictly server-side
-      const bumpPrice = resolvedOrderBump ? resolvedOrderBump.discountPrice : 0;
+      const bumpPrice = resolvedBumps.reduce((s, rb) => s + Number(rb.discountPrice), 0);
       finalTotalAmount = approvedResalePrice + bumpPrice;
 
       resellerAttribution = {
@@ -182,8 +217,10 @@ export async function POST(request: Request) {
 
       expectedCatalogTotal = paidItemsCatalogTotal;
 
-      if (resolvedOrderBump) {
-        expectedCatalogTotal += Number(resolvedOrderBump.discountPrice);
+      if (resolvedBumps.length > 0) {
+        for (const rb of resolvedBumps) {
+          expectedCatalogTotal += Number(rb.discountPrice);
+        }
       }
 
       // Apply validated coupon discount if couponCode is provided
@@ -252,9 +289,11 @@ export async function POST(request: Request) {
     if (serverMeta.clientUserAgent) metaAttribution.clientUserAgent = serverMeta.clientUserAgent;
     const resolvedFbp = String(serverMeta.fbp || clientAttr.fbp || '').trim();
     const resolvedFbc = String(serverMeta.fbc || clientAttr.fbc || '').trim();
+    const resolvedGa = String(serverMeta.gaClientId || clientAttr.gaClientId || '').trim();
     const resolvedSourceUrl = String(clientAttr.eventSourceUrl || '').trim();
     if (resolvedFbp) metaAttribution.fbp = resolvedFbp;
     if (resolvedFbc) metaAttribution.fbc = resolvedFbc;
+    if (resolvedGa) metaAttribution.gaClientId = resolvedGa;
     if (resolvedSourceUrl) metaAttribution.eventSourceUrl = resolvedSourceUrl;
     if (clientAttr.referrer) metaAttribution.referrer = String(clientAttr.referrer).trim();
     if (clientAttr.utmSource) metaAttribution.utmSource = String(clientAttr.utmSource).trim();
@@ -281,6 +320,12 @@ export async function POST(request: Request) {
                 price: resolvedOrderBump.discountPrice,
               }
             : null,
+          orderBumps: resolvedBumps.map((rb) => ({
+            id: rb.id,
+            slug: rb.slug,
+            title: rb.title,
+            price: rb.discountPrice,
+          })),
           totalAmount: Number(finalTotalAmount),
           paymentMethod: 'Cashfree Gateway',
           transactionId: String(cashfreeOrder.order_id || orderNumber).slice(0, 95),

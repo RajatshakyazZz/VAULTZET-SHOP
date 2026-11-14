@@ -4,6 +4,7 @@ import { db } from '@/lib/firebase';
 import { doc, getDoc, updateDoc } from 'firebase/firestore';
 import { sendSaleSuccessTelegramAlert } from '@/lib/telegram';
 import { sendMetaCapiPurchase } from '@/lib/metaCapi';
+import { sendGa4ServerPurchase } from '@/lib/ga4MeasurementProtocol';
 import { recordSaleEarning } from '@/lib/resellerService';
 
 export async function POST(request: Request) {
@@ -110,6 +111,37 @@ export async function POST(request: Request) {
         }
       }
 
+      // 1.5 Dispatch GA4 Server Purchase if not already delivered
+      const isGa4Delivered = storedOrder?.ga4_purchase_status === 'delivered';
+      let ga4Status = storedOrder?.ga4_purchase_status || 'pending';
+      let ga4SentAt = storedOrder?.ga4_purchase_sent_at || null;
+
+      if (!isGa4Delivered) {
+        try {
+          const storedMeta = storedOrder?.meta_attribution || {};
+          const ga4Result = await sendGa4ServerPurchase({
+            orderId,
+            totalAmount: Number(storedOrder?.totalAmount || paidAmount || 0),
+            currency: 'INR',
+            items: storedOrder?.items || [],
+            customer: storedOrder?.customer,
+            gaClientId: storedMeta.gaClientId || undefined,
+            clientIp: storedMeta.clientIp || undefined,
+            clientUserAgent: storedMeta.clientUserAgent || undefined,
+            eventSourceUrl: storedMeta.eventSourceUrl || undefined,
+          });
+
+          if (ga4Result.success) {
+            ga4Status = 'delivered';
+            ga4SentAt = new Date().toISOString();
+          } else if (!ga4Result.skipped) {
+            ga4Status = 'failed';
+          }
+        } catch (err) {
+          console.error('[Cashfree Webhook] GA4 dispatch error:', err);
+        }
+      }
+
       // 2. Atomically update Firestore
       if (orderRef) {
         try {
@@ -117,12 +149,16 @@ export async function POST(request: Request) {
             status: 'completed',
             purchase_event_id: `purchase_${orderId}`,
             purchase_event_status: capiStatus,
+            ga4_purchase_status: ga4Status,
           };
           if (cfPaymentId) {
             updatePayload.cf_payment_id = cfPaymentId;
           }
           if (capiSentAt) {
             updatePayload.purchase_event_sent_at = capiSentAt;
+          }
+          if (ga4SentAt) {
+            updatePayload.ga4_purchase_sent_at = ga4SentAt;
           }
           if (storedOrder?.reseller_id) {
             updatePayload.earning_status = 'recorded';
