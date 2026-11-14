@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { X, Zap, CheckCircle2, ArrowRight, Flame, ShieldCheck, Play } from 'lucide-react';
 import { BUNDLE_PRODUCTS } from '@/data/bundles';
+import { STORE_REVIEWS_COUNT, STORE_RATING } from '@/data/reviews';
 
 const SHERU_PRODUCT_URL = '/product/3000-sheru-bhai-mega-reel-bundle-pack';
 
@@ -30,7 +31,9 @@ export default function TrendingPopupModal() {
     }
 
     try {
-      const hasDismissed = sessionStorage.getItem('vaultzet_sheru_popup_seen');
+      const hasDismissed =
+        sessionStorage.getItem('vaultzet_sheru_popup_seen') ||
+        localStorage.getItem('vaultzet_sheru_popup_seen');
       if (hasDismissed === 'true') {
         return;
       }
@@ -50,6 +53,7 @@ export default function TrendingPopupModal() {
     setIsOpen(false);
     try {
       sessionStorage.setItem('vaultzet_sheru_popup_seen', 'true');
+      localStorage.setItem('vaultzet_sheru_popup_seen', 'true');
     } catch {}
   };
 
@@ -98,10 +102,10 @@ export default function TrendingPopupModal() {
             {/* Visual Thumbnail */}
             <div className="relative w-24 sm:w-28 aspect-[3/4] rounded-2xl overflow-hidden bg-slate-900 border-2 border-red-100 group-hover:border-red-300 transition-colors shrink-0 shadow-md">
               <img
-                src={sheruProduct.thumbnail || '/sheru-bhai-cover.png'}
+                src={sheruProduct.thumbnail || '/sheru-bhai-cover.webp'}
                 alt={sheruProduct.title}
                 onError={(e) => {
-                  (e.target as HTMLImageElement).src = '/sheru-bhai-cover.png';
+                  (e.target as HTMLImageElement).src = '/sheru-bhai-cover.webp';
                 }}
                 className="w-full h-full object-cover"
                 loading="eager"
@@ -135,7 +139,7 @@ export default function TrendingPopupModal() {
               {/* Rating */}
               <div className="flex items-center gap-1.5 text-xs text-amber-500 font-bold">
                 <span>★★★★★</span>
-                <span className="text-[11px] text-slate-600 font-semibold">5.0 (443 reviews)</span>
+                <span className="text-[11px] text-slate-600 font-semibold">{STORE_RATING} ({STORE_REVIEWS_COUNT} reviews)</span>
               </div>
 
               {/* Price Banner */}

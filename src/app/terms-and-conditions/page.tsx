@@ -7,6 +7,26 @@ export const metadata: Metadata = {
   alternates: {
     canonical: 'https://www.vaultzet.shop/terms-and-conditions',
   },
+  openGraph: {
+    title: 'Terms & Conditions | Vaultzet',
+    description: 'Terms and Conditions for purchasing and licensing digital reels bundles from Vaultzet Store.',
+    url: 'https://www.vaultzet.shop/terms-and-conditions',
+    type: 'website',
+    images: [
+      {
+        url: 'https://www.vaultzet.shop/og-banner.webp',
+        width: 1200,
+        height: 630,
+        alt: 'Vaultzet Terms & Conditions',
+      },
+    ],
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Terms & Conditions | Vaultzet',
+    description: 'Terms and Conditions for purchasing and licensing digital reels bundles from Vaultzet Store.',
+    images: ['https://www.vaultzet.shop/og-banner.webp'],
+  },
 };
 
 export default function TermsPage() {

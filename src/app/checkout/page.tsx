@@ -28,6 +28,7 @@ import { getOrderBumpForContext } from '@/data/bundles';
 import { track, getMetaAttributionData } from '@/lib/analytics';
 import { resolveBundleSlug, isEligibleForFreeBundleGift } from '@/lib/bundleResolver';
 import { fetchCustomProductBySlug } from '@/lib/customProducts';
+import { SUPPORTED_PAYMENT_METHODS, UPI_APPS_LIST_TEXT } from '@/data/paymentMethods';
 
 declare global {
   interface Window {
@@ -398,32 +399,23 @@ function CheckoutContent() {
     return null;
   };
 
-  const validateGmail = (val: string): string | null => {
+  const validateEmail = (val: string): string | null => {
     const clean = val.trim().toLowerCase();
-    if (!clean) return 'Gmail address is required.';
-    if (!clean.endsWith('@gmail.com')) {
-      return 'Invalid Email! Only a valid @gmail.com address is accepted for Google Drive access.';
+    if (!clean) return 'Email address is required.';
+    const emailRegex = /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)+$/;
+    if (!emailRegex.test(clean)) {
+      return 'Please enter a valid email address.';
     }
-    const localPart = clean.slice(0, -10);
-    if (!localPart || localPart.includes('@')) {
-      return 'Invalid @gmail.com address format.';
-    }
-    if (!/^[a-z0-9.+_-]{3,40}$/.test(localPart)) {
-      return 'Gmail username must be at least 3 characters before @gmail.com.';
-    }
-    if (/^\d+$/.test(localPart)) {
-      return 'Fake Gmail detected! Gmail username cannot be only numbers.';
-    }
-    if (/^(.)\1{2,}$/.test(localPart)) {
-      return 'Fake Gmail detected! Please enter your real @gmail.com address.';
+    const [localPart, domain] = clean.split('@');
+    if (!localPart || localPart.length < 2 || !domain || domain.length < 3) {
+      return 'Please enter a complete email address.';
     }
     const fakeEmails = new Set([
       'test', 'testing', 'abc', 'abcd', 'abcde', 'xyz', 'fake', 'demo',
-      'admin', 'user', 'guest', 'null', 'none', 'asdf', 'asdfg', 'qwerty',
-      'hello', 'sample', 'example', '123', '1234', '12345', '123456',
+      'asdf', 'asdfg', 'qwerty', 'sample', 'example',
     ]);
     if (fakeEmails.has(localPart)) {
-      return 'Fake Gmail address not allowed! Please enter your real @gmail.com email.';
+      return 'Please enter your real email address.';
     }
     return null;
   };
@@ -457,7 +449,7 @@ function CheckoutContent() {
   };
 
   const nameError = validateFullName(fullName);
-  const emailError = validateGmail(email);
+  const emailError = validateEmail(email);
   const phoneError = validatePhone(phone);
 
   // 10-Minute Countdown Timer for Order Bump matching reelsbundles.in
@@ -990,21 +982,21 @@ function CheckoutContent() {
                     )}
                   </div>
 
-                  {/* Strict @gmail.com Email */}
+                  {/* Email Address */}
                   <div>
                     <div className="flex items-center justify-between mb-1">
                       <label className="block text-xs font-bold text-slate-700">
-                        Gmail Address (For Google Drive Access) <span className="text-red-500">*</span>
+                        Email Address (For Instant Bundle Delivery) <span className="text-red-500">*</span>
                       </label>
-                      <span className="text-[10px] font-extrabold text-red-900 bg-red-50 border border-red-200/70 px-2 py-0.5 rounded">
-                        Only @gmail.com
+                      <span className="text-[10px] font-semibold text-slate-600 bg-slate-100 border border-slate-200 px-2 py-0.5 rounded">
+                        Instant Delivery
                       </span>
                     </div>
                     <input
                       type="email"
                       required
                       autoComplete="email"
-                      placeholder="yourname@gmail.com"
+                      placeholder="you@example.com"
                       value={email}
                       onBlur={() => setTouched((prev) => ({ ...prev, email: true }))}
                       onChange={(e) => setEmail(e.target.value.replace(/\s/g, ''))}
@@ -1024,11 +1016,11 @@ function CheckoutContent() {
                     ) : email.length > 0 && !emailError ? (
                       <p className="text-[11px] font-bold text-emerald-600 mt-1 flex items-center gap-1">
                         <CheckCircle2 className="w-3.5 h-3.5 shrink-0" />
-                        <span>Valid @gmail.com address verified for Google Drive delivery.</span>
+                        <span>Instant download links & order invoice will be sent here.</span>
                       </p>
                     ) : (
                       <span className="text-[11px] text-slate-400 mt-1 block">
-                        Must be a valid <strong>@gmail.com</strong> email to receive Google Drive bundle access.
+                        Google Drive bundle link & order details will be sent immediately to this email.
                       </span>
                     )}
                   </div>
@@ -1213,6 +1205,14 @@ function CheckoutContent() {
                     Pay securely with any payment option of your choice. A fast, encrypted Cashfree checkout will open to complete payment.
                   </p>
 
+                  <div className="flex items-center justify-start gap-1.5 flex-wrap pt-1 text-[11px] font-bold text-slate-300">
+                    {SUPPORTED_PAYMENT_METHODS.map((method) => (
+                      <span key={method} className="px-2 py-0.5 rounded-md bg-slate-800/80 border border-slate-700/80 text-slate-200">
+                        {method}
+                      </span>
+                    ))}
+                  </div>
+
                   <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5 pt-2">
                     <div className="p-3 rounded-xl bg-slate-900/90 border border-slate-800 space-y-1 shadow-xs">
                       <div className="flex items-center gap-1.5 text-xs font-bold text-white">
@@ -1220,7 +1220,7 @@ function CheckoutContent() {
                         <span>All UPI Apps</span>
                       </div>
                       <div className="text-[11px] text-slate-400 font-medium">
-                        PhonePe, Google Pay, Paytm, CRED & QR
+                        {UPI_APPS_LIST_TEXT}
                       </div>
                     </div>
 

@@ -19,7 +19,7 @@ export default function FreeBundleOfferBanner({
   const isUnlocked = effectiveTotal >= 149;
   const claimedCount = freeBundles.length;
 
-  const bannerImgSrc = '/banner-free-bundles.png';
+  const bannerImgSrc = '/banner-free-bundles.webp';
   const bannerFallbackSrc = 'https://i.postimg.cc/VsF1DgQD/Vaultzet-Neon-Reels-Bundle-Sale.png';
 
   const isCheckoutAction = variant === 'checkout' && isUnlocked;

@@ -57,7 +57,7 @@ export default function FloatingSheruButton() {
           }}
         >
           <img
-            src="/sheru-bhai-cover.png"
+            src="/sheru-bhai-cover.webp"
             alt="3000+ Sheru Bhai Mega Reel Bundle"
             onError={(e) => {
               (e.target as HTMLImageElement).src = 'https://i.ibb.co/tw2ts4j7/1000014019.png';

@@ -1,35 +1,44 @@
 import type { Metadata } from 'next';
 import { getLiveStoreMetrics } from '@/lib/storeMetrics';
+import { BUNDLE_PRODUCTS } from '@/data/bundles';
 
 const siteUrl = (process.env.NEXT_PUBLIC_SITE_URL || 'https://www.vaultzet.shop').replace(/\/+$/, '');
 
 export async function generateMetadata(): Promise<Metadata> {
   const metrics = await getLiveStoreMetrics();
+  const minPrice = Math.min(
+    ...BUNDLE_PRODUCTS.map((b) => b.personalPrice).filter((p) => typeof p === 'number' && p > 0)
+  );
+
+  const titleText = `${metrics.bundleCount} Reels Bundles (${metrics.totalReelsCompact} Reels) - ₹${minPrice} se`;
+  const description = `Browse ${metrics.bundleCount} viral reels bundles (${metrics.totalReelsCompact} reels) from ₹${minPrice}. Instant Google Drive access, 1080p HD watermark-free & commercial resell rights.`;
+
   return {
-    title: 'All Reels Bundles',
-    description: `Browse ${metrics.bundleCount} viral ready-to-post reels bundles (${metrics.totalReelsFormatted} reels) on Vaultzet reel bundle store. Instant Google Drive download, 1080p HD vertical reels with commercial resell rights.`,
+    title: titleText,
+    description,
     alternates: {
       canonical: `${siteUrl}/shop`,
     },
     openGraph: {
-      title: 'All Reels Bundles | Reel Bundle Store Vaultzet',
-      description: `Explore ${metrics.totalReelsFormatted} viral ready-to-post reels across ${metrics.categoryCount} niches from Vaultzet Reel Bundle Store.`,
+      title: `${titleText} | Vaultzet`,
+      description,
       url: `${siteUrl}/shop`,
+      type: 'website',
       siteName: 'Vaultzet - Reel Bundle Store',
       images: [
         {
-          url: `${siteUrl}/vaultzet-logo.jpg`,
+          url: `${siteUrl}/og-banner.webp`,
           width: 1200,
           height: 630,
-          alt: 'All Reels Bundles - Vaultzet Reel Bundle Store',
+          alt: `${metrics.bundleCount} Reels Bundles - Vaultzet Store`,
         },
       ],
     },
     twitter: {
       card: 'summary_large_image',
-      title: 'All Reels Bundles | Reel Bundle Store Vaultzet',
-      description: `Explore ${metrics.totalReelsFormatted} viral ready-to-post reels across ${metrics.categoryCount} niches from Vaultzet Reel Bundle Store.`,
-      images: [`${siteUrl}/vaultzet-logo.jpg`],
+      title: `${titleText} | Vaultzet`,
+      description,
+      images: [`${siteUrl}/og-banner.webp`],
     },
   };
 }

@@ -314,8 +314,10 @@ export default function ReelsFeedClient({
         onScroll={handleScroll}
         className="fixed inset-x-0 top-0 bottom-[74px] md:static md:h-[88vh] md:max-w-[420px] md:mx-auto md:my-auto md:rounded-[28px] md:border-[4px] md:border-white/10 overflow-y-scroll snap-y snap-mandatory scrollbar-none z-20"
       >
-        {feedReels.map((reel) => {
+        {feedReels.map((reel, index) => {
           const isActive = activeReelKey === reel.feedKey;
+          const activeIndex = feedReels.findIndex((r) => r.feedKey === activeReelKey);
+          const isNearActive = Math.abs(index - (activeIndex >= 0 ? activeIndex : 0)) <= 1;
           const parsed = parseVideoUrl(reel.videoUrl);
           const isYouTube =
             reel.videoType === 'youtube' || parsed.videoType === 'youtube' || Boolean(reel.youtubeId);
@@ -371,7 +373,7 @@ export default function ReelsFeedClient({
                       }}
                     />
                   )
-                ) : (
+                ) : isNearActive ? (
                   <video
                     ref={(el) => {
                       videoRefs.current[reel.feedKey] = el;
@@ -391,6 +393,16 @@ export default function ReelsFeedClient({
                       }
                     }}
                     className="w-full h-full object-cover"
+                  />
+                ) : (
+                  <img
+                    src={feedPoster}
+                    alt={reel.title}
+                    className="w-full h-full object-cover"
+                    loading="lazy"
+                    onError={(e) => {
+                      (e.currentTarget as HTMLImageElement).src = '/baby-strawberry-reel.jpg';
+                    }}
                   />
                 )}
 

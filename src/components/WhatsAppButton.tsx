@@ -266,7 +266,7 @@ export default function WhatsAppButton({
       {!isOpen && showTooltip && !hasInteracted && (
         <div
           onClick={handleFloatingClick}
-          className="absolute bottom-16 right-0 mb-1 w-64 bg-white/95 backdrop-blur-md rounded-2xl p-3 shadow-xl border border-emerald-100 flex items-start gap-2.5 cursor-pointer animate-in fade-in slide-in-from-bottom-2 duration-300 group hover:shadow-2xl transition-all"
+          className="hidden sm:flex absolute bottom-16 right-0 mb-1 w-64 bg-white/95 backdrop-blur-md rounded-2xl p-3 shadow-xl border border-emerald-100 items-start gap-2.5 cursor-pointer animate-in fade-in slide-in-from-bottom-2 duration-300 group hover:shadow-2xl transition-all"
         >
           <div className="w-8 h-8 rounded-full bg-[#25D366]/10 text-[#25D366] flex items-center justify-center shrink-0 mt-0.5">
             <WhatsAppSvgIcon className="w-4 h-4 fill-current" />

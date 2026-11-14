@@ -281,17 +281,9 @@ export default function Footer() {
               Terms & Conditions
             </Link>
             <span className="text-slate-300">•</span>
-            <button
-              type="button"
-              onClick={() => {
-                if (typeof window !== 'undefined') {
-                  window.dispatchEvent(new CustomEvent('vaultzet:open-cookie-settings'));
-                }
-              }}
-              className="hover:text-red-600 transition-colors cursor-pointer"
-            >
+            <Link href="/cookie-preferences" prefetch={false} className="hover:text-red-600 transition-colors">
               Cookie Preferences
-            </button>
+            </Link>
             <span className="text-slate-300">•</span>
             <Link href="/contact-us" prefetch={false} className="hover:text-red-600 transition-colors">
               Contact Us

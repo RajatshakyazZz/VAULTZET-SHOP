@@ -27,7 +27,7 @@ export default async function ReelsPage() {
   const initialCatalogBundles = getAllCatalogBundles(customProducts, BUNDLE_PRODUCTS);
   return (
     <ReelsFeedClient
-      initialReels={reels}
+      initialReels={reels.slice(0, 8)}
       initialCatalogBundles={initialCatalogBundles}
     />
   );

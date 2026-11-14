@@ -2,12 +2,14 @@
 
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 import { Cookie, ShieldCheck, X, Check, Settings2, ExternalLink } from 'lucide-react';
 
 const STORAGE_KEY = 'vaultzet_cookie_consent_v1';
 const TIMESTAMP_KEY = 'vaultzet_cookie_consent_date';
 
 export default function CookieConsentBanner() {
+  const pathname = usePathname();
   const [isOpen, setIsOpen] = useState(false);
   const [showPreferences, setShowPreferences] = useState(false);
   const [analyticsAllowed, setAnalyticsAllowed] = useState(true);
@@ -99,11 +101,14 @@ export default function CookieConsentBanner() {
     return null;
   }
 
+  const isProductPage = pathname?.startsWith('/product/');
+  const bottomClass = isProductPage ? 'bottom-[140px] sm:bottom-6' : 'bottom-[76px] sm:bottom-6';
+
   return (
     <aside
       aria-label="Cookie consent banner"
       role="region"
-      className="fixed z-[60] bottom-[76px] sm:bottom-6 left-3 sm:left-6 right-3 sm:right-auto sm:max-w-md animate-in fade-in slide-in-from-bottom-5 duration-300"
+      className={`fixed z-[60] ${bottomClass} left-3 sm:left-6 right-3 sm:right-auto sm:max-w-md animate-in fade-in slide-in-from-bottom-5 duration-300`}
     >
       <div className="relative bg-slate-950/95 backdrop-blur-2xl border border-red-500/35 rounded-2xl sm:rounded-3xl p-4 sm:p-5 shadow-[0_25px_60px_rgba(0,0,0,0.85)] text-slate-100 space-y-3.5 max-h-[85vh] overflow-y-auto">
         {/* Red top highlight glow */}

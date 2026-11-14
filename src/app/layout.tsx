@@ -37,7 +37,7 @@ export async function generateMetadata(): Promise<Metadata> {
     metadataBase: new URL(SITE_URL),
     title: {
       default: `Reel Bundle Store Vaultzet | ${metrics.totalReelsFormatted} Viral Reels Bundles India`,
-      template: '%s | Reel Bundle Store Vaultzet',
+      template: '%s | Vaultzet',
     },
     description: `Vaultzet is India's #1 reel bundle store. Download ${metrics.totalReelsFormatted} viral ready-to-post vertical reels across ${metrics.bundleCount} bundles and ${metrics.categoryCount} niches for Instagram Reels, YouTube Shorts & Facebook. Zero watermarks, commercial & reseller rights, and instant Google Drive access.`,
     keywords: [
@@ -81,11 +81,20 @@ export async function generateMetadata(): Promise<Metadata> {
       siteName: 'Vaultzet - Reel Bundle Store',
       title: `Reel Bundle Store Vaultzet | ${metrics.totalReelsFormatted} Viral Reels Bundles India`,
       description: `Over ${metrics.totalReelsFormatted} vertical HD reels across ${metrics.categoryCount} niches with zero watermarks & full commercial rights. Instant Google Drive delivery.`,
+      images: [
+        {
+          url: `${SITE_URL}/og-banner.webp`,
+          width: 1200,
+          height: 630,
+          alt: 'Vaultzet Store - Viral Reels Bundles India',
+        },
+      ],
     },
     twitter: {
       card: 'summary_large_image',
       title: 'Vaultzet Store | Viral Reels Bundles – Instant Google Drive Access',
       description: `Grow faster on Instagram & YouTube Shorts with ${metrics.totalReelsFormatted} ready-to-post HD reels across ${metrics.bundleCount} bundles.`,
+      images: [`${SITE_URL}/og-banner.webp`],
     },
     appleWebApp: {
       capable: true,
@@ -166,6 +175,7 @@ export default function RootLayout({
         <link rel="dns-prefetch" href="https://www.googletagmanager.com" />
         <link rel="preconnect" href="https://connect.facebook.net" />
         <link rel="dns-prefetch" href="https://connect.facebook.net" />
+        <link rel="preload" as="image" href="/logo.webp" />
         <link
           rel="preload"
           as="image"

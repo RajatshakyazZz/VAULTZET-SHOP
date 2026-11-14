@@ -47,66 +47,12 @@ import SheruSampleReels from '@/components/sheru/SheruSampleReels';
 import SheruBonusSection from '@/components/sheru/SheruBonusSection';
 import SheruGrowthProofSection from '@/components/sheru/SheruGrowthProofSection';
 import SheruPageOrderBump from '@/components/sheru/SheruPageOrderBump';
+import { VERIFIED_REVIEWS, STORE_REVIEWS_COUNT, STORE_RATING } from '@/data/reviews';
+import { SUPPORTED_PAYMENT_METHODS } from '@/data/paymentMethods';
 
 interface ProductDetailClientProps {
   product: BundleProduct;
 }
-
-// Authentic creator reviews
-const CUSTOMER_REVIEWS = [
-  {
-    id: 'rev-1',
-    author: 'Aarav Mehta',
-    handle: '@aarav.creator',
-    role: 'Theme Page Creator',
-    rating: 5,
-    date: 'Yesterday',
-    verified: true,
-    title: 'Google Drive link instant mil gaya! 100% Worth it',
-    comment:
-      'Payment complete hote hi screen par Drive link open ho gaya aur email par bhi delivery copy aa gayi. Sare videos 1080p full HD vertical format me hain aur koi watermark nahi hai.',
-    helpful: 34,
-  },
-  {
-    id: 'rev-2',
-    author: 'Pooja Verma',
-    handle: '@pooja_digital',
-    role: 'Social Media Marketer',
-    rating: 5,
-    date: '3 days ago',
-    verified: true,
-    title: 'Roz 3 ghante editing ka time bacha liya',
-    comment:
-      'Instagram reels ke liye daily content plan banana difficult hota tha. Is bundle se agle 6 mahine ka content ready hai. Quality crisp hai aur format exactly 9:16 vertical shorts ke liye perfect hai.',
-    helpful: 28,
-  },
-  {
-    id: 'rev-3',
-    author: 'Rohan Joshi',
-    handle: '@rohan.growth',
-    role: 'Faceless Channel Operator',
-    rating: 5,
-    date: '5 days ago',
-    verified: true,
-    title: 'Viral reach 3x ho gayi pehle hi hafte me',
-    comment:
-      'Clips ke pehle 3 seconds me visual hooks bohot strong hain. Average view duration 85%+ aa raha hai. Folders Google Drive me bohot neatly categorized hain sub-topics me.',
-    helpful: 19,
-  },
-  {
-    id: 'rev-4',
-    author: 'Sneha Patel',
-    handle: '@sneha_content',
-    role: 'Lifestyle Creator',
-    rating: 5,
-    date: '1 week ago',
-    verified: true,
-    title: 'Safe UPI payment & Lifetime Drive access',
-    comment:
-      'Cashfree UPI se securely pay kiya aur turant Google Drive folder open ho gaya. Lifetime access mila hai, phone me 1-click download ho jata hai bina kisi watermark ke.',
-    helpful: 22,
-  },
-];
 
 export default function ProductDetailClient({ product }: ProductDetailClientProps) {
   const router = useRouter();
@@ -203,7 +149,7 @@ export default function ProductDetailClient({ product }: ProductDetailClientProp
   };
 
   return (
-    <div className="bg-slate-50 min-h-screen text-slate-900 pb-44 md:pb-16 antialiased">
+    <div className="bg-slate-50 min-h-screen text-slate-900 pb-56 sm:pb-60 md:pb-16 antialiased">
       {/* Top Container */}
       <div className="max-w-6xl mx-auto px-4 sm:px-6 pt-3 sm:pt-6 space-y-6 sm:space-y-10">
         
@@ -443,10 +389,16 @@ export default function ProductDetailClient({ product }: ProductDetailClientProp
                   </span>
                 </button>
 
-                <p className="text-center text-[11px] text-slate-500 font-medium flex items-center justify-center gap-1.5">
-                  <FolderOpen className="w-3.5 h-3.5 text-red-600 shrink-0" />
-                  <span>Drive link appears on screen immediately & is sent to your email.</span>
-                </p>
+                <div className="space-y-1.5 pt-1 text-center">
+                  <p className="text-[12px] text-slate-800 font-bold flex items-center justify-center gap-1.5">
+                    <Zap className="w-3.5 h-3.5 text-amber-500 fill-amber-500 shrink-0" />
+                    <span>UPI se payment karte hi, Google Drive link turant email &amp; screen par milta hai.</span>
+                  </p>
+                  <p className="text-[11px] text-slate-500 font-medium flex items-center justify-center gap-1.5">
+                    <ShieldCheck className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+                    <span>100% Safe Cashfree Checkout • Lifetime Access &amp; Zero Watermarks</span>
+                  </p>
+                </div>
 
                 {/* Indian UPI Payment Badges Strip */}
                 <div className="pt-2 border-t border-slate-100 space-y-1.5 text-center">
@@ -455,11 +407,11 @@ export default function ProductDetailClient({ product }: ProductDetailClientProp
                     <span>Instant UPI Checkout via Cashfree</span>
                   </div>
                   <div className="flex items-center justify-center gap-1.5 flex-wrap text-[11px] font-bold text-slate-600">
-                    <span className="px-2 py-0.5 rounded-md bg-slate-100 border border-slate-200">Google Pay</span>
-                    <span className="px-2 py-0.5 rounded-md bg-slate-100 border border-slate-200">PhonePe</span>
-                    <span className="px-2 py-0.5 rounded-md bg-slate-100 border border-slate-200">Paytm</span>
-                    <span className="px-2 py-0.5 rounded-md bg-slate-100 border border-slate-200">BHIM UPI</span>
-                    <span className="px-2 py-0.5 rounded-md bg-slate-100 border border-slate-200">Cards</span>
+                    {SUPPORTED_PAYMENT_METHODS.map((method) => (
+                      <span key={method} className="px-2 py-0.5 rounded-md bg-slate-100 border border-slate-200">
+                        {method}
+                      </span>
+                    ))}
                   </div>
                 </div>
 
@@ -704,14 +656,14 @@ export default function ProductDetailClient({ product }: ProductDetailClientProp
               </h2>
             </div>
             <div className="flex items-center gap-2 bg-slate-50 px-3 py-1.5 rounded-xl border border-slate-200/80 self-start sm:self-auto">
-              <span className="text-amber-500 font-black text-sm">★ 4.9 / 5</span>
+              <span className="text-amber-500 font-black text-sm">★ {STORE_RATING} / 5</span>
               <span className="text-slate-300">•</span>
-              <span className="text-xs text-slate-500 font-medium">200+ Verified Buyers</span>
+              <span className="text-xs text-slate-500 font-medium">{STORE_REVIEWS_COUNT}+ Verified Reviews</span>
             </div>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
-            {CUSTOMER_REVIEWS.map((rev) => {
+            {VERIFIED_REVIEWS.map((rev) => {
               const currentHelpful = rev.helpful + (helpfulMap[rev.id] || 0);
               return (
                 <div
@@ -892,6 +844,8 @@ export default function ProductDetailClient({ product }: ProductDetailClientProp
           </div>
         </section>
 
+        {/* Generous spacer for mobile so sticky bars never cover bottom content */}
+        <div className="h-16 md:hidden" aria-hidden="true" />
       </div>
 
       {/* MOBILE STICKY BOTTOM BAR (Locked Directly Above MobileBottomNav) */}
@@ -942,7 +896,7 @@ export default function ProductDetailClient({ product }: ProductDetailClientProp
               </span>
               <span className="bg-white px-1.5 py-0.5 rounded-lg inline-flex items-center shadow-xs shrink-0 overflow-hidden">
                 <img
-                  src="/cashfree-logo.png"
+                  src="/cashfree-logo.webp"
                   alt="Cashfree"
                   className="h-3.5 w-auto object-contain rounded-sm"
                 />

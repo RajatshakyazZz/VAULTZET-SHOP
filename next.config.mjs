@@ -59,6 +59,11 @@ const nextConfig = {
         statusCode: 301,
       },
       {
+        source: '/product/4500-billionaire-lifestyle-reels-bundle-luxury-wealth-success-lifestyle-videos',
+        destination: '/product/billionaire-lifestyle-reels-bundle',
+        statusCode: 301,
+      },
+      {
         source: '/terms',
         destination: '/terms-and-conditions',
         statusCode: 301,

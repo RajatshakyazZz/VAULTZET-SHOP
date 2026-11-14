@@ -7,6 +7,26 @@ export const metadata: Metadata = {
   alternates: {
     canonical: 'https://www.vaultzet.shop/privacy-policy',
   },
+  openGraph: {
+    title: 'Privacy Policy | Vaultzet',
+    description: 'Privacy Policy for Vaultzet Store. Learn how we handle your information securely.',
+    url: 'https://www.vaultzet.shop/privacy-policy',
+    type: 'website',
+    images: [
+      {
+        url: 'https://www.vaultzet.shop/og-banner.webp',
+        width: 1200,
+        height: 630,
+        alt: 'Vaultzet Privacy Policy',
+      },
+    ],
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Privacy Policy | Vaultzet',
+    description: 'Privacy Policy for Vaultzet Store. Learn how we handle your information securely.',
+    images: ['https://www.vaultzet.shop/og-banner.webp'],
+  },
 };
 
 export default function PrivacyPolicyPage() {
@@ -26,7 +46,7 @@ export default function PrivacyPolicyPage() {
           </p>
           <ul className="list-disc pl-5 space-y-2">
             <li><strong className="text-slate-800">Full Name:</strong> To address and identify your order.</li>
-            <li><strong className="text-slate-800">Email Address (@gmail.com):</strong> To provide instant access to the Google Drive digital files.</li>
+            <li><strong className="text-slate-800">Email Address:</strong> To provide instant access to the Google Drive digital files and send order updates.</li>
             <li><strong className="text-slate-800">Phone Number:</strong> For WhatsApp-based order confirmation and customer support.</li>
           </ul>
 

@@ -225,7 +225,9 @@ export default function ClaimOfferClient() {
           {/* Quick info chip */}
           <div className="text-xs text-slate-600 font-medium flex items-center gap-1.5 self-start md:self-auto">
             <Zap className="w-3.5 h-3.5 text-red-500 fill-red-500" />
-            <span>Showing {eligibleBundles.length} eligible store bundles</span>
+            <span>
+              Showing {searchQuery.trim() || selectedCategory !== 'all' ? `${eligibleBundles.length} of ` : ''}{allBundles.length} eligible bundles
+            </span>
           </div>
         </div>
 

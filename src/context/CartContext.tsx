@@ -178,6 +178,12 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     const price = Number(license === 'reseller' ? product.resellerPrice : product.personalPrice);
     const singleItem: CartItem = { product, license, price };
     setBuyNowItem(singleItem);
+    // Also ensure product is added to the cart items so customer sees it if they return to cart
+    setItems((prev) => {
+      const exists = prev.some((i) => i.product.id === product.id && i.license === license);
+      if (exists) return prev;
+      return [...prev, singleItem];
+    });
     if (typeof withOrderBump === 'boolean') {
       setOrderBumpAdded(withOrderBump);
       try {

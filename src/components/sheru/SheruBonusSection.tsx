@@ -52,7 +52,7 @@ export default function SheruBonusSection({
               {/* Bonus 1 Image */}
               <div className="relative rounded-2xl overflow-hidden bg-slate-900 border border-red-200 aspect-[4/3]">
                 <img
-                  src={bonusOne?.image || '/bonus-snake-ulti.png'}
+                  src={bonusOne?.image || '/bonus-snake-ulti.webp'}
                   alt={bonusOne?.title || '500+ Snake Ulti Duniya AI Reels Bundle'}
                   loading="lazy"
                   className="w-full h-full object-cover"
@@ -134,7 +134,7 @@ export default function SheruBonusSection({
               {/* Bonus 2 Image */}
               <div className="relative rounded-2xl overflow-hidden bg-slate-900 border border-rose-200 aspect-[4/3]">
                 <img
-                  src={bonusTwo?.image || '/bonus-stickman.png'}
+                  src={bonusTwo?.image || '/bonus-stickman.webp'}
                   alt={bonusTwo?.title || '2500+ Stickman Animation Reels Bundle'}
                   loading="lazy"
                   className="w-full h-full object-cover"

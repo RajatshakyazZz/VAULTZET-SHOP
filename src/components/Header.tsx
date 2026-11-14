@@ -162,10 +162,10 @@ export default function Header() {
               />
             </div>
             <div className="flex flex-col min-w-0">
-              <span className="font-black text-[15px] sm:text-[17px] text-slate-950 tracking-tight leading-tight truncate">
+              <span className="font-black text-[13px] sm:text-[17px] text-slate-950 tracking-tight leading-tight whitespace-nowrap">
                 {settings.storeName}
               </span>
-              <span className="text-[10px] sm:text-[12px] font-medium text-slate-500 tracking-tight truncate">
+              <span className="text-[9px] sm:text-[12px] font-medium text-slate-500 tracking-tight whitespace-nowrap">
                 {settings.tagline}
               </span>
             </div>

@@ -35,25 +35,45 @@ export async function generateMetadata({ params }: ProductPageProps): Promise<Me
   const siteUrl = (process.env.NEXT_PUBLIC_SITE_URL || 'https://www.vaultzet.shop').replace(/\/+$/, '');
   const canonicalUrl = `${siteUrl}/product/${product.slug}`;
 
-  // Unique <title>: "{Product Name}" (root layout template adds " | Reel Bundle Store Vaultzet" once)
-  const suffix = ' | Reel Bundle Store Vaultzet';
-  const availableLength = 65 - suffix.length;
-  const rawCleanName = product.title
+  // Unique <title>: Clean bundle name (max ~50 chars without cutting mid-word)
+  // Root layout template adds " | Vaultzet"
+  let cleanName = product.title
+    .replace(/\s*[–—]\s*.*$/, '') // Strip trailing subtitle after dash
     .replace(/\s*(bundle|reels bundle|pack)\s*$/i, '')
     .trim();
-  const cleanName =
-    rawCleanName.length > availableLength
-      ? `${rawCleanName.slice(0, availableLength - 1).trim()}…`
-      : rawCleanName;
-  const socialTitle = `${cleanName}${suffix}`;
 
-  // Unique meta description (140–158 chars) mentioning niche + price + "instant Google Drive delivery"
-  let description = `Buy ${product.title.slice(0, 32)} for ₹${product.personalPrice}. Get ${product.reelCount || 1000}+ viral ${product.category} reels with instant Google Drive delivery & commercial rights.`;
-  if (description.length < 140) {
-    description = `${description} Download HD vertical watermark-free MP4s today.`;
+  if (cleanName.length > 48) {
+    const slice = cleanName.slice(0, 48);
+    const lastSpace = slice.lastIndexOf(' ');
+    cleanName = lastSpace > 20 ? slice.slice(0, lastSpace).trim() : slice.trim();
   }
-  if (description.length > 158) {
-    description = `${description.slice(0, 155)}...`;
+  if (!/reels?\s*bundle/i.test(cleanName) && cleanName.length + 13 <= 50) {
+    cleanName = `${cleanName} Reels Bundle`;
+  }
+  const socialTitle = `${cleanName} | Vaultzet`;
+
+  // Dynamically resolve reel count: from product.reelCount or parsed from product.title
+  const parsedCount = product.title.match(/(\d[\d,]*)\s*\+?/);
+  const reelCount = product.reelCount || (parsedCount ? parseInt(parsedCount[1].replace(/,/g, ''), 10) : 1000);
+  const reelCountStr = `${reelCount}+`;
+  const price = product.personalPrice;
+
+  // Short bundle title for description (cut cleanly at word boundary)
+  let bundleShortName = product.title.replace(/\s*[–—]\s*.*$/, '').trim();
+  if (bundleShortName.length > 35) {
+    const slice = bundleShortName.slice(0, 35);
+    const lastSpace = slice.lastIndexOf(' ');
+    bundleShortName = lastSpace > 15 ? slice.slice(0, lastSpace).trim() : slice.trim();
+  }
+
+  // Concise meta description strictly <= 155 chars with clean word boundaries
+  let description = `Get ${bundleShortName} for ₹${price}. Includes ${reelCountStr} viral ${product.category} reels with instant Google Drive access, watermark-free HD MP4s & commercial rights.`;
+  if (description.length > 155) {
+    const trimmed = description.slice(0, 152);
+    const lastSpace = trimmed.lastIndexOf(' ');
+    description = `${(lastSpace > 100 ? trimmed.slice(0, lastSpace) : trimmed).trim()}...`;
+  } else if (description.length < 130) {
+    description = `${description} Download today.`;
   }
 
   const imageUrl = product.thumbnail || `${siteUrl}/icon.png`;
@@ -108,7 +128,7 @@ export default async function ProductDetailPage({ params }: ProductPageProps) {
     notFound();
   }
 
-  if (slug.toLowerCase().endsWith('-uploadq') && product.slug.toLowerCase() !== slug.toLowerCase()) {
+  if (product.slug.toLowerCase() !== slug.toLowerCase()) {
     permanentRedirect(`/product/${product.slug}`);
   }
 

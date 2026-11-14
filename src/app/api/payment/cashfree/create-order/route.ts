@@ -26,9 +26,10 @@ export async function POST(request: Request) {
       );
     }
 
-    if (!cleanEmail.endsWith('@gmail.com') || cleanEmail.slice(0, -10).length < 3) {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(cleanEmail) || cleanEmail.length < 5) {
       return NextResponse.json(
-        { success: false, error: 'Invalid Email! Only a valid @gmail.com address is accepted for Google Drive access.' },
+        { success: false, error: 'Invalid Email! Please enter a valid email address.' },
         { status: 400 }
       );
     }
