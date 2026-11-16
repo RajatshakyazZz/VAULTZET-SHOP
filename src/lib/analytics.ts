@@ -167,6 +167,29 @@ export function captureMetaAttributionParams(): void {
       } catch {}
     }
 
+    // Capture document referrer (if from external domain)
+    if (document.referrer && !document.referrer.includes(window.location.hostname)) {
+      try {
+        localStorage.setItem('vaultzet_referrer', document.referrer);
+        sessionStorage.setItem('vaultzet_referrer', document.referrer);
+        
+        // If arriving from Instagram/Google/Facebook without explicit UTMs, attribute to that referrer
+        const refLower = document.referrer.toLowerCase();
+        if (!params.get('utm_source')) {
+          if (refLower.includes('instagram.com') || refLower.includes('l.instagram.com')) {
+            localStorage.setItem('vaultzet_utm_source', 'instagram');
+            sessionStorage.setItem('vaultzet_utm_source', 'instagram');
+          } else if (refLower.includes('facebook.com') || refLower.includes('l.facebook.com')) {
+            localStorage.setItem('vaultzet_utm_source', 'facebook');
+            sessionStorage.setItem('vaultzet_utm_source', 'facebook');
+          } else if (refLower.includes('google.')) {
+            localStorage.setItem('vaultzet_utm_source', 'google_seo');
+            sessionStorage.setItem('vaultzet_utm_source', 'google_seo');
+          }
+        }
+      } catch {}
+    }
+
     // Capture UTM tracking parameters across site navigation & external payment browser shifts
     const utmKeys = ['utm_source', 'utm_medium', 'utm_campaign', 'utm_term', 'utm_content'];
     utmKeys.forEach((key) => {
@@ -175,25 +198,21 @@ export function captureMetaAttributionParams(): void {
         try {
           localStorage.setItem(`vaultzet_${key}`, val);
           sessionStorage.setItem(`vaultzet_${key}`, val);
+          localStorage.setItem(`vaultzet_${key}_ts`, String(Date.now()));
         } catch {}
       }
     });
-
-    // Capture document referrer (if from external domain)
-    if (document.referrer && !document.referrer.includes(window.location.hostname)) {
-      try {
-        localStorage.setItem('vaultzet_referrer', document.referrer);
-        sessionStorage.setItem('vaultzet_referrer', document.referrer);
-      } catch {}
-    }
 
     // Persist landing URL in both sessionStorage and persistent localStorage
     const currentUrl = window.location.href;
     if (!sessionStorage.getItem('vaultzet_landing_url')) {
       sessionStorage.setItem('vaultzet_landing_url', currentUrl);
     }
-    if (!localStorage.getItem('vaultzet_landing_url') || fbclid || params.get('utm_source')) {
+    // Update landing URL if explicit campaign, click ID, external referrer, or new session
+    const hasExternalRef = document.referrer && !document.referrer.includes(window.location.hostname);
+    if (!localStorage.getItem('vaultzet_landing_url') || fbclid || params.get('utm_source') || hasExternalRef) {
       localStorage.setItem('vaultzet_landing_url', currentUrl);
+      localStorage.setItem('vaultzet_landing_url_ts', String(Date.now()));
     }
   } catch {}
 }
@@ -238,6 +257,22 @@ export function getMetaAttributionData(): {
       sessionStorage.getItem('vaultzet_utm_source') ||
       localStorage.getItem('vaultzet_utm_source') ||
       undefined;
+
+    // Discard stale localStorage UTMs older than 48h unless present in current session
+    const utmTs = Number(localStorage.getItem('vaultzet_utm_source_ts') || 0);
+    if (utmTs > 0 && Date.now() - utmTs > 48 * 60 * 60 * 1000 && !sessionStorage.getItem('vaultzet_utm_source')) {
+      utmSource = undefined;
+    }
+
+    // If referrer is explicitly Instagram/Facebook, prefer referrer over stale external UTMs
+    if (referrer) {
+      const refLower = referrer.toLowerCase();
+      if (refLower.includes('instagram.com') && (!utmSource || utmSource === 'chatgpt.com')) {
+        utmSource = 'instagram';
+      } else if (refLower.includes('facebook.com') && (!utmSource || utmSource === 'chatgpt.com')) {
+        utmSource = 'facebook';
+      }
+    }
     utmMedium =
       sessionStorage.getItem('vaultzet_utm_medium') ||
       localStorage.getItem('vaultzet_utm_medium') ||
