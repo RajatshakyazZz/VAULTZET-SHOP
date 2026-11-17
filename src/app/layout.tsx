@@ -22,6 +22,7 @@ const GA4_ID = process.env.NEXT_PUBLIC_GA4_ID || 'G-7RMXL2RZ4J';
 const GSC_VERIFICATION = process.env.NEXT_PUBLIC_GSC_VERIFICATION || 'googlef90de30240e3b03b';
 const BING_VERIFICATION = process.env.NEXT_PUBLIC_BING_VERIFICATION || '';
 const META_PIXEL_ID = (process.env.NEXT_PUBLIC_META_PIXEL_ID || '1715650960276913').trim();
+const ADSENSE_CLIENT_ID = process.env.NEXT_PUBLIC_ADSENSE_CLIENT_ID || 'ca-pub-2595907489604979';
 
 export const viewport: Viewport = {
   width: 'device-width',
@@ -175,6 +176,11 @@ export default function RootLayout({
         <link rel="dns-prefetch" href="https://www.googletagmanager.com" />
         <link rel="preconnect" href="https://connect.facebook.net" />
         <link rel="dns-prefetch" href="https://connect.facebook.net" />
+        <link rel="preconnect" href="https://pagead2.googlesyndication.com" />
+        <link rel="dns-prefetch" href="https://pagead2.googlesyndication.com" />
+        {ADSENSE_CLIENT_ID && (
+          <meta name="google-adsense-account" content={ADSENSE_CLIENT_ID} />
+        )}
         <link rel="preload" as="image" href="/logo.webp" />
         <link
           rel="preload"
@@ -182,6 +188,13 @@ export default function RootLayout({
           href="/_next/image?url=https%3A%2F%2Freelsbundles.in%2Fwp-content%2Fuploads%2F2026%2F10%2F1500-mad-scientist-reels-bundle-4-2-1024x768.jpg&w=384&q=75"
           fetchPriority="high"
         />
+        {ADSENSE_CLIENT_ID && (
+          <script
+            async
+            src={`https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${ADSENSE_CLIENT_ID}`}
+            crossOrigin="anonymous"
+          />
+        )}
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
