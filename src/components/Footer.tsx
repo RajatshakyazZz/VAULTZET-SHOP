@@ -90,6 +90,7 @@ export default function Footer() {
   const quickLinks = [
     { label: 'Home', href: '/' },
     { label: 'All Bundles', href: '/shop' },
+    { label: 'Creator Blog & Guides', href: '/blog' },
     { label: 'Reels Feed', href: '/reels' },
     { label: 'Resell & Earn', href: '/earn' },
     { label: 'AI Reels', href: '/category/ai-reels' },

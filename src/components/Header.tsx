@@ -129,6 +129,7 @@ export default function Header() {
     { name: 'Shop', href: '/shop' },
     { name: '🎁 Offer', href: '/claim-offer' },
     { name: 'Reels Feed', href: '/reels' },
+    { name: 'Blog', href: '/blog' },
     { name: 'Resell & Earn', href: '/earn' },
     { name: 'My Orders', href: '/my-order' },
     { name: 'About Us', href: '/about-us' },

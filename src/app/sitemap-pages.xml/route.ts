@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { getPageLastmod } from '@/lib/sitemapDates';
+import { BLOG_POSTS } from '@/data/blogPosts';
 
 export const revalidate = 3600;
 
@@ -9,6 +10,7 @@ export async function GET() {
   const staticPages = [
     { path: '', key: '/', priority: '1.0', changefreq: 'daily' },
     { path: '/shop', key: '/shop', priority: '0.9', changefreq: 'daily' },
+    { path: '/blog', key: '/blog', priority: '0.9', changefreq: 'daily' },
     { path: '/reels', key: '/reels', priority: '0.9', changefreq: 'daily' },
     { path: '/about-us', key: '/about-us', priority: '0.6', changefreq: 'monthly' },
     { path: '/contact-us', key: '/contact-us', priority: '0.6', changefreq: 'monthly' },
@@ -19,20 +21,35 @@ export async function GET() {
     { path: '/terms-and-conditions', key: '/terms-and-conditions', priority: '0.4', changefreq: 'yearly' },
   ];
 
-  const urls = staticPages
-    .map(
+  const blogPages = BLOG_POSTS.map((p) => ({
+    path: `/blog/${p.slug}`,
+    lastmod: new Date(p.updatedAt || p.publishedAt).toISOString(),
+    priority: '0.8',
+    changefreq: 'weekly',
+  }));
+
+  const allUrls = [
+    ...staticPages.map(
       (p) => `  <url>
     <loc>${baseUrl}${p.path}</loc>
     <lastmod>${getPageLastmod(p.key)}</lastmod>
     <changefreq>${p.changefreq}</changefreq>
     <priority>${p.priority}</priority>
   </url>`
-    )
-    .join('\n');
+    ),
+    ...blogPages.map(
+      (p) => `  <url>
+    <loc>${baseUrl}${p.path}</loc>
+    <lastmod>${p.lastmod}</lastmod>
+    <changefreq>${p.changefreq}</changefreq>
+    <priority>${p.priority}</priority>
+  </url>`
+    ),
+  ].join('\n');
 
   const xml = `<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-${urls}
+${allUrls}
 </urlset>`;
 
   return new NextResponse(xml, {

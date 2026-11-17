@@ -152,6 +152,7 @@ function getBlameDatesBySlug(relPath, slugRegex) {
 const pageSources = {
   '/': ['src/app/page.tsx', 'src/components/Hero.tsx', 'src/components/ReelBundleStoreSEOSection.tsx'],
   '/shop': ['src/app/shop/page.tsx', 'src/app/shop/layout.tsx'],
+  '/blog': ['src/app/blog/page.tsx', 'src/data/blogPosts.ts'],
   '/reels': ['src/app/reels/page.tsx', 'src/app/reels/layout.tsx'],
   '/about-us': ['src/app/about-us/page.tsx'],
   '/contact-us': ['src/app/contact-us/page.tsx', 'src/app/contact-us/layout.tsx'],
