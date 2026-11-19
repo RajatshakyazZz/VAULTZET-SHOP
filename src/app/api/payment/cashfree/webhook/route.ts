@@ -6,6 +6,8 @@ import { sendSaleSuccessTelegramAlert } from '@/lib/telegram';
 import { sendMetaCapiPurchase } from '@/lib/metaCapi';
 import { sendGa4ServerPurchase } from '@/lib/ga4MeasurementProtocol';
 import { recordSaleEarning } from '@/lib/resellerService';
+import { resolveDriveFilesForProduct } from '@/lib/driveResolver';
+import { sendOrderDeliveryEmail } from '@/lib/orderEmailDelivery';
 
 export async function POST(request: Request) {
   try {
@@ -192,7 +194,58 @@ export async function POST(request: Request) {
         }
       }
 
-      // 3. Dispatch Telegram alert if not already notified
+      // 3. Dispatch automated bundle delivery email to customer
+      if (storedOrder?.email_delivery_status !== 'delivered' && storedOrder?.customer?.email) {
+        try {
+          const rawItems = storedOrder?.items && storedOrder.items.length > 0
+            ? [...storedOrder.items]
+            : [{ id: 'bundle', title: 'Viral Reels Bundle', license: 'personal' }];
+
+          if (storedOrder?.orderBump) {
+            const b = storedOrder.orderBump;
+            const bumpId = b.id || b.slug || '';
+            const bumpSlug = b.slug || (bumpId === 'order-bump-course' ? 'viral-reels-masterclass' : bumpId);
+            const bumpTitle = b.title || 'Bonus Reel Bundle';
+            if (!rawItems.some((it: any) => (bumpId && it.id === bumpId) || (bumpSlug && it.slug === bumpSlug))) {
+              rawItems.push({ id: bumpId, slug: bumpSlug, title: bumpTitle, license: 'personal' });
+            }
+          }
+
+          const verifiedItems = await Promise.all(
+            rawItems.map(async (it: any) => {
+              const resolved = await resolveDriveFilesForProduct(it);
+              return {
+                id: it.id,
+                title: it.title,
+                license: it.license || 'personal',
+                googleDriveLink: resolved.primaryLink,
+                files: resolved.files,
+              };
+            })
+          );
+
+          const emailRes = await sendOrderDeliveryEmail({
+            orderId,
+            customerName: storedOrder.customer.fullName || 'Valued Customer',
+            customerEmail: storedOrder.customer.email,
+            customerPhone: storedOrder.customer.phone,
+            totalAmount: Number(storedOrder.totalAmount || orderData.order_amount || 0),
+            items: verifiedItems,
+          });
+
+          if (emailRes.success && orderRef) {
+            await updateDoc(orderRef, {
+              email_delivery_status: 'delivered',
+              email_delivery_provider: emailRes.provider,
+              email_delivery_sent_at: new Date().toISOString(),
+            }).catch(() => {});
+          }
+        } catch (emailErr) {
+          console.error('[Cashfree Webhook] Error dispatching order delivery email:', emailErr);
+        }
+      }
+
+      // 4. Dispatch Telegram alert if not already notified
       if (!isAlreadyCompleted) {
         await sendSaleSuccessTelegramAlert({
           orderNumber: orderId,
