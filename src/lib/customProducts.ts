@@ -159,6 +159,15 @@ export function mapFirestoreDocToBundleProduct(data: any): BundleProduct {
       'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=600',
     galleryImages,
     previewVideoUrl: String(data.preview_video_url || data.previewVideoUrl || baseProd?.previewVideoUrl || '').trim(),
+    previewVideoUrls: Array.isArray(data.preview_video_urls) && data.preview_video_urls.length > 0
+      ? data.preview_video_urls.map(String).map((u: string) => u.trim()).filter(Boolean)
+      : typeof data.preview_video_urls === 'string' && data.preview_video_urls.trim()
+      ? data.preview_video_urls.split(/[\n,]+/).map((u: string) => u.trim()).filter(Boolean)
+      : typeof data.preview_video_url === 'string' && data.preview_video_url.includes('\n')
+      ? data.preview_video_url.split('\n').map((u: string) => u.trim()).filter(Boolean)
+      : baseProd?.previewVideoUrls || (baseProd?.previewVideoUrl ? [baseProd.previewVideoUrl] : []),
+    stockRemaining: Number(data.stock_remaining != null ? data.stock_remaining : data.stockRemaining != null ? data.stockRemaining : baseProd?.stockRemaining || 73),
+    stockTotal: Number(data.stock_total != null ? data.stock_total : data.stockTotal != null ? data.stockTotal : baseProd?.stockTotal || 100),
     tags,
     isHot: typeof data.is_hot === 'boolean' ? data.is_hot : Boolean(baseProd?.isHot),
     isTrending: typeof data.is_trending === 'boolean' ? data.is_trending : Boolean(baseProd?.isTrending),

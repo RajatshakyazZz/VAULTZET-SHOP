@@ -88,6 +88,25 @@ export function isSheruBhaiIdentifier(value?: string | null): boolean {
   );
 }
 
+export function isGta6Identifier(value?: string | null): boolean {
+  if (!value) return false;
+  const clean = String(value).trim().toLowerCase();
+  return (
+    clean === 'rb-2000-gta-6-viral-reels' ||
+    clean === '2000-gta-6-viral-reels-bundle' ||
+    clean === 'gta-6-reels-bundle' ||
+    clean === 'gta-6-viral-reels' ||
+    clean === '2000-gta-6-reels' ||
+    clean === 'gta-6' ||
+    clean === 'gta6' ||
+    clean === 'gta-vi' ||
+    clean === 'gta-vi-reels' ||
+    clean.includes('gta-6') ||
+    clean.includes('gta6') ||
+    clean.includes('gta-vi')
+  );
+}
+
 export function getOrderBumpForContext(
   items?: Array<{ product?: { id?: string; slug?: string } | null }> | null,
   buyNowItem?: { product?: { id?: string; slug?: string } | null } | null,
@@ -108,6 +127,95 @@ export function getOrderBumpForContext(
 }
 
 export const BUNDLE_PRODUCTS: BundleProduct[] = [
+  {
+    "id": "rb-2000-gta-6-viral-reels",
+    "slug": "2000-gta-6-viral-reels-bundle",
+    "aliases": [
+      "gta-6-reels-bundle",
+      "gta-6-viral-reels",
+      "2000-gta-6-reels",
+      "gta6",
+      "gta-6",
+      "gta-vi-reels",
+      "gta6-reels",
+      "gta-6-bundle"
+    ],
+    "title": "2000+ GTA 6 Viral Reels Bundle – Ready to Upload 4K No Watermark Videos",
+    "shortDescription": "2000+ GTA 6 Viral Reels Bundle: 2,000 ready to upload, 100% watermark-free, 4K Full HD 9:16 vertical clips. Vice City gameplay, Lucia & Jason cinematic cuts, supercar chases, heists & trending meme edits. Instant Google Drive lifetime access.",
+    "description": "2000+ GTA 6 Viral Reels Bundle – Ready to Upload 4K Vertical Video Clips (No Watermark)\n\n🔥 THE #1 BIGGEST TRENDING GAMING OPPORTUNITY OF 2026\nGTA 6 internet par sabse bada sensation hai! Millions of gamers, teens, aur casual viewers har roz GTA 6 ke clips aur Vice City visuals search kar rahe hain. Is bundle ke sath aap bina kisi video recording ya editing ke apne Instagram Reels, YouTube Shorts aur Facebook Pages ko viral bana sakte hain!\n\n🎮 What Makes This 2,000+ GTA 6 Bundle Special:\n• Exactly 2,000 Ready-to-Upload Vertical Reels (9:16 Ratio)\n• 100% Clean Without Any Watermark or Logo (Apna handle laga kar turant post karo)\n• Crystal Clear 4K & 1080P Ultra HD Quality (Maximum retention & algorithm boost)\n• Pre-synced Trending Audio, Bass-boosted BG Music & High-octane SFX\n• Organized in Categorized Folders (Vice City Supercars, Lucia & Jason Story, Cop Chases, Cinematic B-Roll, Meme Edits)\n• Instant High-Speed Lifetime Google Drive Download\n• Full Commercial & Reseller Rights Included (Monetize karo ya resell karke 100% profit rakho)\n\n⏳ Urgency Notice:\nSirf pehle 100 creators ke liye launch price ₹99 rakhi gayi hai. 73 copies already left hain! Jaise hi 100 copies poori hongi, price automatically ₹999 ho jayegi.\n\n⚡ Instant Automated Delivery:\nPayment karte hi Google Drive link screen par open hoga aur aapki email ID par bhi bhej diya jayega.",
+    "category": "Gaming & Trending Reels",
+    "categorySlug": "gaming-reels",
+    "reelCount": 2000,
+    "stockTotal": 100,
+    "stockRemaining": 73,
+    "personalPrice": 99,
+    "personalOriginalPrice": 999,
+    "resellerPrice": 199,
+    "resellerOriginalPrice": 1999,
+    "thumbnail": "/gta6-bundle-cover.webp",
+    "galleryImages": [
+      "/gta6-bundle-cover.webp",
+      "/gta6-mockup-1.webp"
+    ],
+    "previewVideoUrl": "https://drive.google.com/file/d/19OtwWku9JxAV2rz2jdNlaShWvFqw1cl6/preview",
+    "previewVideoUrls": [
+      "https://drive.google.com/file/d/19OtwWku9JxAV2rz2jdNlaShWvFqw1cl6/preview"
+    ],
+    "tags": [
+      "🔥 GTA 6 TRENDING",
+      "2000 REELS",
+      "NO WATERMARK",
+      "4K ULTRA HD",
+      "ONLY 73 LEFT"
+    ],
+    "isHot": true,
+    "isTrending": true,
+    "rating": 5,
+    "reviewCount": 443,
+    "resolution": "4K / 1080P Ultra HD",
+    "aspectRatio": "9:16 Vertical",
+    "format": "MP4",
+    "audioIncluded": true,
+    "googleDriveLink": "https://drive.google.com/drive/folders/1sr2POBi408SvcrkDbbuCnEskLFwz4HuK",
+    "files": [
+      {
+        "id": "file-gta6-pack",
+        "name": "2000+ GTA 6 Viral Reels Full Master Pack (Google Drive)",
+        "file_url": "https://drive.google.com/drive/folders/1sr2POBi408SvcrkDbbuCnEskLFwz4HuK"
+      },
+      {
+        "id": "file-gta6-bonus-audio",
+        "name": "FREE Bonus: 150+ Trending GTA 6 Trap & Synthwave Audio Tracks",
+        "file_url": "https://drive.google.com/drive/folders/1CksKkU1ERAuhD9hgBZNP7xP9g068mG-c?usp=sharing"
+      }
+    ],
+    "features": [
+      "2,000+ Ready-to-Upload 4K & 1080P Vertical Reels",
+      "100% Watermark-Free & Clean (No Logo / No Channel Watermark)",
+      "Vice City Supercars, Lucia & Jason Storylines & High-Speed Police Chases",
+      "Pre-synced Trending Background Music & Sound Effects",
+      "Organized Google Drive Folders (Instant 1-Click Lifetime Access)",
+      "Commercial & Resale Rights (100% Profit Rights)"
+    ],
+    "faqs": [
+      {
+        "question": "Kya in reels par koi watermark ya logo hai?",
+        "answer": "Nahi! Sabhi 2000 reels 100% clean aur watermark-free hain. Aap apna personal watermark ya handle laga kar turant Instagram, YouTube Shorts ya Facebook par post kar sakte hain."
+      },
+      {
+        "question": "Videos ki delivery kaise aur kab hogi?",
+        "answer": "Payment complete hote hi screen par direct Google Drive link generate ho jayega aur aapke diye gaye email par bhi turant confirmation ke sath Drive link bhej diya jayega."
+      },
+      {
+        "question": "GTA 6 reels se page kitni fast grow ho sakta hai?",
+        "answer": "GTA 6 abhi worldwide trending topic hai. Millions of organic search queries roz aati hain. Agar aap roz 2-3 clips consistent schedule (shaam 6-9 baje) post karenge to high retention ki wajah se algorithm videos ko push karega."
+      },
+      {
+        "question": "Stock me sirf 73 bundles kyu bache hain?",
+        "answer": "Market saturation rokne aur exclusive advantage maintain karne ke liye humne is batch me sirf 100 copies reserve ki hain, jisme se 27 copies already sell ho chuki hain aur sirf 73 left hain."
+      }
+    ]
+  },
   {
     "id": "rb-sheru-bhai-3000",
     "slug": "3000-sheru-bhai-mega-reel-bundle-pack",

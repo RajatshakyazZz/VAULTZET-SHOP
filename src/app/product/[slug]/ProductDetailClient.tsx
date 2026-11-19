@@ -42,11 +42,15 @@ import { getBundleContentDetails } from '@/lib/bundleContent';
 import { track } from '@/lib/analytics';
 import { fetchCustomProductBySlug } from '@/lib/customProducts';
 import FreeBundleOfferBanner from '@/components/FreeBundleOfferBanner';
-import { SHERU_ADDON_BUMPS, isSheruBhaiIdentifier } from '@/data/bundles';
+import { SHERU_ADDON_BUMPS, isSheruBhaiIdentifier, isGta6Identifier } from '@/data/bundles';
 import SheruSampleReels from '@/components/sheru/SheruSampleReels';
 import SheruBonusSection from '@/components/sheru/SheruBonusSection';
 import SheruGrowthProofSection from '@/components/sheru/SheruGrowthProofSection';
 import SheruPageOrderBump from '@/components/sheru/SheruPageOrderBump';
+import Gta6UrgencyBar from '@/components/gta6/Gta6UrgencyBar';
+import Gta6VideoPreviewSection from '@/components/gta6/Gta6VideoPreviewSection';
+import Gta6FeaturesSection from '@/components/gta6/Gta6FeaturesSection';
+import Gta6GrowthProofSection from '@/components/gta6/Gta6GrowthProofSection';
 import { VERIFIED_REVIEWS, STORE_REVIEWS_COUNT, STORE_RATING } from '@/data/reviews';
 import { SUPPORTED_PAYMENT_METHODS } from '@/data/paymentMethods';
 
@@ -92,6 +96,10 @@ export default function ProductDetailClient({ product }: ProductDetailClientProp
     isSheruBhaiIdentifier(currentProduct.slug) ||
     isSheruBhaiIdentifier(currentProduct.id);
 
+  const isGta6Page =
+    isGta6Identifier(currentProduct.slug) ||
+    isGta6Identifier(currentProduct.id);
+
   useEffect(() => {
     setCurrentProduct(product);
   }, [product]);
@@ -112,7 +120,7 @@ export default function ProductDetailClient({ product }: ProductDetailClientProp
 
   const p = currentProduct;
 
-  // Track GA4 view_item event once on product mount
+  // Track GA4 view_item event & Meta Pixel ViewContent
   useEffect(() => {
     if (p) {
       track('view_item', {
@@ -129,8 +137,19 @@ export default function ProductDetailClient({ product }: ProductDetailClientProp
           },
         ],
       });
+
+      if (typeof window !== 'undefined' && (window as any).fbq) {
+        (window as any).fbq('track', 'ViewContent', {
+          content_name: p.title,
+          content_category: p.category || 'Gaming Reels',
+          content_ids: [p.id, p.slug],
+          content_type: 'product',
+          value: Number(p.personalPrice),
+          currency: 'INR',
+        });
+      }
     }
-  }, [p?.id, p?.personalPrice]);
+  }, [p?.id, p?.personalPrice, p?.title, p?.slug, p?.category]);
 
   const activePrice = p.personalPrice;
   const originalPrice = p.personalOriginalPrice;
@@ -321,6 +340,16 @@ export default function ProductDetailClient({ product }: ProductDetailClientProp
                 )}
               </div>
 
+              {/* GTA 6 Urgency Bar */}
+              {isGta6Page && (
+                <Gta6UrgencyBar
+                  stockRemaining={p.stockRemaining ?? 73}
+                  stockTotal={p.stockTotal ?? 100}
+                  price={activePrice}
+                  onBuyClick={() => buyNow(p, 'personal')}
+                />
+              )}
+
               {/* Pricing Box */}
               <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200/70 flex items-center justify-between gap-3">
                 <div className="min-w-0">
@@ -333,7 +362,9 @@ export default function ProductDetailClient({ product }: ProductDetailClientProp
                     </span>
                   </div>
                   <p className="text-[11px] text-slate-500 font-medium mt-0.5">
-                    {isSheruPage
+                    {isGta6Page
+                      ? '🔥 Limited Launch Batch · Only 73 of 100 copies left at ₹99'
+                      : isSheruPage
                       ? 'One-time payment · Includes 2 Free Bonus Packs (6,000+ Reels)'
                       : 'One-time payment · Lifetime Google Drive access'}
                   </p>
@@ -492,6 +523,26 @@ export default function ProductDetailClient({ product }: ProductDetailClientProp
               onBuyClick={() =>
                 buyNow(p, 'personal', hasSheruBumps, selectedSheruBumpItems)
               }
+            />
+          </>
+        )}
+
+        {/* GTA 6 HIGH-CONVERTING LANDING SECTIONS: MULTI-VIDEO PREVIEWS + 2000 CLIPS BREAKDOWN + CREATOR PROOF */}
+        {isGta6Page && (
+          <>
+            <Gta6VideoPreviewSection
+              previewVideoUrl={p.previewVideoUrl}
+              previewVideoUrls={p.previewVideoUrls}
+              price={activePrice}
+              onBuyClick={() => buyNow(p, 'personal')}
+            />
+            <Gta6FeaturesSection
+              price={activePrice}
+              onBuyClick={() => buyNow(p, 'personal')}
+            />
+            <Gta6GrowthProofSection
+              price={activePrice}
+              onBuyClick={() => buyNow(p, 'personal')}
             />
           </>
         )}
@@ -890,7 +941,9 @@ export default function ProductDetailClient({ product }: ProductDetailClientProp
           <div className="flex flex-col shrink-0 min-w-0">
             <span className="text-[9px] font-bold text-rose-400 flex items-center gap-1">
               <span className="w-1.5 h-1.5 rounded-full bg-rose-500 animate-pulse" />
-              {isSheruPage && hasSheruBumps
+              {isGta6Page
+                ? `Only ${p.stockRemaining ?? 73} Left of 100`
+                : isSheruPage && hasSheruBumps
                 ? `+${selectedSheruBumps.length} Add-on${selectedSheruBumps.length > 1 ? 's' : ''} Added`
                 : 'Instant Access'}
             </span>

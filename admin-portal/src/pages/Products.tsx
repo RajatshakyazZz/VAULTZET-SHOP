@@ -332,7 +332,9 @@ export default function Products() {
       format: prod.format || 'MP4',
       resolution: prod.resolution || '1080P Full HD (9:16)',
       featured_image: prod.featured_image || '',
-      preview_video_url: prod.preview_video_url || '',
+      preview_video_url: Array.isArray(prod.preview_video_urls) && prod.preview_video_urls.length > 0
+        ? prod.preview_video_urls.join('\n')
+        : (prod.preview_video_url || ''),
       gallery_images_text: (prod.gallery_images || []).join('\n'),
       short_description: prod.short_description || '',
       description: prod.description || '',
@@ -436,6 +438,11 @@ export default function Products() {
       .map((s) => s.trim())
       .filter(Boolean);
 
+    const previewUrls = editForm.preview_video_url
+      .split(/[\n,]+/)
+      .map((s) => s.trim())
+      .filter(Boolean);
+
     const features = editForm.features_text
       .split('\n')
       .map((s) => s.trim())
@@ -476,6 +483,7 @@ export default function Products() {
       resolution: editForm.resolution.trim(),
       featured_image: editForm.featured_image.trim(),
       preview_video_url: editForm.preview_video_url.trim(),
+      preview_video_urls: previewUrls.length > 0 ? previewUrls : undefined,
       gallery_images: galleryImages,
       short_description: editForm.short_description.trim(),
       description: editForm.description.trim(),
@@ -602,6 +610,11 @@ export default function Products() {
       .map((s) => s.trim())
       .filter(Boolean);
 
+    const previewUrls = createForm.preview_video_url
+      .split(/[\n,]+/)
+      .map((s) => s.trim())
+      .filter(Boolean);
+
     const features = createForm.features_text
       .split('\n')
       .map((s) => s.trim())
@@ -643,6 +656,7 @@ export default function Products() {
         createForm.featured_image.trim() ||
         'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=600',
       preview_video_url: createForm.preview_video_url.trim(),
+      preview_video_urls: previewUrls.length > 0 ? previewUrls : undefined,
       gallery_images: galleryImages,
       short_description: createForm.short_description.trim(),
       description: createForm.description.trim(),
@@ -1560,19 +1574,22 @@ export default function Products() {
                   {/* Preview Video URL */}
                   <div>
                     <label className="block text-xs font-bold text-slate-300 mb-1.5 flex items-center justify-between">
-                      <span>Video Preview URL (YouTube Shorts, YouTube Video, or Direct MP4)</span>
-                      <span className="text-[10px] text-purple-400">Plays when buyer clicks "View Preview"</span>
+                      <span className="flex items-center gap-1.5">
+                        <Video className="w-3.5 h-3.5 text-rose-400" />
+                        <span>Video Preview URLs (Google Drive Link, YouTube Shorts, or MP4)</span>
+                      </span>
+                      <span className="text-[10px] text-purple-400 font-semibold">Multiple URLs allowed (1 per line)</span>
                     </label>
-                    <div className="flex items-center rounded-xl bg-slate-950 border border-slate-800 focus-within:border-purple-500 px-3 py-2.5">
-                      <Video className="w-4 h-4 text-rose-400 mr-2 shrink-0" />
-                      <input
-                        type="url"
-                        value={editForm.preview_video_url}
-                        onChange={(e) => setEditForm((prev) => ({ ...prev, preview_video_url: e.target.value }))}
-                        placeholder="https://www.youtube.com/shorts/... or https://domain.com/video.mp4"
-                        className="w-full bg-transparent text-xs text-white placeholder-slate-600 focus:outline-none"
-                      />
-                    </div>
+                    <textarea
+                      rows={3}
+                      value={editForm.preview_video_url}
+                      onChange={(e) => setEditForm((prev) => ({ ...prev, preview_video_url: e.target.value }))}
+                      placeholder="Paste Google Drive share links (e.g. https://drive.google.com/file/d/.../view) or YouTube Shorts.&#10;For multiple clips, paste each URL on a new line."
+                      className="w-full px-3.5 py-2.5 rounded-xl bg-slate-950 border border-slate-800 focus:border-purple-500 text-xs font-mono text-slate-200 focus:outline-none"
+                    />
+                    <p className="text-[10px] text-slate-400 mt-1">
+                      💡 Tip: Google Drive links will automatically convert into an embedded high-speed interactive preview stream on the store!
+                    </p>
                   </div>
 
                   {/* Gallery Images (One per line) */}
@@ -2355,19 +2372,22 @@ export default function Products() {
                   {/* Preview Video URL */}
                   <div>
                     <label className="block text-xs font-bold text-slate-300 mb-1.5 flex items-center justify-between">
-                      <span>Video Preview URL (YouTube Shorts, YouTube Video, or Direct MP4)</span>
-                      <span className="text-[10px] text-purple-400">Plays when buyer clicks "View Preview"</span>
+                      <span className="flex items-center gap-1.5">
+                        <Video className="w-3.5 h-3.5 text-rose-400" />
+                        <span>Video Preview URLs (Google Drive Link, YouTube Shorts, or MP4)</span>
+                      </span>
+                      <span className="text-[10px] text-purple-400 font-semibold">Multiple URLs allowed (1 per line)</span>
                     </label>
-                    <div className="flex items-center rounded-xl bg-slate-950 border border-slate-800 focus-within:border-purple-500 px-3 py-2.5">
-                      <Video className="w-4 h-4 text-rose-400 mr-2 shrink-0" />
-                      <input
-                        type="url"
-                        value={createForm.preview_video_url}
-                        onChange={(e) => setCreateForm((prev) => ({ ...prev, preview_video_url: e.target.value }))}
-                        placeholder="https://www.youtube.com/shorts/... or https://domain.com/video.mp4"
-                        className="w-full bg-transparent text-xs text-white placeholder-slate-600 focus:outline-none"
-                      />
-                    </div>
+                    <textarea
+                      rows={3}
+                      value={createForm.preview_video_url}
+                      onChange={(e) => setCreateForm((prev) => ({ ...prev, preview_video_url: e.target.value }))}
+                      placeholder="Paste Google Drive share links (e.g. https://drive.google.com/file/d/.../view) or YouTube Shorts.&#10;For multiple clips, paste each URL on a new line."
+                      className="w-full px-3.5 py-2.5 rounded-xl bg-slate-950 border border-slate-800 focus:border-purple-500 text-xs font-mono text-slate-200 focus:outline-none"
+                    />
+                    <p className="text-[10px] text-slate-400 mt-1">
+                      💡 Tip: Google Drive links will automatically convert into an embedded high-speed interactive preview stream on the store!
+                    </p>
                   </div>
 
                   {/* Gallery Images (One per line) */}
