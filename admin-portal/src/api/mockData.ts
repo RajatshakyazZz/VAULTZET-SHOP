@@ -49,8 +49,145 @@ export const initialSummary: DailySummary = {
   },
 };
 
-// All 131 full published products matching store catalog
+// All full published products matching store catalog
 export const initialProducts: Product[] = [
+  {
+    "id": "rb-2000-gta-6-viral-reels",
+    "name": "2000+ GTA 6 Viral Reels Bundle – Ready to Upload 4K No Watermark Videos",
+    "slug": "2000-gta-6-viral-reels-bundle",
+    "status": "publish",
+    "price": 99,
+    "regular_price": 999,
+    "sale_price": 99,
+    "reseller_price": 199,
+    "reseller_regular_price": 1999,
+    "stock_status": "instock",
+    "stock_remaining": 73,
+    "stock_total": 100,
+    "categories": [
+      "Gaming Reels",
+      "Trending Reels"
+    ],
+    "reel_count": 2000,
+    "format": "MP4",
+    "resolution": "4K / 1080P Ultra HD",
+    "featured_image": "/gta6-bundle-cover.webp",
+    "gallery_images": [
+      "/gta6-bundle-cover.webp",
+      "/gta6-mockup-1.webp"
+    ],
+    "preview_video_url": "https://drive.google.com/file/d/19OtwWku9JxAV2rz2jdNlaShWvFqw1cl6/preview",
+    "preview_video_urls": [
+      "https://drive.google.com/file/d/19OtwWku9JxAV2rz2jdNlaShWvFqw1cl6/preview"
+    ],
+    "google_drive_link": "https://drive.google.com/drive/folders/1sr2POBi408SvcrkDbbuCnEskLFwz4HuK",
+    "short_description": "2000+ GTA 6 Viral Reels Bundle: 2,000 ready to upload, 100% watermark-free, 4K Full HD 9:16 vertical clips. Vice City gameplay, Lucia & Jason cinematic cuts, supercar chases, heists & trending meme edits. Instant Google Drive lifetime access.",
+    "description": "2000+ GTA 6 Viral Reels Bundle – Ready to Upload 4K Vertical Video Clips (No Watermark)\n\n🔥 THE #1 BIGGEST TRENDING GAMING OPPORTUNITY OF 2026\nGTA 6 internet par sabse bada sensation hai! Millions of gamers, teens, aur casual viewers har roz GTA 6 ke clips aur Vice City visuals search kar rahe hain.",
+    "tags": [
+      "GTA 6",
+      "GTA VI",
+      "GTA6",
+      "2000 REELS",
+      "NO WATERMARK",
+      "HOT",
+      "VIRAL",
+      "HD",
+      "Google Drive"
+    ],
+    "is_hot": true,
+    "is_trending": true,
+    "rating": 5,
+    "review_count": 443,
+    "features": [
+      "2,000+ Ready-to-Upload 4K & 1080P Vertical Reels",
+      "100% Watermark-Free & Clean (No Logo / No Channel Watermark)",
+      "Vice City Supercars, Lucia & Jason Storylines & High-Speed Police Chases",
+      "Pre-synced Trending Background Music & Sound Effects",
+      "Organized Google Drive Folders (Instant 1-Click Lifetime Access)",
+      "Commercial & Resale Rights (100% Profit Rights)"
+    ],
+    "faqs": [
+      {
+        "question": "Kya in reels par koi watermark ya logo hai?",
+        "answer": "Nahi! Sabhi 2000 reels 100% clean aur watermark-free hain. Aap apna personal watermark ya handle laga kar turant Instagram, YouTube Shorts ya Facebook par post kar sakte hain."
+      },
+      {
+        "question": "Videos ki delivery kaise aur kab hogi?",
+        "answer": "Payment complete hote hi screen par direct Google Drive link generate ho jayega aur aapke diye gaye email par bhi turant confirmation ke sath Drive link bhej diya jayega."
+      }
+    ],
+    "downloadable": true,
+    "downloads_count": 27,
+    "files": [
+      {
+        "id": "file-gta6-pack",
+        "name": "2000+ GTA 6 Viral Reels Full Master Pack (Google Drive)",
+        "file_url": "https://drive.google.com/drive/folders/1sr2POBi408SvcrkDbbuCnEskLFwz4HuK"
+      },
+      {
+        "id": "file-gta6-bonus-audio",
+        "name": "FREE Bonus: 150+ Trending GTA 6 Trap & Synthwave Audio Tracks",
+        "file_url": "https://drive.google.com/drive/folders/1CksKkU1ERAuhD9hgBZNP7xP9g068mG-c?usp=sharing"
+      }
+    ],
+    "created_at": "2026-11-19T10:00:00.000Z"
+  },
+  {
+    "id": "rb-sheru-bhai-3000",
+    "name": "3000+ Sheru Bhai Mega Reel Bundle Pack – Viral Comedy & Funny Dialogue Videos",
+    "slug": "3000-sheru-bhai-mega-reel-bundle-pack",
+    "status": "publish",
+    "price": 99,
+    "regular_price": 999,
+    "sale_price": 99,
+    "reseller_price": 199,
+    "reseller_regular_price": 1499,
+    "stock_status": "instock",
+    "categories": [
+      "Comedy Reels",
+      "Trending Reels"
+    ],
+    "reel_count": 3000,
+    "format": "MP4",
+    "resolution": "1080P Full HD",
+    "featured_image": "/sheru-bhai-cover.png",
+    "gallery_images": [
+      "/sheru-bhai-cover.png"
+    ],
+    "preview_video_url": "https://drive.google.com/file/d/19OtwWku9JxAV2rz2jdNlaShWvFqw1cl6/view?usp=drivesdk",
+    "google_drive_link": "https://drive.google.com/drive/folders/1sr2POBi408SvcrkDbbuCnEskLFwz4HuK",
+    "short_description": "Sheru Bhai Mega Reel Bundle Pack: 3,000+ viral comedy reels, hilarious character dialogues, and high-retention funny clips. 100% watermark-free, 1080P Full HD 9:16 vertical MP4 format with pre-synced trending audio. Instant Google Drive lifetime download.",
+    "description": "3000+ Sheru Bhai Mega Reel Bundle Pack – Ready to Post Viral Comedy Reels",
+    "tags": [
+      "HOT",
+      "VIRAL",
+      "HD",
+      "Google Drive",
+      "Sheru Bhai"
+    ],
+    "is_hot": true,
+    "is_trending": true,
+    "rating": 5,
+    "review_count": 443,
+    "features": [
+      "3,000+ High Quality 1080P Full HD Reels (MP4 Format)",
+      "9:16 Vertical Screen Ratio (Perfect for Instagram, Shorts & FB)",
+      "100% Clean Without Any Watermarks or Logos",
+      "Pre-synced Trending Background Music & Funny Sound Effects",
+      "Instant Lifetime Google Drive Access",
+      "Commercial Rights Included"
+    ],
+    "downloadable": true,
+    "downloads_count": 150,
+    "files": [
+      {
+        "id": "file-1",
+        "name": "3000+ Sheru Bhai Mega Reel Bundle Pack",
+        "file_url": "https://drive.google.com/drive/folders/1sr2POBi408SvcrkDbbuCnEskLFwz4HuK"
+      }
+    ],
+    "created_at": "2026-11-18T10:00:00.000Z"
+  },
   {
     "id": "rb-1000-ulti-pulti-duniya-ulti-duniya-reverse-world-ai-reels-bundle",
     "name": "1000+ Ulti Pulti Duniya / Ulti Duniya / Reverse World AI Reels Bundle",

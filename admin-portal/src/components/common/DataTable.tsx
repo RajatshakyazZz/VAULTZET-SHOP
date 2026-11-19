@@ -39,11 +39,40 @@ export default function DataTable<T extends Record<string, any>>({
 
   // Filter
   const filteredData = useMemo(() => {
-    if (!searchTerm || !searchKey) return data;
+    if (!searchTerm) return data;
+    const term = searchTerm.toLowerCase().trim();
     return data.filter((item) => {
-      const val = item[searchKey];
-      if (val === undefined || val === null) return false;
-      return String(val).toLowerCase().includes(searchTerm.toLowerCase());
+      // 1. Direct searchKey accessor if present
+      if (searchKey) {
+        const val = item[searchKey];
+        if (val !== undefined && val !== null && String(val).toLowerCase().includes(term)) {
+          return true;
+        }
+      }
+      // 2. Comprehensive multi-field fallback search (name, title, slug, id, categories, tags)
+      const name = String(item.name || item.title || '').toLowerCase();
+      const slug = String(item.slug || '').toLowerCase();
+      const id = String(item.id || '').toLowerCase();
+      const cat = Array.isArray(item.categories)
+        ? item.categories.join(' ').toLowerCase()
+        : String(item.category || '').toLowerCase();
+      const tags = Array.isArray(item.tags)
+        ? item.tags.join(' ').toLowerCase()
+        : String(item.tags || '').toLowerCase();
+
+      // Normalize without dashes and spaces for terms like "gta6", "gta-6", "gta 6"
+      const normalizedTerm = term.replace(/[\s-_]+/g, '');
+      const normalizedName = name.replace(/[\s-_]+/g, '');
+      const normalizedSlug = slug.replace(/[\s-_]+/g, '');
+
+      return (
+        name.includes(term) ||
+        slug.includes(term) ||
+        id.includes(term) ||
+        cat.includes(term) ||
+        tags.includes(term) ||
+        (normalizedTerm && (normalizedName.includes(normalizedTerm) || normalizedSlug.includes(normalizedTerm)))
+      );
     });
   }, [data, searchTerm, searchKey]);
 

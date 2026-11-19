@@ -44,6 +44,7 @@ export default function Products() {
   // Filter states
   const [selectedCategoryFilter, setSelectedCategoryFilter] = useState<string>('all');
   const [categorySearch, setCategorySearch] = useState<string>('');
+  const [driveTabSearch, setDriveTabSearch] = useState<string>('');
 
   // ==========================================
   // 1. DATA QUERIES
@@ -688,6 +689,26 @@ export default function Products() {
     );
   }, [categories, categorySearch]);
 
+  // Filtered Products for Digital & Drive Tab
+  const filteredDriveProducts = useMemo(() => {
+    if (!driveTabSearch.trim()) return products;
+    const term = driveTabSearch.toLowerCase().trim();
+    const normalizedTerm = term.replace(/[\s-_]+/g, '');
+    return products.filter((p) => {
+      const name = String(p.name || '').toLowerCase();
+      const slug = String(p.slug || '').toLowerCase();
+      const id = String(p.id || '').toLowerCase();
+      const normalizedName = name.replace(/[\s-_]+/g, '');
+      const normalizedSlug = slug.replace(/[\s-_]+/g, '');
+      return (
+        name.includes(term) ||
+        slug.includes(term) ||
+        id.includes(term) ||
+        (normalizedTerm && (normalizedName.includes(normalizedTerm) || normalizedSlug.includes(normalizedTerm)))
+      );
+    });
+  }, [products, driveTabSearch]);
+
   // ==========================================
   // 7. TABLE COLUMNS
   // ==========================================
@@ -976,8 +997,20 @@ export default function Products() {
             </div>
           </div>
 
+          {/* Search Bar for Digital Files */}
+          <div className="relative max-w-sm w-full">
+            <input
+              type="text"
+              placeholder="Search by bundle name, GTA 6, slug..."
+              value={driveTabSearch}
+              onChange={(e) => setDriveTabSearch(e.target.value)}
+              className="w-full pl-9 pr-4 py-2 rounded-xl bg-slate-900 border border-slate-800 focus:border-purple-500 text-xs text-white placeholder-slate-500 focus:outline-none transition-colors"
+            />
+            <Search className="w-4 h-4 text-slate-500 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+          </div>
+
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {products.map((prod) => {
+            {filteredDriveProducts.map((prod) => {
               const driveLink = prod.google_drive_link || prod.files?.[0]?.file_url;
               const primaryFile = prod.files?.[0];
 

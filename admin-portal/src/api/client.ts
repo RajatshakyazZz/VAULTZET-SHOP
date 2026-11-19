@@ -307,7 +307,7 @@ class PortalApiClient {
               !localDeletedSlugs.has(String(p.id).toLowerCase()) &&
               (!p.slug || !localDeletedSlugs.has(p.slug.toLowerCase()))
           );
-          return [...combined, ...missing];
+          return [...missing, ...combined];
         } else {
           // Auto-seed initial clean products into Firestore
           for (const prod of initialProducts) {
@@ -1604,7 +1604,7 @@ class PortalApiClient {
               !dbIdSet.has(String(r.id)) &&
               !localDeletedReels.has(String(r.id).toLowerCase())
           );
-          return [...combined, ...missing];
+          return [...missing, ...combined];
         }
       } catch (e) {
         console.warn('Firestore reels fetch error:', e);
