@@ -27,40 +27,24 @@ export const HOT_GIRLS_ORDER_BUMP: OrderBumpItem = {
   reelCount: 10000,
 };
 
+export const GTA6_ORDER_BUMP: OrderBumpItem = {
+  id: 'rb-2000-gta-6-viral-reels',
+  slug: '2000-gta-6-viral-reels-bundle',
+  title: '2000+ GTA 6 Viral Reels Bundle – Ready to Upload 4K No Watermark Videos',
+  subtitle: 'Special Exclusive Add-On: Add 2,000+ viral GTA 6 & Vice City 4K clips at 90% instant discount!',
+  originalPrice: 999,
+  discountPrice: 99,
+  discountPercentage: 90,
+  thumbnail: '/gta6-bundle-cover.webp',
+  reelCount: 2000,
+};
+
 export const SHERU_ADDON_BUMPS: OrderBumpItem[] = [
-  {
-    id: 'rb-twisted-3200',
-    slug: '3200-ultimate-twisted-world-reel-bundle',
-    title: '3200+ Ultimate Twisted World Reel Bundle',
-    subtitle: 'Special Sheru Add-On: 3200+ viral fantasy creature & twisted world stories for just ₹60!',
-    originalPrice: 399,
-    discountPrice: 60,
-    discountPercentage: 85,
-    thumbnail: 'https://reelsbundles.in/wp-content/uploads/2026/10/3200-ultimate-twisted-world-reel-bundle-reels-bundle-1-2-768x576.png',
-    reelCount: 3200,
-  },
-  {
-    id: 'rb-1000-ulti-pulti-duniya-ulti-duniya-reverse-world-ai-reels-bundle',
-    slug: '1000-ulti-pulti-duniya-ulti-duniya-reverse-world-ai-reels-bundle',
-    title: '1000+ Ulti Pulti Duniya AI Reels Bundle',
-    subtitle: 'Special Sheru Add-On: 1000+ viral reverse world / ulti duniya AI reels for just ₹60!',
-    originalPrice: 499,
-    discountPrice: 60,
-    discountPercentage: 88,
-    thumbnail: 'https://reelsbundles.in/wp-content/uploads/2026/10/1000-ulti-pulti-duniya-ulti-duniya-reverse-world-ai-reels-bundle-2.png',
-    reelCount: 1000,
-  },
-  {
-    id: 'rb-upcoming-gym-animated',
-    slug: '1000-animated-gym-workout-reels-bundle',
-    title: '1000+ Animated Gym Workout Reels Bundle',
-    subtitle: 'Special Sheru Add-On: 1000+ viral animated fitness & gym motivation reels for just ₹60!',
-    originalPrice: 399,
-    discountPrice: 60,
-    discountPercentage: 85,
-    thumbnail: 'https://reelsbundles.in/wp-content/uploads/2026/10/animated_gym_reels_bundle-reels-bundle-7-2-1024x768.png',
-    reelCount: 1000,
-  },
+  GTA6_ORDER_BUMP,
+];
+
+export const GTA_ADDON_BUMPS: OrderBumpItem[] = [
+  ORDER_BUMP,
 ];
 
 export function getSheruBump(value?: string | null): OrderBumpItem | null {
@@ -70,9 +54,9 @@ export function getSheruBump(value?: string | null): OrderBumpItem | null {
     SHERU_ADDON_BUMPS.find(
       (b) => b.id.toLowerCase() === clean || b.slug?.toLowerCase() === clean
     ) ||
-    (clean.includes('twisted') ? SHERU_ADDON_BUMPS[0] : null) ||
-    (clean.includes('duniya') || clean.includes('reverse') ? SHERU_ADDON_BUMPS[1] : null) ||
-    (clean.includes('gym') ? SHERU_ADDON_BUMPS[2] : null) ||
+    (clean.includes('gta') ? GTA6_ORDER_BUMP : null) ||
+    (clean.includes('sheru') ? ORDER_BUMP : null) ||
+    SHERU_ADDON_BUMPS[0] ||
     null
   );
 }
@@ -99,11 +83,17 @@ export function isGta6Identifier(value?: string | null): boolean {
     clean === '2000-gta-6-reels' ||
     clean === 'gta-6' ||
     clean === 'gta6' ||
+    clean === 'gta-5' ||
+    clean === 'gta5' ||
+    clean === 'gta-v' ||
     clean === 'gta-vi' ||
     clean === 'gta-vi-reels' ||
+    clean === 'gta' ||
     clean.includes('gta-6') ||
     clean.includes('gta6') ||
-    clean.includes('gta-vi')
+    clean.includes('gta-5') ||
+    clean.includes('gta5') ||
+    clean.includes('gta')
   );
 }
 
@@ -123,7 +113,26 @@ export function getOrderBumpForContext(
           isSheruBhaiIdentifier(i?.product?.slug)
       ));
 
-  return isSheruContext ? SHERU_ADDON_BUMPS[0] : ORDER_BUMP;
+  const isGtaContext =
+    isGta6Identifier(explicitSlugOrId) ||
+    isGta6Identifier(buyNowItem?.product?.id) ||
+    isGta6Identifier(buyNowItem?.product?.slug) ||
+    (Array.isArray(items) &&
+      items.some(
+        (i) =>
+          isGta6Identifier(i?.product?.id) ||
+          isGta6Identifier(i?.product?.slug)
+      ));
+
+  if (isSheruContext) {
+    return GTA6_ORDER_BUMP;
+  }
+
+  if (isGtaContext) {
+    return ORDER_BUMP;
+  }
+
+  return ORDER_BUMP;
 }
 
 export const BUNDLE_PRODUCTS: BundleProduct[] = [

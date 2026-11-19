@@ -399,7 +399,9 @@ async function handleVerify(
       const bumpId = b.id || 'rb-sheru-bhai-3000';
       const bumpSlug =
         b.slug ||
-        (bumpId === 'rb-hot-girls-reels-bundle'
+        (bumpId === 'rb-2000-gta-6-viral-reels' || String(bumpId).toLowerCase().includes('gta')
+          ? '2000-gta-6-viral-reels-bundle'
+          : bumpId === 'rb-hot-girls-reels-bundle'
           ? 'hot-girls-reels-bundle'
           : bumpId === 'rb-twisted-3200'
           ? '3200-ultimate-twisted-world-reel-bundle'

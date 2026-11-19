@@ -16,7 +16,13 @@ export default function SheruPageOrderBump({
   basePrice = 99,
 }: SheruPageOrderBumpProps) {
   const selectedCount = selectedSlugs.length;
-  const bumpAddonsTotal = selectedCount * 60;
+  const selectedBumpItems = SHERU_ADDON_BUMPS.filter((b) =>
+    selectedSlugs.includes(b.slug || b.id)
+  );
+  const bumpAddonsTotal = selectedBumpItems.reduce(
+    (acc, b) => acc + (b.discountPrice || 99),
+    0
+  );
   const combinedTotal = basePrice + bumpAddonsTotal;
 
   return (
@@ -25,10 +31,10 @@ export default function SheruPageOrderBump({
       <div className="px-3.5 py-2 bg-gradient-to-r from-red-600 via-rose-600 to-red-600 text-white flex items-center justify-between gap-2">
         <span className="inline-flex items-center gap-1.5 text-[11px] sm:text-xs font-black tracking-wide truncate">
           <Flame className="w-4 h-4 shrink-0 fill-current text-amber-300 animate-pulse" />
-          <span className="truncate">EXCLUSIVE ONE-TIME ADD-ONS • ONLY ON THIS PAGE</span>
+          <span className="truncate">EXCLUSIVE ONE-TIME ADD-ON • SPECIAL LAUNCH OFFER</span>
         </span>
         <span className="px-2 py-0.5 rounded-full bg-white/20 backdrop-blur-xs text-[10px] sm:text-[11px] font-black shrink-0 tracking-wider">
-          ₹60 EACH (UP TO 88% OFF)
+          ₹99 SPECIAL ADD-ON (90% OFF)
         </span>
       </div>
 
@@ -36,7 +42,7 @@ export default function SheruPageOrderBump({
       <div className="px-3.5 sm:px-4 pt-2.5 pb-1 flex items-center justify-between text-[11px] text-slate-600 font-semibold border-b border-red-100">
         <span className="flex items-center gap-1 text-slate-800">
           <Sparkles className="w-3.5 h-3.5 text-red-600 shrink-0" />
-          <span>Add any of these viral packs to your Sheru Bhai order for just ₹60!</span>
+          <span>Add 2,000+ GTA 6 Viral Reels Bundle to your Sheru Bhai order for just ₹99!</span>
         </span>
         {selectedCount > 0 && (
           <span className="text-red-700 font-black text-[10px] sm:text-[11px] bg-red-100/80 px-2 py-0.5 rounded-md">
@@ -45,7 +51,7 @@ export default function SheruPageOrderBump({
         )}
       </div>
 
-      {/* List of 3 Bump Bundles */}
+      {/* List of Bump Bundles */}
       <div className="p-2.5 sm:p-3 space-y-2.5">
         {SHERU_ADDON_BUMPS.map((bump) => {
           const isSelected = selectedSlugs.includes(bump.slug || bump.id);
@@ -121,8 +127,8 @@ export default function SheruPageOrderBump({
                 <div className="mt-2 flex items-center justify-between text-[11px] font-bold">
                   <span className={isSelected ? 'text-red-700 font-extrabold' : 'text-slate-500'}>
                     {isSelected
-                      ? '✓ Added to your instant Drive delivery (+₹60)'
-                      : '+ Tap to add for ₹60'}
+                      ? `✓ Added to your instant Drive delivery (+₹${bump.discountPrice})`
+                      : `+ Tap to add for ₹${bump.discountPrice}`}
                   </span>
                   <span className="text-[10px] text-slate-400">
                     {bump.reelCount.toLocaleString('en-IN')}+ Videos
@@ -138,8 +144,8 @@ export default function SheruPageOrderBump({
       <div className="px-3.5 py-2.5 bg-slate-900 text-white flex items-center justify-between gap-2 text-xs">
         <span className="font-medium text-slate-300 text-[11px] sm:text-xs">
           {selectedCount > 0
-            ? `Includes Sheru Bhai + ${selectedCount} special add-on${selectedCount > 1 ? 's' : ''}`
-            : 'Tap any box above to include in your order for ₹60 each'}
+            ? `Includes Sheru Bhai + 2,000+ GTA 6 Reels Bundle`
+            : 'Tap box above to include 2000+ GTA 6 Reels in your order for ₹99'}
         </span>
         <span className="font-black text-white bg-red-600 px-2.5 py-1 rounded-lg text-xs sm:text-sm shrink-0 shadow-xs">
           Total: ₹{combinedTotal}.00

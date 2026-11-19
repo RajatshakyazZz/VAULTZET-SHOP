@@ -1204,7 +1204,7 @@ function CheckoutContent() {
                   {isSheruContext ? (
                     <div className="space-y-3">
                       <p className="text-xs font-bold text-slate-800">
-                        Special Sheru Add-On Bundles for just ₹60 each (Regular up to ₹499):
+                        Special Exclusive Add-On: Add 2,000+ GTA 6 Reels for just ₹99 (Regular ₹999):
                       </p>
                       <div className="space-y-2.5">
                         {SHERU_ADDON_BUMPS.map((bump) => {
@@ -1446,7 +1446,7 @@ function CheckoutContent() {
                                 {b.title}
                               </h4>
                               <span className="text-[10px] font-bold text-red-800 bg-red-200 px-1.5 py-0.5 rounded">
-                                Sheru Add-On (₹60)
+                                Add-On (+₹{b.discountPrice})
                               </span>
                             </div>
                             <div className="text-right shrink-0">

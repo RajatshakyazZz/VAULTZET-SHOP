@@ -42,11 +42,12 @@ import { getBundleContentDetails } from '@/lib/bundleContent';
 import { track } from '@/lib/analytics';
 import { fetchCustomProductBySlug } from '@/lib/customProducts';
 import FreeBundleOfferBanner from '@/components/FreeBundleOfferBanner';
-import { SHERU_ADDON_BUMPS, isSheruBhaiIdentifier, isGta6Identifier } from '@/data/bundles';
+import { SHERU_ADDON_BUMPS, GTA_ADDON_BUMPS, isSheruBhaiIdentifier, isGta6Identifier } from '@/data/bundles';
 import SheruSampleReels from '@/components/sheru/SheruSampleReels';
 import SheruBonusSection from '@/components/sheru/SheruBonusSection';
 import SheruGrowthProofSection from '@/components/sheru/SheruGrowthProofSection';
 import SheruPageOrderBump from '@/components/sheru/SheruPageOrderBump';
+import GtaPageOrderBump from '@/components/gta6/GtaPageOrderBump';
 import Gta6UrgencyBar from '@/components/gta6/Gta6UrgencyBar';
 import Gta6VideoPreviewSection from '@/components/gta6/Gta6VideoPreviewSection';
 import Gta6FeaturesSection from '@/components/gta6/Gta6FeaturesSection';
@@ -69,29 +70,6 @@ export default function ProductDetailClient({ product }: ProductDetailClientProp
   const [isDescExpanded, setIsDescExpanded] = useState(false);
   const [openFaqIndex, setOpenFaqIndex] = useState<number | null>(0);
   const [helpfulMap, setHelpfulMap] = useState<Record<string, number>>({});
-  const [selectedSheruBumps, setSelectedSheruBumps] = useState<string[]>([]);
-
-  const selectedSheruBumpItems = SHERU_ADDON_BUMPS.filter((b) =>
-    selectedSheruBumps.includes(b.slug || b.id)
-  );
-  const sheruBumpsTotal = selectedSheruBumpItems.reduce(
-    (sum, b) => sum + (b.discountPrice || 60),
-    0
-  );
-  const sheruBumpsOriginalTotal = selectedSheruBumpItems.reduce(
-    (sum, b) => sum + (b.originalPrice || 399),
-    0
-  );
-  const hasSheruBumps = selectedSheruBumpItems.length > 0;
-
-  const handleToggleSheruBump = (slugOrId: string) => {
-    setSelectedSheruBumps((prev) =>
-      prev.includes(slugOrId)
-        ? prev.filter((s) => s !== slugOrId)
-        : [...prev, slugOrId]
-    );
-  };
-
   const isSheruPage =
     isSheruBhaiIdentifier(currentProduct.slug) ||
     isSheruBhaiIdentifier(currentProduct.id);
@@ -99,6 +77,35 @@ export default function ProductDetailClient({ product }: ProductDetailClientProp
   const isGta6Page =
     isGta6Identifier(currentProduct.slug) ||
     isGta6Identifier(currentProduct.id);
+
+  const availableBumps = isSheruPage
+    ? SHERU_ADDON_BUMPS
+    : isGta6Page
+    ? GTA_ADDON_BUMPS
+    : [];
+
+  const [selectedBumps, setSelectedBumps] = useState<string[]>([]);
+
+  const selectedBumpItems = availableBumps.filter((b) =>
+    selectedBumps.includes(b.slug || b.id)
+  );
+  const pageBumpsTotal = selectedBumpItems.reduce(
+    (sum, b) => sum + (b.discountPrice || 99),
+    0
+  );
+  const pageBumpsOriginalTotal = selectedBumpItems.reduce(
+    (sum, b) => sum + (b.originalPrice || 999),
+    0
+  );
+  const hasPageBumps = selectedBumpItems.length > 0;
+
+  const handleToggleBump = (slugOrId: string) => {
+    setSelectedBumps((prev) =>
+      prev.includes(slugOrId)
+        ? prev.filter((s) => s !== slugOrId)
+        : [...prev, slugOrId]
+    );
+  };
 
   useEffect(() => {
     setCurrentProduct(product);
@@ -416,8 +423,17 @@ export default function ProductDetailClient({ product }: ProductDetailClientProp
               {/* Sheru Exclusive Page Order Bump */}
               {isSheruPage && (
                 <SheruPageOrderBump
-                  selectedSlugs={selectedSheruBumps}
-                  onToggle={handleToggleSheruBump}
+                  selectedSlugs={selectedBumps}
+                  onToggle={handleToggleBump}
+                  basePrice={activePrice}
+                />
+              )}
+
+              {/* GTA 6 Exclusive Page Order Bump (Vice City Neon Theme) */}
+              {isGta6Page && (
+                <GtaPageOrderBump
+                  selectedSlugs={selectedBumps}
+                  onToggle={handleToggleBump}
                   basePrice={activePrice}
                 />
               )}
@@ -430,8 +446,8 @@ export default function ProductDetailClient({ product }: ProductDetailClientProp
                     buyNow(
                       p,
                       'personal',
-                      isSheruPage ? hasSheruBumps : false,
-                      isSheruPage ? selectedSheruBumpItems : undefined
+                      hasPageBumps,
+                      hasPageBumps ? selectedBumpItems : undefined
                     )
                   }
                   className="w-full py-4 px-6 rounded-2xl bg-gradient-to-r from-red-600 via-rose-600 to-red-600 hover:from-red-700 hover:to-rose-700 text-white font-black text-base shadow-lg shadow-red-500/25 hover:scale-[1.01] active:scale-[0.98] transition-all flex items-center justify-center gap-2 cursor-pointer"
@@ -439,8 +455,8 @@ export default function ProductDetailClient({ product }: ProductDetailClientProp
                   <Zap className="w-4 h-4 fill-white" />
                   <span>
                     Buy Now — ₹
-                    {isSheruPage && hasSheruBumps
-                      ? activePrice + sheruBumpsTotal
+                    {hasPageBumps
+                      ? activePrice + pageBumpsTotal
                       : activePrice}
                     .00 (Instant Access)
                   </span>
@@ -508,20 +524,20 @@ export default function ProductDetailClient({ product }: ProductDetailClientProp
             <SheruSampleReels
               price={activePrice}
               onBuyClick={() =>
-                buyNow(p, 'personal', hasSheruBumps, selectedSheruBumpItems)
+                buyNow(p, 'personal', hasPageBumps, selectedBumpItems)
               }
             />
             <SheruBonusSection
               price={activePrice}
               onBuyClick={() =>
-                buyNow(p, 'personal', hasSheruBumps, selectedSheruBumpItems)
+                buyNow(p, 'personal', hasPageBumps, selectedBumpItems)
               }
             />
             <SheruGrowthProofSection
               slug={p.slug}
               price={activePrice}
               onBuyClick={() =>
-                buyNow(p, 'personal', hasSheruBumps, selectedSheruBumpItems)
+                buyNow(p, 'personal', hasPageBumps, selectedBumpItems)
               }
             />
           </>
@@ -534,15 +550,21 @@ export default function ProductDetailClient({ product }: ProductDetailClientProp
               previewVideoUrl={p.previewVideoUrl}
               previewVideoUrls={p.previewVideoUrls}
               price={activePrice}
-              onBuyClick={() => buyNow(p, 'personal')}
+              onBuyClick={() =>
+                buyNow(p, 'personal', hasPageBumps, selectedBumpItems)
+              }
             />
             <Gta6FeaturesSection
               price={activePrice}
-              onBuyClick={() => buyNow(p, 'personal')}
+              onBuyClick={() =>
+                buyNow(p, 'personal', hasPageBumps, selectedBumpItems)
+              }
             />
             <Gta6GrowthProofSection
               price={activePrice}
-              onBuyClick={() => buyNow(p, 'personal')}
+              onBuyClick={() =>
+                buyNow(p, 'personal', hasPageBumps, selectedBumpItems)
+              }
             />
           </>
         )}
@@ -941,24 +963,24 @@ export default function ProductDetailClient({ product }: ProductDetailClientProp
           <div className="flex flex-col shrink-0 min-w-0">
             <span className="text-[9px] font-bold text-rose-400 flex items-center gap-1">
               <span className="w-1.5 h-1.5 rounded-full bg-rose-500 animate-pulse" />
-              {isGta6Page
+              {hasPageBumps
+                ? `+${selectedBumpItems.length} Add-on${selectedBumpItems.length > 1 ? 's' : ''} Added`
+                : isGta6Page
                 ? `Only ${p.stockRemaining ?? 73} Left of 100`
-                : isSheruPage && hasSheruBumps
-                ? `+${selectedSheruBumps.length} Add-on${selectedSheruBumps.length > 1 ? 's' : ''} Added`
                 : 'Instant Access'}
             </span>
             <div className="flex items-baseline gap-1.5 mt-0.5">
               <span className="text-lg sm:text-xl font-black text-white whitespace-nowrap">
                 ₹
-                {isSheruPage && hasSheruBumps
-                  ? activePrice + sheruBumpsTotal
+                {hasPageBumps
+                  ? activePrice + pageBumpsTotal
                   : activePrice}
                 .00
               </span>
               <span className="text-[11px] sm:text-xs text-slate-400 line-through font-semibold whitespace-nowrap">
                 ₹
-                {isSheruPage && hasSheruBumps
-                  ? originalPrice + sheruBumpsOriginalTotal
+                {hasPageBumps
+                  ? originalPrice + pageBumpsOriginalTotal
                   : originalPrice}
                 .00
               </span>
@@ -973,8 +995,8 @@ export default function ProductDetailClient({ product }: ProductDetailClientProp
                 buyNow(
                   p,
                   'personal',
-                  isSheruPage ? hasSheruBumps : false,
-                  isSheruPage ? selectedSheruBumpItems : undefined
+                  hasPageBumps,
+                  hasPageBumps ? selectedBumpItems : undefined
                 )
               }
               className="w-full py-2.5 px-3 rounded-xl bg-gradient-to-r from-red-600 via-rose-600 to-red-600 hover:from-red-700 hover:to-rose-700 text-white font-black text-xs sm:text-sm shadow-md shadow-red-500/25 active:scale-95 transition-all flex items-center justify-center gap-1.5 cursor-pointer"
@@ -982,8 +1004,8 @@ export default function ProductDetailClient({ product }: ProductDetailClientProp
               <Zap className="w-3.5 h-3.5 fill-white shrink-0" />
               <span className="whitespace-nowrap">
                 Buy Now — ₹
-                {isSheruPage && hasSheruBumps
-                  ? activePrice + sheruBumpsTotal
+                {hasPageBumps
+                  ? activePrice + pageBumpsTotal
                   : activePrice}
               </span>
               <span className="bg-white px-1.5 py-0.5 rounded-lg inline-flex items-center shadow-xs shrink-0 overflow-hidden">
