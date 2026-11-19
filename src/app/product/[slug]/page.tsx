@@ -1,6 +1,6 @@
 import { Metadata } from 'next';
 import { notFound, permanentRedirect } from 'next/navigation';
-import { BUNDLE_PRODUCTS } from '@/data/bundles';
+import { BUNDLE_PRODUCTS, isGta6Identifier } from '@/data/bundles';
 import { resolveBundleSlug } from '@/lib/bundleResolver';
 import { fetchCustomProductBySlug } from '@/lib/customProducts';
 import { getBundleContentDetails } from '@/lib/bundleContent';
@@ -34,6 +34,69 @@ export async function generateMetadata({ params }: ProductPageProps): Promise<Me
 
   const siteUrl = (process.env.NEXT_PUBLIC_SITE_URL || 'https://www.vaultzet.shop').replace(/\/+$/, '');
   const canonicalUrl = `${siteUrl}/product/${product.slug}`;
+  const isGta6 = isGta6Identifier(product.slug) || isGta6Identifier(slug);
+
+  // High-Intent SEO Metadata tailored for Indian creators when GTA 6 bundle is viewed
+  if (isGta6) {
+    const gtaTitle = '2000+ GTA 6 Viral Reels Bundle (4K No Watermark) – Gaming Reels India';
+    const gtaDesc = 'Download 2000+ viral GTA 6 Reels & Shorts for Instagram & YouTube India. 100% watermark-free, 4K Vice City clips, instant Google Drive link & resell rights @ ₹99.';
+    const gtaKeywords = [
+      'gta 6 reels bundle download india',
+      'gta 6 viral reels no watermark',
+      'gta 6 shorts download for youtube india',
+      'gta 6 reels google drive link',
+      'gaming reels bundle india buy online upi',
+      'gta 6 vice city reels 4k vertical',
+      'faceless gaming reels pack india',
+      'ready to post gta 6 videos 9:16',
+      'lucia and jason gta 6 gameplay clips',
+      'instagram gaming reels monetization india',
+      'gta 6 meme edits reels pack',
+      'vaultzet gta 6 bundle'
+    ];
+
+    return {
+      title: gtaTitle,
+      description: gtaDesc,
+      keywords: gtaKeywords,
+      alternates: {
+        canonical: canonicalUrl,
+      },
+      openGraph: {
+        type: 'website',
+        url: canonicalUrl,
+        title: `${gtaTitle} | Vaultzet`,
+        description: gtaDesc,
+        siteName: 'Vaultzet Store',
+        locale: 'en_IN',
+        images: [
+          {
+            url: `${siteUrl}/gta6-bundle-cover.webp`,
+            width: 1200,
+            height: 630,
+            alt: '2000+ GTA 6 Viral Reels Bundle 4K No Watermark India',
+          },
+        ],
+      },
+      twitter: {
+        card: 'summary_large_image',
+        title: `${gtaTitle} | Vaultzet`,
+        description: gtaDesc,
+        images: [`${siteUrl}/gta6-bundle-cover.webp`],
+      },
+      robots: {
+        index: true,
+        follow: true,
+        googleBot: {
+          index: true,
+          follow: true,
+          'max-video-preview': -1,
+          'max-image-preview': 'large',
+          'max-snippet': -1,
+        },
+      },
+    };
+  }
 
   // Unique <title>: Clean bundle name (max ~50 chars without cutting mid-word)
   // Root layout template adds " | Vaultzet"
@@ -230,6 +293,30 @@ export default async function ProductDetailPage({ params }: ProductPageProps) {
         }
       : null;
 
+  const isProductGta6 = isGta6Identifier(product.slug) || isGta6Identifier(slug);
+
+  const videoJsonLd = isProductGta6
+    ? {
+        '@context': 'https://schema.org',
+        '@type': 'VideoObject',
+        name: '2000+ GTA 6 Viral Reels Bundle Preview Clips (No Watermark 4K)',
+        description: 'Watch sample 4K watermark-free GTA 6 viral reels and Vice City gameplay clips included in the master bundle pack for Indian creators.',
+        thumbnailUrl: [`${siteUrl}/gta6-bundle-cover.webp`],
+        uploadDate: '2026-11-19T00:00:00+05:30',
+        contentUrl: 'https://drive.google.com/file/d/19OtwWku9JxAV2rz2jdNlaShWvFqw1cl6/preview',
+        embedUrl: 'https://drive.google.com/file/d/19OtwWku9JxAV2rz2jdNlaShWvFqw1cl6/preview',
+        duration: 'PT0M45S',
+        publisher: {
+          '@type': 'Organization',
+          name: 'Vaultzet',
+          logo: {
+            '@type': 'ImageObject',
+            url: `${siteUrl}/logo.webp`,
+          },
+        },
+      }
+    : null;
+
   return (
     <>
       {/* Server-Injected JSON-LD Structured Data */}
@@ -245,6 +332,12 @@ export default async function ProductDetailPage({ params }: ProductPageProps) {
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd) }}
+        />
+      )}
+      {videoJsonLd && (
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(videoJsonLd) }}
         />
       )}
 

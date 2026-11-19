@@ -52,6 +52,7 @@ import Gta6UrgencyBar from '@/components/gta6/Gta6UrgencyBar';
 import Gta6VideoPreviewSection from '@/components/gta6/Gta6VideoPreviewSection';
 import Gta6FeaturesSection from '@/components/gta6/Gta6FeaturesSection';
 import Gta6GrowthProofSection from '@/components/gta6/Gta6GrowthProofSection';
+import Gta6SeoGuideSection from '@/components/gta6/Gta6SeoGuideSection';
 import { VERIFIED_REVIEWS, STORE_REVIEWS_COUNT, STORE_RATING } from '@/data/reviews';
 import { SUPPORTED_PAYMENT_METHODS } from '@/data/paymentMethods';
 
@@ -561,6 +562,12 @@ export default function ProductDetailClient({ product }: ProductDetailClientProp
               }
             />
             <Gta6GrowthProofSection
+              price={activePrice}
+              onBuyClick={() =>
+                buyNow(p, 'personal', hasPageBumps, selectedBumpItems)
+              }
+            />
+            <Gta6SeoGuideSection
               price={activePrice}
               onBuyClick={() =>
                 buyNow(p, 'personal', hasPageBumps, selectedBumpItems)

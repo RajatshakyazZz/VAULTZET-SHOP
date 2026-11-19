@@ -208,20 +208,28 @@ export const BUNDLE_PRODUCTS: BundleProduct[] = [
     ],
     "faqs": [
       {
-        "question": "Kya in reels par koi watermark ya logo hai?",
-        "answer": "Nahi! Sabhi 2000 reels 100% clean aur watermark-free hain. Aap apna personal watermark ya handle laga kar turant Instagram, YouTube Shorts ya Facebook par post kar sakte hain."
+        "question": "Kya in reels par koi watermark ya copyright claim aayega?",
+        "answer": "Nahi! Sabhi 2,000 reels 100% clean, bina kisi logo ya watermark ke aati hain aur inme commercial rights included hain. Aap apna personal watermark ya handle laga kar bina kisi copyright strike ke Instagram Reels, YouTube Shorts aur Facebook par post kar sakte hain."
       },
       {
-        "question": "Videos ki delivery kaise aur kab hogi?",
-        "answer": "Payment complete hote hi screen par direct Google Drive link generate ho jayega aur aapke diye gaye email par bhi turant confirmation ke sath Drive link bhej diya jayega."
+        "question": "Indian gaming creators ke liye GTA 6 reels post karne ka best time (IST) kya hai?",
+        "answer": "Indian audience ke liye peak engagement time shaam 6:00 PM se 9:30 PM (IST) aur weekend dopahar 1:00 PM – 4:00 PM hota hai. Roz 2-3 clips consistent schedule par post karne se algorithm aapke page ko rapidly explore aur shorts feed me push karta hai."
       },
       {
-        "question": "GTA 6 reels se page kitni fast grow ho sakta hai?",
-        "answer": "GTA 6 abhi worldwide trending topic hai. Millions of organic search queries roz aati hain. Agar aap roz 2-3 clips consistent schedule (shaam 6-9 baje) post karenge to high retention ki wajah se algorithm videos ko push karega."
+        "question": "Kya mujhe in reels ko edit karne ke liye kisi heavy PC ya software ki zaroorat hai?",
+        "answer": "Bilkul nahi! Sabhi clips standard vertical 9:16 4K & 1080P MP4 format me hain. Aap directly apne mobile phone (CapCut, VN Editor, InShot ya Instagram editor) se apna handle ya logo add karke turant upload kar sakte hain."
       },
       {
-        "question": "Stock me sirf 73 bundles kyu bache hain?",
-        "answer": "Market saturation rokne aur exclusive advantage maintain karne ke liye humne is batch me sirf 100 copies reserve ki hain, jisme se 27 copies already sell ho chuki hain aur sirf 73 left hain."
+        "question": "Payment ke liye kya UPI (PhonePe, Google Pay, Paytm, CRED) available hai?",
+        "answer": "Haan! Aap PhonePe, Google Pay, Paytm, CRED, BHIM UPI ya Cards se bina kisi OTP delay ke securely pay kar sakte hain. Payment complete hote hi screen par direct Google Drive download link generate ho jayega aur email par bhi lifetime access mil jayega."
+      },
+      {
+        "question": "GTA 6 reels se page monetize kaise hoga aur kitni earning ho sakti hai?",
+        "answer": "Gaming content par India me high CPM aur extreme retention milta hai. Jaise hi aapke 10K+ followers hote hain, aap Gaming App Affiliate links, Bio Link Digital Products, Brand Sponsorships aur YouTube Ad Revenue se monthly ₹30,000 – ₹70,000+ earn kar sakte hain."
+      },
+      {
+        "question": "Launch batch me sirf 73 bundles kyu bache hain?",
+        "answer": "Market saturation rokne aur hamare buyers ko exclusive viral advantage dene ke liye is batch me sirf 100 copies reserve ki gayi hain jisme se 27 sell ho chuki hain aur 73 bachi hain. 100 copies poori hote hi launch discount khatam ho kar price regular ₹999 ho jayegi."
       }
     ]
   },

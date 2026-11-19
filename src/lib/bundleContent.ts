@@ -117,35 +117,37 @@ export function getBundleContentDetails(product: BundleProduct): BundleDetailsDa
       { label: 'License Access', value: 'Lifetime Access', icon: 'shield', color: 'indigo' },
     ],
 
-    faqs: [
-      {
-        question: `What is the ${title}?`,
-        answer: `It is a premium digital collection of ${count}+ high-definition vertical reels focused on ${niche}. Each video is watermark-free, formatted in 9:16 MP4, and ready to post immediately to Instagram Reels, YouTube Shorts, and Facebook.`,
-      },
-      {
-        question: 'How do I receive the files after payment?',
-        answer: 'Delivery is 100% instant and automated. Immediately after completing your payment via UPI, cards, or net banking, you are redirected to the Order Success page with your direct Google Drive download link. You will also receive an email with the link for lifetime access.',
-      },
-      {
-        question: 'Are there any watermarks or logos on the videos?',
-        answer: 'No. All videos in this bundle are 100% clean with zero watermarks, brand logos, or intrusive text. You have full freedom to add your own brand logo, handle, or captions.',
-      },
-      {
-        question: 'Can I monetize pages built with these reels?',
-        answer: 'Yes! Vertical videos can be used to grow audiences for affiliate marketing, brand sponsorships, digital product sales, and platform creator rewards according to the platform guidelines.',
-      },
-      {
-        question: 'What is the difference between Personal Use and Reseller Rights?',
-        answer: 'Personal Use allows you to post the reels on your own social media pages and client accounts. Reseller Rights grants you the complete right to resell the entire bundle to your own customers and keep 100% of the profits.',
-      },
-      {
-        question: 'Can I edit the reels on my mobile phone?',
-        answer: 'Yes! The videos are in standard MP4 format and can be imported directly into any mobile video editing app, including CapCut, VN Video Editor, InShot, Canva, or Instagram\'s built-in editor.',
-      },
-      {
-        question: 'Is there an expiration date on the Google Drive link?',
-        answer: 'No. You receive lifetime access to the Google Drive folder. You can download the files all at once, or access them clip-by-clip whenever you need them.',
-      },
-    ],
+    faqs: (product.faqs && product.faqs.length > 0)
+      ? product.faqs
+      : [
+          {
+            question: `What is the ${title}?`,
+            answer: `It is a premium digital collection of ${count}+ high-definition vertical reels focused on ${niche}. Each video is watermark-free, formatted in 9:16 MP4, and ready to post immediately to Instagram Reels, YouTube Shorts, and Facebook.`,
+          },
+          {
+            question: 'How do I receive the files after payment?',
+            answer: 'Delivery is 100% instant and automated. Immediately after completing your payment via UPI, cards, or net banking, you are redirected to the Order Success page with your direct Google Drive download link. You will also receive an email with the link for lifetime access.',
+          },
+          {
+            question: 'Are there any watermarks or logos on the videos?',
+            answer: 'No. All videos in this bundle are 100% clean with zero watermarks, brand logos, or intrusive text. You have full freedom to add your own brand logo, handle, or captions.',
+          },
+          {
+            question: 'Can I monetize pages built with these reels?',
+            answer: 'Yes! Vertical videos can be used to grow audiences for affiliate marketing, brand sponsorships, digital product sales, and platform creator rewards according to the platform guidelines.',
+          },
+          {
+            question: 'What is the difference between Personal Use and Reseller Rights?',
+            answer: 'Personal Use allows you to post the reels on your own social media pages and client accounts. Reseller Rights grants you the complete right to resell the entire bundle to your own customers and keep 100% of the profits.',
+          },
+          {
+            question: 'Can I edit the reels on my mobile phone?',
+            answer: 'Yes! The videos are in standard MP4 format and can be imported directly into any mobile video editing app, including CapCut, VN Video Editor, InShot, Canva, or Instagram\'s built-in editor.',
+          },
+          {
+            question: 'Is there an expiration date on the Google Drive link?',
+            answer: 'No. You receive lifetime access to the Google Drive folder. You can download the files all at once, or access them clip-by-clip whenever you need them.',
+          },
+        ],
   };
 }
