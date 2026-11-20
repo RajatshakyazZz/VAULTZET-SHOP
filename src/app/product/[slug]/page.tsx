@@ -71,7 +71,7 @@ export async function generateMetadata({ params }: ProductPageProps): Promise<Me
         locale: 'en_IN',
         images: [
           {
-            url: `${siteUrl}/gta6-bundle-cover.webp`,
+            url: `${siteUrl}/gta-vi-neon-reels-bundle.webp`,
             width: 1200,
             height: 630,
             alt: '2000+ GTA 6 Viral Reels Bundle 4K No Watermark India',
@@ -82,7 +82,7 @@ export async function generateMetadata({ params }: ProductPageProps): Promise<Me
         card: 'summary_large_image',
         title: `${gtaTitle} | Vaultzet`,
         description: gtaDesc,
-        images: [`${siteUrl}/gta6-bundle-cover.webp`],
+        images: [`${siteUrl}/gta-vi-neon-reels-bundle.webp`],
       },
       robots: {
         index: true,
@@ -301,10 +301,10 @@ export default async function ProductDetailPage({ params }: ProductPageProps) {
         '@type': 'VideoObject',
         name: '2000+ GTA 6 Viral Reels Bundle Preview Clips (No Watermark 4K)',
         description: 'Watch sample 4K watermark-free GTA 6 viral reels and Vice City gameplay clips included in the master bundle pack for Indian creators.',
-        thumbnailUrl: [`${siteUrl}/gta6-bundle-cover.webp`],
+        thumbnailUrl: [`${siteUrl}/gta-vi-neon-reels-bundle.webp`],
         uploadDate: '2026-11-19T00:00:00+05:30',
-        contentUrl: 'https://drive.google.com/file/d/19OtwWku9JxAV2rz2jdNlaShWvFqw1cl6/preview',
-        embedUrl: 'https://drive.google.com/file/d/19OtwWku9JxAV2rz2jdNlaShWvFqw1cl6/preview',
+        contentUrl: 'https://drive.google.com/file/d/1tevHVQWV78frZTyg6t-XfGgiblYkcOU7/preview',
+        embedUrl: 'https://drive.google.com/file/d/1tevHVQWV78frZTyg6t-XfGgiblYkcOU7/preview',
         duration: 'PT0M45S',
         publisher: {
           '@type': 'Organization',

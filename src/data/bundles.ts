@@ -35,7 +35,7 @@ export const GTA6_ORDER_BUMP: OrderBumpItem = {
   originalPrice: 999,
   discountPrice: 99,
   discountPercentage: 90,
-  thumbnail: '/gta6-bundle-cover.webp',
+  thumbnail: '/gta-vi-neon-reels-bundle.webp',
   reelCount: 2000,
 };
 
@@ -161,14 +161,26 @@ export const BUNDLE_PRODUCTS: BundleProduct[] = [
     "personalOriginalPrice": 999,
     "resellerPrice": 199,
     "resellerOriginalPrice": 1999,
-    "thumbnail": "/gta6-bundle-cover.webp",
+    "thumbnail": "/gta-vi-neon-reels-bundle.webp",
     "galleryImages": [
+      "/gta-vi-neon-reels-bundle.webp",
       "/gta6-bundle-cover.webp",
       "/gta6-mockup-1.webp"
     ],
-    "previewVideoUrl": "https://drive.google.com/file/d/19OtwWku9JxAV2rz2jdNlaShWvFqw1cl6/preview",
+    "previewVideoUrl": "https://drive.google.com/file/d/1tevHVQWV78frZTyg6t-XfGgiblYkcOU7/preview",
     "previewVideoUrls": [
-      "https://drive.google.com/file/d/19OtwWku9JxAV2rz2jdNlaShWvFqw1cl6/preview"
+      "https://drive.google.com/file/d/1tevHVQWV78frZTyg6t-XfGgiblYkcOU7/preview",
+      "https://drive.google.com/file/d/1tcprofHARo7er3t92nuXDej7Gd92jWAk/preview",
+      "https://drive.google.com/file/d/1beTkIG_T7n4OkQ_IUohKe5v8et13NzXT/preview",
+      "https://drive.google.com/file/d/1kYlxlzs4iw-Xff5PLTeJfFP0h4GtSSqP/preview",
+      "https://drive.google.com/file/d/1afEei75iL0mLsw-Dedhvby9X1YMhgnEY/preview",
+      "https://drive.google.com/file/d/1XYv3vG3cunNctx5wzXGXY2J6Rkbeurya/preview",
+      "https://drive.google.com/file/d/17qKQ1OKjVYd7P3dPcGQK6GqUFrumdabS/preview",
+      "https://drive.google.com/file/d/1u3ndQ5BQVQ0r48D7F_hutX7iMWZjTA41/preview",
+      "https://drive.google.com/file/d/19f86Gf_418N5VSPlRPJ0foIkEXgUGys7/preview",
+      "https://drive.google.com/file/d/189uod53lZ8SYFedh0_96cTPTk1I-tXBw/preview",
+      "https://drive.google.com/file/d/1FKfqZeTNQSp2QEgJfoykshx-ttiXePJC/preview",
+      "https://drive.google.com/file/d/12tfBCl5qCBQq9df4PePyPqx0Jc6ea0iD/preview"
     ],
     "tags": [
       "🔥 GTA 6 TRENDING",
