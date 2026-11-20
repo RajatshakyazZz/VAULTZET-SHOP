@@ -246,6 +246,59 @@ export default function Gta6VideoPreviewSection({
   onBuyClick,
 }: Gta6VideoPreviewSectionProps) {
   const carouselRef = useRef<HTMLDivElement>(null);
+  const trackRef = useRef<HTMLDivElement>(null);
+  const [scrollProgress, setScrollProgress] = useState(0);
+  const [isDraggingSlider, setIsDraggingSlider] = useState(false);
+
+  // Sync slider progress when user swipes/scrolls with their hand
+  const handleScroll = () => {
+    if (isDraggingSlider) return;
+    const el = carouselRef.current;
+    if (!el) return;
+    const maxScroll = el.scrollWidth - el.clientWidth;
+    if (maxScroll <= 0) {
+      setScrollProgress(0);
+      return;
+    }
+    const progress = Math.max(0, Math.min(1, el.scrollLeft / maxScroll));
+    setScrollProgress(progress);
+  };
+
+  // Sync carousel scroll when user slides/drags the slide bar
+  const handleSliderMove = (clientX: number) => {
+    const track = trackRef.current;
+    const carousel = carouselRef.current;
+    if (!track || !carousel) return;
+
+    const rect = track.getBoundingClientRect();
+    if (rect.width <= 0) return;
+    const rawRatio = (clientX - rect.left) / rect.width;
+    const clampedRatio = Math.max(0, Math.min(1, rawRatio));
+    setScrollProgress(clampedRatio);
+
+    const maxScroll = carousel.scrollWidth - carousel.clientWidth;
+    carousel.scrollLeft = clampedRatio * maxScroll;
+  };
+
+  const handlePointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
+    try {
+      e.currentTarget.setPointerCapture(e.pointerId);
+    } catch {}
+    setIsDraggingSlider(true);
+    handleSliderMove(e.clientX);
+  };
+
+  const handlePointerMove = (e: React.PointerEvent<HTMLDivElement>) => {
+    if (!isDraggingSlider) return;
+    handleSliderMove(e.clientX);
+  };
+
+  const handlePointerUp = (e: React.PointerEvent<HTMLDivElement>) => {
+    try {
+      e.currentTarget.releasePointerCapture(e.pointerId);
+    } catch {}
+    setIsDraggingSlider(false);
+  };
 
   const scrollCarousel = (direction: 'left' | 'right') => {
     if (carouselRef.current) {
@@ -329,11 +382,64 @@ export default function Gta6VideoPreviewSection({
       {/* SWIPEABLE 9:16 REELS CAROUSEL - INSTANT INLINE PLAY IN EACH CARD */}
       <div
         ref={carouselRef}
-        className="flex items-stretch gap-3.5 overflow-x-auto pb-4 pt-1 scroll-smooth snap-x snap-mandatory scrollbar-none"
+        onScroll={handleScroll}
+        style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+        className="flex items-stretch gap-3.5 overflow-x-auto pb-3 pt-1 scroll-smooth snap-x snap-mandatory scrollbar-none [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden"
       >
         {GTA6_SAMPLE_CLIPS.map((clip, idx) => (
           <GtaInlineCard key={clip.id} sample={clip} index={idx} />
         ))}
+      </div>
+
+      {/* INTERACTIVE SMOOTH SLIDE BAR (2-Way Synced with Hand Swipe) */}
+      <div className="py-2 px-1">
+        <div className="max-w-xs sm:max-w-sm mx-auto flex flex-col items-center gap-1.5">
+          {/* Draggable Track */}
+          <div
+            ref={trackRef}
+            role="slider"
+            aria-label="Reels Preview Carousel Slider"
+            aria-valuemin={0}
+            aria-valuemax={100}
+            aria-valuenow={Math.round(scrollProgress * 100)}
+            onPointerDown={handlePointerDown}
+            onPointerMove={handlePointerMove}
+            onPointerUp={handlePointerUp}
+            onPointerCancel={handlePointerUp}
+            className="relative w-full h-3 sm:h-3.5 bg-slate-200/90 hover:bg-slate-300/80 rounded-full cursor-pointer select-none touch-none border border-slate-300/70 p-0.5 shadow-inner transition-colors group"
+          >
+            {/* Active Fill Track */}
+            <div
+              className="absolute left-0 top-0 bottom-0 bg-gradient-to-r from-red-600 via-rose-600 to-red-600 rounded-full"
+              style={{ width: `${Math.max(6, scrollProgress * 100)}%` }}
+            />
+
+            {/* Draggable Thumb / Handle */}
+            <div
+              className={`absolute top-1/2 -translate-y-1/2 -translate-x-1/2 w-6 h-6 sm:w-7 sm:h-7 rounded-full bg-white border-2 border-red-600 shadow-md flex items-center justify-center cursor-grab active:cursor-grabbing group-hover:scale-110 active:scale-105 transition-transform ${
+                isDraggingSlider ? 'ring-4 ring-red-500/30 scale-110' : ''
+              }`}
+              style={{ left: `${scrollProgress * 100}%` }}
+            >
+              <div className="flex items-center gap-0.5 pointer-events-none">
+                <span className="w-0.5 h-2.5 bg-red-600 rounded-full" />
+                <span className="w-0.5 h-2.5 bg-red-600 rounded-full" />
+              </div>
+            </div>
+          </div>
+
+          {/* Micro Interaction Hint & Current Reel Counter */}
+          <div className="flex items-center justify-between w-full text-[10px] sm:text-[11px] font-bold text-slate-500 px-1 select-none">
+            <span className="flex items-center gap-1 text-slate-600">
+              <span>👈</span>
+              <span>Slide bar or swipe reels</span>
+              <span>👉</span>
+            </span>
+            <span className="text-red-700 font-extrabold bg-red-50 border border-red-100 px-2 py-0.5 rounded-full">
+              Clip {Math.min(GTA6_SAMPLE_CLIPS.length, Math.floor(scrollProgress * (GTA6_SAMPLE_CLIPS.length - 1)) + 1)} of {GTA6_SAMPLE_CLIPS.length}
+            </span>
+          </div>
+        </div>
       </div>
 
       {/* Bottom CTA Button */}

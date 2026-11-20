@@ -163,9 +163,7 @@ export const BUNDLE_PRODUCTS: BundleProduct[] = [
     "resellerOriginalPrice": 1999,
     "thumbnail": "/gta-vi-neon-reels-bundle.webp",
     "galleryImages": [
-      "/gta-vi-neon-reels-bundle.webp",
-      "/gta6-bundle-cover.webp",
-      "/gta6-mockup-1.webp"
+      "/gta-vi-neon-reels-bundle.webp"
     ],
     "previewVideoUrl": "/samples/gta-1.mp4",
     "previewVideoUrls": [

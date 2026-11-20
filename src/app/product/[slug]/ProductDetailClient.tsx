@@ -268,32 +268,42 @@ export default function ProductDetailClient({ product }: ProductDetailClientProp
               </div>
             </div>
 
-            {/* Gallery Thumbnails Strip (if multiple) */}
-            {p.galleryImages && p.galleryImages.length > 1 && (
-              <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-none">
-                {p.galleryImages.map((img, idx) => (
-                  <button
-                    key={idx}
-                    type="button"
-                    onClick={() => setSelectedImage(img)}
-                    className={`w-16 h-16 rounded-xl overflow-hidden border-2 transition-all shrink-0 bg-slate-50 cursor-pointer ${
-                      currentImage === img
-                        ? 'border-red-500 ring-2 ring-red-200'
-                        : 'border-slate-200 opacity-70 hover:opacity-100'
-                    }`}
-                  >
-                    <img
-                      src={optimizeImageUrl(img, 120)}
-                      alt={`${p.title} thumbnail ${idx + 1}`}
-                      width={80}
-                      height={80}
-                      loading="lazy"
-                      className="w-full h-full object-cover"
-                    />
-                  </button>
-                ))}
-              </div>
-            )}
+            {/* Gallery Thumbnails Strip (Only when actual multiple preview images are configured from admin panel) */}
+            {(() => {
+              const cleanGallery = (p.galleryImages || []).filter(
+                (img) =>
+                  Boolean(img) &&
+                  !img.includes('gta6-bundle-cover') &&
+                  !img.includes('gta6-mockup-1')
+              );
+              if (cleanGallery.length <= 1) return null;
+
+              return (
+                <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-none">
+                  {cleanGallery.map((img, idx) => (
+                    <button
+                      key={idx}
+                      type="button"
+                      onClick={() => setSelectedImage(img)}
+                      className={`w-16 h-16 rounded-xl overflow-hidden border-2 transition-all shrink-0 bg-slate-50 cursor-pointer ${
+                        currentImage === img
+                          ? 'border-red-500 ring-2 ring-red-200'
+                          : 'border-slate-200 opacity-70 hover:opacity-100'
+                      }`}
+                    >
+                      <img
+                        src={optimizeImageUrl(img, 120)}
+                        alt={`${p.title} thumbnail ${idx + 1}`}
+                        width={80}
+                        height={80}
+                        loading="lazy"
+                        className="w-full h-full object-cover"
+                      />
+                    </button>
+                  ))}
+                </div>
+              );
+            })()}
 
             {/* Clean Trust Reassurance Strip */}
             <div className="grid grid-cols-3 gap-2 p-3 rounded-2xl bg-white border border-slate-200/80 shadow-2xs text-center text-xs">

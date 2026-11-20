@@ -88,9 +88,40 @@ export function mapFirestoreDocToBundleProduct(data: any): BundleProduct {
     tags = baseProd.tags;
   }
 
-  const galleryImages = Array.isArray(data.gallery_images) && data.gallery_images.length > 0
-    ? data.gallery_images.filter((img: any) => typeof img === 'string')
-    : baseProd?.galleryImages || [];
+  const rawGallery =
+    data.gallery_images ||
+    data.galleryImages ||
+    data.preview_images ||
+    data.previewImages ||
+    data.preview_image_urls ||
+    data.image_preview_urls ||
+    data.preview_image_url ||
+    data.image_previews ||
+    data.images;
+
+  let parsedGallery: string[] = [];
+  if (Array.isArray(rawGallery) && rawGallery.length > 0) {
+    parsedGallery = rawGallery
+      .filter((img: any) => typeof img === 'string' && img.trim())
+      .map((img: string) => img.trim());
+  } else if (typeof rawGallery === 'string' && rawGallery.trim()) {
+    parsedGallery = rawGallery
+      .split(/[\n,]+/)
+      .map((img: string) => img.trim())
+      .filter(Boolean);
+  }
+
+  // Filter out any obsolete dummy mockup images
+  parsedGallery = parsedGallery.filter(
+    (img) => !img.includes('gta6-bundle-cover') && !img.includes('gta6-mockup-1')
+  );
+
+  const galleryImages =
+    parsedGallery.length > 0
+      ? parsedGallery
+      : (baseProd?.galleryImages || []).filter(
+          (img) => !img.includes('gta6-bundle-cover') && !img.includes('gta6-mockup-1')
+        );
 
   const defaultFeatures = [
     'Direct Google Drive Instant Access',
