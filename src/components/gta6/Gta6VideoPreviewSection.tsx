@@ -1,21 +1,238 @@
 'use client';
 
-import React, { useState, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import {
   Film,
   Play,
+  Pause,
+  Volume2,
+  VolumeX,
+  Loader2,
+  CheckCircle2,
   ShieldCheck,
   Sparkles,
-  Zap,
-  Volume2,
-  CheckCircle2,
   ChevronLeft,
   ChevronRight,
-  Smartphone,
-  Eye,
   ArrowRight,
+  Zap,
 } from 'lucide-react';
 import { GTA6_SAMPLE_CLIPS, GtaSampleVideo } from '@/data/gtaCampaign';
+
+const INLINE_VIDEO_PLAY_EVENT = 'vaultzet:inline-video-play';
+
+interface GtaInlineCardProps {
+  sample: GtaSampleVideo;
+  index: number;
+}
+
+function GtaInlineCard({ sample, index }: GtaInlineCardProps) {
+  const videoRef = useRef<HTMLVideoElement | null>(null);
+  const [isPlaying, setIsPlaying] = useState(false);
+  const [hasStarted, setHasStarted] = useState(false);
+  const [isBuffering, setIsBuffering] = useState(false);
+  const [isMuted, setIsMuted] = useState(false);
+
+  // Pause automatically whenever any other inline sample starts playing
+  useEffect(() => {
+    const onOtherPlay = (event: Event) => {
+      const custom = event as CustomEvent<string>;
+      if (custom.detail !== sample.id && videoRef.current && !videoRef.current.paused) {
+        videoRef.current.pause();
+        setIsPlaying(false);
+      }
+    };
+
+    window.addEventListener(INLINE_VIDEO_PLAY_EVENT, onOtherPlay);
+    return () => {
+      window.removeEventListener(INLINE_VIDEO_PLAY_EVENT, onOtherPlay);
+    };
+  }, [sample.id]);
+
+  const handleTogglePlay = async () => {
+    const el = videoRef.current;
+    if (!el) return;
+
+    if (!el.paused) {
+      el.pause();
+      setIsPlaying(false);
+      return;
+    }
+
+    // Broadcast so any other playing card pauses immediately
+    window.dispatchEvent(new CustomEvent(INLINE_VIDEO_PLAY_EVENT, { detail: sample.id }));
+
+    setHasStarted(true);
+    setIsBuffering(true);
+    setIsPlaying(true);
+
+    try {
+      el.muted = false;
+      setIsMuted(false);
+      await el.play();
+      setIsBuffering(false);
+    } catch {
+      // Fallback for mobile WebView policies requiring initial mute
+      try {
+        el.muted = true;
+        setIsMuted(true);
+        await el.play();
+        setIsBuffering(false);
+      } catch {
+        setIsPlaying(false);
+        setIsBuffering(false);
+      }
+    }
+  };
+
+  const handleToggleMute = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    const el = videoRef.current;
+    if (!el) return;
+    el.muted = !el.muted;
+    setIsMuted(el.muted);
+  };
+
+  return (
+    <div
+      className={`group relative w-[220px] sm:w-[250px] md:w-[270px] shrink-0 snap-start aspect-[9/16] rounded-2xl overflow-hidden bg-slate-950 border transition-all duration-300 select-none ${
+        isPlaying
+          ? 'border-red-600 ring-4 ring-red-500/25 shadow-xl scale-[1.01]'
+          : 'border-slate-200/90 hover:border-red-400 shadow-md'
+      }`}
+    >
+      {/* Native HTML5 Video Element: 100% inline, zero iframe delay */}
+      <video
+        ref={videoRef}
+        src={sample.videoUrl}
+        poster={sample.thumbnailUrl}
+        preload="metadata"
+        playsInline
+        controls={hasStarted && isPlaying}
+        controlsList="nodownload"
+        onWaiting={() => setIsBuffering(true)}
+        onCanPlay={() => setIsBuffering(false)}
+        onPlaying={() => {
+          setIsBuffering(false);
+          setIsPlaying(true);
+          setHasStarted(true);
+        }}
+        onPause={() => {
+          setIsPlaying(false);
+          setIsBuffering(false);
+        }}
+        onEnded={() => {
+          setIsPlaying(false);
+          setHasStarted(false);
+          setIsBuffering(false);
+          if (videoRef.current) {
+            videoRef.current.currentTime = 0;
+          }
+        }}
+        className="w-full h-full object-cover bg-black"
+      />
+
+      {/* Crisp Poster & Tap-to-Play Overlay when idle or paused */}
+      {!isPlaying && (
+        <button
+          type="button"
+          onClick={handleTogglePlay}
+          aria-label={`Play ${sample.title}`}
+          className="absolute inset-0 w-full h-full text-left cursor-pointer focus:outline-none focus:ring-2 focus:ring-red-500"
+        >
+          {!hasStarted && (
+            <img
+              src={sample.thumbnailUrl}
+              alt={sample.title}
+              loading="lazy"
+              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+            />
+          )}
+
+          <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/25 to-slate-950/65" />
+
+          {/* Top Badges */}
+          <div className="absolute top-2.5 left-2.5 right-2.5 flex items-center justify-between gap-1 z-10">
+            <span className="px-2 py-0.5 rounded-md bg-slate-950/85 border border-white/20 text-[10px] font-black text-white">
+              GTA VI #{index + 1}
+            </span>
+            <span className="px-2 py-0.5 rounded-md bg-red-600 text-[9px] font-black text-white uppercase tracking-wider shadow-sm">
+              {sample.badge}
+            </span>
+          </div>
+
+          {/* Big Center Play Button */}
+          <div className="absolute inset-0 flex items-center justify-center z-10">
+            <span className="w-12 h-12 sm:w-14 sm:h-14 rounded-full bg-red-600 hover:bg-red-700 text-white flex items-center justify-center shadow-xl shadow-red-600/40 group-hover:scale-110 active:scale-95 transition-all">
+              <Play className="w-5 h-5 sm:w-6 sm:h-6 fill-white ml-0.5" />
+            </span>
+          </div>
+
+          {/* Bottom Info Strip */}
+          <div className="absolute bottom-0 inset-x-0 p-3 z-10">
+            <span className="text-[10px] font-bold text-red-300 block mb-0.5 truncate uppercase tracking-wider">
+              {sample.category}
+            </span>
+            <h4 className="text-xs font-black text-white line-clamp-1 leading-snug">
+              {sample.title}
+            </h4>
+            <div className="mt-1 flex items-center justify-between text-[11px] font-extrabold text-red-400">
+              <span>{hasStarted ? 'Tap to Resume ▶' : 'Tap to Play Inline ▶'}</span>
+              <span className="text-slate-400 text-[10px] font-medium">{sample.views}</span>
+            </div>
+          </div>
+        </button>
+      )}
+
+      {/* Active Playback Top Controls Overlay (Playing status / Mute / Pause) */}
+      {isPlaying && (
+        <div className="pointer-events-none absolute top-2.5 left-2.5 right-2.5 flex items-center justify-between gap-1 z-20">
+          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-slate-950/85 border border-white/20 text-[10px] font-bold text-white shadow-sm">
+            {isBuffering ? (
+              <>
+                <Loader2 className="w-3 h-3 animate-spin text-red-400" />
+                <span>Loading...</span>
+              </>
+            ) : (
+              <>
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                <span>Playing</span>
+              </>
+            )}
+          </span>
+
+          <div className="pointer-events-auto flex items-center gap-1.5">
+            <button
+              type="button"
+              onClick={handleToggleMute}
+              aria-label={isMuted ? 'Unmute video' : 'Mute video'}
+              className="px-2.5 py-1 rounded-full bg-slate-950/85 hover:bg-slate-900 border border-white/20 text-white text-[10px] font-bold inline-flex items-center gap-1 cursor-pointer shadow-sm transition-colors"
+            >
+              {isMuted ? (
+                <>
+                  <VolumeX className="w-3 h-3 text-amber-300" />
+                  <span>Unmute</span>
+                </>
+              ) : (
+                <>
+                  <Volume2 className="w-3 h-3 text-emerald-300" />
+                  <span>Mute</span>
+                </>
+              )}
+            </button>
+            <button
+              type="button"
+              onClick={handleTogglePlay}
+              aria-label="Pause video"
+              className="w-7 h-7 rounded-full bg-slate-950/85 hover:bg-slate-900 border border-white/20 text-white flex items-center justify-center cursor-pointer shadow-sm transition-colors"
+            >
+              <Pause className="w-3.5 h-3.5" />
+            </button>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
 
 interface Gta6VideoPreviewSectionProps {
   previewVideoUrl?: string | null;
@@ -28,22 +245,13 @@ export default function Gta6VideoPreviewSection({
   price = 99,
   onBuyClick,
 }: Gta6VideoPreviewSectionProps) {
-  const [selectedClipIndex, setSelectedClipIndex] = useState(0);
-  const [isPlaying, setIsPlaying] = useState(false);
   const carouselRef = useRef<HTMLDivElement>(null);
-
-  const currentClip = GTA6_SAMPLE_CLIPS[selectedClipIndex] || GTA6_SAMPLE_CLIPS[0];
 
   const scrollCarousel = (direction: 'left' | 'right') => {
     if (carouselRef.current) {
-      const scrollAmount = direction === 'left' ? -280 : 280;
+      const scrollAmount = direction === 'left' ? -300 : 300;
       carouselRef.current.scrollBy({ left: scrollAmount, behavior: 'smooth' });
     }
-  };
-
-  const handleSelectClip = (index: number) => {
-    setSelectedClipIndex(index);
-    setIsPlaying(true);
   };
 
   return (
@@ -62,14 +270,14 @@ export default function Gta6VideoPreviewSection({
           Watch Actual GTA 6 Reels Inside The Pack
         </h2>
         <p className="text-xs sm:text-sm text-slate-500 mt-2 leading-relaxed">
-          Tap any reel in the carousel below to play instantly in true 9:16 vertical ratio. All 2,000+ clips are 100% watermark-free with pre-synced viral audio.
+          Tap any reel in the carousel below to play it right here — zero popup delay, true 9:16 vertical ratio. All 2,000+ clips come 100% watermark-free with pre-synced viral audio.
         </p>
 
         {/* Minimal Trust Badges */}
         <div className="flex flex-wrap items-center justify-center gap-2 mt-3.5 text-[11px] font-bold text-slate-700">
           <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-slate-50 border border-slate-200/80">
             <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
-            <span>9:16 Vertical (Reels / Shorts)</span>
+            <span>9:16 Vertical HD</span>
           </span>
           <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-slate-50 border border-slate-200/80">
             <ShieldCheck className="w-3.5 h-3.5 text-red-600" />
@@ -86,90 +294,15 @@ export default function Gta6VideoPreviewSection({
         </div>
       </div>
 
-      {/* 9:16 VERTICAL SPOTLIGHT SMARTPHONE PLAYER */}
-      <div className="max-w-[320px] sm:max-w-[340px] mx-auto">
-        <div className="relative rounded-3xl bg-slate-950 p-2.5 shadow-xl border-4 border-slate-900 ring-1 ring-slate-800">
-          {/* Smartphone Speaker / Camera Notch */}
-          <div className="absolute top-4 left-1/2 -translate-x-1/2 w-20 h-4 bg-slate-900 rounded-full z-20 flex items-center justify-center">
-            <div className="w-2.5 h-2.5 rounded-full bg-slate-950 border border-slate-800 mr-2" />
-            <div className="w-8 h-1 rounded-full bg-slate-800" />
-          </div>
-
-          {/* 9:16 Screen Container */}
-          <div className="relative w-full aspect-[9/16] rounded-2xl bg-black overflow-hidden flex items-center justify-center">
-            {/* Overlay Badges */}
-            <div className="absolute top-7 left-3 z-20 px-2 py-0.5 rounded-md bg-slate-950/85 border border-white/20 text-[10px] font-black text-white">
-              Clip #{selectedClipIndex + 1} of 12
-            </div>
-            <div className="absolute top-7 right-3 z-20 px-2 py-0.5 rounded-md bg-red-600 text-white text-[10px] font-black tracking-wider uppercase">
-              {currentClip.badge}
-            </div>
-
-            {isPlaying ? (
-              /* ACTIVE VIDEO PLAYER: Loads Google Drive Embed cleanly fitting 9:16 */
-              <iframe
-                src={`https://drive.google.com/file/d/${currentClip.fileId}/preview`}
-                title={currentClip.title}
-                className="w-full h-full border-0 bg-black rounded-2xl"
-                allow="autoplay; encrypted-media; picture-in-picture; fullscreen"
-                allowFullScreen
-              />
-            ) : (
-              /* POSTER / TAP TO PLAY */
-              <button
-                type="button"
-                onClick={() => setIsPlaying(true)}
-                aria-label={`Play ${currentClip.title}`}
-                className="w-full h-full text-left relative block focus:outline-none cursor-pointer group"
-              >
-                <img
-                  src="/gta-vi-neon-reels-bundle.webp"
-                  alt={currentClip.title}
-                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 opacity-80"
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/30 to-slate-950/60" />
-
-                {/* Big Center Play Button */}
-                <div className="absolute inset-0 flex items-center justify-center">
-                  <span className="w-14 h-14 rounded-full bg-red-600 hover:bg-red-700 text-white flex items-center justify-center shadow-2xl shadow-red-600/50 group-hover:scale-110 active:scale-95 transition-all">
-                    <Play className="w-6 h-6 fill-white ml-0.5" />
-                  </span>
-                </div>
-
-                {/* Bottom Callout */}
-                <div className="absolute bottom-3 inset-x-3 text-center">
-                  <p className="text-xs font-black text-white line-clamp-1">
-                    {currentClip.title}
-                  </p>
-                  <p className="text-[11px] font-bold text-red-400 mt-0.5">
-                    Tap to Play Sample Video ▶
-                  </p>
-                </div>
-              </button>
-            )}
-          </div>
-        </div>
-
-        {/* Selected Clip Info Strip */}
-        <div className="mt-2 text-center">
-          <span className="text-xs font-extrabold text-slate-900 block truncate">
-            {currentClip.title}
-          </span>
-          <span className="text-[11px] text-slate-500 font-medium">
-            {currentClip.category} • {currentClip.views}
-          </span>
-        </div>
-      </div>
-
       {/* CAROUSEL HEADER & NAVIGATION BUTTONS */}
-      <div className="pt-4 border-t border-slate-100 flex items-center justify-between">
+      <div className="pt-2 border-t border-slate-100 flex items-center justify-between">
         <div>
           <h3 className="text-xs sm:text-sm font-extrabold text-slate-900 flex items-center gap-1.5">
-            <Smartphone className="w-4 h-4 text-red-600" />
-            <span>Select Any Sample Reel (12 Clips Carousel)</span>
+            <Film className="w-4 h-4 text-red-600" />
+            <span>Sample Reels Carousel (Tap Any Clip to Play)</span>
           </h3>
           <p className="text-[11px] text-slate-500">
-            Swipe left or right and tap any reel to play above
+            Swipe left or right to explore all 12 sample reels
           </p>
         </div>
 
@@ -193,78 +326,14 @@ export default function Gta6VideoPreviewSection({
         </div>
       </div>
 
-      {/* SWIPEABLE 9:16 REELS CAROUSEL */}
+      {/* SWIPEABLE 9:16 REELS CAROUSEL - INSTANT INLINE PLAY IN EACH CARD */}
       <div
         ref={carouselRef}
-        className="flex items-stretch gap-3 overflow-x-auto pb-3 pt-1 scroll-smooth snap-x snap-mandatory scrollbar-none"
+        className="flex items-stretch gap-3.5 overflow-x-auto pb-4 pt-1 scroll-smooth snap-x snap-mandatory scrollbar-none"
       >
-        {GTA6_SAMPLE_CLIPS.map((clip, idx) => {
-          const isSelected = selectedClipIndex === idx;
-
-          return (
-            <div
-              key={clip.id}
-              onClick={() => handleSelectClip(idx)}
-              className={`w-[170px] sm:w-[190px] shrink-0 aspect-[9/16] rounded-2xl overflow-hidden relative cursor-pointer snap-start transition-all duration-300 border-2 select-none group ${
-                isSelected
-                  ? 'border-red-600 ring-2 ring-red-500/25 shadow-lg scale-[1.02]'
-                  : 'border-slate-200/90 hover:border-red-400 bg-slate-900'
-              }`}
-            >
-              {/* Poster Image */}
-              <img
-                src="/gta-vi-neon-reels-bundle.webp"
-                alt={clip.title}
-                loading="lazy"
-                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 opacity-75"
-              />
-              <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/40 to-slate-950/60" />
-
-              {/* Top Header in Card */}
-              <div className="absolute top-2 left-2 right-2 flex items-center justify-between gap-1 z-10">
-                <span className="px-1.5 py-0.5 rounded bg-slate-950/80 text-[10px] font-bold text-white">
-                  #{idx + 1}
-                </span>
-                <span
-                  className={`px-1.5 py-0.5 rounded text-[9px] font-black uppercase ${
-                    isSelected
-                      ? 'bg-red-600 text-white animate-pulse'
-                      : 'bg-white/20 text-white'
-                  }`}
-                >
-                  {isSelected ? 'Playing' : 'Clean'}
-                </span>
-              </div>
-
-              {/* Center Play Icon */}
-              <div className="absolute inset-0 flex items-center justify-center z-10">
-                <span
-                  className={`w-9 h-9 rounded-full flex items-center justify-center transition-transform group-hover:scale-110 ${
-                    isSelected
-                      ? 'bg-red-600 text-white shadow-lg shadow-red-600/50'
-                      : 'bg-white/90 text-slate-950 shadow-md'
-                  }`}
-                >
-                  <Play className="w-4 h-4 fill-current ml-0.5" />
-                </span>
-              </div>
-
-              {/* Bottom Card Title & Views */}
-              <div className="absolute bottom-0 inset-x-0 p-2.5 z-10">
-                <span className="text-[9px] font-mono text-slate-300 block mb-0.5 truncate">
-                  {clip.badge}
-                </span>
-                <h4 className="text-[11px] font-bold text-white line-clamp-1 leading-snug">
-                  {clip.title}
-                </h4>
-                <div className="mt-1 flex items-center justify-between text-[10px] font-semibold text-red-300">
-                  <span>{isSelected ? 'Now Playing' : 'Tap to Play'}</span>
-                  <span className="text-slate-400 text-[9px]">{clip.views}</span>
-                </div>
-              </div>
-            </div>
-          );
-        })}
+        {GTA6_SAMPLE_CLIPS.map((clip, idx) => (
+          <GtaInlineCard key={clip.id} sample={clip} index={idx} />
+        ))}
       </div>
 
       {/* Bottom CTA Button */}

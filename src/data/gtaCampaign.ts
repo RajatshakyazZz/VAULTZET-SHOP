@@ -1,8 +1,10 @@
 export interface GtaSampleVideo {
   id: string;
-  fileId: string;
-  previewEmbedUrl: string;
-  viewUrl: string;
+  videoUrl: string;
+  thumbnailUrl: string;
+  fileId?: string;
+  previewEmbedUrl?: string;
+  viewUrl?: string;
   title: string;
   category: string;
   badge: string;
@@ -13,6 +15,8 @@ export interface GtaSampleVideo {
 export const GTA6_SAMPLE_CLIPS: GtaSampleVideo[] = [
   {
     id: 'gta6-sample-1',
+    videoUrl: '/samples/gta-1.mp4',
+    thumbnailUrl: '/samples/gta-1.jpg',
     fileId: '1tevHVQWV78frZTyg6t-XfGgiblYkcOU7',
     previewEmbedUrl: 'https://drive.google.com/file/d/1tevHVQWV78frZTyg6t-XfGgiblYkcOU7/preview',
     viewUrl: 'https://drive.google.com/file/d/1tevHVQWV78frZTyg6t-XfGgiblYkcOU7/view?usp=drive_link',
@@ -24,6 +28,8 @@ export const GTA6_SAMPLE_CLIPS: GtaSampleVideo[] = [
   },
   {
     id: 'gta6-sample-2',
+    videoUrl: '/samples/gta-2.mp4',
+    thumbnailUrl: '/samples/gta-2.jpg',
     fileId: '1tcprofHARo7er3t92nuXDej7Gd92jWAk',
     previewEmbedUrl: 'https://drive.google.com/file/d/1tcprofHARo7er3t92nuXDej7Gd92jWAk/preview',
     viewUrl: 'https://drive.google.com/file/d/1tcprofHARo7er3t92nuXDej7Gd92jWAk/view?usp=drive_link',
@@ -35,6 +41,8 @@ export const GTA6_SAMPLE_CLIPS: GtaSampleVideo[] = [
   },
   {
     id: 'gta6-sample-3',
+    videoUrl: '/samples/gta-3.mp4',
+    thumbnailUrl: '/samples/gta-3.jpg',
     fileId: '1beTkIG_T7n4OkQ_IUohKe5v8et13NzXT',
     previewEmbedUrl: 'https://drive.google.com/file/d/1beTkIG_T7n4OkQ_IUohKe5v8et13NzXT/preview',
     viewUrl: 'https://drive.google.com/file/d/1beTkIG_T7n4OkQ_IUohKe5v8et13NzXT/view?usp=drive_link',
@@ -46,6 +54,8 @@ export const GTA6_SAMPLE_CLIPS: GtaSampleVideo[] = [
   },
   {
     id: 'gta6-sample-4',
+    videoUrl: '/samples/gta-4.mp4',
+    thumbnailUrl: '/samples/gta-4.jpg',
     fileId: '1kYlxlzs4iw-Xff5PLTeJfFP0h4GtSSqP',
     previewEmbedUrl: 'https://drive.google.com/file/d/1kYlxlzs4iw-Xff5PLTeJfFP0h4GtSSqP/preview',
     viewUrl: 'https://drive.google.com/file/d/1kYlxlzs4iw-Xff5PLTeJfFP0h4GtSSqP/view?usp=drive_link',
@@ -57,6 +67,8 @@ export const GTA6_SAMPLE_CLIPS: GtaSampleVideo[] = [
   },
   {
     id: 'gta6-sample-5',
+    videoUrl: '/samples/gta-5.mp4',
+    thumbnailUrl: '/samples/gta-5.jpg',
     fileId: '1afEei75iL0mLsw-Dedhvby9X1YMhgnEY',
     previewEmbedUrl: 'https://drive.google.com/file/d/1afEei75iL0mLsw-Dedhvby9X1YMhgnEY/preview',
     viewUrl: 'https://drive.google.com/file/d/1afEei75iL0mLsw-Dedhvby9X1YMhgnEY/view?usp=drive_link',
@@ -68,6 +80,8 @@ export const GTA6_SAMPLE_CLIPS: GtaSampleVideo[] = [
   },
   {
     id: 'gta6-sample-6',
+    videoUrl: '/samples/gta-6.mp4',
+    thumbnailUrl: '/samples/gta-6.jpg',
     fileId: '1XYv3vG3cunNctx5wzXGXY2J6Rkbeurya',
     previewEmbedUrl: 'https://drive.google.com/file/d/1XYv3vG3cunNctx5wzXGXY2J6Rkbeurya/preview',
     viewUrl: 'https://drive.google.com/file/d/1XYv3vG3cunNctx5wzXGXY2J6Rkbeurya/view?usp=drive_link',
@@ -79,6 +93,8 @@ export const GTA6_SAMPLE_CLIPS: GtaSampleVideo[] = [
   },
   {
     id: 'gta6-sample-7',
+    videoUrl: '/samples/gta-7.mp4',
+    thumbnailUrl: '/samples/gta-7.jpg',
     fileId: '17qKQ1OKjVYd7P3dPcGQK6GqUFrumdabS',
     previewEmbedUrl: 'https://drive.google.com/file/d/17qKQ1OKjVYd7P3dPcGQK6GqUFrumdabS/preview',
     viewUrl: 'https://drive.google.com/file/d/17qKQ1OKjVYd7P3dPcGQK6GqUFrumdabS/view?usp=drive_link',
@@ -90,6 +106,8 @@ export const GTA6_SAMPLE_CLIPS: GtaSampleVideo[] = [
   },
   {
     id: 'gta6-sample-8',
+    videoUrl: '/samples/gta-8.mp4',
+    thumbnailUrl: '/samples/gta-8.jpg',
     fileId: '1u3ndQ5BQVQ0r48D7F_hutX7iMWZjTA41',
     previewEmbedUrl: 'https://drive.google.com/file/d/1u3ndQ5BQVQ0r48D7F_hutX7iMWZjTA41/preview',
     viewUrl: 'https://drive.google.com/file/d/1u3ndQ5BQVQ0r48D7F_hutX7iMWZjTA41/view?usp=drive_link',
@@ -101,6 +119,8 @@ export const GTA6_SAMPLE_CLIPS: GtaSampleVideo[] = [
   },
   {
     id: 'gta6-sample-9',
+    videoUrl: '/samples/gta-9.mp4',
+    thumbnailUrl: '/samples/gta-9.jpg',
     fileId: '19f86Gf_418N5VSPlRPJ0foIkEXgUGys7',
     previewEmbedUrl: 'https://drive.google.com/file/d/19f86Gf_418N5VSPlRPJ0foIkEXgUGys7/preview',
     viewUrl: 'https://drive.google.com/file/d/19f86Gf_418N5VSPlRPJ0foIkEXgUGys7/view?usp=drive_link',
@@ -112,6 +132,8 @@ export const GTA6_SAMPLE_CLIPS: GtaSampleVideo[] = [
   },
   {
     id: 'gta6-sample-10',
+    videoUrl: '/samples/gta-10.mp4',
+    thumbnailUrl: '/samples/gta-10.jpg',
     fileId: '189uod53lZ8SYFedh0_96cTPTk1I-tXBw',
     previewEmbedUrl: 'https://drive.google.com/file/d/189uod53lZ8SYFedh0_96cTPTk1I-tXBw/preview',
     viewUrl: 'https://drive.google.com/file/d/189uod53lZ8SYFedh0_96cTPTk1I-tXBw/view?usp=drive_link',
@@ -123,6 +145,8 @@ export const GTA6_SAMPLE_CLIPS: GtaSampleVideo[] = [
   },
   {
     id: 'gta6-sample-11',
+    videoUrl: '/samples/gta-11.mp4',
+    thumbnailUrl: '/samples/gta-11.jpg',
     fileId: '1FKfqZeTNQSp2QEgJfoykshx-ttiXePJC',
     previewEmbedUrl: 'https://drive.google.com/file/d/1FKfqZeTNQSp2QEgJfoykshx-ttiXePJC/preview',
     viewUrl: 'https://drive.google.com/file/d/1FKfqZeTNQSp2QEgJfoykshx-ttiXePJC/view?usp=drive_link',
@@ -134,6 +158,8 @@ export const GTA6_SAMPLE_CLIPS: GtaSampleVideo[] = [
   },
   {
     id: 'gta6-sample-12',
+    videoUrl: '/samples/gta-12.mp4',
+    thumbnailUrl: '/samples/gta-12.jpg',
     fileId: '12tfBCl5qCBQq9df4PePyPqx0Jc6ea0iD',
     previewEmbedUrl: 'https://drive.google.com/file/d/12tfBCl5qCBQq9df4PePyPqx0Jc6ea0iD/preview',
     viewUrl: 'https://drive.google.com/file/d/12tfBCl5qCBQq9df4PePyPqx0Jc6ea0iD/view?usp=drive_link',

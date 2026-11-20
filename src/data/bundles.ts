@@ -167,20 +167,20 @@ export const BUNDLE_PRODUCTS: BundleProduct[] = [
       "/gta6-bundle-cover.webp",
       "/gta6-mockup-1.webp"
     ],
-    "previewVideoUrl": "https://drive.google.com/file/d/1tevHVQWV78frZTyg6t-XfGgiblYkcOU7/preview",
+    "previewVideoUrl": "/samples/gta-1.mp4",
     "previewVideoUrls": [
-      "https://drive.google.com/file/d/1tevHVQWV78frZTyg6t-XfGgiblYkcOU7/preview",
-      "https://drive.google.com/file/d/1tcprofHARo7er3t92nuXDej7Gd92jWAk/preview",
-      "https://drive.google.com/file/d/1beTkIG_T7n4OkQ_IUohKe5v8et13NzXT/preview",
-      "https://drive.google.com/file/d/1kYlxlzs4iw-Xff5PLTeJfFP0h4GtSSqP/preview",
-      "https://drive.google.com/file/d/1afEei75iL0mLsw-Dedhvby9X1YMhgnEY/preview",
-      "https://drive.google.com/file/d/1XYv3vG3cunNctx5wzXGXY2J6Rkbeurya/preview",
-      "https://drive.google.com/file/d/17qKQ1OKjVYd7P3dPcGQK6GqUFrumdabS/preview",
-      "https://drive.google.com/file/d/1u3ndQ5BQVQ0r48D7F_hutX7iMWZjTA41/preview",
-      "https://drive.google.com/file/d/19f86Gf_418N5VSPlRPJ0foIkEXgUGys7/preview",
-      "https://drive.google.com/file/d/189uod53lZ8SYFedh0_96cTPTk1I-tXBw/preview",
-      "https://drive.google.com/file/d/1FKfqZeTNQSp2QEgJfoykshx-ttiXePJC/preview",
-      "https://drive.google.com/file/d/12tfBCl5qCBQq9df4PePyPqx0Jc6ea0iD/preview"
+      "/samples/gta-1.mp4",
+      "/samples/gta-2.mp4",
+      "/samples/gta-3.mp4",
+      "/samples/gta-4.mp4",
+      "/samples/gta-5.mp4",
+      "/samples/gta-6.mp4",
+      "/samples/gta-7.mp4",
+      "/samples/gta-8.mp4",
+      "/samples/gta-9.mp4",
+      "/samples/gta-10.mp4",
+      "/samples/gta-11.mp4",
+      "/samples/gta-12.mp4"
     ],
     "tags": [
       "🔥 GTA 6 TRENDING",
