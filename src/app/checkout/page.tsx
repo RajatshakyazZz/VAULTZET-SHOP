@@ -24,7 +24,13 @@ import {
   ShoppingBag,
 } from 'lucide-react';
 import { useCart } from '@/context/CartContext';
-import { getOrderBumpForContext, SHERU_ADDON_BUMPS, isSheruBhaiIdentifier } from '@/data/bundles';
+import {
+  getOrderBumpForContext,
+  SHERU_ADDON_BUMPS,
+  GTA_ADDON_BUMPS,
+  isSheruBhaiIdentifier,
+  isGta6Identifier,
+} from '@/data/bundles';
 import type { OrderBumpItem } from '@/types';
 import { track, getMetaAttributionData } from '@/lib/analytics';
 import { resolveBundleSlug, isEligibleForFreeBundleGift } from '@/lib/bundleResolver';
@@ -325,6 +331,16 @@ function CheckoutContent() {
         isSheruBhaiIdentifier(i?.product?.slug)
     );
 
+  const isGta6Context =
+    isGta6Identifier(productParam) ||
+    isGta6Identifier(buyNowItem?.product?.id) ||
+    isGta6Identifier(buyNowItem?.product?.slug) ||
+    checkoutItems.some(
+      (i) =>
+        isGta6Identifier(i?.product?.id) ||
+        isGta6Identifier(i?.product?.slug)
+    );
+
   const [selectedBumps, setSelectedBumps] = useState<OrderBumpItem[]>([]);
 
   // Hydrate stored selected bumps
@@ -371,13 +387,14 @@ function CheckoutContent() {
 
   // Dynamically calculate gross total and discount with page-specific order bump
   const checkoutOrderBump = getOrderBumpForContext(checkoutItems, buyNowItem, productParam);
-  const activeBumps: OrderBumpItem[] = isSheruContext
-    ? (orderBumpAdded && selectedBumps.length > 0
-        ? selectedBumps
-        : orderBumpAdded
-        ? [SHERU_ADDON_BUMPS[0]]
-        : [])
-    : (orderBumpAdded ? [checkoutOrderBump] : []);
+  const activeBumps: OrderBumpItem[] =
+    orderBumpAdded && selectedBumps.length > 0
+      ? selectedBumps
+      : isSheruContext
+      ? (orderBumpAdded ? [SHERU_ADDON_BUMPS[0]] : [])
+      : isGta6Context
+      ? (orderBumpAdded ? [GTA_ADDON_BUMPS[0]] : [])
+      : (orderBumpAdded ? [checkoutOrderBump] : []);
 
   const bumpTotal = activeBumps.reduce((sum, b) => sum + (b.discountPrice || 0), 0);
   const grossSubtotal = checkoutSubtotal + bumpTotal;
@@ -1140,13 +1157,15 @@ function CheckoutContent() {
                     </div>
                   </div>
 
-                  {isSheruContext ? (
+                  {isSheruContext || isGta6Context ? (
                     <div className="space-y-3">
                       <p className="text-xs font-bold text-slate-800">
-                        Special Exclusive Add-On: Add 2,000+ GTA 6 Reels for just ₹99 (Regular ₹999):
+                        {isSheruContext
+                          ? 'Special Exclusive Add-On: Add 2,000+ GTA 6 Reels for just ₹99 (Regular ₹999):'
+                          : 'Special Exclusive Add-Ons: Add viral booster bundles to your GTA 6 order:'}
                       </p>
                       <div className="space-y-2.5">
-                        {SHERU_ADDON_BUMPS.map((bump) => {
+                        {(isSheruContext ? SHERU_ADDON_BUMPS : GTA_ADDON_BUMPS).map((bump) => {
                           const isSelected = activeBumps.some(
                             (b) => b.id === bump.id || b.slug === bump.slug
                           );
@@ -1369,7 +1388,7 @@ function CheckoutContent() {
 
                   {orderBumpAdded && (
                     <>
-                      {isSheruContext && activeBumps.length > 0 ? (
+                      {(isSheruContext || isGta6Context) && activeBumps.length > 0 ? (
                         activeBumps.map((b) => (
                           <div
                             key={b.id}

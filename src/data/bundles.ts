@@ -39,13 +39,40 @@ export const GTA6_ORDER_BUMP: OrderBumpItem = {
   reelCount: 2000,
 };
 
+export const SNAKE_ORDER_BUMP: OrderBumpItem = {
+  id: 'rb-snake-ulti-500',
+  slug: '500-snake-ulti-duniya-ai-reels-bundle',
+  title: '500+ Snake Ulti Duniya AI Reels Bundle',
+  subtitle: 'Trending Viral Add-On: 500+ Saamp Ki Ulti Duniya reverse world AI reels (Full HD, No Watermark) for just ₹60!',
+  originalPrice: 299,
+  discountPrice: 60,
+  discountPercentage: 80,
+  thumbnail: '/bonus-snake-ulti.webp',
+  reelCount: 500,
+};
+
 export const SHERU_ADDON_BUMPS: OrderBumpItem[] = [
   GTA6_ORDER_BUMP,
 ];
 
 export const GTA_ADDON_BUMPS: OrderBumpItem[] = [
   ORDER_BUMP,
+  SNAKE_ORDER_BUMP,
 ];
+
+export function getGtaBump(value?: string | null): OrderBumpItem | null {
+  if (!value) return null;
+  const clean = String(value).trim().toLowerCase();
+  return (
+    GTA_ADDON_BUMPS.find(
+      (b) => b.id.toLowerCase() === clean || b.slug?.toLowerCase() === clean
+    ) ||
+    (clean.includes('snake') ? SNAKE_ORDER_BUMP : null) ||
+    (clean.includes('sheru') ? ORDER_BUMP : null) ||
+    GTA_ADDON_BUMPS[0] ||
+    null
+  );
+}
 
 export function getSheruBump(value?: string | null): OrderBumpItem | null {
   if (!value) return null;

@@ -246,6 +246,8 @@ async function handleVerify(
         b.slug ||
         (bumpId === 'rb-2000-gta-6-viral-reels' || String(bumpId).toLowerCase().includes('gta')
           ? '2000-gta-6-viral-reels-bundle'
+          : bumpId === 'rb-snake-ulti-500' || String(bumpId).toLowerCase().includes('snake')
+          ? '500-snake-ulti-duniya-ai-reels-bundle'
           : bumpId === 'rb-hot-girls-reels-bundle'
           ? 'hot-girls-reels-bundle'
           : bumpId === 'rb-twisted-3200'

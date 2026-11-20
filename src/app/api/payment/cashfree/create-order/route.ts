@@ -5,7 +5,14 @@ import { doc, setDoc, serverTimestamp } from 'firebase/firestore';
 import { sendAbandonedOrPendingTelegramAlert } from '@/lib/telegram';
 import { generateOrderToken, extractClientMetadata } from '@/lib/orderToken';
 import { getResellerListingBySlug } from '@/lib/resellerService';
-import { BUNDLE_PRODUCTS, ORDER_BUMP, HOT_GIRLS_ORDER_BUMP, SHERU_ADDON_BUMPS } from '@/data/bundles';
+import {
+  BUNDLE_PRODUCTS,
+  ORDER_BUMP,
+  HOT_GIRLS_ORDER_BUMP,
+  SHERU_ADDON_BUMPS,
+  GTA_ADDON_BUMPS,
+  SNAKE_ORDER_BUMP,
+} from '@/data/bundles';
 import { calculateCouponDiscount } from '@/lib/coupon';
 import { fetchCustomProductBySlug } from '@/lib/customProducts';
 import { isEligibleForFreeBundleGift } from '@/lib/bundleResolver';
@@ -74,17 +81,22 @@ export async function POST(request: Request) {
       const bSlug = String(b.slug || '').trim().toLowerCase();
       const bTitle = String(b.title || '').trim().toLowerCase();
 
-      const matchedSheruBump = SHERU_ADDON_BUMPS.find(
-        (sb) =>
-          sb.id.toLowerCase() === bId ||
-          sb.slug?.toLowerCase() === bSlug ||
-          (bSlug && sb.slug?.toLowerCase().includes(bSlug)) ||
-          (bTitle && sb.title.toLowerCase().includes(bTitle))
-      );
+      const matchedBump =
+        [...SHERU_ADDON_BUMPS, ...GTA_ADDON_BUMPS, HOT_GIRLS_ORDER_BUMP, SNAKE_ORDER_BUMP, ORDER_BUMP].find(
+          (sb) =>
+            sb.id.toLowerCase() === bId ||
+            sb.slug?.toLowerCase() === bSlug ||
+            (bSlug && sb.slug?.toLowerCase().includes(bSlug)) ||
+            (bTitle && sb.title.toLowerCase().includes(bTitle))
+        );
 
-      if (matchedSheruBump) {
-        if (!resolvedBumps.some((x) => x.id === matchedSheruBump.id)) {
-          resolvedBumps.push(matchedSheruBump);
+      if (matchedBump) {
+        if (!resolvedBumps.some((x) => x.id === matchedBump.id)) {
+          resolvedBumps.push(matchedBump);
+        }
+      } else if (bId.includes('snake') || bSlug.includes('snake') || bTitle.includes('snake')) {
+        if (!resolvedBumps.some((x) => x.id === SNAKE_ORDER_BUMP.id)) {
+          resolvedBumps.push(SNAKE_ORDER_BUMP);
         }
       } else if (
         bId === HOT_GIRLS_ORDER_BUMP.id.toLowerCase() ||

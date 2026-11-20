@@ -34,7 +34,7 @@ export default function GtaPageOrderBump({
           <span className="truncate">EXCLUSIVE ONE-TIME ADD-ON • SPECIAL SYNERGY OFFER</span>
         </span>
         <span className="px-2 py-0.5 rounded-full bg-white/20 backdrop-blur-xs text-[10px] sm:text-[11px] font-black shrink-0 tracking-wider">
-          ₹99 SPECIAL ADD-ON (90% OFF)
+          SPECIAL ADD-ONS (UP TO 90% OFF)
         </span>
       </div>
 
@@ -42,7 +42,7 @@ export default function GtaPageOrderBump({
       <div className="px-3.5 sm:px-4 pt-2.5 pb-1 flex items-center justify-between text-[11px] text-slate-600 font-semibold border-b border-red-100">
         <span className="flex items-center gap-1 text-slate-800">
           <Sparkles className="w-3.5 h-3.5 text-red-600 shrink-0" />
-          <span>Add 3,000+ Sheru Bhai Mega Reel Bundle to your GTA 6 order for just ₹99!</span>
+          <span>Add viral booster bundles to your GTA 6 order at massive discount!</span>
         </span>
         {selectedCount > 0 && (
           <span className="text-red-700 font-black text-[10px] sm:text-[11px] bg-red-100/80 px-2 py-0.5 rounded-md">
@@ -144,8 +144,8 @@ export default function GtaPageOrderBump({
       <div className="px-3.5 py-2.5 bg-slate-900 text-white flex items-center justify-between gap-2 text-xs">
         <span className="font-medium text-slate-300 text-[11px] sm:text-xs">
           {selectedCount > 0
-            ? `Includes GTA 6 + 3,000+ Sheru Bhai Mega Reel Pack`
-            : 'Tap box above to include 3000+ Sheru Bhai Reels in your order for ₹99'}
+            ? `Includes GTA 6 + ${selectedBumpItems.map((b) => b.title.split('–')[0].trim()).join(' + ')}`
+            : 'Tap any add-on above to include in your order with 1-click'}
         </span>
         <span className="font-black text-white bg-red-600 px-2.5 py-1 rounded-lg text-xs sm:text-sm shrink-0 shadow-xs">
           Total: ₹{combinedTotal}.00
