@@ -21,22 +21,22 @@ const CREATOR_RESULTS = [
     handle: '@gta6.insider_in',
     views: '4.8M Views',
     followers: '+38K Followers in 19 Days',
-    quote: 'GTA 6 Vice City clips ki quality aisi hai ki retention 85% se upar rehta hai. 3 reels million cross kar gayi!',
-    badge: 'Trending Gaming Page',
+    quote: 'GTA 6 clips ki quality aisi hai ki watch retention 85% se upar rehta hai. 3 reels million views cross kar gayi!',
+    badge: 'Gaming Page',
   },
   {
     handle: '@vicecity.vibes26',
     views: '2.1M Views',
     followers: '+24K Followers in 14 Days',
     quote: 'Supercars aur police chase wale folder ki videos par comments aur shares flood ho gaye. Best ₹99 investment!',
-    badge: 'Automated Faceless Theme Page',
+    badge: 'Faceless Theme Page',
   },
   {
     handle: '@dailygamingshorts_hi',
     views: '7.3M Views',
     followers: '+62K Subscribers',
     quote: 'Watermark bilkul nahi tha, YouTube Shorts par seedha schedule kar diya. Zero copyright claim!',
-    badge: 'YouTube Shorts Creator',
+    badge: 'Shorts Channel',
   },
 ];
 
@@ -45,88 +45,81 @@ export default function Gta6GrowthProofSection({
   onBuyClick,
 }: Gta6GrowthProofSectionProps) {
   return (
-    <section className="my-10 rounded-3xl bg-slate-950 border border-fuchsia-500/25 p-5 sm:p-8 relative overflow-hidden shadow-2xl">
-      <div className="text-center max-w-2xl mx-auto mb-8">
-        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-pink-950/80 border border-pink-500/30 text-pink-300 text-xs font-black uppercase tracking-wider mb-2.5">
-          <TrendingUp className="w-3.5 h-3.5" />
+    <section className="my-10 rounded-2xl sm:rounded-3xl bg-white border border-slate-200/90 p-5 sm:p-7 shadow-xs">
+      <div className="text-center max-w-2xl mx-auto mb-6">
+        <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-red-50 border border-red-200/80 text-red-700 text-xs font-bold uppercase tracking-wider mb-2">
+          <TrendingUp className="w-3.5 h-3.5 text-red-600" />
           <span>Real Creator Proof & Traction</span>
         </div>
-        <h3 className="text-xl sm:text-3xl font-black text-white">
-          Why Creators Are <span className="bg-gradient-to-r from-cyan-400 via-pink-400 to-fuchsia-400 bg-clip-text text-transparent">Crushing It With GTA 6</span>
+        <h3 className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight">
+          How Creators Are Growing With GTA 6 Reels
         </h3>
-        <p className="text-xs sm:text-sm text-slate-300 mt-2">
-          GTA 6 search volume abhi peak par hai. Dekhiye Indian creators ne is bundle se kaise massive audience build ki:
+        <p className="text-xs sm:text-sm text-slate-500 mt-1.5 leading-relaxed">
+          GTA 6 search volume worldwide peak par hai. Dekhiye Indian creators ne is bundle se kaise massive audience build ki:
         </p>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-3.5">
         {CREATOR_RESULTS.map((res, idx) => (
           <div
             key={idx}
-            className="rounded-2xl bg-gradient-to-b from-slate-900 via-slate-900/90 to-slate-950 border border-slate-800 hover:border-fuchsia-500/50 p-5 flex flex-col justify-between transition-all group"
+            className="rounded-xl bg-slate-50/80 border border-slate-200/80 p-4 flex flex-col justify-between hover:border-red-400/80 transition-all"
           >
             <div>
-              <div className="flex items-center justify-between gap-2 mb-3">
-                <span className="text-[11px] font-mono font-bold text-cyan-400">
+              <div className="flex items-center justify-between gap-2 mb-2.5">
+                <span className="text-xs font-bold text-red-700">
                   {res.handle}
                 </span>
-                <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-slate-800 text-slate-300">
+                <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-slate-100 text-slate-600 border border-slate-200">
                   {res.badge}
                 </span>
               </div>
 
-              <div className="space-y-1 mb-4">
-                <div className="text-xl font-black text-white flex items-center gap-1.5">
-                  <Eye className="w-4 h-4 text-pink-400" />
+              <div className="space-y-0.5 mb-3">
+                <div className="text-lg font-black text-slate-950 flex items-center gap-1.5">
+                  <Eye className="w-4 h-4 text-red-600" />
                   <span>{res.views}</span>
                 </div>
-                <div className="text-xs font-bold text-emerald-400 flex items-center gap-1">
-                  <TrendingUp className="w-3 h-3 text-emerald-400" />
+                <div className="text-xs font-bold text-emerald-700 flex items-center gap-1">
+                  <TrendingUp className="w-3.5 h-3.5" />
                   <span>{res.followers}</span>
                 </div>
               </div>
 
-              <p className="text-xs text-slate-300 italic leading-relaxed">
+              <p className="text-xs text-slate-600 italic leading-relaxed">
                 "{res.quote}"
               </p>
             </div>
 
-            <div className="mt-5 pt-3 border-t border-slate-800/80 flex items-center justify-between text-[11px] text-slate-400">
-              <span className="flex items-center gap-1 text-cyan-300 font-semibold">
-                <CheckCircle2 className="w-3.5 h-3.5 text-cyan-400" />
+            <div className="mt-4 pt-2.5 border-t border-slate-200/70 flex items-center justify-between text-[11px] text-slate-500">
+              <span className="flex items-center gap-1 text-emerald-700 font-bold">
+                <CheckCircle2 className="w-3.5 h-3.5" />
                 Verified Buyer
               </span>
-              <span className="text-[10px] text-slate-500">Google Drive Delivery</span>
+              <span className="text-[10px] text-slate-400">Google Drive Delivery</span>
             </div>
           </div>
         ))}
       </div>
 
-      {/* Trust Quote / Guarantee Bar */}
-      <div className="mt-8 rounded-2xl bg-gradient-to-r from-fuchsia-950/60 via-purple-950/40 to-slate-950 border border-fuchsia-500/30 p-4 sm:p-5 flex flex-col sm:flex-row items-center justify-between gap-4 text-center sm:text-left">
+      {/* Guarantee Bar */}
+      <div className="mt-6 rounded-xl bg-red-50/60 border border-red-200/70 p-3.5 sm:p-4 flex flex-col sm:flex-row items-center justify-between gap-3 text-center sm:text-left">
         <div className="flex items-center gap-3">
-          <div className="p-2.5 rounded-xl bg-fuchsia-600/20 text-fuchsia-400 border border-fuchsia-500/30 shrink-0">
-            <Award className="w-5 h-5 text-pink-400" />
+          <div className="p-2 rounded-lg bg-red-100 text-red-700 shrink-0">
+            <Award className="w-4 h-4" />
           </div>
           <div>
-            <h5 className="text-sm font-bold text-white">
-              100% Risk-Free Viral Content Guarantee
+            <h5 className="text-xs sm:text-sm font-bold text-slate-900">
+              100% Risk-Free Content Guarantee
             </h5>
-            <p className="text-xs text-slate-300">
+            <p className="text-[11px] text-slate-600">
               High bitrate 4K & 1080P format. No watermarks. Lifetime access to download anytime.
             </p>
           </div>
         </div>
-
-        {onBuyClick && (
-          <button
-            type="button"
-            onClick={onBuyClick}
-            className="shrink-0 px-5 py-2.5 rounded-xl bg-gradient-to-r from-fuchsia-600 to-pink-600 hover:from-fuchsia-500 hover:to-pink-500 text-white font-black text-xs sm:text-sm shadow-md shadow-fuchsia-500/30 transition-all cursor-pointer"
-          >
-            Claim Bundle — ₹{price}
-          </button>
-        )}
+        <span className="text-xs font-black text-red-700 bg-white px-3 py-1.5 rounded-lg border border-red-200 shrink-0">
+          Instant Drive Link
+        </span>
       </div>
     </section>
   );

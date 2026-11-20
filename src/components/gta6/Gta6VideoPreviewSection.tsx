@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import {
   Film,
   Play,
@@ -9,11 +9,11 @@ import {
   Zap,
   Volume2,
   CheckCircle2,
+  ChevronLeft,
+  ChevronRight,
+  Smartphone,
+  Eye,
   ArrowRight,
-  Flame,
-  Layers,
-  X,
-  ExternalLink,
 } from 'lucide-react';
 import { GTA6_SAMPLE_CLIPS, GtaSampleVideo } from '@/data/gtaCampaign';
 
@@ -24,223 +24,263 @@ interface Gta6VideoPreviewSectionProps {
   onBuyClick?: () => void;
 }
 
-const CATEGORY_TABS = [
-  'All 12 Samples',
-  'Supercars & Drifting',
-  'Storylines & Heists',
-  'High Adrenaline',
-  'Cinematic B-Roll',
-];
-
 export default function Gta6VideoPreviewSection({
   price = 99,
   onBuyClick,
 }: Gta6VideoPreviewSectionProps) {
-  const [activeCategory, setActiveCategory] = useState('All 12 Samples');
-  const [playingClipId, setPlayingClipId] = useState<string | null>(null);
+  const [selectedClipIndex, setSelectedClipIndex] = useState(0);
+  const [isPlaying, setIsPlaying] = useState(false);
+  const carouselRef = useRef<HTMLDivElement>(null);
 
-  const filteredClips =
-    activeCategory === 'All 12 Samples'
-      ? GTA6_SAMPLE_CLIPS
-      : GTA6_SAMPLE_CLIPS.filter((c) => c.category === activeCategory);
+  const currentClip = GTA6_SAMPLE_CLIPS[selectedClipIndex] || GTA6_SAMPLE_CLIPS[0];
 
-  const handleCardClick = (clipId: string) => {
-    setPlayingClipId(clipId);
+  const scrollCarousel = (direction: 'left' | 'right') => {
+    if (carouselRef.current) {
+      const scrollAmount = direction === 'left' ? -280 : 280;
+      carouselRef.current.scrollBy({ left: scrollAmount, behavior: 'smooth' });
+    }
+  };
+
+  const handleSelectClip = (index: number) => {
+    setSelectedClipIndex(index);
+    setIsPlaying(true);
   };
 
   return (
     <section
       id="gta6-samples"
-      aria-label="GTA 6 Real Sample Video Clips (Instant Inline Play)"
-      className="my-10 rounded-3xl bg-gradient-to-b from-slate-950 via-[#130722] to-slate-950 border border-fuchsia-500/35 p-4 sm:p-7 lg:p-8 shadow-2xl shadow-fuchsia-950/60 text-white relative overflow-hidden backdrop-blur-md"
+      aria-label="GTA 6 Sample Video Previews Carousel"
+      className="my-10 rounded-2xl sm:rounded-3xl bg-white border border-slate-200/90 p-4 sm:p-7 shadow-xs space-y-6 text-slate-900"
     >
-      {/* Background ambient neon glow */}
-      <div className="absolute top-0 right-1/4 w-96 h-96 bg-fuchsia-600/15 rounded-full blur-[120px] pointer-events-none" />
-      <div className="absolute bottom-0 left-1/4 w-96 h-96 bg-cyan-500/15 rounded-full blur-[120px] pointer-events-none" />
-
-      {/* Header */}
-      <div className="text-center max-w-3xl mx-auto mb-6 sm:mb-8 relative z-10">
-        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-gradient-to-r from-fuchsia-950 via-purple-950 to-cyan-950 border border-fuchsia-500/40 text-fuchsia-300 text-xs font-black uppercase tracking-wider mb-2.5 shadow-sm">
-          <Film className="w-3.5 h-3.5 text-cyan-400" />
+      {/* Clean Minimal Header */}
+      <div className="text-center max-w-2xl mx-auto">
+        <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-red-50 border border-red-200/80 text-red-700 text-xs font-bold uppercase tracking-wider mb-2.5">
+          <Film className="w-3.5 h-3.5 text-red-600" />
           <span>Real Sample Previews • 12 Active Clips</span>
         </div>
-        <h2 className="text-2xl sm:text-3xl md:text-4xl font-black tracking-tight text-white leading-tight">
-          Watch Actual GTA 6 Reels{' '}
-          <span className="bg-gradient-to-r from-fuchsia-400 via-pink-400 to-cyan-400 bg-clip-text text-transparent">
-            (Instant In-Place Play)
-          </span>
+        <h2 className="text-xl sm:text-3xl font-black text-slate-900 tracking-tight leading-tight">
+          Watch Actual GTA 6 Reels Inside The Pack
         </h2>
-        <p className="text-xs sm:text-sm text-slate-300 mt-2 max-w-2xl mx-auto leading-relaxed">
-          Kisi bhi video par tap kijiye — <strong>video turant usi card me play hoga</strong>, bina kisi popup ya redirect ke! Sabhi 2,000+ clips 100% watermark-free, 4K quality aur trending sound effects ke sath aate hain.
+        <p className="text-xs sm:text-sm text-slate-500 mt-2 leading-relaxed">
+          Tap any reel in the carousel below to play instantly in true 9:16 vertical ratio. All 2,000+ clips are 100% watermark-free with pre-synced viral audio.
         </p>
 
-        {/* Trust Badges */}
-        <div className="flex flex-wrap items-center justify-center gap-2 mt-4 text-[11px] font-bold">
-          <span className="inline-flex items-center gap-1 px-3 py-1 rounded-xl bg-cyan-950/70 border border-cyan-500/30 text-cyan-300">
-            <ShieldCheck className="w-3.5 h-3.5 text-cyan-400" />
-            100% Watermark-Free
+        {/* Minimal Trust Badges */}
+        <div className="flex flex-wrap items-center justify-center gap-2 mt-3.5 text-[11px] font-bold text-slate-700">
+          <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-slate-50 border border-slate-200/80">
+            <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
+            <span>9:16 Vertical (Reels / Shorts)</span>
           </span>
-          <span className="inline-flex items-center gap-1 px-3 py-1 rounded-xl bg-fuchsia-950/70 border border-fuchsia-500/30 text-fuchsia-300">
-            <Sparkles className="w-3.5 h-3.5 text-pink-400" />
-            4K / 1080P Ultra HD (9:16)
+          <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-slate-50 border border-slate-200/80">
+            <ShieldCheck className="w-3.5 h-3.5 text-red-600" />
+            <span>100% Clean (Zero Watermark)</span>
           </span>
-          <span className="inline-flex items-center gap-1 px-3 py-1 rounded-xl bg-purple-950/70 border border-purple-500/30 text-purple-300">
-            <Volume2 className="w-3.5 h-3.5 text-amber-300" />
-            Pre-Synced Trending Audio
+          <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-slate-50 border border-slate-200/80">
+            <Volume2 className="w-3.5 h-3.5 text-red-600" />
+            <span>Viral Audio Included</span>
           </span>
-          <span className="inline-flex items-center gap-1 px-3 py-1 rounded-xl bg-emerald-950/70 border border-emerald-500/30 text-emerald-300">
-            <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
-            Instant Google Drive Delivery
+          <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-slate-50 border border-slate-200/80">
+            <Sparkles className="w-3.5 h-3.5 text-amber-500" />
+            <span>Instant Google Drive Access</span>
           </span>
         </div>
       </div>
 
-      {/* Category Filter Pills */}
-      <div className="flex items-center justify-start sm:justify-center gap-2 mb-6 sm:mb-8 overflow-x-auto pb-2 scrollbar-none relative z-10">
-        {CATEGORY_TABS.map((cat) => {
-          const isActive = activeCategory === cat;
-          return (
-            <button
-              key={cat}
-              type="button"
-              onClick={() => setActiveCategory(cat)}
-              className={`px-3.5 py-1.5 rounded-full text-xs font-bold transition-all whitespace-nowrap cursor-pointer ${
-                isActive
-                  ? 'bg-gradient-to-r from-fuchsia-600 via-pink-600 to-cyan-600 text-white shadow-lg shadow-fuchsia-600/40 border border-fuchsia-400'
-                  : 'bg-slate-900/80 text-slate-400 hover:text-white border border-slate-800 hover:border-slate-700'
-              }`}
-            >
-              {cat}
-            </button>
-          );
-        })}
+      {/* 9:16 VERTICAL SPOTLIGHT SMARTPHONE PLAYER */}
+      <div className="max-w-[320px] sm:max-w-[340px] mx-auto">
+        <div className="relative rounded-3xl bg-slate-950 p-2.5 shadow-xl border-4 border-slate-900 ring-1 ring-slate-800">
+          {/* Smartphone Speaker / Camera Notch */}
+          <div className="absolute top-4 left-1/2 -translate-x-1/2 w-20 h-4 bg-slate-900 rounded-full z-20 flex items-center justify-center">
+            <div className="w-2.5 h-2.5 rounded-full bg-slate-950 border border-slate-800 mr-2" />
+            <div className="w-8 h-1 rounded-full bg-slate-800" />
+          </div>
+
+          {/* 9:16 Screen Container */}
+          <div className="relative w-full aspect-[9/16] rounded-2xl bg-black overflow-hidden flex items-center justify-center">
+            {/* Overlay Badges */}
+            <div className="absolute top-7 left-3 z-20 px-2 py-0.5 rounded-md bg-slate-950/85 border border-white/20 text-[10px] font-black text-white">
+              Clip #{selectedClipIndex + 1} of 12
+            </div>
+            <div className="absolute top-7 right-3 z-20 px-2 py-0.5 rounded-md bg-red-600 text-white text-[10px] font-black tracking-wider uppercase">
+              {currentClip.badge}
+            </div>
+
+            {isPlaying ? (
+              /* ACTIVE VIDEO PLAYER: Loads Google Drive Embed cleanly fitting 9:16 */
+              <iframe
+                src={`https://drive.google.com/file/d/${currentClip.fileId}/preview`}
+                title={currentClip.title}
+                className="w-full h-full border-0 bg-black rounded-2xl"
+                allow="autoplay; encrypted-media; picture-in-picture; fullscreen"
+                allowFullScreen
+              />
+            ) : (
+              /* POSTER / TAP TO PLAY */
+              <button
+                type="button"
+                onClick={() => setIsPlaying(true)}
+                aria-label={`Play ${currentClip.title}`}
+                className="w-full h-full text-left relative block focus:outline-none cursor-pointer group"
+              >
+                <img
+                  src="/gta-vi-neon-reels-bundle.webp"
+                  alt={currentClip.title}
+                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 opacity-80"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/30 to-slate-950/60" />
+
+                {/* Big Center Play Button */}
+                <div className="absolute inset-0 flex items-center justify-center">
+                  <span className="w-14 h-14 rounded-full bg-red-600 hover:bg-red-700 text-white flex items-center justify-center shadow-2xl shadow-red-600/50 group-hover:scale-110 active:scale-95 transition-all">
+                    <Play className="w-6 h-6 fill-white ml-0.5" />
+                  </span>
+                </div>
+
+                {/* Bottom Callout */}
+                <div className="absolute bottom-3 inset-x-3 text-center">
+                  <p className="text-xs font-black text-white line-clamp-1">
+                    {currentClip.title}
+                  </p>
+                  <p className="text-[11px] font-bold text-red-400 mt-0.5">
+                    Tap to Play Sample Video ▶
+                  </p>
+                </div>
+              </button>
+            )}
+          </div>
+        </div>
+
+        {/* Selected Clip Info Strip */}
+        <div className="mt-2 text-center">
+          <span className="text-xs font-extrabold text-slate-900 block truncate">
+            {currentClip.title}
+          </span>
+          <span className="text-[11px] text-slate-500 font-medium">
+            {currentClip.category} • {currentClip.views}
+          </span>
+        </div>
       </div>
 
-      {/* INLINE VIDEO SAMPLES GRID: 2 COL (Mobile) -> 3 COL (Tablet) -> 4 COL (Desktop) -> 6 COL (Wide) */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-3 sm:gap-4 relative z-10">
-        {filteredClips.map((clip, idx) => {
-          const isPlaying = playingClipId === clip.id;
+      {/* CAROUSEL HEADER & NAVIGATION BUTTONS */}
+      <div className="pt-4 border-t border-slate-100 flex items-center justify-between">
+        <div>
+          <h3 className="text-xs sm:text-sm font-extrabold text-slate-900 flex items-center gap-1.5">
+            <Smartphone className="w-4 h-4 text-red-600" />
+            <span>Select Any Sample Reel (12 Clips Carousel)</span>
+          </h3>
+          <p className="text-[11px] text-slate-500">
+            Swipe left or right and tap any reel to play above
+          </p>
+        </div>
+
+        <div className="flex items-center gap-1.5 shrink-0">
+          <button
+            type="button"
+            onClick={() => scrollCarousel('left')}
+            aria-label="Scroll left"
+            className="w-8 h-8 rounded-full border border-slate-200 bg-white hover:bg-red-50 hover:text-red-700 flex items-center justify-center text-slate-600 transition-colors cursor-pointer shadow-xs"
+          >
+            <ChevronLeft className="w-4 h-4" />
+          </button>
+          <button
+            type="button"
+            onClick={() => scrollCarousel('right')}
+            aria-label="Scroll right"
+            className="w-8 h-8 rounded-full border border-slate-200 bg-white hover:bg-red-50 hover:text-red-700 flex items-center justify-center text-slate-600 transition-colors cursor-pointer shadow-xs"
+          >
+            <ChevronRight className="w-4 h-4" />
+          </button>
+        </div>
+      </div>
+
+      {/* SWIPEABLE 9:16 REELS CAROUSEL */}
+      <div
+        ref={carouselRef}
+        className="flex items-stretch gap-3 overflow-x-auto pb-3 pt-1 scroll-smooth snap-x snap-mandatory scrollbar-none"
+      >
+        {GTA6_SAMPLE_CLIPS.map((clip, idx) => {
+          const isSelected = selectedClipIndex === idx;
 
           return (
             <div
               key={clip.id}
-              className={`group relative w-full aspect-[9/16] rounded-2xl overflow-hidden bg-slate-950 border-2 transition-all duration-300 shadow-xl ${
-                isPlaying
-                  ? 'border-fuchsia-400 ring-2 ring-fuchsia-500/40 shadow-fuchsia-500/30'
-                  : 'border-white/15 hover:border-fuchsia-400/80 hover:shadow-fuchsia-500/20'
+              onClick={() => handleSelectClip(idx)}
+              className={`w-[170px] sm:w-[190px] shrink-0 aspect-[9/16] rounded-2xl overflow-hidden relative cursor-pointer snap-start transition-all duration-300 border-2 select-none group ${
+                isSelected
+                  ? 'border-red-600 ring-2 ring-red-500/25 shadow-lg scale-[1.02]'
+                  : 'border-slate-200/90 hover:border-red-400 bg-slate-900'
               }`}
             >
-              {isPlaying ? (
-                /* INLINE PLAYER: Plays right where the card is situated */
-                <div className="relative w-full h-full bg-black">
-                  <iframe
-                    src={clip.previewEmbedUrl}
-                    title={clip.title}
-                    className="w-full h-full border-0 rounded-2xl bg-black"
-                    allow="autoplay; encrypted-media; picture-in-picture; fullscreen"
-                    allowFullScreen
-                  />
+              {/* Poster Image */}
+              <img
+                src="/gta-vi-neon-reels-bundle.webp"
+                alt={clip.title}
+                loading="lazy"
+                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 opacity-75"
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/40 to-slate-950/60" />
 
-                  {/* Stop / Close button floating in top-right */}
-                  <button
-                    type="button"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setPlayingClipId(null);
-                    }}
-                    aria-label={`Stop playing ${clip.title}`}
-                    className="absolute top-2 right-2 z-30 px-2 py-1 rounded-full bg-slate-950/95 hover:bg-rose-600 text-white text-[10px] font-extrabold border border-white/20 transition-colors shadow-lg cursor-pointer flex items-center gap-1"
-                  >
-                    <X className="w-3 h-3" />
-                    <span>Stop</span>
-                  </button>
-                </div>
-              ) : (
-                /* CARD PREVIEW: Click to play in this spot */
-                <button
-                  type="button"
-                  onClick={() => handleCardClick(clip.id)}
-                  aria-label={`Play sample reel: ${clip.title}`}
-                  className="w-full h-full text-left relative block focus:outline-none focus:ring-2 focus:ring-fuchsia-400 cursor-pointer"
+              {/* Top Header in Card */}
+              <div className="absolute top-2 left-2 right-2 flex items-center justify-between gap-1 z-10">
+                <span className="px-1.5 py-0.5 rounded bg-slate-950/80 text-[10px] font-bold text-white">
+                  #{idx + 1}
+                </span>
+                <span
+                  className={`px-1.5 py-0.5 rounded text-[9px] font-black uppercase ${
+                    isSelected
+                      ? 'bg-red-600 text-white animate-pulse'
+                      : 'bg-white/20 text-white'
+                  }`}
                 >
-                  {/* Poster Image (Neon Mockup Background) */}
-                  <img
-                    src="/gta-vi-neon-reels-bundle.webp"
-                    alt={clip.title}
-                    loading="lazy"
-                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 opacity-70"
-                  />
+                  {isSelected ? 'Playing' : 'Clean'}
+                </span>
+              </div>
 
-                  {/* Vice City Gradient Overlay */}
-                  <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/50 to-slate-950/70" />
+              {/* Center Play Icon */}
+              <div className="absolute inset-0 flex items-center justify-center z-10">
+                <span
+                  className={`w-9 h-9 rounded-full flex items-center justify-center transition-transform group-hover:scale-110 ${
+                    isSelected
+                      ? 'bg-red-600 text-white shadow-lg shadow-red-600/50'
+                      : 'bg-white/90 text-slate-950 shadow-md'
+                  }`}
+                >
+                  <Play className="w-4 h-4 fill-current ml-0.5" />
+                </span>
+              </div>
 
-                  {/* Top Pills */}
-                  <div className="absolute top-2 left-2 right-2 flex items-center justify-between gap-1 z-10">
-                    <span className="px-2 py-0.5 rounded-md bg-slate-950/85 backdrop-blur-xs border border-white/20 text-[10px] font-extrabold text-white">
-                      #{idx + 1}
-                    </span>
-                    <span className="px-1.5 py-0.5 rounded-md bg-cyan-500/90 text-[9px] font-black text-slate-950 uppercase tracking-wider">
-                      Clean 4K
-                    </span>
-                  </div>
-
-                  {/* Center Glowing Neon Play Button */}
-                  <div className="absolute inset-0 flex items-center justify-center z-10">
-                    <span className="w-12 h-12 rounded-full bg-gradient-to-r from-fuchsia-600 via-pink-600 to-cyan-500 text-white flex items-center justify-center shadow-xl shadow-fuchsia-500/50 group-hover:scale-110 active:scale-95 transition-all">
-                      <Play className="w-5 h-5 fill-white ml-0.5" />
-                    </span>
-                  </div>
-
-                  {/* Bottom Info & Tap to Play */}
-                  <div className="absolute bottom-0 inset-x-0 p-2.5 sm:p-3 z-10">
-                    <div className="flex items-center justify-between gap-1 mb-1">
-                      <span className="text-[9px] font-bold text-fuchsia-300 truncate">
-                        {clip.badge}
-                      </span>
-                      <span className="text-[9px] font-mono font-semibold text-slate-400">
-                        {clip.views}
-                      </span>
-                    </div>
-
-                    <h4 className="text-[11px] sm:text-xs font-black text-white line-clamp-1 leading-snug">
-                      {clip.title}
-                    </h4>
-
-                    <div className="mt-1 flex items-center justify-between text-[10px] font-bold text-cyan-300">
-                      <span>Tap to Play Here ▶</span>
-                    </div>
-                  </div>
-                </button>
-              )}
+              {/* Bottom Card Title & Views */}
+              <div className="absolute bottom-0 inset-x-0 p-2.5 z-10">
+                <span className="text-[9px] font-mono text-slate-300 block mb-0.5 truncate">
+                  {clip.badge}
+                </span>
+                <h4 className="text-[11px] font-bold text-white line-clamp-1 leading-snug">
+                  {clip.title}
+                </h4>
+                <div className="mt-1 flex items-center justify-between text-[10px] font-semibold text-red-300">
+                  <span>{isSelected ? 'Now Playing' : 'Tap to Play'}</span>
+                  <span className="text-slate-400 text-[9px]">{clip.views}</span>
+                </div>
+              </div>
             </div>
           );
         })}
       </div>
 
-      {/* Bottom CTA Banner */}
-      <div className="mt-8 pt-6 border-t border-slate-800/80 flex flex-col sm:flex-row items-center justify-between gap-4 relative z-10">
-        <div className="text-center sm:text-left">
-          <span className="text-xs font-bold text-fuchsia-300 flex items-center justify-center sm:justify-start gap-1.5">
-            <Flame className="w-4 h-4 text-amber-400" />
-            <span>Ready to post directly on Instagram Reels & YouTube Shorts</span>
-          </span>
-          <p className="text-[11px] text-slate-400 mt-0.5">
-            All 12 samples above are included in the 2,000+ Master Pack with Google Drive link.
-          </p>
-        </div>
-
-        {onBuyClick && (
+      {/* Bottom CTA Button */}
+      {onBuyClick && (
+        <div className="pt-2 text-center">
           <button
             type="button"
             onClick={onBuyClick}
-            className="w-full sm:w-auto px-6 py-3.5 rounded-2xl bg-gradient-to-r from-fuchsia-600 via-pink-600 to-cyan-600 hover:from-fuchsia-700 hover:to-cyan-700 text-white font-black text-sm shadow-xl shadow-fuchsia-500/25 active:scale-95 transition-all flex items-center justify-center gap-2 cursor-pointer shrink-0"
+            className="w-full sm:w-auto px-6 py-3.5 rounded-2xl bg-gradient-to-r from-red-600 via-rose-600 to-red-600 hover:from-red-700 hover:to-rose-700 text-white font-black text-sm sm:text-base shadow-lg shadow-red-500/25 active:scale-95 transition-all flex items-center justify-center gap-2 cursor-pointer mx-auto"
           >
             <Zap className="w-4 h-4 fill-white" />
-            <span>Unlock All 2,000+ GTA 6 Reels — ₹{price}</span>
+            <span>Unlock All 2,000+ GTA 6 Reels — ₹{price} (Instant Access)</span>
             <ArrowRight className="w-4 h-4" />
           </button>
-        )}
-      </div>
+        </div>
+      )}
     </section>
   );
 }
