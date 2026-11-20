@@ -34,9 +34,21 @@ export async function POST(request: Request) {
       );
     }
 
-    if (!/^[6-9]\d{9}$/.test(cleanPhone) || /^(\d)\1{9}$/.test(cleanPhone) || cleanPhone === '9876543210') {
+    // Validate Phone Number: Allow valid Indian & International phone numbers (8 to 15 digits)
+    const isIndian10Digit = /^[6-9]\d{9}$/.test(cleanPhone);
+    const isIndian12Digit = /^91[6-9]\d{9}$/.test(cleanPhone);
+    const isInternationalValid = cleanPhone.length >= 8 && cleanPhone.length <= 15 && !/^(\d)\1{5,}$/.test(cleanPhone);
+
+    const isFakePhone =
+      /^(\d)\1{7,}$/.test(cleanPhone) ||
+      cleanPhone === '9876543210' ||
+      cleanPhone === '1234567890' ||
+      cleanPhone === '919876543210' ||
+      cleanPhone === '911234567890';
+
+    if (isFakePhone || (!isIndian10Digit && !isIndian12Digit && !isInternationalValid)) {
       return NextResponse.json(
-        { success: false, error: 'Invalid Phone! Please enter a valid 10-digit WhatsApp / mobile number.' },
+        { success: false, error: 'Invalid Phone! Please enter a valid WhatsApp / phone number.' },
         { status: 400 }
       );
     }
