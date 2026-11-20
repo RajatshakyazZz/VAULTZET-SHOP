@@ -36,17 +36,20 @@ function sanitizeEmail(email?: string, fallback = 'support@vaultzet.shop'): stri
   if (!email || !email.trim()) return fallback;
   const clean = email.trim().toLowerCase();
   if (
-    clean.includes('vaultworld') ||
-    clean.includes('diziproducts') ||
-    clean.includes('dizi') ||
-    clean.includes('ashamse') ||
-    clean.includes('reelsbundles') ||
-    clean.includes('digonest') ||
-    clean.includes('rajattracozegaming')
+    clean !== 'support@vaultzet.shop' &&
+    (clean.includes('vaultworld') ||
+      clean.includes('diziproducts') ||
+      clean.includes('dizi') ||
+      clean.includes('ashamse') ||
+      clean.includes('reelsbundles') ||
+      clean.includes('digonest') ||
+      clean.includes('rajattracozegaming') ||
+      clean.includes('gmail.com') ||
+      !clean.includes('vaultzet.shop'))
   ) {
     return fallback;
   }
-  return email.trim();
+  return clean === 'support@vaultzet.shop' ? clean : fallback;
 }
 
 function sanitizePhone(phone?: string, fallback = '+91 7895317940'): string {

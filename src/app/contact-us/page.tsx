@@ -8,14 +8,7 @@ import { useStoreSettings } from '@/context/StoreSettingsContext';
 export default function ContactUsPage() {
   const { settings } = useStoreSettings();
 
-  const rawEmail = settings.supportEmail || '';
-  const supportEmail =
-    rawEmail &&
-    !rawEmail.includes('vaultworld') &&
-    !rawEmail.includes('dizi') &&
-    !rawEmail.includes('rajattracozegaming')
-      ? rawEmail
-      : 'support@vaultzet.shop';
+  const supportEmail = 'support@vaultzet.shop';
 
   const rawPhone = settings.supportWhatsapp || '';
   const supportPhone =
@@ -56,7 +49,7 @@ export default function ContactUsPage() {
               <Mail className="w-6 h-6" />
             </div>
             <h3 className="font-extrabold text-base text-slate-950">Email Us</h3>
-            <p className="text-xs font-semibold text-slate-600 break-all">
+            <p className="text-xs sm:text-sm font-bold text-slate-800 group-hover:text-red-600 transition-colors break-all">
               {supportEmail}
             </p>
           </a>

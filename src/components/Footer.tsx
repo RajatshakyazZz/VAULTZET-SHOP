@@ -11,6 +11,7 @@ import {
   Heart,
   ArrowRight,
   PlaySquare,
+  Mail,
 } from 'lucide-react';
 import { useStoreSettings } from '@/context/StoreSettingsContext';
 import { useCart } from '@/context/CartContext';
@@ -22,13 +23,7 @@ export default function Footer() {
   const { setIsCartOpen } = useCart();
   const [isResellerRoute, setIsResellerRoute] = React.useState(false);
 
-  const footerEmail =
-    settings.supportEmail &&
-    !settings.supportEmail.includes('vaultworld') &&
-    !settings.supportEmail.includes('dizi') &&
-    !settings.supportEmail.includes('rajattracozegaming')
-      ? settings.supportEmail
-      : 'support@vaultzet.shop';
+  const footerEmail = 'support@vaultzet.shop';
 
   React.useEffect(() => {
     if (typeof window !== 'undefined') {
@@ -165,6 +160,18 @@ export default function Footer() {
               <p className="text-xs sm:text-sm text-slate-600 font-normal leading-relaxed max-w-sm">
                 Premium ready-to-use reels bundles for creators, pages and digital businesses by {settings.storeName || 'Vaultzet Store'}.
               </p>
+
+              {/* Official Customer Support Email Badge */}
+              <div className="pt-1 flex flex-wrap items-center gap-2">
+                <a
+                  href={`mailto:${footerEmail}`}
+                  className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-xl bg-white border border-slate-200 hover:border-red-400 text-xs font-bold text-slate-700 hover:text-red-600 shadow-sm transition-all group"
+                  title="Contact Vaultzet Store Support"
+                >
+                  <Mail className="w-3.5 h-3.5 text-red-600 group-hover:scale-110 transition-transform" />
+                  <span>{footerEmail}</span>
+                </a>
+              </div>
             </div>
 
             {/* Quick Links Column with White Pills */}
@@ -290,8 +297,13 @@ export default function Footer() {
               Contact Us
             </Link>
             <span className="text-slate-300">•</span>
-            <a href={`mailto:${footerEmail}`} className="hover:text-red-600 transition-colors">
-              {footerEmail}
+            <a
+              href={`mailto:${footerEmail}`}
+              className="inline-flex items-center gap-1.5 hover:text-red-600 transition-colors font-bold"
+              title="Official Customer Support"
+            >
+              <Mail className="w-3.5 h-3.5 text-red-600" />
+              <span>{footerEmail}</span>
             </a>
           </div>
 
