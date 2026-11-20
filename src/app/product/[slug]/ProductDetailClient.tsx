@@ -86,6 +86,7 @@ export default function ProductDetailClient({ product }: ProductDetailClientProp
     : [];
 
   const [selectedBumps, setSelectedBumps] = useState<string[]>([]);
+  const [gta6LiveStock, setGta6LiveStock] = useState<number>(currentProduct.stockRemaining ?? 73);
 
   const selectedBumpItems = availableBumps.filter((b) =>
     selectedBumps.includes(b.slug || b.id)
@@ -351,10 +352,11 @@ export default function ProductDetailClient({ product }: ProductDetailClientProp
               {/* GTA 6 Urgency Bar */}
               {isGta6Page && (
                 <Gta6UrgencyBar
-                  stockRemaining={p.stockRemaining ?? 73}
+                  stockRemaining={gta6LiveStock}
                   stockTotal={p.stockTotal ?? 100}
                   price={activePrice}
                   onBuyClick={() => buyNow(p, 'personal')}
+                  onStockChange={setGta6LiveStock}
                 />
               )}
 
@@ -371,7 +373,7 @@ export default function ProductDetailClient({ product }: ProductDetailClientProp
                   </div>
                   <p className="text-[11px] text-slate-500 font-medium mt-0.5">
                     {isGta6Page
-                      ? '🔥 Limited Launch Batch · Only 73 of 100 copies left at ₹99'
+                      ? `🔥 Limited Launch Batch · Only ${gta6LiveStock} of 100 copies left at ₹99`
                       : isSheruPage
                       ? 'One-time payment · Includes 2 Free Bonus Packs (6,000+ Reels)'
                       : 'One-time payment · Lifetime Google Drive access'}
@@ -973,7 +975,7 @@ export default function ProductDetailClient({ product }: ProductDetailClientProp
               {hasPageBumps
                 ? `+${selectedBumpItems.length} Add-on${selectedBumpItems.length > 1 ? 's' : ''} Added`
                 : isGta6Page
-                ? `Only ${p.stockRemaining ?? 73} Left of 100`
+                ? `Only ${gta6LiveStock} Left of 100`
                 : 'Instant Access'}
             </span>
             <div className="flex items-baseline gap-1.5 mt-0.5">
