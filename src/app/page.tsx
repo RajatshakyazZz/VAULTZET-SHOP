@@ -43,10 +43,10 @@ export default async function HomePage() {
 
   return (
     <div className="space-y-4">
-      {/* Featured Top Trending Sheru Bhai Announcement Bar */}
+      {/* Featured Top Trending GTA 6 Viral Reels Announcement Bar */}
       <div className="w-full max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 pt-2 overflow-hidden">
         <Link
-          href="/product/3000-sheru-bhai-mega-reel-bundle-pack"
+          href="/product/2000-gta-6-viral-reels-bundle"
           className="w-full flex items-center justify-between gap-2 p-2.5 sm:py-2.5 sm:px-4 rounded-2xl bg-gradient-to-r from-slate-950 via-red-900 to-red-700 text-white shadow-md hover:shadow-lg transition-all border border-red-500/30 group overflow-hidden"
         >
           <div className="flex items-center gap-2 min-w-0 max-w-full overflow-hidden">
@@ -55,7 +55,7 @@ export default async function HomePage() {
               HOT
             </span>
             <span className="text-xs sm:text-[13px] font-bold truncate block min-w-0">
-              🔥 <strong className="text-amber-200">Sheru Bhai Mega Reel Bundle (3000+)</strong> — Viral Comedy Pack
+              🔥 <strong className="text-amber-200">GTA 6 Viral Reels Bundle (2000+)</strong> — Ready to Upload 4K Pack
             </span>
           </div>
           <div className="flex items-center gap-2 shrink-0">

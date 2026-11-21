@@ -7,22 +7,22 @@ import { X, Zap, CheckCircle2, ArrowRight, Flame, ShieldCheck, Play } from 'luci
 import { BUNDLE_PRODUCTS } from '@/data/bundles';
 import { STORE_REVIEWS_COUNT, STORE_RATING } from '@/data/reviews';
 
-const SHERU_PRODUCT_URL = '/product/3000-sheru-bhai-mega-reel-bundle-pack';
+const GTA6_PRODUCT_URL = '/product/2000-gta-6-viral-reels-bundle';
 
 export default function TrendingPopupModal() {
   const [isOpen, setIsOpen] = useState(false);
   const pathname = usePathname();
 
-  // Find the Sheru Bhai bundle from BUNDLE_PRODUCTS
-  const sheruProduct = BUNDLE_PRODUCTS.find(
-    (b) => b.slug === '3000-sheru-bhai-mega-reel-bundle-pack' || b.id === 'rb-sheru-bhai-3000'
+  // Find the GTA 6 Viral Reels bundle from BUNDLE_PRODUCTS
+  const gta6Product = BUNDLE_PRODUCTS.find(
+    (b) => b.slug === '2000-gta-6-viral-reels-bundle' || b.id === 'rb-2000-gta-6-viral-reels'
   ) || BUNDLE_PRODUCTS[0];
-  const productUrl = sheruProduct?.slug ? `/product/${sheruProduct.slug}` : SHERU_PRODUCT_URL;
+  const productUrl = gta6Product?.slug ? `/product/${gta6Product.slug}` : GTA6_PRODUCT_URL;
 
   useEffect(() => {
     // Avoid showing on checkout, order success, admin, or the product page itself
     if (
-      pathname?.includes('/product/3000-sheru-bhai') ||
+      pathname?.includes('/product/2000-gta-6') ||
       pathname?.includes('/checkout') ||
       pathname?.includes('/order-') ||
       pathname?.includes('/admin')
@@ -32,8 +32,8 @@ export default function TrendingPopupModal() {
 
     try {
       const hasDismissed =
-        sessionStorage.getItem('vaultzet_sheru_popup_seen') ||
-        localStorage.getItem('vaultzet_sheru_popup_seen');
+        sessionStorage.getItem('vaultzet_gta6_popup_seen') ||
+        localStorage.getItem('vaultzet_gta6_popup_seen');
       if (hasDismissed === 'true') {
         return;
       }
@@ -52,12 +52,12 @@ export default function TrendingPopupModal() {
   const handleClose = () => {
     setIsOpen(false);
     try {
-      sessionStorage.setItem('vaultzet_sheru_popup_seen', 'true');
-      localStorage.setItem('vaultzet_sheru_popup_seen', 'true');
+      sessionStorage.setItem('vaultzet_gta6_popup_seen', 'true');
+      localStorage.setItem('vaultzet_gta6_popup_seen', 'true');
     } catch {}
   };
 
-  if (!isOpen || !sheruProduct) return null;
+  if (!isOpen || !gta6Product) return null;
 
   return (
     <div
@@ -102,10 +102,10 @@ export default function TrendingPopupModal() {
             {/* Visual Thumbnail */}
             <div className="relative w-24 sm:w-28 aspect-[3/4] rounded-2xl overflow-hidden bg-slate-900 border-2 border-red-100 group-hover:border-red-300 transition-colors shrink-0 shadow-md">
               <img
-                src={sheruProduct.thumbnail || '/sheru-bhai-cover.webp'}
-                alt={sheruProduct.title}
+                src={gta6Product.thumbnail || '/gta-vi-neon-reels-bundle.webp'}
+                alt={gta6Product.title}
                 onError={(e) => {
-                  (e.target as HTMLImageElement).src = '/sheru-bhai-cover.webp';
+                  (e.target as HTMLImageElement).src = 'https://i.ibb.co/8gjRkdD3/gta-vi-neon-reels-bundle.png';
                 }}
                 className="w-full h-full object-cover"
                 loading="eager"
@@ -118,7 +118,7 @@ export default function TrendingPopupModal() {
                   <Play className="w-2.5 h-2.5 fill-red-600 ml-0.5" />
                 </div>
                 <span className="text-[9px] font-bold text-center text-amber-300">
-                  3000+ Clips
+                  2000+ Clips
                 </span>
               </div>
             </div>
@@ -126,14 +126,14 @@ export default function TrendingPopupModal() {
             {/* Product Meta */}
             <div className="flex-1 min-w-0 space-y-1.5">
               <span className="inline-block px-2 py-0.5 rounded-md bg-red-100 text-red-800 text-[10px] font-extrabold uppercase tracking-wide">
-                Comedy & Dialogue Reels
+                Gaming & Trending Reels
               </span>
 
               <h3
                 id="trending-modal-title"
                 className="text-sm sm:text-base font-black text-slate-900 group-hover:text-red-600 transition-colors leading-snug line-clamp-2"
               >
-                {sheruProduct.title}
+                {gta6Product.title}
               </h3>
 
               {/* Rating */}
@@ -144,8 +144,8 @@ export default function TrendingPopupModal() {
 
               {/* Price Banner */}
               <div className="flex items-baseline gap-2 pt-0.5">
-                <span className="text-2xl font-black text-red-600">₹{sheruProduct.personalPrice}</span>
-                <span className="text-xs text-slate-400 line-through font-semibold">₹{sheruProduct.personalOriginalPrice}</span>
+                <span className="text-2xl font-black text-red-600">₹{gta6Product.personalPrice}</span>
+                <span className="text-xs text-slate-400 line-through font-semibold">₹{gta6Product.personalOriginalPrice}</span>
                 <span className="px-1.5 py-0.5 rounded bg-emerald-100 text-emerald-800 text-[10px] font-black">
                   90% OFF
                 </span>
@@ -157,7 +157,7 @@ export default function TrendingPopupModal() {
           <div className="grid grid-cols-2 gap-2 text-[11px] sm:text-xs text-slate-700 font-bold bg-red-50/70 p-3 rounded-xl border border-red-100">
             <div className="flex items-center gap-1.5">
               <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
-              <span>3000+ Full HD Reels</span>
+              <span>2000+ 4K Ultra HD Reels</span>
             </div>
             <div className="flex items-center gap-1.5">
               <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
@@ -181,7 +181,7 @@ export default function TrendingPopupModal() {
               className="w-full py-3.5 px-5 rounded-2xl bg-gradient-to-r from-red-600 via-rose-600 to-red-600 hover:from-red-700 hover:to-rose-700 text-white font-black text-sm shadow-lg shadow-red-500/25 hover:shadow-xl hover:scale-[1.01] active:scale-95 transition-all flex items-center justify-center gap-2 cursor-pointer"
             >
               <Zap className="w-4 h-4 fill-white" />
-              <span>View Bundle &amp; Buy — Just ₹{sheruProduct.personalPrice}</span>
+              <span>View Bundle &amp; Buy — Just ₹{gta6Product.personalPrice}</span>
             </Link>
 
             <Link

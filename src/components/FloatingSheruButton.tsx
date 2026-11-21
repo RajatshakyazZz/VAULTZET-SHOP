@@ -9,10 +9,10 @@ export default function FloatingSheruButton() {
   const pathname = usePathname();
   const { isCartOpen } = useCart();
 
-  // Hide on checkout, order success, admin, or when already viewing the Sheru Bhai product page
+  // Hide on checkout, order success, admin, or when already viewing the GTA 6 product page
   const isHidden =
     isCartOpen ||
-    pathname?.includes('/product/3000-sheru-bhai') ||
+    pathname?.includes('/product/2000-gta-6') ||
     pathname?.includes('/checkout') ||
     pathname?.includes('/order-success') ||
     pathname?.includes('/order-status') ||
@@ -23,7 +23,7 @@ export default function FloatingSheruButton() {
   }
 
   // Mobile bottom nav check: WhatsApp button is at bottom-20 (80px) on mobile with h-14 (56px) -> occupies up to 136px.
-  // We place Sheru button directly above WhatsApp with a clean gap: bottom-[148px] on mobile, sm:bottom-[92px] on desktop.
+  // We place the GTA 6 floating hot button directly above WhatsApp with a clean gap: bottom-[148px] on mobile, sm:bottom-[92px] on desktop.
   const isProductPage = pathname?.startsWith('/product/');
   const hasMobileBottomNav =
     !pathname?.startsWith('/r/') &&
@@ -42,8 +42,8 @@ export default function FloatingSheruButton() {
       className={`fixed z-40 pointer-events-auto ${positionClass} print:hidden select-none font-sans`}
     >
       <Link
-        href="/product/3000-sheru-bhai-mega-reel-bundle-pack"
-        aria-label="3000+ Sheru Bhai Mega Reel Bundle Pack - ₹99"
+        href="/product/2000-gta-6-viral-reels-bundle"
+        aria-label="2000+ GTA 6 Viral Reels Bundle - ₹99"
         className="relative group block cursor-pointer"
       >
         {/* Subtle glowing ring that never overflows */}
@@ -57,10 +57,10 @@ export default function FloatingSheruButton() {
           }}
         >
           <img
-            src="/sheru-bhai-cover.webp"
-            alt="3000+ Sheru Bhai Mega Reel Bundle"
+            src="/gta-vi-neon-reels-bundle.webp"
+            alt="2000+ GTA 6 Viral Reels Bundle"
             onError={(e) => {
-              (e.target as HTMLImageElement).src = 'https://i.ibb.co/tw2ts4j7/1000014019.png';
+              (e.target as HTMLImageElement).src = 'https://i.ibb.co/8gjRkdD3/gta-vi-neon-reels-bundle.png';
             }}
             className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
             loading="eager"
