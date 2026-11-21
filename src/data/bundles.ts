@@ -241,9 +241,13 @@ export const BUNDLE_PRODUCTS: BundleProduct[] = [
       "Vice City Supercars, Lucia & Jason Storylines & High-Speed Police Chases",
       "Pre-synced Trending Background Music & Sound Effects",
       "Organized Google Drive Folders (Instant 1-Click Lifetime Access)",
-      "Commercial & Resale Rights (100% Profit Rights)"
+      "100% Master Resell Rights (MRR Included) – Resell anywhere on your store & keep 100% profit"
     ],
     "faqs": [
+      {
+        "question": "Kya main is GTA 6 bundle ko apne store ya customers ko resell kar sakta hu?",
+        "answer": "HAAN, BILKUL! Is bundle ke sath 100% Master Resell Rights (MRR) milti hain. Iska matlab aap is poore 2,000+ bundle ki Google Drive link ko apne khud ke Shopify, Dukaan, Coseller store, Instagram DMs, WhatsApp groups, Telegram channels ya website par ₹199, ₹299 ya ₹499 me bech sakte hain. Poora 100% profit aapka rehta hai (Vaultzet ko 0% fee). Payment milte hi aap seedha Google Drive link apne customers ko deliver kar sakte hain."
+      },
       {
         "question": "Kya in reels par koi watermark ya copyright claim aayega?",
         "answer": "Nahi! Sabhi 2,000 reels 100% clean, bina kisi logo ya watermark ke aati hain aur inme commercial rights included hain. Aap apna personal watermark ya handle laga kar bina kisi copyright strike ke Instagram Reels, YouTube Shorts aur Facebook par post kar sakte hain."

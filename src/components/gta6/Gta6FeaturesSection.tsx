@@ -75,8 +75,8 @@ const ADVANTAGES = [
   },
   {
     icon: Crown,
-    title: 'Commercial & Resell Rights',
-    desc: 'Monetize your page, get brand deals, ya bundle ko resell karke 100% direct profit rakhein.',
+    title: '100% Master Resell Rights (MRR)',
+    desc: 'Apne store, Instagram, WhatsApp ya website par bechein aur seedha Google Drive link deliver karein. 100% profit aapka!',
   },
 ];
 

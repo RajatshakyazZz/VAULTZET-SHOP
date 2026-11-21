@@ -51,6 +51,7 @@ import GtaPageOrderBump from '@/components/gta6/GtaPageOrderBump';
 import Gta6UrgencyBar from '@/components/gta6/Gta6UrgencyBar';
 import Gta6VideoPreviewSection from '@/components/gta6/Gta6VideoPreviewSection';
 import Gta6FeaturesSection from '@/components/gta6/Gta6FeaturesSection';
+import Gta6ResellSection from '@/components/gta6/Gta6ResellSection';
 import Gta6GrowthProofSection from '@/components/gta6/Gta6GrowthProofSection';
 import Gta6SeoGuideSection from '@/components/gta6/Gta6SeoGuideSection';
 import { VERIFIED_REVIEWS, STORE_REVIEWS_COUNT, STORE_RATING } from '@/data/reviews';
@@ -413,6 +414,41 @@ export default function ProductDetailClient({ product }: ProductDetailClientProp
                 <FreeBundleOfferBanner variant="product" />
               )}
 
+              {/* GTA 6 Master Resell Rights (MRR) Callout Banner */}
+              {isGta6Page && (
+                <div className="rounded-2xl bg-gradient-to-r from-amber-50 via-orange-50/80 to-amber-50 border-2 border-amber-400 p-3.5 space-y-2 shadow-xs">
+                  <div className="flex items-center justify-between gap-1.5 flex-wrap">
+                    <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-amber-400 text-slate-950 text-[10px] sm:text-[11px] font-black uppercase tracking-wider shadow-xs">
+                      <span>👑</span>
+                      <span>100% Master Resell Rights (MRR) Included</span>
+                    </span>
+                    <span className="text-[10px] font-extrabold text-emerald-800 bg-emerald-100 px-2 py-0.5 rounded-md shrink-0">
+                      Keep 100% Profit
+                    </span>
+                  </div>
+                  <h4 className="text-xs sm:text-sm font-black text-slate-950 leading-snug">
+                    You Can Resell This Bundle Anywhere &amp; Keep 100% of Every Sale!
+                  </h4>
+                  <p className="text-[11px] sm:text-xs text-slate-700 leading-relaxed font-medium">
+                    Ye bundle aap apne <strong>Store, Instagram Page, WhatsApp, Telegram ya Website</strong> par ₹199–₹499 me resell kar sakte hain. Payment aane par seedha <strong>Google Drive link apne buyers ko deliver karein</strong> — Vaultzet ko 0% fee, poora paisa aapka!
+                  </p>
+                  <div className="pt-1.5 border-t border-amber-200/80 flex items-center justify-between text-[10.5px] font-bold text-slate-700 flex-wrap gap-1">
+                    <span className="flex items-center gap-1 text-emerald-700">
+                      <Check className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+                      Zero Commission to Us
+                    </span>
+                    <span className="flex items-center gap-1 text-slate-800">
+                      <Check className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+                      Direct Google Drive Delivery
+                    </span>
+                    <span className="flex items-center gap-1 text-red-700">
+                      <Check className="w-3.5 h-3.5 text-red-600 shrink-0" />
+                      100% Watermark-Free
+                    </span>
+                  </div>
+                </div>
+              )}
+
               {/* Key Highlights */}
               <div className="grid grid-cols-2 gap-2 text-xs font-bold text-slate-700">
                 <div className="flex items-center gap-1.5 p-2 rounded-xl bg-slate-50 border border-slate-200/80">
@@ -425,11 +461,11 @@ export default function ProductDetailClient({ product }: ProductDetailClientProp
                 </div>
                 <div className="flex items-center gap-1.5 p-2 rounded-xl bg-slate-50 border border-slate-200/80">
                   <Check className="w-3.5 h-3.5 text-red-600 shrink-0" />
-                  <span>9:16 Vertical (Reels/Shorts)</span>
+                  <span>{isGta6Page ? '👑 100% Resell Rights (MRR)' : '9:16 Vertical (Reels/Shorts)'}</span>
                 </div>
                 <div className="flex items-center gap-1.5 p-2 rounded-xl bg-slate-50 border border-slate-200/80">
                   <Check className="w-3.5 h-3.5 text-red-600 shrink-0" />
-                  <span>Instant Drive Link Access</span>
+                  <span>{isGta6Page ? 'Drive Link Shareable to Buyers' : 'Instant Drive Link Access'}</span>
                 </div>
               </div>
 
@@ -568,6 +604,12 @@ export default function ProductDetailClient({ product }: ProductDetailClientProp
               }
             />
             <Gta6FeaturesSection
+              price={activePrice}
+              onBuyClick={() =>
+                buyNow(p, 'personal', hasPageBumps, selectedBumpItems)
+              }
+            />
+            <Gta6ResellSection
               price={activePrice}
               onBuyClick={() =>
                 buyNow(p, 'personal', hasPageBumps, selectedBumpItems)
