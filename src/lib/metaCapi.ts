@@ -34,6 +34,7 @@ export interface MetaPurchaseEventParams {
   fbp?: string;
   fbc?: string;
   eventSourceUrl?: string;
+  testEventCode?: string;
 }
 
 export interface MetaCapiResult {
@@ -220,8 +221,9 @@ export async function sendMetaCapiPurchase(params: MetaPurchaseEventParams): Pro
     data: [eventPayload],
   };
 
-  if (creds.testEventCode) {
-    requestBody.test_event_code = creds.testEventCode;
+  const activeTestCode = (params.testEventCode || creds.testEventCode || '').trim();
+  if (activeTestCode) {
+    requestBody.test_event_code = activeTestCode;
   }
 
   const endpoint = `https://graph.facebook.com/v19.0/${creds.pixelId}/events?access_token=${encodeURIComponent(creds.accessToken)}`;

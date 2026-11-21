@@ -23,6 +23,7 @@ async function handleVerify(
     fbp?: string;
     fbc?: string;
     token?: string;
+    testEventCode?: string;
   }
 ) {
   const verification = await verifyCashfreePgOrder(orderId);
@@ -106,6 +107,7 @@ async function handleVerify(
           fbp: clientMeta?.fbp || storedMeta.fbp || undefined,
           fbc: clientMeta?.fbc || storedMeta.fbc || undefined,
           eventSourceUrl: storedMeta.eventSourceUrl || undefined,
+          testEventCode: clientMeta?.testEventCode || storedMeta.testEventCode || undefined,
         });
 
         if (capiResult.success) {
@@ -341,6 +343,7 @@ export async function GET(request: Request) {
     const { searchParams } = new URL(request.url);
     const orderId = searchParams.get('order_id') || searchParams.get('orderId');
     const token = searchParams.get('token');
+    const testEventCode = searchParams.get('test_event_code') || undefined;
 
     if (!orderId) {
       return NextResponse.json(
@@ -352,6 +355,7 @@ export async function GET(request: Request) {
     const clientMeta = {
       ...extractClientMetadata(request),
       token: token || undefined,
+      testEventCode,
     };
 
     const verification: any = await handleVerify(orderId, clientMeta);
@@ -427,6 +431,7 @@ export async function POST(request: Request) {
     const clientMeta = {
       ...extractClientMetadata(request),
       token: body.token || undefined,
+      testEventCode: body.testEventCode || body.test_event_code || undefined,
     };
 
     const verification: any = await handleVerify(orderId, clientMeta);

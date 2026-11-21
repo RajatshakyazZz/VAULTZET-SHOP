@@ -312,6 +312,7 @@ export async function POST(request: Request) {
     if (clientAttr.utmMedium) metaAttribution.utmMedium = String(clientAttr.utmMedium).trim();
     if (clientAttr.utmCampaign) metaAttribution.utmCampaign = String(clientAttr.utmCampaign).trim();
     if (clientAttr.utmContent) metaAttribution.utmContent = String(clientAttr.utmContent).trim();
+    if (clientAttr.testEventCode) metaAttribution.testEventCode = String(clientAttr.testEventCode).trim();
 
     if (db) {
       try {

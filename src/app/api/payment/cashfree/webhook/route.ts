@@ -100,6 +100,7 @@ export async function POST(request: Request) {
             fbp: storedMeta.fbp || undefined,
             fbc: storedMeta.fbc || undefined,
             eventSourceUrl: storedMeta.eventSourceUrl || undefined,
+            testEventCode: storedMeta.testEventCode || undefined,
           });
 
           if (capiResult.success) {

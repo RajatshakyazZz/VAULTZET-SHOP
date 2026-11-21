@@ -214,6 +214,13 @@ export function captureMetaAttributionParams(): void {
       localStorage.setItem('vaultzet_landing_url', currentUrl);
       localStorage.setItem('vaultzet_landing_url_ts', String(Date.now()));
     }
+
+    // Capture Meta Test Event Code if testing via Meta Events Manager
+    const testCode = params.get('test_event_code')?.trim();
+    if (testCode) {
+      localStorage.setItem('vaultzet_meta_test_event_code', testCode);
+      sessionStorage.setItem('vaultzet_meta_test_event_code', testCode);
+    }
   } catch {}
 }
 
@@ -229,6 +236,7 @@ export function getMetaAttributionData(): {
   utmMedium?: string;
   utmCampaign?: string;
   utmContent?: string;
+  testEventCode?: string;
 } {
   if (typeof window === 'undefined') return {};
   captureMetaAttributionParams();
@@ -240,10 +248,15 @@ export function getMetaAttributionData(): {
   let utmMedium: string | undefined;
   let utmCampaign: string | undefined;
   let utmContent: string | undefined;
+  let testEventCode: string | undefined;
 
   try {
     if (!fbp) fbp = localStorage.getItem('vaultzet_meta_fbp') || undefined;
     if (!fbc) fbc = localStorage.getItem('vaultzet_meta_fbc') || undefined;
+    testEventCode =
+      sessionStorage.getItem('vaultzet_meta_test_event_code') ||
+      localStorage.getItem('vaultzet_meta_test_event_code') ||
+      undefined;
     eventSourceUrl =
       sessionStorage.getItem('vaultzet_landing_url') ||
       localStorage.getItem('vaultzet_landing_url') ||
@@ -296,6 +309,7 @@ export function getMetaAttributionData(): {
     utmMedium,
     utmCampaign,
     utmContent,
+    testEventCode,
   });
 }
 
@@ -473,7 +487,12 @@ function bridgeToMetaPixel(event: AnalyticsEventName, payload: Record<string, an
       case 'begin_checkout': {
         const productData = buildMetaProductPayload(payload);
         const eventId = payload.event_id || `ic_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`;
-        window.fbq('trackSingle', PRIMARY_META_PIXEL_ID, 'InitiateCheckout', productData, { eventID: eventId });
+        try {
+          window.fbq('trackSingle', PRIMARY_META_PIXEL_ID, 'InitiateCheckout', productData, { eventID: eventId });
+        } catch {}
+        try {
+          window.fbq('track', 'InitiateCheckout', productData, { eventID: eventId });
+        } catch {}
         return;
       }
       case 'add_payment_info': {
@@ -494,6 +513,8 @@ function bridgeToMetaPixel(event: AnalyticsEventName, payload: Record<string, an
       case 'purchase': {
         const orderId = payload.transaction_id || payload.order_id || '';
         const eventId = payload.event_id || (orderId ? `purchase_${orderId}` : `purchase_${Date.now()}`);
+
+        // Set user properties safely without re-calling 'init' (which corrupts/resets the pixel instance queue)
         if (payload.customer && typeof payload.customer === 'object') {
           const email = String(payload.customer.email || '').trim().toLowerCase();
           let phoneDigits = String(payload.customer.phone || '').replace(/\D/g, '');
@@ -503,14 +524,30 @@ function bridgeToMetaPixel(event: AnalyticsEventName, payload: Record<string, an
           const fn = String(payload.customer.fullName || '').trim().split(/\s+/)[0]?.toLowerCase() || '';
           const userData = omitUndefined({ em: email || undefined, ph: phoneDigits || undefined, fn: fn || undefined });
           if (Object.keys(userData).length > 0) {
-            window.fbq('init', PRIMARY_META_PIXEL_ID, userData);
+            try {
+              window.fbq('setUserProperties', PRIMARY_META_PIXEL_ID, userData);
+            } catch {}
           }
         }
+
         const fbData = omitUndefined({
           ...buildMetaProductPayload(payload),
           order_id: orderId || undefined,
         });
-        window.fbq('trackSingle', PRIMARY_META_PIXEL_ID, 'Purchase', fbData, { eventID: eventId });
+
+        // 1. Dispatch via trackSingle to strictly target PRIMARY_META_PIXEL_ID
+        try {
+          window.fbq('trackSingle', PRIMARY_META_PIXEL_ID, 'Purchase', fbData, { eventID: eventId });
+        } catch (e) {
+          console.warn('[Analytics] Meta trackSingle Purchase error:', e);
+        }
+
+        // 2. Dispatch via standard fbq('track') so Meta Events Manager Test Events runner & Pixel Helper catch it
+        try {
+          window.fbq('track', 'Purchase', fbData, { eventID: eventId });
+        } catch (e) {
+          console.warn('[Analytics] Meta standard track Purchase error:', e);
+        }
         return;
       }
       case 'search': {

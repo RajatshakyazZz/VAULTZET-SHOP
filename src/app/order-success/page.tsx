@@ -91,7 +91,9 @@ function OrderSuccessContent() {
     let isCancelled = false;
     setStatus('verifying');
 
-    const verifyUrl = `/api/payment/cashfree/verify-order?order_id=${encodeURIComponent(targetId)}${rawToken ? `&token=${encodeURIComponent(rawToken)}` : ''}`;
+    const testCode = searchParams.get('test_event_code') || (typeof window !== 'undefined' ? sessionStorage.getItem('vaultzet_meta_test_event_code') : null);
+    const testParam = testCode ? `&test_event_code=${encodeURIComponent(testCode)}` : '';
+    const verifyUrl = `/api/payment/cashfree/verify-order?order_id=${encodeURIComponent(targetId)}${rawToken ? `&token=${encodeURIComponent(rawToken)}` : ''}${testParam}`;
 
     fetch(verifyUrl)
       .then((res) => res.json())
@@ -123,53 +125,53 @@ function OrderSuccessContent() {
             console.warn('Could not store order locally:', e);
           }
 
-          // Strict server-side gatekeeper: ONLY fire browser event if backend confirms this order hasn't fired yet
-          if (data.eligible_for_browser_event) {
-            // 1. Immediately notify server to mark client fired, preventing any future fires across reloads/devices
-            fetch('/api/payment/cashfree/verify-order', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({
-                action: 'mark_client_fired',
-                orderId: orderNum,
-                token: data.order_token || rawToken,
-              }),
-            }).catch(() => {});
+          // Build commerce items
+          const purchaseItems = Array.isArray(data.items) && data.items.length > 0
+            ? data.items.map((item: any, idx: number) => ({
+                item_id: String(item.id || item.slug || `bundle-${idx + 1}`),
+                item_name: String(item.title || item.name || 'Reels Bundle'),
+                item_category: item.category || 'Reels Bundle',
+                price: Number(item.price || data.order_amount || 0),
+                quantity: Number(item.quantity || 1),
+                item_variant: item.license || 'personal',
+                index: idx,
+              }))
+            : [
+                {
+                  item_id: String(orderNum),
+                  item_name: 'Reels Bundle Order',
+                  item_category: 'Reels Bundle',
+                  price: Number(data.order_amount || 0),
+                  quantity: 1,
+                },
+              ];
 
-            // 2. Build commerce items
-            const purchaseItems = Array.isArray(data.items) && data.items.length > 0
-              ? data.items.map((item: any, idx: number) => ({
-                  item_id: String(item.id || item.slug || `bundle-${idx + 1}`),
-                  item_name: String(item.title || item.name || 'Reels Bundle'),
-                  item_category: item.category || 'Reels Bundle',
-                  price: Number(item.price || data.order_amount || 0),
-                  quantity: Number(item.quantity || 1),
-                  item_variant: item.license || 'personal',
-                  index: idx,
-                }))
-              : [
-                  {
-                    item_id: String(orderNum),
-                    item_name: 'Reels Bundle Order',
-                    item_category: 'Reels Bundle',
-                    price: Number(data.order_amount || 0),
-                    quantity: 1,
-                  },
-                ];
+          if (data.hasBump) {
+            purchaseItems.push({
+              item_id: 'order-bump-course',
+              item_name: 'Viral Reels Masterclass & Canva Templates',
+              item_category: 'Order Bump',
+              price: 99,
+              quantity: 1,
+              item_variant: 'bump',
+              index: purchaseItems.length,
+            });
+          }
 
-            if (data.hasBump) {
-              purchaseItems.push({
-                item_id: 'order-bump-course',
-                item_name: 'Viral Reels Masterclass & Canva Templates',
-                item_category: 'Order Bump',
-                price: 99,
-                quantity: 1,
-                item_variant: 'bump',
-                index: purchaseItems.length,
-              });
+          // Single-fire per order in browser session: guarantees Purchase ALWAYS fires
+          // on initial view without depending on server-side flags that can be false
+          // due to webhook/redirect timing! Meta deduplicates with CAPI via identical event_id.
+          const sessionTrackKey = `vaultzet_purchase_tracked_${orderNum}`;
+          const alreadyTrackedInSession = typeof window !== 'undefined' && sessionStorage.getItem(sessionTrackKey);
+
+          if (!alreadyTrackedInSession) {
+            if (typeof window !== 'undefined') {
+              try {
+                sessionStorage.setItem(sessionTrackKey, 'true');
+              } catch {}
             }
 
-            // 3. Fire GA4 and Meta Pixel with deterministic event ID identical to CAPI
+            // Fire GA4 and Meta Pixel with deterministic event ID identical to CAPI
             track('purchase', {
               transaction_id: String(orderNum),
               event_id: data.purchase_event_id || `purchase_${orderNum}`,
@@ -180,6 +182,17 @@ function OrderSuccessContent() {
               items: purchaseItems,
               customer: data.customer,
             });
+
+            // Notify server to mark client fired
+            fetch('/api/payment/cashfree/verify-order', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                action: 'mark_client_fired',
+                orderId: orderNum,
+                token: data.order_token || rawToken,
+              }),
+            }).catch(() => {});
           }
         } else {
           setStatus('unpaid');
