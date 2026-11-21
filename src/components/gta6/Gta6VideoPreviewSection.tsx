@@ -179,6 +179,23 @@ function GtaInlineCard({ sample, index }: GtaInlineCardProps) {
               <span>{hasStarted ? 'Tap to Resume ▶' : 'Tap to Play Inline ▶'}</span>
               <span className="text-slate-400 text-[10px] font-medium">{sample.views}</span>
             </div>
+            {sample.viewUrl && (
+              <div className="mt-1.5 pt-1.5 border-t border-white/10 flex items-center justify-between text-[10px]">
+                <span className="text-emerald-400 font-bold inline-flex items-center gap-1">
+                  <CheckCircle2 className="w-3 h-3 text-emerald-400" />
+                  <span>Drive Verified</span>
+                </span>
+                <a
+                  href={sample.viewUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  onClick={(e) => e.stopPropagation()}
+                  className="text-red-300 hover:text-white font-black underline inline-flex items-center gap-0.5"
+                >
+                  <span>Open Drive ↗</span>
+                </a>
+              </div>
+            )}
           </div>
         </button>
       )}

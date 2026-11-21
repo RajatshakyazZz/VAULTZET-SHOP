@@ -192,20 +192,20 @@ export const BUNDLE_PRODUCTS: BundleProduct[] = [
     "galleryImages": [
       "/gta-vi-neon-reels-bundle.webp"
     ],
-    "previewVideoUrl": "/samples/gta-1.mp4",
+    "previewVideoUrl": "https://drive.google.com/file/d/1o6VtCSi-aD6YZyQ89MaJKRpjZj9e8QhU/view?usp=drive_link",
     "previewVideoUrls": [
-      "/samples/gta-1.mp4",
-      "/samples/gta-2.mp4",
-      "/samples/gta-3.mp4",
-      "/samples/gta-4.mp4",
-      "/samples/gta-5.mp4",
-      "/samples/gta-6.mp4",
-      "/samples/gta-7.mp4",
-      "/samples/gta-8.mp4",
-      "/samples/gta-9.mp4",
-      "/samples/gta-10.mp4",
-      "/samples/gta-11.mp4",
-      "/samples/gta-12.mp4"
+      "https://drive.google.com/file/d/1o6VtCSi-aD6YZyQ89MaJKRpjZj9e8QhU/view?usp=drive_link",
+      "https://drive.google.com/file/d/1uK4R1eP2xOn1gcesqcbTmh7IwMltciWB/view?usp=drive_link",
+      "https://drive.google.com/file/d/1duj56LZS_Bl3Mg7TtGXtkZGTK1O_59PF/view?usp=drive_link",
+      "https://drive.google.com/file/d/1Me0OBHGvAMmVbZ4rCzxCoU2E3irej-Or/view?usp=drive_link",
+      "https://drive.google.com/file/d/1fM2UauNNdRYGPmXRXrHdOvGBi-eyDQOH/view?usp=drive_link",
+      "https://drive.google.com/file/d/1fyZxocA4NjzZCdV9MnUk80Sj8owfR7_9/view?usp=drive_link",
+      "/samples/gta-preview-1.mp4",
+      "/samples/gta-preview-2.mp4",
+      "/samples/gta-preview-3.mp4",
+      "/samples/gta-preview-4.mp4",
+      "/samples/gta-preview-5.mp4",
+      "/samples/gta-preview-6.mp4"
     ],
     "tags": [
       "🔥 GTA 6 TRENDING",
