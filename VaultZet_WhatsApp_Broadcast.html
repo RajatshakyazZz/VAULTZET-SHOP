@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>⚡ VaultZet — GTA 6 WhatsApp Broadcast Manager</title>
+  <style>
+    :root {
+      --bg: #090d16;
+      --card-bg: #111a2e;
+      --card-border: #1e293b;
+      --accent: #e11d48;
+      --accent-hover: #f43f5e;
+      --whatsapp: #25d366;
+      --whatsapp-hover: #22c55e;
+      --text-main: #f8fafc;
+      --text-muted: #94a3b8;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; }
+    body { background: var(--bg); color: var(--text-main); padding: 30px 20px; }
+    .container { max-width: 1100px; margin: 0 auto; }
+    header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; flex-wrap: wrap; gap: 15px; border-bottom: 1px solid var(--card-border); padding-bottom: 20px; }
+    h1 { font-size: 24px; font-weight: 800; display: flex; align-items: center; gap: 10px; }
+    .badge { background: rgba(225, 29, 72, 0.15); border: 1px solid rgba(225, 29, 72, 0.3); color: #fb7185; padding: 4px 10px; border-radius: 999px; font-size: 12px; font-weight: 700; }
+    .stats-bar { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 25px; }
+    .stat-card { background: var(--card-bg); border: 1px solid var(--card-border); padding: 18px; border-radius: 12px; }
+    .stat-card .num { font-size: 28px; font-weight: 800; color: #ffffff; margin-top: 5px; }
+    .stat-card .label { font-size: 12px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; font-weight: 600; }
+    
+    .editor-card { background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 14px; padding: 20px; margin-bottom: 30px; }
+    .editor-title { font-size: 15px; font-weight: 700; color: #38bdf8; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; }
+    textarea { width: 100%; height: 140px; background: #060913; border: 1px solid var(--card-border); border-radius: 8px; color: #f1f5f9; padding: 12px; font-size: 13px; line-height: 1.5; resize: vertical; }
+    textarea:focus { outline: none; border-color: #38bdf8; }
+    
+    .actions-bar { display: flex; gap: 10px; margin-top: 15px; flex-wrap: wrap; }
+    .btn { padding: 10px 18px; border-radius: 8px; border: none; font-size: 13px; font-weight: 700; cursor: pointer; text-decoration: none; display: inline-flex; align-items: center; gap: 6px; }
+    .btn-primary { background: var(--accent); color: white; }
+    .btn-wa { background: var(--whatsapp); color: #000; font-weight: 800; }
+    .btn-wa:hover { background: var(--whatsapp-hover); }
+    .btn-secondary { background: #1e293b; color: #cbd5e1; border: 1px solid #334155; }
+    .btn-secondary:hover { background: #334155; }
+
+    table { width: 100%; border-collapse: collapse; background: var(--card-bg); border-radius: 12px; overflow: hidden; border: 1px solid var(--card-border); }
+    th, td { padding: 14px 16px; text-align: left; border-bottom: 1px solid var(--card-border); font-size: 13px; }
+    th { background: #0d1527; color: var(--text-muted); font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; font-weight: 700; }
+    tr:hover { background: rgba(255, 255, 255, 0.02); }
+    tr.sent-row { opacity: 0.55; background: rgba(34, 197, 94, 0.05); }
+    .status-pill { display: inline-block; padding: 3px 8px; border-radius: 6px; font-size: 11px; font-weight: 700; }
+    .pill-pending { background: rgba(234, 179, 8, 0.15); color: #facc15; border: 1px solid rgba(234, 179, 8, 0.3); }
+    .pill-sent { background: rgba(34, 197, 94, 0.2); color: #4ade80; border: 1px solid rgba(34, 197, 94, 0.4); }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <div>
+        <h1>⚡ VaultZet GTA 6 Broadcast Manager <span class="badge">63 Hot Leads</span></h1>
+        <p style="color: var(--text-muted); font-size: 13px; margin-top: 4px;">Send personalized WhatsApp messages to verified past buyers in 1 click (100% Ban Safe)</p>
+      </div>
+      <div>
+        <a href="VaultZet_Contacts_Import.vcf" download class="btn btn-secondary">📲 Download VCF Contacts</a>
+        <a href="VaultZet_GTA6_Broadcast_Contacts.csv" download class="btn btn-secondary">📄 Download CSV</a>
+      </div>
+    </header>
+
+    <div class="stats-bar">
+      <div class="stat-card">
+        <div class="label">Target Hot Leads</div>
+        <div class="num" id="totalCount">63</div>
+      </div>
+      <div class="stat-card">
+        <div class="label">Messages Sent</div>
+        <div class="num" style="color: #4ade80;" id="sentCount">0</div>
+      </div>
+      <div class="stat-card">
+        <div class="label">Remaining</div>
+        <div class="num" style="color: #fb7185;" id="remainingCount">63</div>
+      </div>
+      <div class="stat-card">
+        <div class="label">Offer Bundle</div>
+        <div class="num" style="font-size: 20px; color: #38bdf8;">GTA 6 (₹99)</div>
+      </div>
+    </div>
+
+    <div class="editor-card">
+      <div class="editor-title">
+        <span>💬 Customizable Message Template (Use {{name}} for buyer's first name)</span>
+        <button class="btn btn-secondary" onclick="resetTemplate()" style="padding: 4px 10px; font-size: 11px;">Reset Default</button>
+      </div>
+      <textarea id="msgTemplate" oninput="saveTemplate()">Hey {{name}} bhai! 👋
+
+Aapne pehle VaultZet store se reel bundle liya tha. Hope aapka page mast grow ho raha hai! 🚀
+
+Store par sabse zyada viral trending *2000+ GTA 6 Viral 4K Reels Bundle* launch hua hai (Vice City theme, No Watermark, 1080p/4K ready to upload clips).
+
+Abhi existing verified customers ke liye special 90% instant discount active hai (Sirf ₹99 me poora 2000+ pack + lifetime drive access)!
+
+Check out & instant download here 👉 https://www.vaultzet.shop/product/2000-gta-6-viral-reels-bundle
+
+Direct website se order kar sakte hain, turant access screen aur email dono pe mil jayega! ⚡</textarea>
+      
+      <div class="actions-bar">
+        <button class="btn btn-secondary" onclick="copyAllNumbers()">📋 Copy All 63 Phone Numbers</button>
+        <button class="btn btn-secondary" onclick="clearAllSent()">🔄 Reset Sent Progress</button>
+      </div>
+    </div>
+
+    <table>
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>Customer Name</th>
+          <th>Phone Number</th>
+          <th>Past Purchase</th>
+          <th style="text-align: center;">Status</th>
+          <th style="text-align: right;">Action</th>
+        </tr>
+      </thead>
+      <tbody id="contactsTable"></tbody>
+    </table>
+  </div>
+
+  <script>
+    const contacts = [{"name": "Dipak Dhodi", "firstName": "Dipak", "phone": "917600181572", "orders": "VZ-778563, VZ-208367", "pastPurchases": "800+ AI Horror Reels | 1500+ AI Funny Kids Reels"}, {"name": "Vinu Thomas", "firstName": "Vinu", "phone": "919447058836", "orders": "VZ-120720", "pastPurchases": "All Bundles + Bonus Pack"}, {"name": "Angshu Dey", "firstName": "Angshu", "phone": "917047899377", "orders": "VZ-731718", "pastPurchases": "500+ Snake Ulti Duniya AI Reels"}, {"name": "Shivanshu Pandey", "firstName": "Shivanshu", "phone": "919519478083", "orders": "VZ-451645", "pastPurchases": "450+ AI Health Awareness Reels"}, {"name": "Rishu Kumar", "firstName": "Rishu", "phone": "918540054574", "orders": "VZ-551574", "pastPurchases": "3200+ Ultimate Twisted World Reel Bundle"}, {"name": "Karma Nanda chakma", "firstName": "Karma", "phone": "917627911068", "orders": "VZ-812485, VZ-661627", "pastPurchases": "5000+ Trending AI Anime Reels | 1000+ Ulti Pulti Duniya AI Reels"}, {"name": "Anu Anu", "firstName": "Anu", "phone": "919993498154", "orders": "VZ-433550", "pastPurchases": "500+ Dr Skeleton Health Reels Bundle"}, {"name": "vikram thakur", "firstName": "Vikram", "phone": "918077817679", "orders": "VZ-948166", "pastPurchases": "1000+ Premanand Ji Maharaj Reels Bundle"}, {"name": "Sourabh", "firstName": "Sourabh", "phone": "918275740681", "orders": "VZ-893098", "pastPurchases": "1500+ Mad Scientist Reels Bundle"}, {"name": "Japneet Mahal", "firstName": "Japneet", "phone": "917001740994", "orders": "VZ-862416", "pastPurchases": "500+ AI Baby Dancing Reels Bundle"}, {"name": "Vikash Kumar", "firstName": "Vikash", "phone": "918849253556", "orders": "VZ-950612", "pastPurchases": "500+ Snake Ulti Duniya AI Reels"}, {"name": "Ansh", "firstName": "Ansh", "phone": "918779405395", "orders": "VZ-427473", "pastPurchases": "1000+ Ulti Pulti Duniya AI Reels"}, {"name": "immu dar", "firstName": "Immu", "phone": "918899598377", "orders": "VZ-245057", "pastPurchases": "500+ Snake Ulti Duniya AI Reels"}, {"name": "satya", "firstName": "Satya", "phone": "917388002646", "orders": "VZ-615494, VZ-783335", "pastPurchases": "1000+ Ulti Pulti Duniya AI Reels | All Access Digital Vault Pass"}, {"name": "Sameer Shah", "firstName": "Sameer", "phone": "917068310465", "orders": "VZ-265518", "pastPurchases": "1000+ Ulti Pulti Duniya AI Reels"}, {"name": "Moonlit Melodies", "firstName": "Moonlit", "phone": "918638254683", "orders": "VZ-594735", "pastPurchases": "1500+ Mad Scientist Reels Bundle"}, {"name": "Ramkishan Ahirwar", "firstName": "Ramkishan", "phone": "917354189364", "orders": "VZ-437341", "pastPurchases": "3000+ Sheru Bhai Mega Reel Bundle Pack"}, {"name": "Shaurya Gajendragadkar", "firstName": "Shaurya", "phone": "919422003986", "orders": "VZ-926992", "pastPurchases": "5000+ Trending AI Anime Reels"}, {"name": "SAHARAJ AHMED", "firstName": "Saharaj", "phone": "919864774275", "orders": "VZ-410257", "pastPurchases": "3000+ Sheru Bhai Mega Reel Bundle Pack"}, {"name": "Mohan chettri", "firstName": "Mohan", "phone": "919306223058", "orders": "VZ-261659", "pastPurchases": "3000+ Sheru Bhai Mega Reel Bundle Pack"}, {"name": "Adrito Banerjee", "firstName": "Adrito", "phone": "918910773250", "orders": "VZ-152809", "pastPurchases": "3000+ Sheru Bhai Mega Reel Bundle Pack"}, {"name": "Shanmukh", "firstName": "Shanmukh", "phone": "916281278709", "orders": "VZ-115768", "pastPurchases": "3000+ Sheru Bhai Mega Reel Bundle Pack"}, {"name": "Shaik Malik", "firstName": "Shaik", "phone": "919848704580", "orders": "VZ-495780", "pastPurchases": "3000+ Sheru Bhai Mega Reel Bundle Pack"}, {"name": "Sunil Maurya", "firstName": "Sunil", "phone": "918287229291", "orders": "VZ-115790", "pastPurchases": "3000+ Sheru Bhai Mega Reel Bundle Pack"}, {"name": "Kishan Yadav", "firstName": "Kishan", "phone": "917524070814", "orders": "VZ-580462", "pastPurchases": "3000+ Sheru Bhai Mega Reel Bundle Pack"}, {"name": "Anas", "firstName": "Anas", "phone": "919054279676", "orders": "VZ-916459", "pastPurchases": "3000+ Sheru Bhai Mega Reel Bundle Pack"}, {"name": "Nalluri Venkata Durga hirran", "firstName": "Nalluri", "phone": "918106236118", "orders": "VZ-471648", "pastPurchases": "3000+ Sheru Bhai Mega Reel Bundle Pack"}, {"name": "sahil farooq", "firstName": "Sahil", "phone": "917006482052", "orders": "VZ-900484", "pastPurchases": "3000+ Sheru Bhai Mega Reel Bundle Pack"}, {"name": "Yash Rathore", "firstName": "Yash", "phone": "919625421017", "orders": "VZ-379170", "pastPurchases": "3000+ Sheru Bhai Mega Reel Bundle Pack"}, {"name": "Pushpendra Kumar", "firstName": "Pushpendra", "phone": "918528507457", "orders": "VZ-482360", "pastPurchases": "3000+ Sheru Bhai Mega Reel Bundle Pack"}, {"name": "Simarpreet", "firstName": "Simarpreet", "phone": "918195946977", "orders": "VZ-212206", "pastPurchases": "3000+ Sheru Bhai Mega Reel Bundle Pack"}, {"name": "Sagar naik", "firstName": "Sagar", "phone": "919692397850", "orders": "VZ-476325", "pastPurchases": "3000+ Sheru Bhai Mega Reel Bundle Pack"}, {"name": "Angad Raj", "firstName": "Angad", "phone": "917658093353", "orders": "VZ-952909", "pastPurchases": "3000+ Sheru Bhai Mega Reel Bundle Pack"}, {"name": "Hasmukh", "firstName": "Hasmukh", "phone": "917433876185", "orders": "VZ-477173", "pastPurchases": "3000+ Sheru Bhai Mega Reel Bundle Pack"}, {"name": "Rakesh Choudhary", "firstName": "Rakesh", "phone": "919024806031", "orders": "VZ-963085", "pastPurchases": "3000+ Sheru Bhai Mega Reel Bundle Pack"}, {"name": "Danish Shekhar", "firstName": "Danish", "phone": "919234118139", "orders": "VZ-165531", "pastPurchases": "Sheru Bhai (\u20b999) + Premanand Ji (\u20b949) + Stop Scrolling (\u20b989)"}, {"name": "Harsh Kumar", "firstName": "Harsh", "phone": "919102406499", "orders": "VZ-658857", "pastPurchases": "3000+ Sheru Bhai Mega Reel Bundle Pack"}, {"name": "trishank", "firstName": "Trishank", "phone": "919621930902", "orders": "VZ-436611", "pastPurchases": "3000+ Sheru Bhai Mega Reel Bundle Pack"}, {"name": "Vikas Beck", "firstName": "Vikas", "phone": "919608953586", "orders": "VZ-793057", "pastPurchases": "3000+ Sheru Bhai Mega Reel Bundle Pack"}, {"name": "AKASH VARTHI", "firstName": "Akash", "phone": "917410040629", "orders": "VZ-420478", "pastPurchases": "3000+ Sheru Bhai Mega Reel Bundle Pack"}, {"name": "Ranjeet Singh", "firstName": "Ranjeet", "phone": "919056184655", "orders": "VZ-485784", "pastPurchases": "3000+ Sheru Bhai Mega Reel Bundle Pack"}, {"name": "Farhan", "firstName": "Farhan", "phone": "917392051383", "orders": "VZ-823477", "pastPurchases": "3000+ Sheru Bhai Mega Reel Bundle Pack"}, {"name": "Abhishek Yadav", "firstName": "Abhishek", "phone": "917970343219", "orders": "VZ-640740, VZ-640740 (Refund)", "pastPurchases": "4000+ Ready-to-Upload 2D & 3D Cartoon Videos Ready to Upload | Refunded Order (4000+ Cartoon Videos)"}, {"name": "Mohd Nabeel", "firstName": "Mohd", "phone": "917982737540", "orders": "VZ-501402", "pastPurchases": "3000+ Sheru Bhai Mega Reel Bundle Pack"}, {"name": "Kaleem Pasha", "firstName": "Kaleem", "phone": "916362646060", "orders": "VZ-358833", "pastPurchases": "3000+ Sheru Bhai Mega Reel Bundle Pack"}, {"name": "Rihan Shaikh", "firstName": "Rihan", "phone": "918277784082", "orders": "VZ-197213", "pastPurchases": "3000+ Sheru Bhai Mega Reel Bundle Pack"}, {"name": "Rishav Adhana", "firstName": "Rishav", "phone": "917042175900", "orders": "VZ-286249", "pastPurchases": "3000+ Sheru Bhai Mega Reel Bundle Pack"}, {"name": "SHADOW", "firstName": "Shadow", "phone": "917569171209", "orders": "VZ-201401", "pastPurchases": "3000+ Sheru Bhai Mega Reel Bundle Pack (+Gym Bump)"}, {"name": "Ved Chavan", "firstName": "Ved", "phone": "919623535906", "orders": "VZ-711555", "pastPurchases": "3000+ Sheru Bhai Mega Reel Bundle Pack"}, {"name": "Akshay Giri", "firstName": "Akshay", "phone": "918411959770", "orders": "VZ-325009", "pastPurchases": "4000+ Ready-to-Upload 2D & 3D Cartoon Videos Ready to Upload"}, {"name": "Mohd Eraf", "firstName": "Mohd", "phone": "919120670048", "orders": "VZ-221526", "pastPurchases": "3000+ Sheru Bhai Mega Reel Bundle Pack"}, {"name": "Debojit deka", "firstName": "Debojit", "phone": "919957657061", "orders": "VZ-778574", "pastPurchases": "3000+ Sheru Bhai Mega Reel Bundle Pack"}, {"name": "Rohit Bhagad", "firstName": "Rohit", "phone": "919274711799", "orders": "VZ-943613", "pastPurchases": "1400+ Hindi Motivational Reels Bundle"}, {"name": "Sandeep Kumar", "firstName": "Sandeep", "phone": "918874315353", "orders": "VZ-602004", "pastPurchases": "3000+ Sheru Bhai Mega Reel Bundle Pack"}, {"name": "ANURAG RAM", "firstName": "Anurag", "phone": "919004216270", "orders": "VZ-257006", "pastPurchases": "3000+ Sheru Bhai Mega Reel Bundle Pack"}, {"name": "Kishan sen", "firstName": "Kishan", "phone": "919680038793", "orders": "VZ-978912", "pastPurchases": "3000+ Sheru Bhai Mega Reel Bundle Pack"}, {"name": "Vinil ubale", "firstName": "Vinil", "phone": "918779716370", "orders": "VZ-430864", "pastPurchases": "1500+ AI Funny Kids Reels Bundle \u2013 Funny Kids & Baby Videos for Reels"}, {"name": "Sonu gour", "firstName": "Sonu", "phone": "919516395797", "orders": "VZ-961142", "pastPurchases": "3000+ Sheru Bhai Mega Reel Bundle Pack"}, {"name": "Raghunath hembrom", "firstName": "Raghunath", "phone": "916201110146", "orders": "VZ-606769", "pastPurchases": "3000+ Sheru Bhai Mega Reel Bundle Pack"}, {"name": "Guri", "firstName": "Guri", "phone": "918000505388", "orders": "VZ-840871", "pastPurchases": "3000+ Sheru Bhai Mega Reel Bundle Pack"}, {"name": "Azam", "firstName": "Azam", "phone": "919782076786", "orders": "VZ-270358", "pastPurchases": "3000+ Sheru Bhai Mega Reel Bundle Pack"}, {"name": "Ram Narayan", "firstName": "Ram", "phone": "918817299389", "orders": "VZ-640414", "pastPurchases": "3000+ Sheru Bhai Mega Reel Bundle Pack"}, {"name": "Ram Narayan", "firstName": "Ram", "phone": "918817293389", "orders": "VZ-753983", "pastPurchases": "3000+ Sheru Bhai Mega Reel Bundle Pack"}];
+    const defaultTemplate = document.getElementById('msgTemplate').value;
+
+    function getSentList() {
+      try {
+        return JSON.parse(localStorage.getItem('vz_wa_sent_leads') || '[]');
+      } catch {
+        return [];
+      }
+    }
+
+    function saveSentList(list) {
+      localStorage.setItem('vz_wa_sent_leads', JSON.stringify(list));
+      updateCounts();
+    }
+
+    function toggleSent(phone) {
+      let list = getSentList();
+      if (list.includes(phone)) {
+        list = list.filter(p => p !== phone);
+      } else {
+        list.push(phone);
+      }
+      saveSentList(list);
+      renderTable();
+    }
+
+    function updateCounts() {
+      const sent = getSentList();
+      const sentCount = sent.length;
+      document.getElementById('sentCount').innerText = sentCount;
+      document.getElementById('remainingCount').innerText = contacts.length - sentCount;
+    }
+
+    function sendWhatsApp(phone, firstName) {
+      const tpl = document.getElementById('msgTemplate').value;
+      const text = tpl.replace(/{{name}}/g, firstName);
+      const url = `https://wa.me/${phone}?text=${encodeURIComponent(text)}`;
+      
+      let list = getSentList();
+      if (!list.includes(phone)) {
+        list.push(phone);
+        saveSentList(list);
+      }
+      
+      window.open(url, '_blank');
+      renderTable();
+    }
+
+    function copyAllNumbers() {
+      const nums = contacts.map(c => '+' + c.phone).join('\n');
+      navigator.clipboard.writeText(nums).then(() => {
+        alert('All 63 phone numbers copied to clipboard!');
+      });
+    }
+
+    function clearAllSent() {
+      if (confirm('Are you sure you want to reset sent progress?')) {
+        saveSentList([]);
+        renderTable();
+      }
+    }
+
+    function saveTemplate() {
+      localStorage.setItem('vz_wa_msg_template', document.getElementById('msgTemplate').value);
+    }
+
+    function resetTemplate() {
+      document.getElementById('msgTemplate').value = defaultTemplate;
+      saveTemplate();
+    }
+
+    function renderTable() {
+      const sent = getSentList();
+      const tbody = document.getElementById('contactsTable');
+      tbody.innerHTML = '';
+
+      contacts.forEach((c, idx) => {
+        const isSent = sent.includes(c.phone);
+        const tr = document.createElement('tr');
+        if (isSent) tr.className = 'sent-row';
+
+        tr.innerHTML = `
+          <td><b>${idx + 1}</b></td>
+          <td><strong>${c.name}</strong></td>
+          <td><code>+${c.phone}</code></td>
+          <td style="max-width: 280px; color: var(--text-muted); font-size: 12px;">${c.pastPurchases}</td>
+          <td style="text-align: center;">
+            <span class="status-pill ${isSent ? 'pill-sent' : 'pill-pending'}" onclick="toggleSent('${c.phone}')" style="cursor: pointer;">
+              ${isSent ? '✓ Sent' : 'Pending'}
+            </span>
+          </td>
+          <td style="text-align: right;">
+            <button class="btn btn-wa" onclick="sendWhatsApp('${c.phone}', '${c.firstName}')">
+              🚀 Send on WhatsApp
+            </button>
+          </td>
+        `;
+        tbody.appendChild(tr);
+      });
+
+      updateCounts();
+    }
+
+    const savedTpl = localStorage.getItem('vz_wa_msg_template');
+    if (savedTpl) document.getElementById('msgTemplate').value = savedTpl;
+
+    renderTable();
+  </script>
+</body>
+</html>

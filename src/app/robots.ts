@@ -16,6 +16,7 @@ export default function robots(): MetadataRoute.Robots {
           '/my-order',
           '/order-status',
           '/order-success',
+          '/broad',
           '/earn/dashboard',
           '/earn/wallet',
           '/earn/orders',
