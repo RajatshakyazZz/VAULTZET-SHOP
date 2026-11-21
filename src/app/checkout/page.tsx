@@ -210,15 +210,8 @@ function CheckoutContent() {
   const checkoutItems = isBuyNowMode ? (buyNowItem ? [buyNowItem] : []) : items;
   const checkoutSubtotal = isBuyNowMode ? (buyNowItem ? buyNowItem.price : 0) : subtotal;
 
-  // Free bundles eligible if checkoutSubtotal >= 149
-  const freeBonusItems: CartItem[] = (checkoutSubtotal >= 149 && freeBundles.length > 0)
-    ? freeBundles.filter(isEligibleForFreeBundleGift).map((b) => ({
-        product: b,
-        license: 'personal' as LicenseType,
-        price: 0,
-        isFreeBonus: true,
-      }))
-    : [];
+  // Free bundles offer disabled per user request
+  const freeBonusItems: CartItem[] = [];
 
   const allCheckoutItems: CartItem[] = [...checkoutItems, ...freeBonusItems];
 
@@ -1451,74 +1444,6 @@ function CheckoutContent() {
                         </div>
                       )}
                     </>
-                  )}
-
-                  {/* Free Bonus Bundles (Promotional Offer) */}
-                  {checkoutSubtotal >= 149 && freeBundles.length > 0 && (
-                    <div className="space-y-2 pt-2 border-t border-dashed border-[#bce8d5]">
-                      <div className="flex items-center justify-between text-[11px] font-black text-[#076647] uppercase tracking-wider">
-                        <span>🎁 Claimed Free Gifts ({freeBundles.length}/2)</span>
-                        <button
-                          type="button"
-                          onClick={() => setIsFreeBundleModalOpen(true)}
-                          className="text-[#076647] underline hover:text-[#055038]"
-                        >
-                          Change
-                        </button>
-                      </div>
-                      {freeBundles.map((fb) => (
-                        <div
-                          key={`free-${fb.id}`}
-                          className="flex gap-3 items-center justify-between p-2.5 rounded-xl bg-gradient-to-r from-[#eefbf4] to-[#f4fcf7] border border-[#bce8d5]"
-                        >
-                          <img
-                            src={fb.thumbnail || '/logo.webp'}
-                            alt={fb.title}
-                            className="w-12 h-14 object-cover rounded-lg shrink-0"
-                          />
-                          <div className="flex-1 min-w-0 px-1">
-                            <h4 className="font-bold text-xs text-slate-950 line-clamp-1">
-                              {fb.title}
-                            </h4>
-                            <span className="text-[10px] font-black text-[#076647] bg-[#e6f7f0] px-1.5 py-0.5 rounded">
-                              FREE BONUS GIFT
-                            </span>
-                          </div>
-                          <div className="text-right shrink-0">
-                            <div className="text-[10px] text-slate-400 line-through">
-                              ₹{fb.personalPrice}.00
-                            </div>
-                            <div className="font-black text-xs text-[#076647]">
-                              ₹0.00
-                            </div>
-                            <button
-                              type="button"
-                              onClick={() => removeFreeBundle(fb.id)}
-                              className="text-slate-400 hover:text-red-500 text-xs p-1"
-                            >
-                              <Trash2 className="w-3.5 h-3.5" />
-                            </button>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-
-                  {/* If qualified but hasn't claimed 2 free bundles */}
-                  {checkoutSubtotal >= 149 && freeBundles.length < 2 && (
-                    <div className="p-3.5 rounded-2xl bg-gradient-to-r from-red-500/10 via-rose-400/10 to-red-500/15 border border-red-400/40 flex items-center justify-between gap-2 shadow-xs">
-                      <div className="text-xs font-bold text-red-950 flex items-center gap-1.5">
-                        <Gift className="w-4 h-4 shrink-0 text-red-600" />
-                        <span>You unlocked 2 Free Bundles!</span>
-                      </div>
-                      <button
-                        type="button"
-                        onClick={() => setIsFreeBundleModalOpen(true)}
-                        className="px-3.5 py-1.5 rounded-xl bg-gradient-to-r from-red-600 via-rose-600 to-red-600 text-white text-xs font-black hover:opacity-95 shadow-xs cursor-pointer hover:scale-105 active:scale-95 transition-transform"
-                      >
-                        Claim Now (₹0)
-                      </button>
-                    </div>
                   )}
                 </div>
 

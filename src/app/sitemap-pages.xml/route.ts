@@ -14,7 +14,6 @@ export async function GET() {
     { path: '/reels', key: '/reels', priority: '0.9', changefreq: 'daily' },
     { path: '/about-us', key: '/about-us', priority: '0.6', changefreq: 'monthly' },
     { path: '/contact-us', key: '/contact-us', priority: '0.6', changefreq: 'monthly' },
-    { path: '/claim-offer', key: '/claim-offer', priority: '0.7', changefreq: 'weekly' },
     { path: '/earn', key: '/earn', priority: '0.7', changefreq: 'weekly' },
     { path: '/privacy-policy', key: '/privacy-policy', priority: '0.4', changefreq: 'yearly' },
     { path: '/refund-policy', key: '/refund-policy', priority: '0.4', changefreq: 'yearly' },

@@ -127,7 +127,6 @@ export default function Header() {
   const navLinks = [
     { name: 'Home', href: '/' },
     { name: 'Shop', href: '/shop' },
-    { name: '🎁 Offer', href: '/claim-offer' },
     { name: 'Reels Feed', href: '/reels' },
     { name: 'Blog', href: '/blog' },
     { name: 'Resell & Earn', href: '/earn' },

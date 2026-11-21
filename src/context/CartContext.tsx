@@ -118,18 +118,14 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
   const activeOrderBump = getOrderBumpForContext(items, buyNowItem);
   const subtotal = items.reduce((acc, item) => acc + item.price, 0);
   const total = subtotal + (orderBumpAdded ? activeOrderBump.discountPrice : 0);
-  const isQualifiedForFreeOffer = subtotal >= 149;
-  const freeOfferProgress = Math.min(100, Math.round((subtotal / 149) * 100));
+  // 149 2-free-bundle offer permanently removed per user request
+  const isQualifiedForFreeOffer = false;
+  const freeOfferProgress = 0;
   const cartCount = items.length + freeBundles.length + (orderBumpAdded ? 1 : 0);
 
-  // Automatically trigger "2 Free Bundles Unlocked" popup when cart total crosses or reaches >= 149
+  // Automatically trigger "2 Free Bundles Unlocked" popup when cart total crosses or reaches >= 149 (DISABLED)
   useEffect(() => {
-    if (!isHydrated.current) return;
-    const prevSub = prevSubtotalRef.current;
-    if (prevSub < 149 && subtotal >= 149 && freeBundles.length < 2) {
-      setIsFreeBundleModalOpen(true);
-    }
-    prevSubtotalRef.current = subtotal;
+    // Disabled 149 offer
   }, [subtotal, freeBundles.length]);
 
   const claimFreeBundles = (bundles: BundleProduct[]) => {

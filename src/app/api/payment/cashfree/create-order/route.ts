@@ -214,7 +214,7 @@ export async function POST(request: Request) {
           }
         }
 
-        // Second pass: handle free bonus items (eligible if paidItemsCatalogTotal >= 149, max 2 items, AND item is eligible)
+        // 149 2-free-bundle offer permanently disabled per user request
         for (const item of items) {
           if (item.isFreeBonus || item.price === 0) {
             const identifier = String(item.slug || item.id || item.productId || '').trim();
@@ -224,17 +224,8 @@ export async function POST(request: Request) {
                 (p) => p.id === item.id || p.slug === item.slug || p.id === item.productId
               ) || null;
             }
-
-            const isEligible = matchedProd ? isEligibleForFreeBundleGift(matchedProd) : false;
-
-            if (paidItemsCatalogTotal >= 149 && freeBonusCount < 2 && isEligible) {
-              freeBonusCount++;
-              // Qualified promotional free gift, charges ₹0
-              continue;
-            } else {
-              const itemPrice = matchedProd ? Number(matchedProd.personalPrice) : Number(item.price || 0);
-              paidItemsCatalogTotal += itemPrice;
-            }
+            const itemPrice = matchedProd ? Number(matchedProd.personalPrice) : Number(item.price || 0);
+            paidItemsCatalogTotal += itemPrice;
           }
         }
       }
