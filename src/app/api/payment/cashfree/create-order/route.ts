@@ -41,11 +41,8 @@ export async function POST(request: Request) {
       );
     }
 
-    // Validate Phone Number: Allow valid Indian & International phone numbers (8 to 15 digits)
-    const isIndian10Digit = /^[6-9]\d{9}$/.test(cleanPhone);
-    const isIndian12Digit = /^91[6-9]\d{9}$/.test(cleanPhone);
-    const isInternationalValid = cleanPhone.length >= 8 && cleanPhone.length <= 15 && !/^(\d)\1{5,}$/.test(cleanPhone);
-
+    // Validate Phone Number: Indian 10-digit mobile number starting with 6-9
+    const isIndian10Digit = /^[6-9]\d{9}$/.test(cleanPhone) || (/^91[6-9]\d{9}$/.test(cleanPhone) && cleanPhone.length === 12);
     const isFakePhone =
       /^(\d)\1{7,}$/.test(cleanPhone) ||
       cleanPhone === '9876543210' ||
@@ -53,9 +50,9 @@ export async function POST(request: Request) {
       cleanPhone === '919876543210' ||
       cleanPhone === '911234567890';
 
-    if (isFakePhone || (!isIndian10Digit && !isIndian12Digit && !isInternationalValid)) {
+    if (isFakePhone || !isIndian10Digit) {
       return NextResponse.json(
-        { success: false, error: 'Invalid Phone! Please enter a valid WhatsApp / phone number.' },
+        { success: false, error: 'Invalid Phone! Please enter a valid 10-digit WhatsApp / mobile number.' },
         { status: 400 }
       );
     }

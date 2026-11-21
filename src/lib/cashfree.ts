@@ -162,24 +162,9 @@ export async function createCashfreePgOrder(
   // Format and sanitize order ID: alphanumeric, underscore, hyphen only (max 50 chars)
   const cleanOrderId = params.orderId.replace(/[^a-zA-Z0-9_-]/g, '_').slice(0, 45);
 
-  // Clean phone number (extract digits, ensure valid 10-15 digit string for Cashfree PG)
+  // Clean phone number (extract digits, ensure at least 10 digits for Indian standard)
   const digitsOnly = params.customer.phone.replace(/\D/g, '');
-  let cleanPhone = digitsOnly;
-  if (digitsOnly.length === 10) {
-    cleanPhone = digitsOnly;
-  } else if (digitsOnly.startsWith('91') && digitsOnly.length === 12) {
-    // Standard Indian 10-digit format
-    cleanPhone = digitsOnly.slice(2);
-  } else if (digitsOnly.length >= 10 && digitsOnly.length <= 15) {
-    // International numbers (e.g. Morocco 212612345678, UAE 971501234567, US 15551234567)
-    cleanPhone = digitsOnly;
-  } else if (digitsOnly.length > 15) {
-    cleanPhone = digitsOnly.slice(-15);
-  } else if (digitsOnly.length > 0) {
-    cleanPhone = digitsOnly.padStart(10, '9');
-  } else {
-    cleanPhone = '9999999999';
-  }
+  const cleanPhone = digitsOnly.length >= 10 ? digitsOnly.slice(-10) : '9999999999';
 
   // Clean customer ID
   const cleanCustomerId = `cust_${params.customer.email.replace(/[^a-zA-Z0-9]/g, '_').slice(0, 30)}`;

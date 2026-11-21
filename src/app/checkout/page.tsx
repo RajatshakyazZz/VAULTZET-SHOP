@@ -36,8 +36,6 @@ import { track, getMetaAttributionData } from '@/lib/analytics';
 import { resolveBundleSlug, isEligibleForFreeBundleGift } from '@/lib/bundleResolver';
 import { fetchCustomProductBySlug } from '@/lib/customProducts';
 import { SUPPORTED_PAYMENT_METHODS, UPI_APPS_LIST_TEXT } from '@/data/paymentMethods';
-import CountryPhoneInput from '@/components/checkout/CountryPhoneInput';
-import { CountryConfig, DEFAULT_COUNTRY, validatePhoneForCountry } from '@/data/countries';
 
 declare global {
   interface Window {
@@ -403,7 +401,6 @@ function CheckoutContent() {
   const [fullName, setFullName] = useState('');
   const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
-  const [selectedCountry, setSelectedCountry] = useState<CountryConfig>(DEFAULT_COUNTRY);
   const [touched, setTouched] = useState<{ name?: boolean; email?: boolean; phone?: boolean }>({});
   const [isProcessing, setIsProcessing] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -497,17 +494,37 @@ function CheckoutContent() {
     return null;
   };
 
+  const validatePhone = (val: string): string | null => {
+    const clean = val.trim();
+    if (!clean) return '10-digit WhatsApp / Phone number is required.';
+    if (!/^\d+$/.test(clean)) return 'Phone number can only contain digits.';
+    if (clean.length < 10) {
+      return `Phone number must be exactly 10 digits (${clean.length}/10 entered).`;
+    }
+    if (clean.length > 10) {
+      return 'Phone number cannot be more than 10 digits.';
+    }
+    if (!/^[6-9]\d{9}$/.test(clean)) {
+      return 'Invalid Indian mobile number! Must start with 6, 7, 8, or 9.';
+    }
+    const fakePhones = new Set([
+      '9876543210', '9123456789', '8765432109', '7654321098', '6543210987',
+      '9000000000', '8000000000', '7000000000', '6000000000',
+    ]);
+    if (
+      fakePhones.has(clean) ||
+      /^(\d)\1{9}$/.test(clean) ||
+      /(\d)\1{5,}/.test(clean) ||
+      /^(..)\1{4}$/.test(clean)
+    ) {
+      return 'Fake phone number detected! Please enter your real 10-digit WhatsApp number.';
+    }
+    return null;
+  };
+
   const nameError = validateFullName(fullName);
   const emailError = validateEmail(email);
-  const phoneError = validatePhoneForCountry(phone, selectedCountry);
-
-  // International & Indian phone number formatting
-  const formattedFullPhone =
-    selectedCountry.code === 'IN'
-      ? phone.trim()
-      : selectedCountry.dialCode === '+'
-      ? `+${phone.trim()}`
-      : `${selectedCountry.dialCode}${phone.trim()}`;
+  const phoneError = validatePhone(phone);
 
   // 10-Minute Countdown Timer for Order Bump matching reelsbundles.in
   const [secondsRemaining, setSecondsRemaining] = useState(585); // 9 mins 45 secs
@@ -534,7 +551,7 @@ function CheckoutContent() {
     if (phoneError !== null || !phone.trim()) return;
     if (email.trim() && emailError !== null) return;
 
-    const sessionKey = `vaultzet_lead_notified_${formattedFullPhone}`;
+    const sessionKey = `vaultzet_lead_notified_${phone.trim()}`;
     if (typeof window !== 'undefined' && sessionStorage.getItem(sessionKey)) {
       return;
     }
@@ -554,7 +571,7 @@ function CheckoutContent() {
               customer: {
                 fullName: fullName.trim() || 'Checkout Visitor',
                 email: email.trim().toLowerCase() || 'Entering email...',
-                phone: formattedFullPhone,
+                phone: phone.trim(),
               },
               items: allCheckoutItems.map((i) => ({
                 id: i?.product?.id || 'bundle',
@@ -577,7 +594,7 @@ function CheckoutContent() {
     }, 1500);
 
     return () => clearTimeout(leadTimer);
-  }, [phone, selectedCountry, phoneError, formattedFullPhone, fullName, email, emailError, checkoutItems, orderBumpAdded, checkoutTotal]);
+  }, [phone, phoneError, fullName, email, emailError, checkoutItems, orderBumpAdded, checkoutTotal]);
 
   const handlePlaceOrder = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -628,7 +645,7 @@ function CheckoutContent() {
       customer: {
         fullName: fullName.trim().replace(/\s+/g, ' '),
         email: email.trim().toLowerCase(),
-        phone: formattedFullPhone,
+        phone: phone.trim(),
       },
       items: allCheckoutItems.map((i) => ({
         id: i?.product?.id || 'bundle',
@@ -1088,16 +1105,60 @@ function CheckoutContent() {
                     )}
                   </div>
 
-                  {/* International & Indian Phone Number with Country Selector */}
-                  <CountryPhoneInput
-                    selectedCountry={selectedCountry}
-                    onSelectCountry={setSelectedCountry}
-                    phone={phone}
-                    onPhoneChange={setPhone}
-                    phoneError={phoneError}
-                    isTouched={Boolean(touched.phone)}
-                    onBlur={() => setTouched((prev) => ({ ...prev, phone: true }))}
-                  />
+                  {/* Strict 10-Digit Phone Number */}
+                  <div>
+                    <div className="flex items-center justify-between mb-1">
+                      <label className="block text-xs font-bold text-slate-700">
+                        WhatsApp / Phone Number (10 Digits) <span className="text-red-500">*</span>
+                      </label>
+                      <span
+                        className={`text-[10px] font-extrabold px-2 py-0.5 rounded ${
+                          phone.length === 10 && !phoneError
+                            ? 'bg-emerald-100 text-emerald-800'
+                            : 'bg-slate-100 text-slate-600'
+                        }`}
+                      >
+                        {phone.length}/10 Digits
+                      </span>
+                    </div>
+                    <div
+                      className={`flex items-center rounded-xl border overflow-hidden transition-colors focus-within:ring-2 ${
+                        (touched.phone || phone.length > 0) && phoneError
+                          ? 'border-red-400 bg-red-50/30 focus-within:ring-red-400'
+                          : phone.length === 10 && !phoneError
+                          ? 'border-emerald-400 bg-emerald-50/20 focus-within:ring-emerald-400'
+                          : 'border-slate-200 bg-white focus-within:ring-red-500/30 focus-within:border-red-500'
+                      }`}
+                    >
+                      <span className="px-3.5 py-3 bg-slate-100 border-r border-slate-200 text-xs sm:text-sm font-extrabold text-slate-700 select-none shrink-0">
+                        +91
+                      </span>
+                      <input
+                        type="tel"
+                        required
+                        inputMode="numeric"
+                        maxLength={10}
+                        pattern="[6-9][0-9]{9}"
+                        autoComplete="tel-national"
+                        placeholder="9876543210 (10 digits only)"
+                        value={phone}
+                        onBlur={() => setTouched((prev) => ({ ...prev, phone: true }))}
+                        onChange={(e) => setPhone(normalizePhoneInput(e.target.value))}
+                        className="w-full px-3.5 py-3 bg-transparent text-base sm:text-sm font-bold text-slate-950 tracking-wide focus:outline-none"
+                      />
+                    </div>
+                    {(touched.phone || phone.length > 0) && phoneError ? (
+                      <p className="text-[11px] font-bold text-red-600 mt-1 flex items-center gap-1">
+                        <AlertCircle className="w-3.5 h-3.5 shrink-0" />
+                        <span>{phoneError}</span>
+                      </p>
+                    ) : phone.length === 10 && !phoneError ? (
+                      <p className="text-[11px] font-bold text-emerald-600 mt-1 flex items-center gap-1">
+                        <CheckCircle2 className="w-3.5 h-3.5 shrink-0" />
+                        <span>Valid 10-digit WhatsApp number verified (+91 {phone}).</span>
+                      </p>
+                    ) : null}
+                  </div>
 
                   {/* Immediate Pay Now Button directly below WhatsApp / Mobile Number */}
                   <div className="pt-3 border-t border-slate-100">
