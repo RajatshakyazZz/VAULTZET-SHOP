@@ -52,7 +52,7 @@ function GtaInlineCard({ sample, index }: GtaInlineCardProps) {
     const el = videoRef.current;
     if (!el) return;
 
-    if (!el.paused) {
+    if (!el.paused && isPlaying) {
       el.pause();
       setIsPlaying(false);
       return;
@@ -61,7 +61,14 @@ function GtaInlineCard({ sample, index }: GtaInlineCardProps) {
     // Broadcast so any other playing card pauses immediately
     window.dispatchEvent(new CustomEvent(INLINE_VIDEO_PLAY_EVENT, { detail: sample.id }));
 
-    setHasStarted(true);
+    if (!hasStarted) {
+      setHasStarted(true);
+      if (!el.src || !el.src.includes(sample.videoUrl)) {
+        el.src = sample.videoUrl;
+        el.load();
+      }
+    }
+
     setIsBuffering(true);
     setIsPlaying(true);
 
@@ -100,12 +107,12 @@ function GtaInlineCard({ sample, index }: GtaInlineCardProps) {
           : 'border-slate-200/90 hover:border-red-400 shadow-md'
       }`}
     >
-      {/* Native HTML5 Video Element: 100% inline, zero iframe delay */}
+      {/* Native HTML5 Video Element: 100% inline, zero initial bandwidth transfer */}
       <video
         ref={videoRef}
-        src={sample.videoUrl}
+        src={hasStarted ? sample.videoUrl : undefined}
         poster={sample.thumbnailUrl}
-        preload="metadata"
+        preload="none"
         playsInline
         controls={hasStarted && isPlaying}
         controlsList="nodownload"
