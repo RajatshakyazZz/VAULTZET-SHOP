@@ -10,21 +10,51 @@ import {
   fetchCustomProducts,
   getAllCatalogBundles,
   getLocalCustomProductsSync,
+  isDummyProduct,
 } from '@/lib/customProducts';
 import { BundleProduct } from '@/types';
+
+function getCleanTrendingItems(bundles: BundleProduct[]): BundleProduct[] {
+  const filtered = bundles.filter((b) => !b.isUpcoming && !isDummyProduct(b));
+
+  // Pin GTA 6 (the #1 flagship trending bundle) to index 0
+  const gtaIndex = filtered.findIndex(
+    (b) =>
+      b.slug === '2000-gta-6-viral-reels-bundle' ||
+      b.id === 'rb-2000-gta-6-viral-reels' ||
+      (b.aliases && b.aliases.includes('gta-6-video-bundle'))
+  );
+  if (gtaIndex > 0) {
+    const [gtaProd] = filtered.splice(gtaIndex, 1);
+    filtered.unshift(gtaProd);
+  }
+
+  // Pin Sheru Bhai to index 1
+  const sheruIndex = filtered.findIndex(
+    (b) =>
+      b.slug === '3000-sheru-bhai-mega-reel-bundle-pack' ||
+      b.id === 'rb-sheru-bhai-3000'
+  );
+  if (sheruIndex > 1) {
+    const [sheruProd] = filtered.splice(sheruIndex, 1);
+    filtered.splice(1, 0, sheruProd);
+  }
+
+  return filtered.slice(0, 6);
+}
 
 export default function TrendingMarquee() {
   const { addToCart, buyNow } = useCart();
   const [items, setItems] = useState<BundleProduct[]>(() => {
     const local = getLocalCustomProductsSync();
     const all = getAllCatalogBundles(local, BUNDLE_PRODUCTS);
-    return all.filter((b) => !b.isUpcoming).slice(0, 6);
+    return getCleanTrendingItems(all);
   });
 
   useEffect(() => {
     fetchCustomProducts().then((res) => {
       const all = getAllCatalogBundles(res, BUNDLE_PRODUCTS);
-      setItems(all.filter((b) => !b.isUpcoming).slice(0, 6));
+      setItems(getCleanTrendingItems(all));
     }).catch(() => {});
   }, []);
 

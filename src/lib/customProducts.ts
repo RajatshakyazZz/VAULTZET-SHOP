@@ -223,6 +223,31 @@ let cachedCustomProducts: BundleProduct[] | null = null;
 let cachedDeletedSlugs = new Set<string>();
 let lastFetchTime = 0;
 
+export function isDummyProduct(p: Partial<BundleProduct> | null | undefined): boolean {
+  if (!p) return true;
+  const title = (p.title || '').trim().toLowerCase();
+  const slug = (p.slug || '').trim().toLowerCase();
+  const thumb = (p.thumbnail || '').trim().toLowerCase();
+  const desc = (p.shortDescription || p.description || '').trim().toLowerCase();
+
+  // Explicit dummy title check
+  if (!title || title === 'reels bundle' || title === 'dummy' || title === 'test' || title === 'untitled') {
+    return true;
+  }
+
+  // Explicit dummy slug check
+  if (slug === 'reels-bundle' || slug.startsWith('reels-bundle-') || slug === 'dummy' || slug === 'test') {
+    return true;
+  }
+
+  // Default placeholder thumbnail with generic title or missing description
+  if (thumb.includes('photo-1618005182384-a83a8bd57fbe') && (title.includes('reels bundle') || !desc)) {
+    return true;
+  }
+
+  return false;
+}
+
 export function getDeletedSlugsSync(): Set<string> {
   const set = new Set<string>(cachedDeletedSlugs);
   if (typeof window !== 'undefined') {
@@ -251,7 +276,7 @@ export function getLocalCustomProductsSync(): BundleProduct[] {
     if (Array.isArray(parsed)) {
       return parsed
         .map(mapFirestoreDocToBundleProduct)
-        .filter((p) => !deleted.has(p.slug.toLowerCase()) && !deleted.has(p.id.toLowerCase()));
+        .filter((p) => !deleted.has(p.slug.toLowerCase()) && !deleted.has(p.id.toLowerCase()) && !isDummyProduct(p));
     }
   } catch {}
   return [];
@@ -283,18 +308,28 @@ export async function fetchCustomProducts(force = false): Promise<BundleProduct[
         }
         const rawSlug = String(data.slug || d.id || '').toLowerCase();
         const normSlug = normalizeProductSlug(rawSlug).toLowerCase();
+        const rawTitle = (data.name || '').trim().toLowerCase();
         const isDeleted = Boolean(data.is_deleted || data.status === 'trash' || data.status === 'draft');
+        const isDummy =
+          !rawTitle ||
+          rawTitle === 'reels bundle' ||
+          rawTitle === 'dummy' ||
+          rawTitle === 'test' ||
+          rawSlug === 'reels-bundle' ||
+          rawSlug.startsWith('reels-bundle-');
 
-        if (isDeleted) {
+        if (isDeleted || isDummy) {
           rawTrashedKeys.add(d.id.toLowerCase());
           if (rawSlug) rawTrashedKeys.add(rawSlug);
           if (normSlug) rawTrashedKeys.add(normSlug);
         } else {
           const bundle = normalizeBundleProduct(mapFirestoreDocToBundleProduct({ id: d.id, ...data }));
-          const bundleSlug = bundle.slug.toLowerCase();
-          const existing = slugMap.get(bundleSlug);
-          if (!existing || (bundle.personalPrice && !existing.personalPrice)) {
-            slugMap.set(bundleSlug, bundle);
+          if (!isDummyProduct(bundle)) {
+            const bundleSlug = bundle.slug.toLowerCase();
+            const existing = slugMap.get(bundleSlug);
+            if (!existing || (bundle.personalPrice && !existing.personalPrice)) {
+              slugMap.set(bundleSlug, bundle);
+            }
           }
         }
       });
@@ -358,6 +393,7 @@ export function getAllCatalogBundles(
       Boolean(
         p &&
           typeof p.slug === 'string' &&
+          !isDummyProduct(p) &&
           !deletedSlugs.has(p.slug.toLowerCase()) &&
           !deletedSlugs.has(String(p.id || '').toLowerCase())
       )
@@ -504,10 +540,36 @@ export function getAllCatalogBundles(
       return normalizeBundleProduct(b);
     });
 
-  // Brand-new products placed on top, existing products preserve curated order, deduped strictly by slug
-  const merged = [...brandNewCustom.map(normalizeBundleProduct), ...updatedInitial];
+  // Filter out any dummy/unconfigured products
+  const cleanBrandNew = brandNewCustom.map(normalizeBundleProduct).filter((b) => !isDummyProduct(b));
+  const merged = [...cleanBrandNew, ...updatedInitial].filter((b) => !isDummyProduct(b));
+
+  // Pin GTA 6 (the #1 flagship trending bundle) to index 0
+  const gtaIndex = merged.findIndex(
+    (b) =>
+      b.slug === '2000-gta-6-viral-reels-bundle' ||
+      b.id === 'rb-2000-gta-6-viral-reels' ||
+      (b.aliases && b.aliases.includes('gta-6-video-bundle'))
+  );
+  if (gtaIndex > 0) {
+    const [gtaProd] = merged.splice(gtaIndex, 1);
+    merged.unshift(gtaProd);
+  }
+
+  // Ensure Sheru Bhai is immediately next (index 1) if present
+  const sheruIndex = merged.findIndex(
+    (b) =>
+      b.slug === '3000-sheru-bhai-mega-reel-bundle-pack' ||
+      b.id === 'rb-sheru-bhai-3000'
+  );
+  if (sheruIndex > 1) {
+    const [sheruProd] = merged.splice(sheruIndex, 1);
+    merged.splice(1, 0, sheruProd);
+  }
+
   const seenMergedSlugs = new Set<string>();
   return merged.filter((item) => {
+    if (isDummyProduct(item)) return false;
     const key = String(item.slug || '').toLowerCase();
     if (!key || seenMergedSlugs.has(key)) return false;
     seenMergedSlugs.add(key);
