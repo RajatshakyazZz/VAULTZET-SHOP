@@ -49,7 +49,6 @@ import SheruGrowthProofSection from '@/components/sheru/SheruGrowthProofSection'
 import SheruPageOrderBump from '@/components/sheru/SheruPageOrderBump';
 import GtaPageOrderBump from '@/components/gta6/GtaPageOrderBump';
 import Gta6UrgencyBar from '@/components/gta6/Gta6UrgencyBar';
-import Gta6VideoPreviewSection from '@/components/gta6/Gta6VideoPreviewSection';
 import Gta6FeaturesSection from '@/components/gta6/Gta6FeaturesSection';
 import Gta6ResellSection from '@/components/gta6/Gta6ResellSection';
 import Gta6GrowthProofSection from '@/components/gta6/Gta6GrowthProofSection';
@@ -322,17 +321,7 @@ export default function ProductDetailClient({ product }: ProductDetailClientProp
               </div>
             </div>
 
-            {/* GTA 6 INLINE SAMPLE VIDEO PREVIEWS (Directly Under Main Product Image) */}
-            {isGta6Page && (
-              <Gta6VideoPreviewSection
-                previewVideoUrl={p.previewVideoUrl}
-                previewVideoUrls={p.previewVideoUrls}
-                price={activePrice}
-                onBuyClick={() =>
-                  buyNow(p, 'personal', hasPageBumps, selectedBumpItems)
-                }
-              />
-            )}
+
           </div>
 
           {/* RIGHT: Unified Purchase Card */}

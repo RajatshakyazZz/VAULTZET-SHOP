@@ -210,13 +210,7 @@ export const BUNDLE_PRODUCTS: BundleProduct[] = [
       "https://drive.google.com/file/d/1duj56LZS_Bl3Mg7TtGXtkZGTK1O_59PF/view?usp=drive_link",
       "https://drive.google.com/file/d/1Me0OBHGvAMmVbZ4rCzxCoU2E3irej-Or/view?usp=drive_link",
       "https://drive.google.com/file/d/1fM2UauNNdRYGPmXRXrHdOvGBi-eyDQOH/view?usp=drive_link",
-      "https://drive.google.com/file/d/1fyZxocA4NjzZCdV9MnUk80Sj8owfR7_9/view?usp=drive_link",
-      "/samples/gta-preview-1.mp4",
-      "/samples/gta-preview-2.mp4",
-      "/samples/gta-preview-3.mp4",
-      "/samples/gta-preview-4.mp4",
-      "/samples/gta-preview-5.mp4",
-      "/samples/gta-preview-6.mp4"
+      "https://drive.google.com/file/d/1fyZxocA4NjzZCdV9MnUk80Sj8owfR7_9/view?usp=drive_link"
     ],
     "tags": [
       "🔥 GTA 6 TRENDING",
