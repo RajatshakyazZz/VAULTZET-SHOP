@@ -1,12 +1,8 @@
 'use client';
 
 import React from 'react';
-import { CheckCircle2, Gift, Play, Sparkles, Zap } from 'lucide-react';
-import {
-  SHERU_BONUSES,
-  SNAKE_BONUS_SAMPLE_VIDEOS,
-} from '@/data/sheruCampaign';
-import InlineSampleVideoGrid from './InlineSampleVideoGrid';
+import { CheckCircle2, Gift, Sparkles, Zap } from 'lucide-react';
+import { SHERU_BONUSES } from '@/data/sheruCampaign';
 
 interface SheruBonusSectionProps {
   onBuyClick?: () => void;
@@ -105,26 +101,6 @@ export default function SheruBonusSection({
                   </div>
                 </div>
               </div>
-            </div>
-
-            {/* 4 Inline Sample Videos for Snake Bonus */}
-            <div className="mt-6 pt-5 border-t border-slate-100">
-              <div className="flex flex-wrap items-center justify-between gap-2 mb-3">
-                <p className="text-xs sm:text-sm font-black text-slate-900 flex items-center gap-1.5">
-                  <Play className="w-4 h-4 text-red-600 fill-red-600" />
-                  Bonus #1 Sample Videos — Tap Any Reel to Play Here
-                </p>
-                <span className="text-[11px] font-bold text-red-700 bg-red-50 px-2.5 py-0.5 rounded-full">
-                  4 Live Samples
-                </span>
-              </div>
-
-              <InlineSampleVideoGrid
-                items={SNAKE_BONUS_SAMPLE_VIDEOS}
-                gridClassName="grid grid-cols-2 sm:grid-cols-4 gap-2.5 sm:gap-3.5"
-                labelPrefix="Snake"
-                cardBorderClass="border-slate-200 hover:border-red-500"
-              />
             </div>
           </div>
 

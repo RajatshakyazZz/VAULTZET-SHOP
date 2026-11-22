@@ -44,7 +44,6 @@ import { track } from '@/lib/analytics';
 import { fetchCustomProductBySlug } from '@/lib/customProducts';
 import FreeBundleOfferBanner from '@/components/FreeBundleOfferBanner';
 import { SHERU_ADDON_BUMPS, GTA_ADDON_BUMPS, isSheruBhaiIdentifier, isGta6Identifier } from '@/data/bundles';
-import SheruSampleReels from '@/components/sheru/SheruSampleReels';
 import SheruBonusSection from '@/components/sheru/SheruBonusSection';
 import SheruGrowthProofSection from '@/components/sheru/SheruGrowthProofSection';
 import SheruPageOrderBump from '@/components/sheru/SheruPageOrderBump';
@@ -658,15 +657,9 @@ export default function ProductDetailClient({ product }: ProductDetailClientProp
 
         </section>
 
-        {/* SHERU BHAI AD LANDING SECTIONS: SAMPLES + 2 FREE BONUSES + GROWTH PROOF */}
+        {/* SHERU BHAI AD LANDING SECTIONS: 2 FREE BONUSES + GROWTH PROOF */}
         {isSheruPage && (
           <>
-            <SheruSampleReels
-              price={activePrice}
-              onBuyClick={() =>
-                buyNow(p, 'personal', hasPageBumps, selectedBumpItems)
-              }
-            />
             <SheruBonusSection
               price={activePrice}
               onBuyClick={() =>
