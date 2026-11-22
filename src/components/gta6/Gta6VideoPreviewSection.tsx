@@ -48,7 +48,28 @@ function GtaInlineCard({ sample, index }: GtaInlineCardProps) {
     };
   }, [sample.id]);
 
+  // Auto-play when user clicks to start
+  useEffect(() => {
+    if (hasStarted && videoRef.current) {
+      videoRef.current.play().catch(() => {
+        if (videoRef.current) {
+          videoRef.current.muted = true;
+          setIsMuted(true);
+          videoRef.current.play().catch(() => {});
+        }
+      });
+    }
+  }, [hasStarted]);
+
   const handleTogglePlay = async () => {
+    if (!hasStarted) {
+      setHasStarted(true);
+      setIsBuffering(true);
+      setIsPlaying(true);
+      window.dispatchEvent(new CustomEvent(INLINE_VIDEO_PLAY_EVENT, { detail: sample.id }));
+      return;
+    }
+
     const el = videoRef.current;
     if (!el) return;
 
@@ -60,14 +81,6 @@ function GtaInlineCard({ sample, index }: GtaInlineCardProps) {
 
     // Broadcast so any other playing card pauses immediately
     window.dispatchEvent(new CustomEvent(INLINE_VIDEO_PLAY_EVENT, { detail: sample.id }));
-
-    if (!hasStarted) {
-      setHasStarted(true);
-      if (!el.src || !el.src.includes(sample.videoUrl)) {
-        el.src = sample.videoUrl;
-        el.load();
-      }
-    }
 
     setIsBuffering(true);
     setIsPlaying(true);
@@ -107,36 +120,40 @@ function GtaInlineCard({ sample, index }: GtaInlineCardProps) {
           : 'border-slate-200/90 hover:border-red-400 shadow-md'
       }`}
     >
-      {/* Native HTML5 Video Element: 100% inline, zero initial bandwidth transfer */}
-      <video
-        ref={videoRef}
-        src={hasStarted ? sample.videoUrl : undefined}
-        poster={sample.thumbnailUrl}
-        preload="none"
-        playsInline
-        controls={hasStarted && isPlaying}
-        controlsList="nodownload"
-        onWaiting={() => setIsBuffering(true)}
-        onCanPlay={() => setIsBuffering(false)}
-        onPlaying={() => {
-          setIsBuffering(false);
-          setIsPlaying(true);
-          setHasStarted(true);
-        }}
-        onPause={() => {
-          setIsPlaying(false);
-          setIsBuffering(false);
-        }}
-        onEnded={() => {
-          setIsPlaying(false);
-          setHasStarted(false);
-          setIsBuffering(false);
-          if (videoRef.current) {
-            videoRef.current.currentTime = 0;
-          }
-        }}
-        className="w-full h-full object-cover bg-black"
-      />
+      {/* 100% Zero Initial Video Bandwidth: Video element ONLY mounts when user clicks play */}
+      {hasStarted ? (
+        <video
+          ref={videoRef}
+          src={sample.videoUrl}
+          playsInline
+          autoPlay
+          controls={isPlaying}
+          controlsList="nodownload"
+          onWaiting={() => setIsBuffering(true)}
+          onCanPlay={() => setIsBuffering(false)}
+          onPlaying={() => {
+            setIsBuffering(false);
+            setIsPlaying(true);
+          }}
+          onPause={() => {
+            setIsPlaying(false);
+            setIsBuffering(false);
+          }}
+          onEnded={() => {
+            setIsPlaying(false);
+            setHasStarted(false);
+            setIsBuffering(false);
+          }}
+          className="w-full h-full object-cover bg-black"
+        />
+      ) : (
+        <img
+          src={sample.thumbnailUrl}
+          alt={sample.title}
+          loading="lazy"
+          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+        />
+      )}
 
       {/* Crisp Poster & Tap-to-Play Overlay when idle or paused */}
       {!isPlaying && (
@@ -146,15 +163,6 @@ function GtaInlineCard({ sample, index }: GtaInlineCardProps) {
           aria-label={`Play ${sample.title}`}
           className="absolute inset-0 w-full h-full text-left cursor-pointer focus:outline-none focus:ring-2 focus:ring-red-500"
         >
-          {!hasStarted && (
-            <img
-              src={sample.thumbnailUrl}
-              alt={sample.title}
-              loading="lazy"
-              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-            />
-          )}
-
           <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/25 to-slate-950/65" />
 
           {/* Top Badges */}
