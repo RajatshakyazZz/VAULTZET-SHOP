@@ -593,6 +593,41 @@ export default function ProductDetailClient({ product }: ProductDetailClientProp
                   </div>
                 </div>
 
+                {/* GTA 6 International Buyers Option (Outside India) */}
+                {isGta6Page && (
+                  <div className="p-3.5 sm:p-4 rounded-2xl bg-gradient-to-r from-emerald-50 via-teal-50/60 to-emerald-50 border-2 border-emerald-500/40 text-center space-y-2 shadow-xs">
+                    <div className="flex items-center justify-center gap-1.5 flex-wrap">
+                      <span className="px-2.5 py-0.5 rounded-full bg-emerald-600 text-white text-[10px] sm:text-[11px] font-black uppercase tracking-wider flex items-center gap-1">
+                        <span>🌍</span>
+                        <span>OUTSIDE INDIA / INTERNATIONAL BUYERS</span>
+                      </span>
+                      <span className="text-[10px] sm:text-[11px] font-bold text-emerald-800 bg-emerald-100/90 px-2 py-0.5 rounded-full border border-emerald-300">
+                        Cards &amp; PayPal
+                      </span>
+                    </div>
+
+                    <a
+                      href="https://wa.me/917895317940?text=Hi%20VaultZet!%20I%20am%20from%20outside%20India%20and%20want%20to%20buy%20the%20GTA%206%204K%20Reels%20Bundle%20for%20%2410%20USD.%20Please%20share%20the%20international%20payment%20link."
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="w-full py-3.5 px-4 rounded-xl bg-[#25D366] hover:bg-[#20ba59] text-white font-black text-xs sm:text-sm flex items-center justify-center gap-2 shadow-sm hover:shadow-md transition-all active:scale-95 cursor-pointer"
+                    >
+                      <MessageCircle className="w-4 h-4 fill-white shrink-0" />
+                      <span>Buy from Outside India — $10 USD</span>
+                      <span className="px-2 py-0.5 rounded-md bg-black/20 text-[10px] font-extrabold uppercase whitespace-nowrap">
+                        Only for other countries
+                      </span>
+                    </a>
+
+                    <p className="text-[11px] text-slate-600 font-medium leading-relaxed">
+                      Living outside India? Tap above to pay <strong>$10 USD</strong> via <strong>Visa, Mastercard, Google Pay or PayPal</strong> on WhatsApp.
+                    </p>
+                    <p className="text-[10px] text-slate-500 font-bold border-t border-emerald-200/60 pt-1.5">
+                      🇮🇳 Indian buyers: Please use the Red Buy Now button above to pay in INR (₹) via UPI.
+                    </p>
+                  </div>
+                )}
+
                 {/* Secondary Resell & Earn Option Card */}
                 <div className="p-3.5 rounded-2xl bg-slate-50 border border-slate-200 text-center space-y-1.5 shadow-2xs">
                   <button
