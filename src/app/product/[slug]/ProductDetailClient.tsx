@@ -33,6 +33,7 @@ import {
   MessageCircle,
   Clock,
   Download,
+  AlertTriangle,
 } from 'lucide-react';
 import { BUNDLE_PRODUCTS } from '@/data/bundles';
 import { useCart } from '@/context/CartContext';
@@ -397,8 +398,51 @@ export default function ProductDetailClient({ product }: ProductDetailClientProp
                 </div>
               </div>
 
-              {/* Special Free Bundles Offer Banner (Replaced with clean Ad Offer Strip on Sheru Page) */}
-              {isSheruPage ? (
+              {/* GTA 6 Official Creator vs Fake Resellers Warning Banner */}
+              {isGta6Page ? (
+                <div className="rounded-2xl bg-gradient-to-br from-amber-500/10 via-red-500/10 to-amber-500/10 border-2 border-red-500/70 p-4 space-y-2.5 shadow-md shadow-red-500/5 relative overflow-hidden">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-red-600 text-white text-[11px] font-black uppercase tracking-wider shadow-xs animate-pulse">
+                      <AlertTriangle className="w-3.5 h-3.5" />
+                      <span>OFFICIAL CREATOR VERIFICATION</span>
+                    </span>
+                    <span className="text-[10px] sm:text-[11px] font-black text-emerald-800 bg-emerald-100 border border-emerald-300 px-2.5 py-0.5 rounded-full flex items-center gap-1">
+                      <BadgeCheck className="w-3.5 h-3.5 text-emerald-600" />
+                      Original 4K Master Source
+                    </span>
+                  </div>
+
+                  <h3 className="text-sm sm:text-base font-black text-red-600 tracking-tight flex items-center gap-1.5">
+                    <span>⚠️</span>
+                    <span>BEWARE OF FAKE 720P RESELLERS!</span>
+                  </h3>
+
+                  <div className="p-3 rounded-xl bg-white/95 border border-red-200/90 shadow-2xs">
+                    <p className="text-xs sm:text-sm font-extrabold text-slate-900 leading-snug">
+                      &ldquo;Get the Original 4K Ultra-HD Master Files directly from the Official Creator (VaultZet). Fake resellers are sharing compressed low-quality copies.&rdquo;
+                    </p>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-[11px] font-bold text-slate-700 pt-1">
+                    <div className="flex items-center gap-1.5 text-slate-800">
+                      <Check className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+                      <span>Direct 4K Master Drive Access</span>
+                    </div>
+                    <div className="flex items-center gap-1.5 text-slate-800">
+                      <Check className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+                      <span>Zero Watermark &amp; High Bitrate</span>
+                    </div>
+                    <div className="flex items-center gap-1.5 text-slate-800">
+                      <Check className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+                      <span>Free Future GTA 6 Leaks Updates</span>
+                    </div>
+                    <div className="flex items-center gap-1.5 text-slate-800">
+                      <Check className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+                      <span>100% Commercial &amp; Resell Rights</span>
+                    </div>
+                  </div>
+                </div>
+              ) : isSheruPage ? (
                 <div className="rounded-2xl bg-red-50/70 border border-red-200/80 px-3.5 py-2.5 flex items-center justify-between gap-2">
                   <p className="text-[11px] sm:text-xs font-extrabold text-slate-900 leading-snug">
                     🔥 Trending Ad Offer • Includes 2 Free Bonus Bundles Worth ₹498 (6,000+ Reels Total)
