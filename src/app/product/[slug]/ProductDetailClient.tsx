@@ -414,12 +414,12 @@ export default function ProductDetailClient({ product }: ProductDetailClientProp
 
                   <h3 className="text-sm sm:text-base font-black text-red-600 tracking-tight flex items-center gap-1.5">
                     <span>⚠️</span>
-                    <span>BEWARE OF FAKE 720P RESELLERS!</span>
+                    <span>BEWARE OF ₹39 FAKE SCAMS &amp; LOW-QUALITY RESELLERS!</span>
                   </h3>
 
                   <div className="p-3 rounded-xl bg-white/95 border border-red-200/90 shadow-2xs">
                     <p className="text-xs sm:text-sm font-extrabold text-slate-900 leading-snug">
-                      &ldquo;Get the Original 4K Ultra-HD Master Files directly from the Official Creator (VaultZet). Fake resellers are sharing compressed low-quality copies.&rdquo;
+                      &ldquo;Get the Original 4K Ultra-HD Master Files directly from the Official Creator (Vaultzet). Cheap fake sellers (like Credible Earning) charge ₹39 and deliver fake non-GTA videos with broken links. Vaultzet guarantees 100% genuine Vice City 4K footage.&rdquo;
                     </p>
                   </div>
 

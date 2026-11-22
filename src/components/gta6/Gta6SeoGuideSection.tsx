@@ -15,6 +15,8 @@ import {
   BarChart3,
   Layers,
   ArrowRight,
+  AlertTriangle,
+  BadgeCheck,
 } from 'lucide-react';
 
 interface Gta6SeoGuideSectionProps {
@@ -36,10 +38,10 @@ export default function Gta6SeoGuideSection({
         <div className="text-center max-w-2xl mx-auto mb-7">
           <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-red-50 border border-red-200/80 text-red-700 text-xs font-bold uppercase tracking-wider mb-2.5">
             <Sparkles className="w-3.5 h-3.5 text-red-600" />
-            <span>Indian Creator Growth Blueprint • 2026 Strategy</span>
+            <span>GTA 6 Video Bundle &amp; Reel Bundle • Creator Growth Blueprint 2026</span>
           </div>
           <h2 className="text-xl sm:text-3xl font-black text-slate-900 tracking-tight leading-tight">
-            How Indian Creators Are Growing 100K+ Follower Pages With GTA 6 Reels
+            How Indian Creators Are Growing 100K+ Follower Pages With GTA 6 Video Reels
           </h2>
           <p className="text-xs sm:text-sm text-slate-500 mt-2 leading-relaxed">
             Agar aap YouTube Shorts, Instagram Reels ya Facebook par gaming content post karke monthly ₹30,000 – ₹70,000 monetize karna chahte hain, toh ye proven roadmap aapke liye hai.
@@ -105,6 +107,144 @@ export default function Gta6SeoGuideSection({
             <div className="mt-3.5 pt-2.5 border-t border-slate-200/70 text-[11px] font-bold text-emerald-700 flex items-center gap-1">
               <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
               <span>Full Resale Rights Included</span>
+            </div>
+          </div>
+        </div>
+
+        {/* BUYER ALERT: VAULTZET VS ₹39 FAKE SCAM BUNDLES (CREDIBLE EARNING & CHEAP CLONES) */}
+        <div className="mt-8 pt-6 border-t border-slate-100">
+          <div className="rounded-2xl bg-gradient-to-br from-amber-500/10 via-red-500/5 to-rose-500/10 border-2 border-red-500/60 p-4 sm:p-6 space-y-4">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
+              <div className="flex items-center gap-2 flex-wrap">
+                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-red-600 text-white text-xs font-black uppercase tracking-wider shadow-xs">
+                  <AlertTriangle className="w-3.5 h-3.5" />
+                  <span>Buyer Alert • Scam Warning</span>
+                </span>
+                <span className="text-[11px] font-black text-emerald-800 bg-emerald-100 border border-emerald-300 px-2.5 py-0.5 rounded-full flex items-center gap-1">
+                  <BadgeCheck className="w-3.5 h-3.5 text-emerald-600" />
+                  Vaultzet Verified Authentic
+                </span>
+              </div>
+              <span className="text-xs font-bold text-red-700">
+                100% Genuine 4K Video Master Files
+              </span>
+            </div>
+
+            <div>
+              <h3 className="text-base sm:text-xl font-black text-slate-900 tracking-tight">
+                Vaultzet Official GTA 6 Pack vs. ₹39 Fake Scam Bundles (Credible Earning &amp; Cheap Sellers)
+              </h3>
+              <p className="text-xs text-slate-600 mt-1 leading-relaxed">
+                Market me Credible Earning aur kuch fake sellers ₹39 me <em>&ldquo;GTA 6 Reel Bundle&rdquo;</em> bechne ka claim kar rahe hain. Buyers ke feedback ke mutabiq ye 100% bait-and-switch scam hai jisme payment ke baad <strong>purani GTA 5 ki low-res clips ya random non-gaming videos</strong> milti hain aur Google Drive links aksar broken hote hain. Dekhiye asli vs nakli ka sach:
+              </p>
+            </div>
+
+            <div className="overflow-x-auto">
+              <table className="w-full text-left text-xs border-collapse">
+                <thead>
+                  <tr className="border-b border-slate-200 bg-white/80 text-slate-700 font-black uppercase tracking-wider text-[10px]">
+                    <th className="p-3 rounded-l-xl">Feature</th>
+                    <th className="p-3 text-rose-600 bg-rose-50/60 border border-rose-200/40">
+                      ₹39 Fake Scam (Credible Earning &amp; Clones)
+                    </th>
+                    <th className="p-3 rounded-r-xl text-emerald-800 bg-emerald-50/90 border border-emerald-300 font-black">
+                      Vaultzet Official 2,000+ Master Pack
+                    </th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-100 bg-white/90">
+                  <tr>
+                    <td className="p-3 font-bold text-slate-900">Video Content</td>
+                    <td className="p-3 text-slate-500 bg-rose-50/20">
+                      <div className="flex items-start gap-1.5">
+                        <XCircle className="w-3.5 h-3.5 text-rose-500 shrink-0 mt-0.5" />
+                        <span><strong>Fake &amp; Unrelated:</strong> Old GTA 5 or random non-gaming clips</span>
+                      </div>
+                    </td>
+                    <td className="p-3 font-bold text-slate-900 bg-emerald-50/30">
+                      <div className="flex items-start gap-1.5">
+                        <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 shrink-0 mt-0.5" />
+                        <span><strong>100% Real GTA 6:</strong> Vice City, Lucia &amp; Jason, supercar chases</span>
+                      </div>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td className="p-3 font-bold text-slate-900">Live Video Previews</td>
+                    <td className="p-3 text-slate-500 bg-rose-50/20">
+                      <div className="flex items-start gap-1.5">
+                        <XCircle className="w-3.5 h-3.5 text-rose-500 shrink-0 mt-0.5" />
+                        <span>Zero previews — blind payment fraud</span>
+                      </div>
+                    </td>
+                    <td className="p-3 font-bold text-slate-900 bg-emerald-50/30">
+                      <div className="flex items-start gap-1.5">
+                        <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 shrink-0 mt-0.5" />
+                        <span>6+ Live playable in-browser video previews right on page</span>
+                      </div>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td className="p-3 font-bold text-slate-900">Quality &amp; Resolution</td>
+                    <td className="p-3 text-slate-500 bg-rose-50/20">
+                      <div className="flex items-start gap-1.5">
+                        <XCircle className="w-3.5 h-3.5 text-rose-500 shrink-0 mt-0.5" />
+                        <span>360p pixelated, highly compressed</span>
+                      </div>
+                    </td>
+                    <td className="p-3 font-bold text-slate-900 bg-emerald-50/30">
+                      <div className="flex items-start gap-1.5">
+                        <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 shrink-0 mt-0.5" />
+                        <span>Crystal Clear 4K &amp; 1080P 60FPS vertical 9:16</span>
+                      </div>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td className="p-3 font-bold text-slate-900">Google Drive Delivery</td>
+                    <td className="p-3 text-slate-500 bg-rose-50/20">
+                      <div className="flex items-start gap-1.5">
+                        <XCircle className="w-3.5 h-3.5 text-rose-500 shrink-0 mt-0.5" />
+                        <span>Broken drive links, access denied, zero updates</span>
+                      </div>
+                    </td>
+                    <td className="p-3 font-bold text-slate-900 bg-emerald-50/30">
+                      <div className="flex items-start gap-1.5">
+                        <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 shrink-0 mt-0.5" />
+                        <span>Instant automated 1-click Google Drive unlock + email copy</span>
+                      </div>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td className="p-3 font-bold text-slate-900">Resell &amp; Commercial Rights</td>
+                    <td className="p-3 text-slate-500 bg-rose-50/20">
+                      <div className="flex items-start gap-1.5">
+                        <XCircle className="w-3.5 h-3.5 text-rose-500 shrink-0 mt-0.5" />
+                        <span>Zero rights — copyright strikes on Instagram &amp; YouTube</span>
+                      </div>
+                    </td>
+                    <td className="p-3 font-bold text-slate-900 bg-emerald-50/30">
+                      <div className="flex items-start gap-1.5">
+                        <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 shrink-0 mt-0.5" />
+                        <span>100% Master Resell Rights (MRR) — keep 100% profit</span>
+                      </div>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td className="p-3 font-bold text-slate-900">Customer Support</td>
+                    <td className="p-3 text-slate-500 bg-rose-50/20">
+                      <div className="flex items-start gap-1.5">
+                        <XCircle className="w-3.5 h-3.5 text-rose-500 shrink-0 mt-0.5" />
+                        <span>No support, blocked on Telegram, fake WhatsApp</span>
+                      </div>
+                    </td>
+                    <td className="p-3 font-bold text-emerald-700 bg-emerald-50/30">
+                      <div className="flex items-start gap-1.5">
+                        <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 shrink-0 mt-0.5" />
+                        <span>Direct WhatsApp &amp; Email support with instant replacement guarantee</span>
+                      </div>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
             </div>
           </div>
         </div>

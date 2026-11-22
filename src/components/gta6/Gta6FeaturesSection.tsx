@@ -94,7 +94,7 @@ export default function Gta6FeaturesSection({
             <span>Folder-Wise Organization</span>
           </div>
           <h3 className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight">
-            What You Get Inside The 2,000+ Master Pack
+            What You Get Inside The 2,000+ GTA 6 Video Bundle &amp; Reel Pack
           </h3>
           <p className="text-xs sm:text-sm text-slate-500 mt-1.5 leading-relaxed">
             Aapko unorganized files nahi milengi. Poora bundle 5 categorized Google Drive folders me organized hai:

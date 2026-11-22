@@ -30,7 +30,7 @@ export const HOT_GIRLS_ORDER_BUMP: OrderBumpItem = {
 export const GTA6_ORDER_BUMP: OrderBumpItem = {
   id: 'rb-2000-gta-6-viral-reels',
   slug: '2000-gta-6-viral-reels-bundle',
-  title: '2000+ GTA 6 Viral Reels Bundle – Ready to Upload 4K No Watermark Videos',
+  title: '2000+ GTA 6 Video Bundle & GTA 6 Reel Bundle (4K No Watermark Clips)',
   subtitle: 'Special Exclusive Add-On: Add 2,000+ viral GTA 6 & Vice City 4K clips at 90% instant discount!',
   originalPrice: 999,
   discountPrice: 99,
@@ -167,18 +167,29 @@ export const BUNDLE_PRODUCTS: BundleProduct[] = [
     "id": "rb-2000-gta-6-viral-reels",
     "slug": "2000-gta-6-viral-reels-bundle",
     "aliases": [
+      "gta-6-video-bundle",
+      "gta6-video-bundle",
+      "gta-6-reel-bundle",
+      "gta6-reel-bundle",
       "gta-6-reels-bundle",
+      "gta6-reels-bundle",
       "gta-6-viral-reels",
       "2000-gta-6-reels",
+      "2000-gta-6-reels-bundle",
+      "gta-6-video-clips",
+      "gta6-video-clips",
+      "gta6-video",
+      "gta-6-video",
       "gta6",
       "gta-6",
       "gta-vi-reels",
       "gta6-reels",
-      "gta-6-bundle"
+      "gta-6-bundle",
+      "gta6-bundle"
     ],
-    "title": "2000+ GTA 6 Viral Reels Bundle – Ready to Upload 4K No Watermark Videos",
-    "shortDescription": "2000+ GTA 6 Viral Reels Bundle: 2,000 ready to upload, 100% watermark-free, 4K Full HD 9:16 vertical clips. Vice City gameplay, Lucia & Jason cinematic cuts, supercar chases, heists & trending meme edits. Instant Google Drive lifetime access.",
-    "description": "⚠️ BEWARE OF FAKE 720P RESELLERS!\n\"Get the Original 4K Ultra-HD Master Files directly from the Official Creator (VaultZet). Fake resellers are sharing compressed low-quality copies.\"\n\n2000+ GTA 6 Viral Reels Bundle – Ready to Upload 4K Vertical Video Clips (No Watermark)\n\n🔥 THE #1 BIGGEST TRENDING GAMING OPPORTUNITY OF 2026\nGTA 6 internet par sabse bada sensation hai! Millions of gamers, teens, aur casual viewers har roz GTA 6 ke clips aur Vice City visuals search kar rahe hain. Is bundle ke sath aap bina kisi video recording ya editing ke apne Instagram Reels, YouTube Shorts aur Facebook Pages ko viral bana sakte hain!\n\n🎮 What Makes This 2,000+ GTA 6 Bundle Special:\n• Exactly 2,000 Ready-to-Upload Vertical Reels (9:16 Ratio)\n• 100% Clean Without Any Watermark or Logo (Apna handle laga kar turant post karo)\n• Crystal Clear 4K & 1080P Ultra HD Quality (Maximum retention & algorithm boost)\n• Pre-synced Trending Audio, Bass-boosted BG Music & High-octane SFX\n• Organized in Categorized Folders (Vice City Supercars, Lucia & Jason Story, Cop Chases, Cinematic B-Roll, Meme Edits)\n• Instant High-Speed Lifetime Google Drive Download\n• Full Commercial & Reseller Rights Included (Monetize karo ya resell karke 100% profit rakho)\n\n⏳ Urgency Notice:\nSirf pehle 100 creators ke liye launch price ₹99 rakhi gayi hai. 73 copies already left hain! Jaise hi 100 copies poori hongi, price automatically ₹999 ho jayegi.\n\n⚡ Instant Automated Delivery:\nPayment karte hi Google Drive link screen par open hoga aur aapki email ID par bhi bhej diya jayega.",
+    "title": "2000+ GTA 6 Video Bundle & GTA 6 Reel Bundle – 4K No Watermark Clips (Vice City Gameplay)",
+    "shortDescription": "India's #1 Authentic GTA 6 Video Bundle & GTA 6 Reel Bundle: 2,000+ ready-to-upload 4K 9:16 vertical clips. Genuine Vice City gameplay, Lucia & Jason cinematics, supercars, police chases & meme edits. Beware of ₹39 scams on Credible Earning—Vaultzet provides 100% verified 4K clips with instant Google Drive lifetime access.",
+    "description": "⚠️ BEWARE OF FAKE ₹39 RESELLERS & SCAMS (Credible Earning & Cheap Clones)!\n\"Get the Original 4K Ultra-HD Master Files directly from the Official Creator (Vaultzet). Cheap fake resellers like Credible Earning charge ₹39 and give compressed 360p or completely unrelated non-GTA videos with broken links. Vaultzet guarantees 100% genuine GTA 6 4K master files with live video previews.\"\n\n2000+ GTA 6 Video Bundle & GTA 6 Reel Bundle – Ready to Upload 4K Vertical Video Clips (No Watermark)\n\n🔥 THE #1 BIGGEST TRENDING GAMING OPPORTUNITY IN INDIA (2026)\nGTA 6 internet par sabse bada gaming sensation hai! Millions of Indian gamers, teens, aur gaming creators har roz GTA 6 ke clips, Vice City visuals aur gameplay search kar rahe hain. Is master video bundle ke sath aap bina kisi costly gaming PC, console ya video editing ke apne Instagram Reels, YouTube Shorts aur Facebook Pages ko rocket ki speed se viral bana sakte hain!\n\n🎮 What Makes Vaultzet 2,000+ GTA 6 Video & Reel Bundle India's #1 Choice:\n• Exactly 2,000+ Ready-to-Upload Vertical Reels & Video Clips (9:16 Ratio)\n• 100% Clean Without Any Watermark or Logo (Apna handle laga kar turant post karo)\n• Crystal Clear True 4K & 1080P 60FPS Ultra HD (Maximum retention & algorithm boost)\n• Pre-synced Trending Audio, Bass-boosted Trap BG Music & High-octane SFX\n• Organized in 5 Categorized Folders (Vice City Supercars, Lucia & Jason Storylines, 5-Star Cop Chases, Cinematic B-Roll, Savage Meme Edits)\n• Instant High-Speed Lifetime Google Drive Download via Fast UPI (PhonePe, GPay, Paytm, CRED)\n• Full Commercial & Master Resell Rights (MRR) Included (Monetize karo ya resell karke 100% profit rakho)\n\n⚡ Instant Automated Delivery:\nPayment complete hote hi Google Drive download link turant screen par unlock hoga aur aapki registered email ID par bhi instantly bhej diya jayega.",
     "category": "Gaming & Trending Reels",
     "categorySlug": "gaming-reels",
     "reelCount": 2000,
@@ -244,6 +255,14 @@ export const BUNDLE_PRODUCTS: BundleProduct[] = [
       "100% Master Resell Rights (MRR Included) – Resell anywhere on your store & keep 100% profit"
     ],
     "faqs": [
+      {
+        "question": "Kya Credible Earning ya doosri websites par ₹39 me milne wala GTA 6 reel bundle genuine hai ya scam?",
+        "answer": "SAAVDHAN RAHEIN! Market me Credible Earning aur saste clone sellers ₹39 me 'GTA 6 bundle' ka jhootha dawa karke bait-and-switch scam kar rahe hain. Jab buyers wahan payment karte hain, toh unhe purani GTA 5 ki low-quality 360p videos ya ajeeb si non-gaming random videos milti hain, aur Google Drive access aksar block ya broken hota hai. Vaultzet India ka #1 verified platform hai jahan aapko 100% genuine GTA 6 4K Vice City master clips, live on-page video previews aur 1-click active Google Drive download milta hai."
+      },
+      {
+        "question": "Is bundle me GTA 6 video bundle aur GTA 6 reel bundle dono shamil hain kya?",
+        "answer": "HAAN, BILKUL! Is master pack me 2,000+ vertical 9:16 high-definition video clips aur viral reels dono shamil hain. Inme Lucia & Jason ke dramatic heists, Vice City neon drifting supercars, high-speed 5-star police chases, cinematic 4K aesthetic b-roll aur savage meme edits sab categorized folders me milte hain. Aap inhe Instagram Reels, YouTube Shorts, Facebook aur TikTok par bina kisi edit ke direct post kar sakte hain."
+      },
       {
         "question": "Kya main is GTA 6 bundle ko apne store ya customers ko resell kar sakta hu?",
         "answer": "HAAN, BILKUL! Is bundle ke sath 100% Master Resell Rights (MRR) milti hain. Iska matlab aap is poore 2,000+ bundle ki Google Drive link ko apne khud ke Shopify, Dukaan, Coseller store, Instagram DMs, WhatsApp groups, Telegram channels ya website par ₹199, ₹299 ya ₹499 me bech sakte hain. Poora 100% profit aapka rehta hai (Vaultzet ko 0% fee). Payment milte hi aap seedha Google Drive link apne customers ko deliver kar sakte hain."

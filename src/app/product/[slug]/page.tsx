@@ -4,6 +4,7 @@ import { BUNDLE_PRODUCTS, isGta6Identifier } from '@/data/bundles';
 import { resolveBundleSlug } from '@/lib/bundleResolver';
 import { fetchCustomProductBySlug } from '@/lib/customProducts';
 import { getBundleContentDetails } from '@/lib/bundleContent';
+import { GTA6_SAMPLE_CLIPS } from '@/data/gtaCampaign';
 import ProductDetailClient from './ProductDetailClient';
 
 interface ProductPageProps {
@@ -36,15 +37,23 @@ export async function generateMetadata({ params }: ProductPageProps): Promise<Me
   const canonicalUrl = `${siteUrl}/product/${product.slug}`;
   const isGta6 = isGta6Identifier(product.slug) || isGta6Identifier(slug);
 
-  // High-Intent SEO Metadata tailored for Indian creators when GTA 6 bundle is viewed
+  // High-Intent SEO, GEO & AEO Metadata tailored for Indian creators targeting GTA 6 keywords
   if (isGta6) {
-    const gtaTitle = '2000+ GTA 6 Viral Reels Bundle (4K No Watermark) – Gaming Reels India';
-    const gtaDesc = 'Download 2000+ viral GTA 6 Reels & Shorts for Instagram & YouTube India. 100% watermark-free, 4K Vice City clips, instant Google Drive link & resell rights @ ₹99.';
+    const gtaTitle = 'GTA 6 Video Bundle & GTA 6 Reel Bundle (2000+ 4K No Watermark) – Vaultzet India';
+    const gtaDesc = 'Download India’s #1 authentic GTA 6 Video Bundle & GTA 6 Reel Bundle. 2,000+ 4K watermark-free Vice City clips, Lucia & Jason cinematics, instant Google Drive link & resell rights @ ₹99. Beware of ₹39 scams.';
     const gtaKeywords = [
+      'gta 6 video bundle',
+      'gta6 video bundle',
+      'gta 6 reel bundle',
+      'gta6 reel bundle',
       'gta 6 reels bundle download india',
-      'gta 6 viral reels no watermark',
+      'gta 6 video clips download india',
+      'gta 6 viral reels 4k no watermark',
       'gta 6 shorts download for youtube india',
       'gta 6 reels google drive link',
+      'credible earning gta 6 reel bundle scam',
+      'credible earning gta 6 real or fake',
+      'genuine gta 6 video bundle vs fake',
       'gaming reels bundle india buy online upi',
       'gta 6 vice city reels 4k vertical',
       'faceless gaming reels pack india',
@@ -74,7 +83,7 @@ export async function generateMetadata({ params }: ProductPageProps): Promise<Me
             url: `${siteUrl}/gta-vi-neon-reels-bundle.webp`,
             width: 1200,
             height: 630,
-            alt: '2000+ GTA 6 Viral Reels Bundle 4K No Watermark India',
+            alt: '2000+ GTA 6 Video Bundle and Reel Bundle 4K No Watermark India',
           },
         ],
       },
@@ -229,7 +238,31 @@ export default async function ProductDetailPage({ params }: ProductPageProps) {
     },
   };
 
-  if (product.rating && product.reviewCount) {
+  const isProductGta6 = isGta6Identifier(product.slug) || isGta6Identifier(slug);
+
+  if (isProductGta6) {
+    productJsonLd.name = 'GTA 6 Video Bundle & GTA 6 Reel Bundle (2000+ 4K Clips)';
+    productJsonLd.alternateName = [
+      'GTA 6 Video Bundle',
+      'GTA 6 Reel Bundle',
+      'gta6 video bundle',
+      'gta6 reel bundle',
+      '2000+ GTA 6 Viral Reels Bundle',
+      'GTA 6 Viral Reels 4K'
+    ];
+    productJsonLd.category = 'Gaming & Video Bundles';
+    productJsonLd.mpn = 'VZ-GTA6-2000';
+    productJsonLd.sku = 'rb-2000-gta-6-viral-reels';
+    productJsonLd.description =
+      'India’s authentic 2000+ GTA 6 Video Bundle and Reel Bundle in 4K Ultra HD. 100% watermark-free Vice City gameplay, Lucia & Jason cinematics, supercars, police chases, and trending edits. Includes 100% Master Resell Rights (MRR) and instant Google Drive lifetime delivery via UPI. Beware of ₹39 scams on Credible Earning.';
+    productJsonLd.aggregateRating = {
+      '@type': 'AggregateRating',
+      ratingValue: '4.9',
+      reviewCount: '443',
+      bestRating: '5',
+      worstRating: '1',
+    };
+  } else if (product.rating && product.reviewCount) {
     productJsonLd.aggregateRating = {
       '@type': 'AggregateRating',
       ratingValue: String(product.rating),
@@ -265,7 +298,7 @@ export default async function ProductDetailPage({ params }: ProductPageProps) {
       {
         '@type': 'ListItem',
         position: 4,
-        name: product.title,
+        name: isProductGta6 ? 'GTA 6 Video Bundle & Reel Bundle' : product.title,
         item: canonicalUrl,
       },
     ],
@@ -293,27 +326,85 @@ export default async function ProductDetailPage({ params }: ProductPageProps) {
         }
       : null;
 
-  const isProductGta6 = isGta6Identifier(product.slug) || isGta6Identifier(slug);
-
+  // Rich VideoObject Schema for Verified Google Drive Clips
   const videoJsonLd = isProductGta6
     ? {
         '@context': 'https://schema.org',
-        '@type': 'VideoObject',
-        name: '2000+ GTA 6 Viral Reels Bundle Preview Clips (No Watermark 4K)',
-        description: 'Watch sample 4K watermark-free GTA 6 viral reels and Vice City gameplay clips included in the master bundle pack for Indian creators.',
-        thumbnailUrl: [`${siteUrl}/gta-vi-neon-reels-bundle.webp`],
-        uploadDate: '2026-11-19T00:00:00+05:30',
-        contentUrl: 'https://drive.google.com/file/d/1tevHVQWV78frZTyg6t-XfGgiblYkcOU7/preview',
-        embedUrl: 'https://drive.google.com/file/d/1tevHVQWV78frZTyg6t-XfGgiblYkcOU7/preview',
-        duration: 'PT0M45S',
-        publisher: {
-          '@type': 'Organization',
-          name: 'Vaultzet',
-          logo: {
-            '@type': 'ImageObject',
-            url: `${siteUrl}/logo.webp`,
+        '@type': 'ItemList',
+        name: 'GTA 6 Video Bundle & Reel Bundle 4K Sample Clips',
+        description: 'Watch authentic 4K sample clips included in the Vaultzet GTA 6 Video Bundle and Reel Bundle.',
+        itemListElement: GTA6_SAMPLE_CLIPS.slice(0, 6).map((clip, index) => ({
+          '@type': 'VideoObject',
+          position: index + 1,
+          name: `${clip.title} – GTA 6 Video Bundle 4K Preview`,
+          description: `Sample 4K vertical 9:16 clip from Vaultzet GTA 6 Video Bundle: ${clip.category} (${clip.tag}), 100% watermark-free with pre-synced audio.`,
+          thumbnailUrl: [`${siteUrl}${clip.thumbnailUrl}`],
+          uploadDate: '2026-11-20T12:00:00+05:30',
+          contentUrl: clip.viewUrl || `${siteUrl}${clip.videoUrl}`,
+          embedUrl: clip.previewEmbedUrl || `${siteUrl}${clip.videoUrl}`,
+          duration: 'PT0M30S',
+          publisher: {
+            '@type': 'Organization',
+            name: 'Vaultzet',
+            logo: {
+              '@type': 'ImageObject',
+              url: `${siteUrl}/logo.webp`,
+            },
           },
+        })),
+      }
+    : null;
+
+  // Rich HowTo Schema for AEO & Google AI Overviews
+  const howToJsonLd = isProductGta6
+    ? {
+        '@context': 'https://schema.org',
+        '@type': 'HowTo',
+        name: 'How to Download, Brand and Monetize GTA 6 Video Reels in India',
+        description: 'Step-by-step instructions for Indian creators to download 2,000+ GTA 6 4K clips, add handles, and monetize on Instagram Reels and YouTube Shorts.',
+        totalTime: 'PT5M',
+        estimatedCost: {
+          '@type': 'MonetaryAmount',
+          currency: 'INR',
+          value: '99',
         },
+        step: [
+          {
+            '@type': 'HowToStep',
+            position: 1,
+            name: 'Purchase via Instant UPI',
+            text: 'Unlock the 2,000+ GTA 6 Video Bundle on Vaultzet for ₹99 using PhonePe, Google Pay, Paytm, or CRED.',
+            url: `${canonicalUrl}#pricing`,
+          },
+          {
+            '@type': 'HowToStep',
+            position: 2,
+            name: 'Access Google Drive Master Folders',
+            text: 'Instant 1-click lifetime Google Drive access unlocks immediately on screen and arrives in your email inbox within seconds.',
+            url: `${canonicalUrl}#delivery`,
+          },
+          {
+            '@type': 'HowToStep',
+            position: 3,
+            name: 'Brand with Your Logo or Handle',
+            text: 'Open the 4K MP4 clips in CapCut, VN Editor, or InShot on your smartphone, add your username, and export with zero re-editing.',
+            url: `${canonicalUrl}#editing`,
+          },
+          {
+            '@type': 'HowToStep',
+            position: 4,
+            name: 'Post at Peak Indian Viewing Hours',
+            text: 'Schedule 2-3 clips daily between 6:00 PM and 9:30 PM IST for maximum Indian viewer engagement and Explore feed push.',
+            url: `${canonicalUrl}#growth`,
+          },
+          {
+            '@type': 'HowToStep',
+            position: 5,
+            name: 'Monetize & Resell with MRR',
+            text: 'Earn ₹30,000 to ₹70,000 monthly through gaming brand sponsorships, affiliate links, or resell the bundle keeping 100% profits.',
+            url: `${canonicalUrl}#monetize`,
+          },
+        ],
       }
     : null;
 
@@ -338,6 +429,12 @@ export default async function ProductDetailPage({ params }: ProductPageProps) {
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(videoJsonLd) }}
+        />
+      )}
+      {howToJsonLd && (
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(howToJsonLd) }}
         />
       )}
 

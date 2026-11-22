@@ -26,8 +26,8 @@ export async function GET() {
     urls.push(`  <url>
     <loc>${baseUrl}/product/${encodeURIComponent(slug)}</loc>
     <lastmod>${getProductLastmod(slug, p.updatedAt, p.createdAt)}</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>${p.isHot || p.isTrending ? '0.9' : '0.8'}</priority>
+    <changefreq>${slug.includes('gta') ? 'daily' : 'weekly'}</changefreq>
+    <priority>${slug.includes('gta') ? '1.0' : p.isHot || p.isTrending ? '0.9' : '0.8'}</priority>
   </url>`);
   }
 
