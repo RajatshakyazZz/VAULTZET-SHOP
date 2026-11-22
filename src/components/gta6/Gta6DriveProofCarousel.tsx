@@ -36,8 +36,8 @@ const DRIVE_SAMPLES: DriveSampleItem[] = [
     image: '/gta-drive-samples/gta-drive-overview.webp',
     tag: '👑 Master Folder & License',
     title: 'Google Drive Delivery Structure + MRR License',
-    folderPath: 'My Drive > GTA6 2000 CLIPS BY Vaultzet.shop',
-    description: '3 Master folders (1000 Clips, 750 Clips by Vaultzet, 350 Clips by Vaultzet) + Official Master Resell Rights (MRR) License PDF.',
+    folderPath: 'My Drive > GTA6 2000 videos',
+    description: '3 Master folders (1000 Clips, 750 Videos, 350 Videos) + Official Master Resell Rights (MRR) License PDF.',
     fileCount: '2,000+ Total Files',
   },
   {
@@ -45,8 +45,8 @@ const DRIVE_SAMPLES: DriveSampleItem[] = [
     image: '/gta-drive-samples/gta-drive-1000clips.webp',
     tag: '🌴 Vice City & Neon Vibes',
     title: 'Folder: 1000 Clips Main Bundle',
-    folderPath: 'GTA6 2000 CLIPS > gta6 bundle 1000 clips',
-    description: 'High-octane Vice City 4K cinematics, Everglades swamp exploration, Ocean Beach escapes, casino & nightlife.',
+    folderPath: 'GTA6 2000 videos > gta6 bundle 1000 clips',
+    description: 'Vice City 4K cinematics, Indian YouTubers pack, 400+ Vaultzet clips & 450+ gameplay cuts.',
     fileCount: '1,000 Clips (4K)',
   },
   {
