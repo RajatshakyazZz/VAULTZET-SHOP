@@ -132,7 +132,7 @@ export default function ReelsVideoPreview() {
 
           {/* Video Preview Phones Horizontal Track */}
           <div className="flex gap-4 overflow-x-auto pb-4 pt-2 scrollbar-none">
-            {reels.map((item) => {
+            {reels.slice(0, 10).map((item) => {
               const isPlaying = activeVideoId === item.id;
               const parsed = parseVideoUrl(item.videoUrl);
               const isYouTube = item.videoType === 'youtube' || parsed.videoType === 'youtube' || Boolean(item.youtubeId);
@@ -267,6 +267,22 @@ export default function ReelsVideoPreview() {
                 </div>
               );
             })}
+
+            {/* View All Card */}
+            <div className="w-48 sm:w-52 aspect-[9/16] rounded-[26px] bg-gradient-to-br from-slate-900 to-slate-950 p-5 shadow-xl border-[3px] border-dashed border-red-500/40 relative flex flex-col items-center justify-center text-center overflow-hidden shrink-0 group select-none">
+              <div className="w-14 h-14 rounded-2xl bg-red-500/10 border border-red-500/30 flex items-center justify-center mb-3 group-hover:scale-110 transition-transform">
+                <ArrowRight className="w-6 h-6 text-red-400" />
+              </div>
+              <h3 className="text-white font-black text-base leading-snug">Explore All 60+ Samples</h3>
+              <p className="text-xs text-slate-400 mt-1.5 leading-relaxed">Watch interactive reels from all categories</p>
+              <Link
+                href="/reels"
+                prefetch={false}
+                className="mt-4 px-4 py-2 rounded-full bg-gradient-to-r from-red-600 to-rose-600 hover:from-red-500 hover:to-rose-500 text-white text-xs font-bold shadow-md transition-all"
+              >
+                View Full Feed →
+              </Link>
+            </div>
           </div>
 
         </div>

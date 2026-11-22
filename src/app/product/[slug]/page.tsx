@@ -340,8 +340,8 @@ export default async function ProductDetailPage({ params }: ProductPageProps) {
           description: `Sample 4K vertical 9:16 clip from Vaultzet GTA 6 Video Bundle: ${clip.category} (${clip.tag}), 100% watermark-free with pre-synced audio.`,
           thumbnailUrl: [`${siteUrl}${clip.thumbnailUrl}`],
           uploadDate: '2026-11-20T12:00:00+05:30',
-          contentUrl: clip.viewUrl || `${siteUrl}${clip.videoUrl}`,
-          embedUrl: clip.previewEmbedUrl || `${siteUrl}${clip.videoUrl}`,
+          contentUrl: clip.viewUrl,
+          embedUrl: clip.previewEmbedUrl || clip.viewUrl,
           duration: 'PT0M30S',
           publisher: {
             '@type': 'Organization',

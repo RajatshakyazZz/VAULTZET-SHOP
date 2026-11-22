@@ -11,7 +11,7 @@ export const ORDER_BUMP: OrderBumpItem = {
   originalPrice: 999,
   discountPrice: 99,
   discountPercentage: 90,
-  thumbnail: '/sheru-bhai-cover.png',
+  thumbnail: '/sheru-bhai-cover.webp',
   reelCount: 3000,
 };
 
@@ -23,7 +23,7 @@ export const HOT_GIRLS_ORDER_BUMP: OrderBumpItem = {
   originalPrice: 299,
   discountPrice: 99,
   discountPercentage: 67,
-  thumbnail: '/hot-girls-bump.jpg',
+  thumbnail: '/hot-girls-bump.webp',
   reelCount: 10000,
 };
 
@@ -308,9 +308,9 @@ export const BUNDLE_PRODUCTS: BundleProduct[] = [
     "personalOriginalPrice": 999,
     "resellerPrice": 199,
     "resellerOriginalPrice": 1499,
-    "thumbnail": "/sheru-bhai-cover.png",
+    "thumbnail": "/sheru-bhai-cover.webp",
     "galleryImages": [
-      "/sheru-bhai-cover.png",
+      "/sheru-bhai-cover.webp",
       "https://i.ibb.co/tw2ts4j7/1000014019.png"
     ],
     "previewVideoUrl": "https://drive.google.com/file/d/19OtwWku9JxAV2rz2jdNlaShWvFqw1cl6/view?usp=drivesdk",
