@@ -40,7 +40,7 @@ export async function generateMetadata({ params }: ProductPageProps): Promise<Me
   // High-Intent SEO, GEO & AEO Metadata tailored for Indian creators targeting GTA 6 keywords
   if (isGta6) {
     const gtaTitle = 'GTA 6 Video Bundle & GTA 6 Reel Bundle (2000+ 4K No Watermark) – Vaultzet India';
-    const gtaDesc = 'Download India’s #1 authentic GTA 6 Video Bundle & GTA 6 Reel Bundle. 2,000+ 4K watermark-free Vice City clips, Lucia & Jason cinematics, instant Google Drive link & resell rights @ ₹99. Beware of ₹39 scams.';
+    const gtaDesc = 'Download India’s #1 authentic GTA 6 Video Bundle & GTA 6 Reel Bundle. 2,000+ 4K watermark-free Vice City clips, Lucia & Jason cinematics, instant Google Drive link & resell rights @ ₹99. Beware of cheap fake scams.';
     const gtaKeywords = [
       'gta 6 video bundle',
       'gta6 video bundle',
@@ -254,7 +254,7 @@ export default async function ProductDetailPage({ params }: ProductPageProps) {
     productJsonLd.mpn = 'VZ-GTA6-2000';
     productJsonLd.sku = 'rb-2000-gta-6-viral-reels';
     productJsonLd.description =
-      'India’s authentic 2000+ GTA 6 Video Bundle and Reel Bundle in 4K Ultra HD. 100% watermark-free Vice City gameplay, Lucia & Jason cinematics, supercars, police chases, and trending edits. Includes 100% Master Resell Rights (MRR) and instant Google Drive lifetime delivery via UPI. Beware of ₹39 scams on Credible Earning.';
+      'India’s authentic 2000+ GTA 6 Video Bundle and Reel Bundle in 4K Ultra HD. 100% watermark-free Vice City gameplay, Lucia & Jason cinematics, supercars, police chases, and trending edits. Includes 100% Master Resell Rights (MRR) and instant Google Drive lifetime delivery via UPI. Beware of cheap fake scams on Credible Earning.';
     productJsonLd.aggregateRating = {
       '@type': 'AggregateRating',
       ratingValue: '4.9',

@@ -111,7 +111,7 @@ export default function Gta6SeoGuideSection({
           </div>
         </div>
 
-        {/* BUYER ALERT: VAULTZET VS ₹39 FAKE SCAM BUNDLES (CREDIBLE EARNING & CHEAP CLONES) */}
+        {/* BUYER ALERT: VAULTZET VS FAKE SCAM BUNDLES (CREDIBLE EARNING & CHEAP CLONES) */}
         <div className="mt-8 pt-6 border-t border-slate-100">
           <div className="rounded-2xl bg-gradient-to-br from-amber-500/10 via-red-500/5 to-rose-500/10 border-2 border-red-500/60 p-4 sm:p-6 space-y-4">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
@@ -132,10 +132,10 @@ export default function Gta6SeoGuideSection({
 
             <div>
               <h3 className="text-base sm:text-xl font-black text-slate-900 tracking-tight">
-                Vaultzet Official GTA 6 Pack vs. ₹39 Fake Scam Bundles (Credible Earning &amp; Cheap Sellers)
+                Vaultzet Official GTA 6 Pack vs. Fake Scam Bundles (Credible Earning &amp; Cheap Sellers)
               </h3>
               <p className="text-xs text-slate-600 mt-1 leading-relaxed">
-                Market me Credible Earning aur kuch fake sellers ₹39 me <em>&ldquo;GTA 6 Reel Bundle&rdquo;</em> bechne ka claim kar rahe hain. Buyers ke feedback ke mutabiq ye 100% bait-and-switch scam hai jisme payment ke baad <strong>purani GTA 5 ki low-res clips ya random non-gaming videos</strong> milti hain aur Google Drive links aksar broken hote hain. Dekhiye asli vs nakli ka sach:
+                Market me Credible Earning aur kuch fake sellers <em>&ldquo;GTA 6 Reel Bundle&rdquo;</em> saste me bechne ka claim kar rahe hain. Buyers ke feedback ke mutabiq ye 100% bait-and-switch scam hai jisme payment ke baad <strong>purani GTA 5 ki low-res clips ya random non-gaming videos</strong> milti hain aur Google Drive links aksar broken hote hain. Dekhiye asli vs nakli ka sach:
               </p>
             </div>
 
@@ -145,7 +145,7 @@ export default function Gta6SeoGuideSection({
                   <tr className="border-b border-slate-200 bg-white/80 text-slate-700 font-black uppercase tracking-wider text-[10px]">
                     <th className="p-3 rounded-l-xl">Feature</th>
                     <th className="p-3 text-rose-600 bg-rose-50/60 border border-rose-200/40">
-                      ₹39 Fake Scam (Credible Earning &amp; Clones)
+                      Fake Scam (Credible Earning &amp; Clones)
                     </th>
                     <th className="p-3 rounded-r-xl text-emerald-800 bg-emerald-50/90 border border-emerald-300 font-black">
                       Vaultzet Official 2,000+ Master Pack

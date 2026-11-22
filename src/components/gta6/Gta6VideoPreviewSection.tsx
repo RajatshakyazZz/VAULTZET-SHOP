@@ -355,7 +355,7 @@ export default function Gta6VideoPreviewSection({
           Watch Real GTA 6 Video Bundle &amp; Reel Bundle Previews
         </h2>
         <p className="text-xs sm:text-sm text-slate-500 mt-1.5 leading-relaxed">
-          Tap any reel in the carousel below to play it right here — zero popup delay, true 4K 9:16 vertical ratio. Genuine GTA 6 Vice City footage (unlike ₹39 fake scams), 100% watermark-free with pre-synced viral audio.
+          Tap any reel in the carousel below to play it right here — zero popup delay, true 4K 9:16 vertical ratio. Genuine GTA 6 Vice City footage (unlike cheap fake scams), 100% watermark-free with pre-synced viral audio.
         </p>
 
         {/* Minimal Trust Badges */}
