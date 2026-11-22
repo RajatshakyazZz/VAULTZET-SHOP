@@ -322,6 +322,18 @@ export default function ProductDetailClient({ product }: ProductDetailClientProp
                 <span className="text-[11px] sm:text-xs">No Watermark</span>
               </div>
             </div>
+
+            {/* GTA 6 INLINE SAMPLE VIDEO PREVIEWS (Directly Under Main Product Image) */}
+            {isGta6Page && (
+              <Gta6VideoPreviewSection
+                previewVideoUrl={p.previewVideoUrl}
+                previewVideoUrls={p.previewVideoUrls}
+                price={activePrice}
+                onBuyClick={() =>
+                  buyNow(p, 'personal', hasPageBumps, selectedBumpItems)
+                }
+              />
+            )}
           </div>
 
           {/* RIGHT: Unified Purchase Card */}
@@ -636,17 +648,9 @@ export default function ProductDetailClient({ product }: ProductDetailClientProp
           </>
         )}
 
-        {/* GTA 6 HIGH-CONVERTING LANDING SECTIONS: MULTI-VIDEO PREVIEWS + 2000 CLIPS BREAKDOWN + CREATOR PROOF */}
+        {/* GTA 6 HIGH-CONVERTING LANDING SECTIONS: 2000 CLIPS BREAKDOWN + RESELL GUIDE + CREATOR PROOF */}
         {isGta6Page && (
           <>
-            <Gta6VideoPreviewSection
-              previewVideoUrl={p.previewVideoUrl}
-              previewVideoUrls={p.previewVideoUrls}
-              price={activePrice}
-              onBuyClick={() =>
-                buyNow(p, 'personal', hasPageBumps, selectedBumpItems)
-              }
-            />
             <Gta6FeaturesSection
               price={activePrice}
               onBuyClick={() =>
