@@ -49,6 +49,7 @@ import SheruGrowthProofSection from '@/components/sheru/SheruGrowthProofSection'
 import SheruPageOrderBump from '@/components/sheru/SheruPageOrderBump';
 import GtaPageOrderBump from '@/components/gta6/GtaPageOrderBump';
 import Gta6UrgencyBar from '@/components/gta6/Gta6UrgencyBar';
+import Gta6DriveProofCarousel from '@/components/gta6/Gta6DriveProofCarousel';
 import Gta6FeaturesSection from '@/components/gta6/Gta6FeaturesSection';
 import Gta6ResellSection from '@/components/gta6/Gta6ResellSection';
 import Gta6GrowthProofSection from '@/components/gta6/Gta6GrowthProofSection';
@@ -321,7 +322,15 @@ export default function ProductDetailClient({ product }: ProductDetailClientProp
               </div>
             </div>
 
-
+            {/* GTA 6 GENUINE GOOGLE DRIVE PROOF CAROUSEL (Zero-Bandwidth Image Carousel) */}
+            {isGta6Page && (
+              <Gta6DriveProofCarousel
+                price={activePrice}
+                onBuyClick={() =>
+                  buyNow(p, 'personal', hasPageBumps, selectedBumpItems)
+                }
+              />
+            )}
           </div>
 
           {/* RIGHT: Unified Purchase Card */}
