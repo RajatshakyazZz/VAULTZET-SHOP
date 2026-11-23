@@ -9,6 +9,7 @@ export default function ContactUsPage() {
   const { settings } = useStoreSettings();
 
   const supportEmail = 'support@vaultzet.shop';
+  const registeredEmail = 'rajattracozegaming@gmail.com';
 
   const rawPhone = settings.supportWhatsapp || '';
   const supportPhone =
@@ -16,7 +17,7 @@ export default function ContactUsPage() {
       ? rawPhone
       : '+91 7895317940';
 
-  const ownerName = settings.ownerName || 'Rajat Shakya';
+  const ownerName = 'RAJAT SHAKYA';
 
   return (
     <div className="py-12 sm:py-20 bg-slate-50/50">
@@ -34,25 +35,32 @@ export default function ContactUsPage() {
           </p>
           <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-red-50 border border-red-200 text-xs font-extrabold text-slate-950">
             <UserCheck className="w-3.5 h-3.5 text-red-600" />
-            <span>Store Owner & Support Lead: <strong className="text-red-700">{ownerName}</strong></span>
+            <span>Legal Entity &amp; Store Owner: <strong className="text-red-700">{ownerName}</strong></span>
           </div>
         </div>
 
-        {/* 3 Contact Info Cards (Email, WhatsApp/Phone, Working Hours) - No Message Form */}
+        {/* 3 Contact Info Cards (Email, WhatsApp/Phone, Working Hours) */}
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
           {/* Email Us */}
-          <a
-            href={`mailto:${supportEmail}`}
-            className="p-6 rounded-3xl bg-white border border-slate-200 shadow-sm hover:shadow-md transition-all text-center space-y-2.5 block group"
+          <div
+            className="p-6 rounded-3xl bg-white border border-slate-200 shadow-sm text-center space-y-2.5 block"
           >
-            <div className="w-12 h-12 rounded-2xl bg-red-50 text-red-600 flex items-center justify-center mx-auto group-hover:scale-105 transition-transform">
+            <div className="w-12 h-12 rounded-2xl bg-red-50 text-red-600 flex items-center justify-center mx-auto">
               <Mail className="w-6 h-6" />
             </div>
-            <h3 className="font-extrabold text-base text-slate-950">Email Us</h3>
-            <p className="text-xs sm:text-sm font-bold text-slate-800 group-hover:text-red-600 transition-colors break-all">
-              {supportEmail}
+            <h3 className="font-extrabold text-base text-slate-950">Email Support</h3>
+            <p className="text-xs font-bold text-slate-800 break-all">
+              <a href={`mailto:${supportEmail}`} className="hover:text-red-600 transition-colors">
+                {supportEmail}
+              </a>
             </p>
-          </a>
+            <p className="text-[11px] font-semibold text-slate-500 break-all pt-1 border-t border-slate-100">
+              Registered / Grievance:<br />
+              <a href={`mailto:${registeredEmail}`} className="text-slate-800 font-bold hover:text-red-600">
+                {registeredEmail}
+              </a>
+            </p>
+          </div>
 
           {/* WhatsApp Chat / Phone */}
           <a
@@ -64,9 +72,9 @@ export default function ContactUsPage() {
             <div className="w-12 h-12 rounded-2xl bg-emerald-50 text-emerald-600 flex items-center justify-center mx-auto group-hover:scale-105 transition-transform">
               <MessageSquare className="w-6 h-6" />
             </div>
-            <h3 className="font-extrabold text-base text-slate-950">WhatsApp Chat</h3>
+            <h3 className="font-extrabold text-base text-slate-950">Phone &amp; WhatsApp</h3>
             <p className="text-xs font-bold text-slate-950">{ownerName}</p>
-            <p className="text-xs font-semibold text-slate-500">{supportPhone}</p>
+            <p className="text-xs font-black text-emerald-700">{supportPhone}</p>
           </a>
 
           {/* Working Hours */}
@@ -76,6 +84,35 @@ export default function ContactUsPage() {
             </div>
             <h3 className="font-extrabold text-base text-slate-950">Working Hours</h3>
             <p className="text-xs font-semibold text-slate-500">10:00 AM – 8:00 PM IST</p>
+            <p className="text-[11px] text-slate-400">Monday to Saturday</p>
+          </div>
+        </div>
+
+        {/* Merchant & Legal Compliance Details Box (For Cashfree & Payment Gateway Verification) */}
+        <div className="rounded-3xl p-6 sm:p-7 bg-white border-2 border-slate-200 shadow-sm space-y-3">
+          <div className="flex items-center gap-2">
+            <span className="w-2.5 h-2.5 rounded-full bg-emerald-500" />
+            <h2 className="text-sm sm:text-base font-black text-slate-950 uppercase tracking-wide">
+              Official Merchant &amp; Business Information
+            </h2>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3 text-xs">
+            <div className="p-3 rounded-xl bg-slate-50 border border-slate-200/80">
+              <span className="text-slate-500 font-semibold block">Legal Entity / Proprietor:</span>
+              <span className="font-black text-slate-900 text-sm">{ownerName}</span>
+            </div>
+            <div className="p-3 rounded-xl bg-slate-50 border border-slate-200/80">
+              <span className="text-slate-500 font-semibold block">Operating Brand:</span>
+              <span className="font-black text-slate-900 text-sm">Vaultzet Store</span>
+            </div>
+            <div className="p-3 rounded-xl bg-slate-50 border border-slate-200/80">
+              <span className="text-slate-500 font-semibold block">Registered Email:</span>
+              <span className="font-bold text-slate-900 break-all">{registeredEmail}</span>
+            </div>
+            <div className="p-3 rounded-xl bg-slate-50 border border-slate-200/80">
+              <span className="text-slate-500 font-semibold block">Contact Number:</span>
+              <span className="font-black text-slate-900 text-sm">{supportPhone}</span>
+            </div>
           </div>
         </div>
 

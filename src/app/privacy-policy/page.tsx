@@ -76,14 +76,16 @@ export default function PrivacyPolicyPage() {
             You can customize or withdraw your cookie consent at any time by clicking &quot;Cookie Preferences&quot; in our website footer or through your browser settings.
           </p>
 
-          <h2 className="text-lg font-bold text-slate-950">5. Contact Us</h2>
+          <h2 className="text-lg font-bold text-slate-950">5. Data Controller &amp; Contact Us</h2>
           <p>
-            If you have questions regarding this Privacy Policy or cookie management, please contact us at:
-            <br />
-            Email: <strong className="text-slate-800">support@vaultzet.shop</strong>
-            <br />
-            Phone: <strong className="text-slate-800">+91 7895317940</strong>
+            The Data Controller and Grievance Officer for Vaultzet Store is <strong className="text-slate-900">RAJAT SHAKYA</strong>. If you have questions regarding this Privacy Policy, your personal data, or cookie preferences, please contact us at:
           </p>
+          <ul className="list-disc pl-5 space-y-1">
+            <li><strong className="text-slate-900">Legal Entity:</strong> RAJAT SHAKYA</li>
+            <li><strong className="text-slate-900">Registered Email:</strong> <a href="mailto:rajattracozegaming@gmail.com" className="text-red-700 underline font-bold">rajattracozegaming@gmail.com</a></li>
+            <li><strong className="text-slate-900">Support Email:</strong> <a href="mailto:support@vaultzet.shop" className="text-red-700 underline font-bold">support@vaultzet.shop</a></li>
+            <li><strong className="text-slate-900">Phone:</strong> <a href="tel:+917895317940" className="text-slate-900 font-bold">+91 7895317940</a></li>
+          </ul>
         </div>
       </div>
     </div>

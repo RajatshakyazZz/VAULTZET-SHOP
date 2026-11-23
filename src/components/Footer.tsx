@@ -305,12 +305,24 @@ export default function Footer() {
               <Mail className="w-3.5 h-3.5 text-red-600" />
               <span>{footerEmail}</span>
             </a>
+            <span className="text-slate-300">•</span>
+            <a
+              href="mailto:rajattracozegaming@gmail.com"
+              className="inline-flex items-center gap-1 hover:text-red-600 transition-colors font-bold"
+              title="Registered Merchant Email"
+            >
+              <span>rajattracozegaming@gmail.com</span>
+            </a>
           </div>
 
-          {/* Bottom Copyright & Tax Row */}
+          {/* Bottom Copyright, Legal Entity & Compliance Row */}
           <div className="pt-4 border-t border-slate-200/80 flex flex-col sm:flex-row items-center justify-between gap-2 text-xs text-slate-500 font-medium text-center">
-            <p>© {new Date().getFullYear()} {settings.storeName || 'Vaultzet Store'} • Digital Storefront, India. All rights reserved.</p>
-            <p className="font-semibold text-slate-600">All prices are inclusive of applicable taxes.</p>
+            <p>
+              © {new Date().getFullYear()} <strong>Vaultzet Store</strong> (Legal Entity / Proprietor: <strong className="text-slate-800">RAJAT SHAKYA</strong>) • Digital Storefront, India. All rights reserved.
+            </p>
+            <p className="font-semibold text-slate-600">
+              Registered Support: <a href="mailto:rajattracozegaming@gmail.com" className="text-slate-800 underline hover:text-red-600">rajattracozegaming@gmail.com</a> | Phone: <strong className="text-slate-800">+91 7895317940</strong>
+            </p>
           </div>
 
         </div>

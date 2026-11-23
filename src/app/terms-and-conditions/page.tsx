@@ -58,10 +58,16 @@ export default function TermsPage() {
             All products are delivered digitally via cloud download links immediately upon successful UPI or card payment. You will also receive an automated confirmation email. All prices displayed across Vaultzet Store are in INR and are inclusive of applicable taxes.
           </p>
 
-          <h2 className="text-lg font-bold text-slate-950">3. Contact</h2>
+          <h2 className="text-lg font-bold text-slate-950">3. Legal Entity &amp; Contact Information</h2>
           <p>
-            For any queries, please reach out to <strong className="text-slate-800">Rajat Shakya</strong> at <strong className="text-slate-800">support@vaultzet.shop</strong> or <strong className="text-slate-800">+91 7895317940</strong>.
+            This website (Vaultzet Store) is legally owned and operated by sole proprietor <strong className="text-slate-900">RAJAT SHAKYA</strong>. For any queries, commercial licensing questions, customer support, or disputes, please reach out to:
           </p>
+          <ul className="list-disc pl-5 space-y-1">
+            <li><strong className="text-slate-900">Legal Entity / Proprietor Name:</strong> RAJAT SHAKYA</li>
+            <li><strong className="text-slate-900">Registered Email:</strong> <a href="mailto:rajattracozegaming@gmail.com" className="text-red-700 underline font-bold">rajattracozegaming@gmail.com</a></li>
+            <li><strong className="text-slate-900">Customer Support Email:</strong> <a href="mailto:support@vaultzet.shop" className="text-red-700 underline font-bold">support@vaultzet.shop</a></li>
+            <li><strong className="text-slate-900">Phone / WhatsApp:</strong> <a href="tel:+917895317940" className="text-slate-900 font-bold">+91 7895317940</a></li>
+          </ul>
         </div>
       </div>
     </div>

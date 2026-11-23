@@ -41,10 +41,16 @@ export default function RefundPolicyPage() {
             </li>
           </ul>
 
-          <h2 className="text-lg font-bold text-slate-950">3. How to Request Assistance</h2>
+          <h2 className="text-lg font-bold text-slate-950">3. How to Request Assistance &amp; Contact Details</h2>
           <p>
-            If you encounter any issues accessing your bundle within 7 days of purchase, please email our support desk (<strong className="text-slate-800">Rajat Shakya</strong>) at <strong className="text-slate-800">support@vaultzet.shop</strong> or WhatsApp <strong className="text-slate-800">+91 7895317940</strong> with your Order ID.
+            If you encounter any issues accessing your bundle within 7 days of purchase, please email our support desk or reach out directly to the store operator:
           </p>
+          <ul className="list-disc pl-5 space-y-1">
+            <li><strong className="text-slate-900">Legal Entity / Support Lead:</strong> RAJAT SHAKYA</li>
+            <li><strong className="text-slate-900">Registered Email:</strong> <a href="mailto:rajattracozegaming@gmail.com" className="text-red-700 underline font-bold">rajattracozegaming@gmail.com</a></li>
+            <li><strong className="text-slate-900">Customer Support Email:</strong> <a href="mailto:support@vaultzet.shop" className="text-red-700 underline font-bold">support@vaultzet.shop</a></li>
+            <li><strong className="text-slate-900">Phone / WhatsApp:</strong> <a href="tel:+917895317940" className="text-slate-900 font-bold">+91 7895317940</a></li>
+          </ul>
         </div>
       </div>
     </div>

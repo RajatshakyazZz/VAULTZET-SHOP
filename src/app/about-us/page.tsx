@@ -69,6 +69,28 @@ export default async function AboutUsPage() {
           </div>
         </div>
 
+        {/* Official Business & Merchant Information */}
+        <div className="rounded-3xl p-6 sm:p-8 bg-white border border-slate-200 shadow-sm space-y-3">
+          <h2 className="text-lg font-black text-slate-950">Official Business &amp; Ownership Information</h2>
+          <p className="text-sm text-slate-600 leading-relaxed font-medium">
+            Vaultzet Store is an authentic digital products and reels distribution brand in India, legally owned and operated by sole proprietor <strong className="text-slate-900">RAJAT SHAKYA</strong>.
+          </p>
+          <div className="pt-2 grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs font-medium">
+            <div className="p-3 rounded-xl bg-slate-50 border border-slate-200/80">
+              <span className="text-slate-500 block">Legal Entity Name:</span>
+              <strong className="text-slate-900 font-bold text-sm">RAJAT SHAKYA</strong>
+            </div>
+            <div className="p-3 rounded-xl bg-slate-50 border border-slate-200/80">
+              <span className="text-slate-500 block">Registered Email:</span>
+              <a href="mailto:rajattracozegaming@gmail.com" className="text-red-700 font-bold break-all">rajattracozegaming@gmail.com</a>
+            </div>
+            <div className="p-3 rounded-xl bg-slate-50 border border-slate-200/80">
+              <span className="text-slate-500 block">Contact / WhatsApp:</span>
+              <strong className="text-slate-900 font-bold text-sm">+91 7895317940</strong>
+            </div>
+          </div>
+        </div>
+
         <div className="text-center pt-4">
           <Link
             href="/shop"
