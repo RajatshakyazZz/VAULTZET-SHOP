@@ -102,7 +102,7 @@ export default function Gta6ResellSection({
             Buy Once for Just ₹{price}
           </h3>
           <p className="text-xs text-slate-300 leading-relaxed font-normal">
-            Sirf ₹{price} me 2,000+ 4K reels ka lifetime Google Drive access aur Commercial Resell License unlock karein. Koi recurring fee nahi.
+            Sirf ₹{price} me 4,000+ 4K reels ka lifetime Google Drive access aur Commercial Resell License unlock karein. Koi recurring fee nahi.
           </p>
         </div>
 
@@ -241,7 +241,7 @@ export default function Gta6ResellSection({
           className="w-full sm:w-auto inline-flex items-center justify-center gap-2.5 px-8 py-4 rounded-2xl bg-gradient-to-r from-amber-400 via-amber-300 to-amber-400 hover:from-amber-300 hover:to-amber-200 text-slate-950 font-black text-sm sm:text-base shadow-xl shadow-amber-500/25 active:scale-95 transition-all cursor-pointer"
         >
           <Zap className="w-4 h-4 fill-slate-950" />
-          <span>Get 2,000+ GTA 6 Reels + Master Resell Rights (₹{price})</span>
+          <span>Get 4,000+ GTA 6 Reels + Master Resell Rights (₹{price})</span>
           <ArrowRight className="w-4 h-4" />
         </button>
 

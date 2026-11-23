@@ -674,7 +674,7 @@ export default function ProductDetailClient({ product }: ProductDetailClientProp
           </>
         )}
 
-        {/* GTA 6 HIGH-CONVERTING LANDING SECTIONS: 2000 CLIPS BREAKDOWN + RESELL GUIDE + CREATOR PROOF */}
+        {/* GTA 6 HIGH-CONVERTING LANDING SECTIONS: 4000 CLIPS BREAKDOWN + RESELL GUIDE + CREATOR PROOF */}
         {isGta6Page && (
           <>
             <Gta6FeaturesSection

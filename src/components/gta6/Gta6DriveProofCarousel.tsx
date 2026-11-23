@@ -37,8 +37,8 @@ const DRIVE_SAMPLES: DriveSampleItem[] = [
     tag: '👑 Master Folder & License',
     title: 'Google Drive Delivery Structure + MRR License',
     folderPath: 'My Drive > GTA6 2000 videos',
-    description: '3 Master folders (1000 Clips, 750 Videos, 350 Videos) + Official Master Resell Rights (MRR) License PDF.',
-    fileCount: '2,000+ Total Files',
+    description: '3 Master folders + 2,000 new clips + Official Master Resell Rights (MRR) License PDF.',
+    fileCount: '4,000+ Total Files',
   },
   {
     id: '1000clips',

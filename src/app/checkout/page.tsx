@@ -1251,7 +1251,7 @@ function CheckoutContent() {
                     <div className="space-y-3">
                       <p className="text-xs font-bold text-slate-800">
                         {isSheruContext
-                          ? 'Special Exclusive Add-On: Add 2,000+ GTA 6 Reels for just ₹99 (Regular ₹999):'
+                          ? 'Special Exclusive Add-On: Add 4,000+ GTA 6 Reels for just ₹99 (Regular ₹999):'
                           : 'Special Exclusive Add-Ons: Add viral booster bundles to your GTA 6 order:'}
                       </p>
                       <div className="space-y-2.5">

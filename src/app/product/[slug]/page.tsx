@@ -39,13 +39,16 @@ export async function generateMetadata({ params }: ProductPageProps): Promise<Me
 
   // High-Intent SEO, GEO & AEO Metadata tailored for Indian creators targeting GTA 6 keywords
   if (isGta6) {
-    const gtaTitle = 'GTA 6 Video Bundle & GTA 6 Reel Bundle (2000+ 4K No Watermark) – Vaultzet India';
-    const gtaDesc = 'Download India’s #1 authentic GTA 6 Video Bundle & GTA 6 Reel Bundle. 2,000+ 4K watermark-free Vice City clips, Lucia & Jason cinematics, instant Google Drive link & resell rights @ ₹99. Beware of cheap fake scams.';
+    const gtaTitle = 'GTA 6 Video Bundle & GTA 6 Reel Bundle (4000+ 4K No Watermark) – Vaultzet India';
+    const gtaDesc = 'Download India’s #1 authentic GTA 6 Video Bundle & GTA 6 Reel Bundle. 4,000+ 4K watermark-free Vice City clips, Lucia & Jason cinematics, instant Google Drive link & resell rights @ ₹99. Beware of cheap fake scams.';
     const gtaKeywords = [
       'gta 6 video bundle',
       'gta6 video bundle',
       'gta 6 reel bundle',
       'gta6 reel bundle',
+      '4000 gta 6 video bundle',
+      '4000 gta 6 reels bundle',
+      'gta 6 4000 clips bundle download',
       'gta 6 reels bundle download india',
       'gta 6 video clips download india',
       'gta 6 viral reels 4k no watermark',
@@ -83,7 +86,7 @@ export async function generateMetadata({ params }: ProductPageProps): Promise<Me
             url: `${siteUrl}/gta-vi-neon-reels-bundle.webp`,
             width: 1200,
             height: 630,
-            alt: '2000+ GTA 6 Video Bundle and Reel Bundle 4K No Watermark India',
+            alt: '4000+ GTA 6 Video Bundle and Reel Bundle 4K No Watermark India',
           },
         ],
       },
@@ -241,20 +244,21 @@ export default async function ProductDetailPage({ params }: ProductPageProps) {
   const isProductGta6 = isGta6Identifier(product.slug) || isGta6Identifier(slug);
 
   if (isProductGta6) {
-    productJsonLd.name = 'GTA 6 Video Bundle & GTA 6 Reel Bundle (2000+ 4K Clips)';
+    productJsonLd.name = 'GTA 6 Video Bundle & GTA 6 Reel Bundle (4000+ 4K Clips)';
     productJsonLd.alternateName = [
       'GTA 6 Video Bundle',
       'GTA 6 Reel Bundle',
       'gta6 video bundle',
       'gta6 reel bundle',
+      '4000+ GTA 6 Viral Reels Bundle',
       '2000+ GTA 6 Viral Reels Bundle',
       'GTA 6 Viral Reels 4K'
     ];
     productJsonLd.category = 'Gaming & Video Bundles';
-    productJsonLd.mpn = 'VZ-GTA6-2000';
+    productJsonLd.mpn = 'VZ-GTA6-4000';
     productJsonLd.sku = 'rb-2000-gta-6-viral-reels';
     productJsonLd.description =
-      'India’s authentic 2000+ GTA 6 Video Bundle and Reel Bundle in 4K Ultra HD. 100% watermark-free Vice City gameplay, Lucia & Jason cinematics, supercars, police chases, and trending edits. Includes 100% Master Resell Rights (MRR) and instant Google Drive lifetime delivery via UPI. Beware of cheap fake scams on Credible Earning.';
+      'India’s authentic 4000+ GTA 6 Video Bundle and Reel Bundle in 4K Ultra HD. 100% watermark-free Vice City gameplay, Lucia & Jason cinematics, supercars, police chases, and trending edits. Includes 100% Master Resell Rights (MRR) and instant Google Drive lifetime delivery via UPI. Beware of cheap fake scams on Credible Earning.';
     productJsonLd.aggregateRating = {
       '@type': 'AggregateRating',
       ratingValue: '4.9',
@@ -361,7 +365,7 @@ export default async function ProductDetailPage({ params }: ProductPageProps) {
         '@context': 'https://schema.org',
         '@type': 'HowTo',
         name: 'How to Download, Brand and Monetize GTA 6 Video Reels in India',
-        description: 'Step-by-step instructions for Indian creators to download 2,000+ GTA 6 4K clips, add handles, and monetize on Instagram Reels and YouTube Shorts.',
+        description: 'Step-by-step instructions for Indian creators to download 4,000+ GTA 6 4K clips, add handles, and monetize on Instagram Reels and YouTube Shorts.',
         totalTime: 'PT5M',
         estimatedCost: {
           '@type': 'MonetaryAmount',
@@ -373,7 +377,7 @@ export default async function ProductDetailPage({ params }: ProductPageProps) {
             '@type': 'HowToStep',
             position: 1,
             name: 'Purchase via Instant UPI',
-            text: 'Unlock the 2,000+ GTA 6 Video Bundle on Vaultzet for ₹99 using PhonePe, Google Pay, Paytm, or CRED.',
+            text: 'Unlock the 4,000+ GTA 6 Video Bundle on Vaultzet for ₹99 using PhonePe, Google Pay, Paytm, or CRED.',
             url: `${canonicalUrl}#pricing`,
           },
           {

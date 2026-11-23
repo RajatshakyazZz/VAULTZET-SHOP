@@ -55,7 +55,7 @@ export default async function HomePage() {
               HOT
             </span>
             <span className="text-xs sm:text-[13px] font-bold truncate block min-w-0">
-              🔥 <strong className="text-amber-200">GTA 6 Viral Reels Bundle (2000+)</strong> — Ready to Upload 4K Pack
+              🔥 <strong className="text-amber-200">GTA 6 Viral Reels Bundle (4000+)</strong> — Ready to Upload 4K Pack
             </span>
           </div>
           <div className="flex items-center gap-2 shrink-0">

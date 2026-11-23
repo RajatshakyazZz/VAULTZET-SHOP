@@ -43,7 +43,7 @@ export default function FloatingSheruButton() {
     >
       <Link
         href="/product/2000-gta-6-viral-reels-bundle"
-        aria-label="2000+ GTA 6 Viral Reels Bundle - ₹99"
+        aria-label="4000+ GTA 6 Viral Reels Bundle - ₹99"
         className="relative group block cursor-pointer"
       >
         {/* Subtle glowing ring that never overflows */}
@@ -58,7 +58,7 @@ export default function FloatingSheruButton() {
         >
           <img
             src="/gta-vi-neon-reels-bundle.webp"
-            alt="2000+ GTA 6 Viral Reels Bundle"
+            alt="4000+ GTA 6 Viral Reels Bundle"
             onError={(e) => {
               (e.target as HTMLImageElement).src = 'https://i.ibb.co/8gjRkdD3/gta-vi-neon-reels-bundle.png';
             }}

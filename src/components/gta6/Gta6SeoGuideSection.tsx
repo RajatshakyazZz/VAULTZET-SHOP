@@ -148,7 +148,7 @@ export default function Gta6SeoGuideSection({
                       Fake Scam (Credible Earning &amp; Clones)
                     </th>
                     <th className="p-3 rounded-r-xl text-emerald-800 bg-emerald-50/90 border border-emerald-300 font-black">
-                      Vaultzet Official 2,000+ Master Pack
+                      Vaultzet Official 4,000+ Master Pack
                     </th>
                   </tr>
                 </thead>
@@ -253,10 +253,10 @@ export default function Gta6SeoGuideSection({
         <div className="mt-8 pt-6 border-t border-slate-100">
           <div className="text-center max-w-xl mx-auto mb-4">
             <h3 className="text-base sm:text-lg font-black text-slate-900">
-              Why 2,000+ Ready Reels Beat Recording Manually
+              Why 4,000+ Ready Reels Beat Recording Manually
             </h3>
             <p className="text-xs text-slate-500 mt-0.5">
-              Compare the cost, time, and hardware required to create 2000 4K clips:
+              Compare the cost, time, and hardware required to create 4000 4K clips:
             </p>
           </div>
 
@@ -286,10 +286,10 @@ export default function Gta6SeoGuideSection({
                   </td>
                 </tr>
                 <tr className="hover:bg-slate-50/50">
-                  <td className="p-3 font-bold text-slate-900">Time to Create 2000 Clips</td>
+                  <td className="p-3 font-bold text-slate-900">Time to Create 4000 Clips</td>
                   <td className="p-3 text-slate-500 flex items-center gap-1.5">
                     <XCircle className="w-3.5 h-3.5 text-rose-500 shrink-0" />
-                    <span>150+ Hours of recording & video editing</span>
+                    <span>300+ Hours of recording & video editing</span>
                   </td>
                   <td className="p-3 font-bold text-emerald-700 bg-red-50/30">
                     <span className="flex items-center gap-1.5">
@@ -331,7 +331,7 @@ export default function Gta6SeoGuideSection({
               <span>Only 73 Copies Left at ₹{price} Launch Price</span>
             </span>
             <p className="text-[11px] text-slate-500 mt-0.5">
-              Includes 2,000+ 4K Reels + Bonus 150+ Audio Tracks + Lifetime Google Drive Access
+              Includes 4,000+ 4K Reels + Bonus 150+ Audio Tracks + Lifetime Google Drive Access
             </p>
           </div>
 
@@ -341,7 +341,7 @@ export default function Gta6SeoGuideSection({
             className="w-full sm:w-auto px-6 py-3 rounded-xl bg-gradient-to-r from-red-600 via-rose-600 to-red-600 hover:from-red-700 hover:to-rose-700 text-white font-black text-xs sm:text-sm shadow-md shadow-red-500/25 active:scale-95 transition-all flex items-center justify-center gap-1.5 cursor-pointer"
           >
             <Zap className="w-4 h-4 fill-white" />
-            <span>Get 2,000+ GTA 6 Reels for ₹{price}</span>
+            <span>Get 4,000+ GTA 6 Reels for ₹{price}</span>
             <ArrowRight className="w-4 h-4" />
           </button>
         </div>
