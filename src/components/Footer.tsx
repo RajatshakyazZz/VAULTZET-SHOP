@@ -315,6 +315,18 @@ export default function Footer() {
             </a>
           </div>
 
+          {/* Official Merchant & Legal Compliance Badge (Cashfree Merchant Onboarding) */}
+          <div className="pt-4 pb-2 border-t border-slate-200/80">
+            <div className="max-w-2xl mx-auto p-3.5 rounded-2xl bg-white border-2 border-slate-200 shadow-sm text-center text-xs text-slate-700 space-y-1">
+              <p className="font-black text-slate-950 uppercase tracking-wide text-[11px] sm:text-xs">
+                Official Merchant &amp; Business Information
+              </p>
+              <p className="text-[11px] sm:text-xs text-slate-600 leading-relaxed">
+                <strong>Legal Entity / Proprietor:</strong> <span className="font-black text-slate-900">RAJAT SHAKYA</span> &nbsp;|&nbsp; <strong>Brand:</strong> Vaultzet Store &nbsp;|&nbsp; <strong>Phone / WhatsApp:</strong> <a href="tel:+917895317940" className="font-bold text-slate-900 hover:text-red-600">+91 7895317940</a> &nbsp;|&nbsp; <strong>Registered Email:</strong> <a href="mailto:rajattracozegaming@gmail.com" className="font-bold text-slate-900 hover:text-red-600">rajattracozegaming@gmail.com</a>
+              </p>
+            </div>
+          </div>
+
           {/* Bottom Copyright, Legal Entity & Compliance Row */}
           <div className="pt-4 border-t border-slate-200/80 flex flex-col sm:flex-row items-center justify-between gap-2 text-xs text-slate-500 font-medium text-center">
             <p>

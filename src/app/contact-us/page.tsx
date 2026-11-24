@@ -10,13 +10,7 @@ export default function ContactUsPage() {
 
   const supportEmail = 'support@vaultzet.shop';
   const registeredEmail = 'rajattracozegaming@gmail.com';
-
-  const rawPhone = settings.supportWhatsapp || '';
-  const supportPhone =
-    rawPhone && !rawPhone.includes('80510') && !rawPhone.includes('88600')
-      ? rawPhone
-      : '+91 7895317940';
-
+  const supportPhone = '+91 7895317940';
   const ownerName = 'RAJAT SHAKYA';
 
   return (

@@ -16,7 +16,7 @@ export interface StoreSettings {
 
 const DEFAULT_SETTINGS: StoreSettings = {
   storeName: 'Vaultzet Store',
-  ownerName: 'Rajat Shakya',
+  ownerName: 'RAJAT SHAKYA',
   tagline: 'Premium Reels for Your Growth',
   supportEmail: 'support@vaultzet.shop',
   supportWhatsapp: '+91 7895317940',
@@ -59,8 +59,14 @@ function sanitizePhone(phone?: string, fallback = '+91 7895317940'): string {
     digits.includes('8051017331') ||
     digits.includes('8860032559') ||
     digits.includes('9142408286') ||
-    digits.includes('9876543210')
+    digits.includes('9876543210') ||
+    digits.includes('8807281600') ||
+    digits.includes('88072')
   ) {
+    return fallback;
+  }
+  // Enforce Rajat Shakya's official legal KYC contact number
+  if (!digits.endsWith('7895317940')) {
     return fallback;
   }
   return phone.trim();
@@ -85,6 +91,8 @@ export function StoreSettingsProvider({ children }: { children: React.ReactNode 
         if (
           cached.includes('vaultworld') ||
           cached.includes('8051017331') ||
+          cached.includes('8807281600') ||
+          cached.includes('88072') ||
           cached.includes('dizi') ||
           cached.includes('ashamse')
         ) {
@@ -98,7 +106,7 @@ export function StoreSettingsProvider({ children }: { children: React.ReactNode 
             storeName: sanitizeStoreName(parsed.storeName),
             supportEmail: sanitizeEmail(parsed.supportEmail),
             supportWhatsapp: sanitizePhone(parsed.supportWhatsapp),
-            ownerName: parsed.ownerName || 'Rajat Shakya',
+            ownerName: 'RAJAT SHAKYA',
           });
         }
       }
