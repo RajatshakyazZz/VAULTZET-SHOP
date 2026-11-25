@@ -144,3 +144,105 @@ body {
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
 }
+
+/* Smooth GPU-composited landing page animations (60/120fps friendly) */
+@keyframes vzFadeSlideIn {
+  from {
+    opacity: 0;
+    transform: translate3d(0, 14px, 0) scale(0.992);
+  }
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+}
+
+@keyframes vzCrossfade {
+  from {
+    opacity: 0.35;
+    transform: scale(1.018);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes vzModalPop {
+  from {
+    opacity: 0;
+    transform: scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes vzSheenSweep {
+  0%, 72% {
+    transform: translate3d(-160%, 0, 0) skewX(-22deg);
+  }
+  100% {
+    transform: translate3d(260%, 0, 0) skewX(-22deg);
+  }
+}
+
+@keyframes vzLivePulse {
+  0%, 100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.55;
+    transform: scale(1.35);
+  }
+}
+
+.vz-fade-in {
+  animation: vzFadeSlideIn 0.55s cubic-bezier(0.22, 1, 0.36, 1) both;
+  will-change: transform, opacity;
+}
+
+.vz-crossfade {
+  animation: vzCrossfade 0.42s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.vz-modal-pop {
+  animation: vzModalPop 0.24s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.vz-cta-sheen {
+  position: relative;
+  overflow: hidden;
+}
+
+.vz-cta-sheen::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  width: 42%;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(255, 255, 255, 0.28) 50%,
+    transparent 100%
+  );
+  animation: vzSheenSweep 4.8s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+  pointer-events: none;
+}
+
+.vz-live-dot {
+  animation: vzLivePulse 2.4s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .vz-fade-in,
+  .vz-crossfade,
+  .vz-modal-pop,
+  .vz-cta-sheen::after,
+  .vz-live-dot {
+    animation: none !important;
+    transition: none !important;
+  }
+}

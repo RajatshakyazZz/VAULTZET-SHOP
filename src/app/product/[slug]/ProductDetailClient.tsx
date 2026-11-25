@@ -54,6 +54,7 @@ import Gta6FeaturesSection from '@/components/gta6/Gta6FeaturesSection';
 import Gta6ResellSection from '@/components/gta6/Gta6ResellSection';
 import Gta6GrowthProofSection from '@/components/gta6/Gta6GrowthProofSection';
 import Gta6SeoGuideSection from '@/components/gta6/Gta6SeoGuideSection';
+import SmoothReveal from '@/components/gta6/SmoothReveal';
 import { VERIFIED_REVIEWS, STORE_REVIEWS_COUNT, STORE_RATING } from '@/data/reviews';
 import { SUPPORTED_PAYMENT_METHODS } from '@/data/paymentMethods';
 
@@ -237,11 +238,11 @@ export default function ProductDetailClient({ product }: ProductDetailClientProp
         </div>
 
         {/* HERO SECTION */}
-        <section className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-10 items-start">
+        <section className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-10 items-start vz-fade-in">
           
           {/* LEFT: Clean Image & Gallery */}
-          <div className="lg:col-span-6 space-y-3">
-            <div className="relative aspect-[4/3] rounded-2xl sm:rounded-3xl overflow-hidden bg-slate-100 border border-slate-200/90 shadow-sm">
+          <div className="lg:col-span-6 space-y-3.5">
+            <div className="relative aspect-[4/3] rounded-3xl overflow-hidden bg-slate-950 border border-slate-200/90 shadow-[0_24px_60px_-15px_rgba(15,23,42,0.16)] group">
               <img
                 src={optimizeImageUrl(currentImage, 1024)}
                 alt={
@@ -253,25 +254,28 @@ export default function ProductDetailClient({ product }: ProductDetailClientProp
                 height={768}
                 fetchPriority="high"
                 decoding="async"
-                className="w-full h-full object-cover"
+                className="w-full h-full object-cover transition-transform duration-700 ease-out group-hover:scale-[1.02]"
               />
 
+              {/* Subtle Top Vignette for Badge Legibility */}
+              <div className="pointer-events-none absolute inset-x-0 top-0 h-20 bg-gradient-to-b from-black/35 to-transparent" />
+
               {/* Minimal Clean Tag Overlays */}
-              <div className="absolute top-3 left-3 flex items-center gap-1.5">
-                <span className="px-2.5 py-1 rounded-lg text-[10px] font-extrabold uppercase tracking-wider bg-black/75 text-white backdrop-blur-md shadow-xs">
+              <div className="absolute top-3.5 left-3.5 flex items-center gap-1.5">
+                <span className="px-2.5 py-1 rounded-lg text-[10px] font-bold uppercase tracking-wider bg-slate-950/80 text-white backdrop-blur-md border border-white/15 shadow-xs">
                   {p.resolution
                     ? /hd|4k/i.test(p.resolution)
                       ? p.resolution
                       : `${p.resolution} Full HD`
                     : '1080P Full HD'}
                 </span>
-                <span className="px-2.5 py-1 rounded-lg text-[10px] font-extrabold uppercase tracking-wider bg-black/75 text-white backdrop-blur-md shadow-xs">
+                <span className="px-2.5 py-1 rounded-lg text-[10px] font-bold uppercase tracking-wider bg-slate-950/80 text-white backdrop-blur-md border border-white/15 shadow-xs">
                   9:16 Vertical
                 </span>
               </div>
 
-              <div className="absolute top-3 right-3">
-                <span className="px-2.5 py-1 rounded-lg text-[11px] font-black uppercase tracking-wider bg-rose-600 text-white shadow-xs">
+              <div className="absolute top-3.5 right-3.5">
+                <span className="px-2.5 py-1 rounded-lg text-[11px] font-black tabular-nums uppercase tracking-wider bg-red-600 text-white shadow-md">
                   {discountPercent}% OFF
                 </span>
               </div>
@@ -343,31 +347,32 @@ export default function ProductDetailClient({ product }: ProductDetailClientProp
 
           {/* RIGHT: Unified Purchase Card */}
           <div className="lg:col-span-6">
-            <div className="bg-white rounded-2xl sm:rounded-3xl border border-slate-200/90 p-5 sm:p-7 shadow-sm space-y-5">
+            <div className="bg-white rounded-3xl border border-slate-200/90 p-5 sm:p-7 shadow-[0_24px_60px_-15px_rgba(15,23,42,0.08)] space-y-5">
               
               {/* Category, Rating & Title */}
-              <div className="space-y-2">
+              <div className="space-y-2.5">
                 <div className="flex items-center justify-between gap-2 flex-wrap">
                   <div className="flex items-center gap-2">
                     <Link
                       href={`/category/${p.categorySlug || 'ai-reels'}`}
-                      className="px-2.5 py-0.5 rounded-full bg-red-50 text-red-900 hover:bg-red-100 transition-colors font-extrabold text-[11px] uppercase tracking-wider border border-red-200/60 flex items-center gap-1"
+                      className="px-2.5 py-1 rounded-full bg-slate-100 text-slate-800 hover:bg-red-50 hover:text-red-800 transition-colors font-bold text-[11px] uppercase tracking-wider border border-slate-200/80 flex items-center gap-1"
                       title={`View all ${p.category || 'Reels'} bundles`}
                     >
                       <span>{p.category || 'Reels Bundle'}</span>
-                      <ChevronRight className="w-3 h-3 text-red-500" />
+                      <ChevronRight className="w-3 h-3 text-slate-400" />
                     </Link>
                     <span className="text-slate-300">•</span>
-                    <span className="text-[11px] text-slate-500 font-semibold">
+                    <span className="text-[11px] text-slate-600 font-bold tabular-nums">
                       {p.reelCount || 1000}+ Clips
                     </span>
                   </div>
-                  <span className="text-[11px] font-bold text-red-700 bg-red-50 px-2 py-0.5 rounded-md border border-red-200">
-                    Verified Digital Bundle
+                  <span className="text-[11px] font-bold text-emerald-800 bg-emerald-50 px-2.5 py-1 rounded-full border border-emerald-200/80 inline-flex items-center gap-1">
+                    <BadgeCheck className="w-3.5 h-3.5 text-emerald-600" />
+                    <span>★ {STORE_RATING} ({p.reviewCount || STORE_REVIEWS_COUNT})</span>
                   </span>
                 </div>
 
-                <h1 className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight leading-snug">
+                <h1 className="text-xl sm:text-[26px] font-black text-slate-950 tracking-[-0.02em] leading-[1.22]">
                   {p.title}
                 </h1>
 
@@ -390,72 +395,85 @@ export default function ProductDetailClient({ product }: ProductDetailClientProp
               )}
 
               {/* Pricing Box */}
-              <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200/70 flex items-center justify-between gap-3">
+              <div className="p-4 sm:p-5 rounded-2xl bg-slate-50/90 border border-slate-200/80 flex items-center justify-between gap-3">
                 <div className="min-w-0">
-                  <div className="flex items-baseline gap-2">
-                    <span className="text-3xl font-black text-slate-900 tracking-tight">
+                  <div className="flex items-baseline gap-2.5 tabular-nums">
+                    <span className="text-3xl sm:text-[34px] font-black text-slate-950 tracking-tight">
                       ₹{activePrice}.00
                     </span>
                     <span className="text-sm text-slate-400 line-through font-semibold">
                       ₹{originalPrice}.00
                     </span>
                   </div>
-                  <p className="text-[11px] text-slate-500 font-medium mt-0.5">
+                  <p className="text-[11px] text-slate-600 font-medium mt-1">
                     {isGta6Page
-                      ? `🔥 Limited Launch Batch · Only ${gta6LiveStock} of 100 copies left at ₹99`
+                      ? `One-time launch price · Only ${gta6LiveStock} of 100 copies remaining`
                       : isSheruPage
                       ? 'One-time payment · Includes 2 Free Bonus Packs (6,000+ Reels)'
                       : 'One-time payment · Lifetime Google Drive access'}
                   </p>
                 </div>
                 <div className="text-right shrink-0">
-                  <span className="inline-block px-2.5 py-1 rounded-lg bg-emerald-100 text-emerald-800 text-xs font-black">
+                  <span className="inline-block px-3 py-1.5 rounded-xl bg-emerald-100/90 border border-emerald-200 text-emerald-800 text-xs font-black tabular-nums">
                     Save ₹{savingsAmount}
                   </span>
                 </div>
               </div>
 
-              {/* GTA 6 Official Creator vs Fake Resellers Warning Banner */}
+              {/* Key Highlights */}
+              <div className="grid grid-cols-2 gap-2.5 text-xs font-bold text-slate-700">
+                <div className="flex items-center gap-2 p-2.5 rounded-xl bg-white border border-slate-200/80 shadow-2xs">
+                  <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+                  <span className="tabular-nums">{p.reelCount || 1000}+ 4K Video Clips</span>
+                </div>
+                <div className="flex items-center gap-2 p-2.5 rounded-xl bg-white border border-slate-200/80 shadow-2xs">
+                  <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+                  <span>100% Watermark-Free</span>
+                </div>
+                <div className="flex items-center gap-2 p-2.5 rounded-xl bg-white border border-slate-200/80 shadow-2xs">
+                  <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+                  <span>{isGta6Page ? '100% Resell Rights (MRR)' : '9:16 Vertical (Reels/Shorts)'}</span>
+                </div>
+                <div className="flex items-center gap-2 p-2.5 rounded-xl bg-white border border-slate-200/80 shadow-2xs">
+                  <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+                  <span>{isGta6Page ? 'Instant Drive Delivery' : 'Instant Drive Link Access'}</span>
+                </div>
+              </div>
+
+              {/* GTA 6 Official Creator Verification Notice (Calm, Authoritative — No Flashy Clutter) */}
               {isGta6Page ? (
-                <div className="rounded-2xl bg-gradient-to-br from-amber-500/10 via-red-500/10 to-amber-500/10 border-2 border-red-500/70 p-4 space-y-2.5 shadow-md shadow-red-500/5 relative overflow-hidden">
-                  <div className="flex items-center gap-2 flex-wrap">
-                    <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-red-600 text-white text-[11px] font-black uppercase tracking-wider shadow-xs animate-pulse">
-                      <AlertTriangle className="w-3.5 h-3.5" />
-                      <span>OFFICIAL CREATOR VERIFICATION</span>
+                <div className="rounded-2xl bg-slate-50/90 border border-slate-200 border-l-4 border-l-red-600 p-4 space-y-2.5">
+                  <div className="flex items-center justify-between gap-2 flex-wrap">
+                    <span className="inline-flex items-center gap-1.5 text-[11px] font-black uppercase tracking-wider text-red-700">
+                      <AlertTriangle className="w-3.5 h-3.5 shrink-0" />
+                      <span>Official Creator Verification</span>
                     </span>
-                    <span className="text-[10px] sm:text-[11px] font-black text-emerald-800 bg-emerald-100 border border-emerald-300 px-2.5 py-0.5 rounded-full flex items-center gap-1">
-                      <BadgeCheck className="w-3.5 h-3.5 text-emerald-600" />
+                    <span className="text-[10.5px] font-bold text-emerald-800 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-full flex items-center gap-1">
+                      <BadgeCheck className="w-3 h-3 text-emerald-600" />
                       Original 4K Master Source
                     </span>
                   </div>
 
-                  <h3 className="text-sm sm:text-base font-black text-red-600 tracking-tight flex items-center gap-1.5">
-                    <span>⚠️</span>
-                    <span>BEWARE OF FAKE SCAMS &amp; LOW-QUALITY RESELLERS!</span>
-                  </h3>
+                  <p className="text-xs font-semibold text-slate-800 leading-relaxed">
+                    Get the genuine 4K Ultra-HD Master Files directly from <strong>Vaultzet Store</strong>. Beware of cheap clones (like Credible Earning) delivering unrelated non-GTA videos with broken links — we provide verified previews &amp; lifetime replacement guarantee.
+                  </p>
 
-                  <div className="p-3 rounded-xl bg-white/95 border border-red-200/90 shadow-2xs">
-                    <p className="text-xs sm:text-sm font-extrabold text-slate-900 leading-snug">
-                      &ldquo;Get the Original 4K Ultra-HD Master Files directly from the Official Creator (Vaultzet). Cheap fake sellers (like Credible Earning) deliver fake non-GTA videos with broken links. Vaultzet guarantees 100% genuine Vice City 4K footage.&rdquo;
-                    </p>
-                  </div>
-
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-[11px] font-bold text-slate-700 pt-1">
-                    <div className="flex items-center gap-1.5 text-slate-800">
+                  <div className="grid grid-cols-2 gap-1.5 text-[11px] font-semibold text-slate-700 pt-1">
+                    <div className="flex items-center gap-1.5">
                       <Check className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
-                      <span>Direct 4K Master Drive Access</span>
+                      <span>Direct 4K Drive Access</span>
                     </div>
-                    <div className="flex items-center gap-1.5 text-slate-800">
+                    <div className="flex items-center gap-1.5">
                       <Check className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
-                      <span>Zero Watermark &amp; High Bitrate</span>
+                      <span>High Bitrate MP4s</span>
                     </div>
-                    <div className="flex items-center gap-1.5 text-slate-800">
+                    <div className="flex items-center gap-1.5">
                       <Check className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
-                      <span>Free Future GTA 6 Leaks Updates</span>
+                      <span>Free Leak Updates</span>
                     </div>
-                    <div className="flex items-center gap-1.5 text-slate-800">
+                    <div className="flex items-center gap-1.5">
                       <Check className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
-                      <span>100% Commercial &amp; Resell Rights</span>
+                      <span>0% Commission Resell</span>
                     </div>
                   </div>
                 </div>
@@ -475,60 +493,22 @@ export default function ProductDetailClient({ product }: ProductDetailClientProp
                 <FreeBundleOfferBanner variant="product" />
               )}
 
-              {/* GTA 6 Master Resell Rights (MRR) Callout Banner */}
+              {/* GTA 6 Master Resell Rights (MRR) Refined Strip */}
               {isGta6Page && (
-                <div className="rounded-2xl bg-gradient-to-r from-amber-50 via-orange-50/80 to-amber-50 border-2 border-amber-400 p-3.5 space-y-2 shadow-xs">
-                  <div className="flex items-center justify-between gap-1.5 flex-wrap">
-                    <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-amber-400 text-slate-950 text-[10px] sm:text-[11px] font-black uppercase tracking-wider shadow-xs">
-                      <span>👑</span>
-                      <span>100% Master Resell Rights (MRR) Included</span>
+                <div className="rounded-2xl bg-amber-50/60 border border-amber-200/90 p-3.5 space-y-1.5">
+                  <div className="flex items-center justify-between gap-2 flex-wrap">
+                    <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-md bg-slate-950 text-amber-300 text-[10px] font-black uppercase tracking-wider">
+                      <span>👑 100% Master Resell Rights (MRR)</span>
                     </span>
-                    <span className="text-[10px] font-extrabold text-emerald-800 bg-emerald-100 px-2 py-0.5 rounded-md shrink-0">
+                    <span className="text-[10.5px] font-bold text-emerald-800">
                       Keep 100% Profit
                     </span>
                   </div>
-                  <h4 className="text-xs sm:text-sm font-black text-slate-950 leading-snug">
-                    You Can Resell This Bundle Anywhere &amp; Keep 100% of Every Sale!
-                  </h4>
-                  <p className="text-[11px] sm:text-xs text-slate-700 leading-relaxed font-medium">
-                    Ye bundle aap apne <strong>Store, Instagram Page, WhatsApp, Telegram ya Website</strong> par ₹199–₹499 me resell kar sakte hain. Payment aane par seedha <strong>Google Drive link apne buyers ko deliver karein</strong> — Vaultzet ko 0% fee, poora paisa aapka!
+                  <p className="text-[11.5px] text-slate-700 leading-relaxed font-medium">
+                    Resell this pack on your <strong>Store, Instagram, WhatsApp or Website</strong> for ₹199–₹499 &amp; deliver your Drive link directly to buyers (0% royalty to Vaultzet).
                   </p>
-                  <div className="pt-1.5 border-t border-amber-200/80 flex items-center justify-between text-[10.5px] font-bold text-slate-700 flex-wrap gap-1">
-                    <span className="flex items-center gap-1 text-emerald-700">
-                      <Check className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
-                      Zero Commission to Us
-                    </span>
-                    <span className="flex items-center gap-1 text-slate-800">
-                      <Check className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
-                      Direct Google Drive Delivery
-                    </span>
-                    <span className="flex items-center gap-1 text-red-700">
-                      <Check className="w-3.5 h-3.5 text-red-600 shrink-0" />
-                      100% Watermark-Free
-                    </span>
-                  </div>
                 </div>
               )}
-
-              {/* Key Highlights */}
-              <div className="grid grid-cols-2 gap-2 text-xs font-bold text-slate-700">
-                <div className="flex items-center gap-1.5 p-2 rounded-xl bg-slate-50 border border-slate-200/80">
-                  <Check className="w-3.5 h-3.5 text-red-600 shrink-0" />
-                  <span>{p.reelCount || 1000}+ HD Video Clips</span>
-                </div>
-                <div className="flex items-center gap-1.5 p-2 rounded-xl bg-slate-50 border border-slate-200/80">
-                  <Check className="w-3.5 h-3.5 text-red-600 shrink-0" />
-                  <span>100% Watermark-Free</span>
-                </div>
-                <div className="flex items-center gap-1.5 p-2 rounded-xl bg-slate-50 border border-slate-200/80">
-                  <Check className="w-3.5 h-3.5 text-red-600 shrink-0" />
-                  <span>{isGta6Page ? '👑 100% Resell Rights (MRR)' : '9:16 Vertical (Reels/Shorts)'}</span>
-                </div>
-                <div className="flex items-center gap-1.5 p-2 rounded-xl bg-slate-50 border border-slate-200/80">
-                  <Check className="w-3.5 h-3.5 text-red-600 shrink-0" />
-                  <span>{isGta6Page ? 'Drive Link Shareable to Buyers' : 'Instant Drive Link Access'}</span>
-                </div>
-              </div>
 
               {/* Sheru Exclusive Page Order Bump */}
               {isSheruPage && (
@@ -539,7 +519,7 @@ export default function ProductDetailClient({ product }: ProductDetailClientProp
                 />
               )}
 
-              {/* GTA 6 Exclusive Page Order Bump (Vice City Neon Theme) */}
+              {/* GTA 6 Exclusive Page Order Bump (Refined Crisp Offer) */}
               {isGta6Page && (
                 <GtaPageOrderBump
                   selectedSlugs={selectedBumps}
@@ -560,10 +540,10 @@ export default function ProductDetailClient({ product }: ProductDetailClientProp
                       hasPageBumps ? selectedBumpItems : undefined
                     )
                   }
-                  className="w-full py-4 px-6 rounded-2xl bg-gradient-to-r from-red-600 via-rose-600 to-red-600 hover:from-red-700 hover:to-rose-700 text-white font-black text-base shadow-lg shadow-red-500/25 hover:scale-[1.01] active:scale-[0.98] transition-all flex items-center justify-center gap-2 cursor-pointer"
+                  className="vz-cta-sheen w-full py-4 px-6 rounded-2xl bg-gradient-to-r from-red-600 via-rose-600 to-red-600 hover:from-red-700 hover:to-rose-700 text-white font-black text-base shadow-[0_14px_30px_-8px_rgba(220,38,38,0.45)] hover:-translate-y-0.5 active:scale-[0.985] transition-all duration-200 flex items-center justify-center gap-2 cursor-pointer"
                 >
                   <Zap className="w-4 h-4 fill-white" />
-                  <span>
+                  <span className="tabular-nums">
                     Buy Now — ₹
                     {hasPageBumps
                       ? activePrice + pageBumpsTotal
@@ -575,23 +555,23 @@ export default function ProductDetailClient({ product }: ProductDetailClientProp
                 <div className="space-y-1.5 pt-1 text-center">
                   <p className="text-[12px] text-slate-800 font-bold flex items-center justify-center gap-1.5">
                     <Zap className="w-3.5 h-3.5 text-amber-500 fill-amber-500 shrink-0" />
-                    <span>UPI se payment karte hi, Google Drive link turant email &amp; screen par milta hai.</span>
+                    <span>UPI se payment karte hi Google Drive link turant screen &amp; email par milta hai.</span>
                   </p>
                   <p className="text-[11px] text-slate-500 font-medium flex items-center justify-center gap-1.5">
                     <ShieldCheck className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
-                    <span>100% Safe Cashfree Checkout • Lifetime Access &amp; Zero Watermarks</span>
+                    <span>Verified Cashfree 256-Bit Checkout · Lifetime Access</span>
                   </p>
                 </div>
 
                 {/* Indian UPI Payment Badges Strip */}
-                <div className="pt-2 border-t border-slate-100 space-y-1.5 text-center">
-                  <div className="flex items-center justify-center gap-1 text-[10px] font-bold text-slate-500 uppercase tracking-wider">
+                <div className="pt-2.5 border-t border-slate-100 space-y-2 text-center">
+                  <div className="flex items-center justify-center gap-1.5 text-[10px] font-bold text-slate-500 uppercase tracking-wider">
                     <Lock className="w-3 h-3 text-emerald-600" />
-                    <span>Instant UPI Checkout via Cashfree</span>
+                    <span>Trusted Instant UPI Checkout</span>
                   </div>
                   <div className="flex items-center justify-center gap-1.5 flex-wrap text-[11px] font-bold text-slate-600">
                     {SUPPORTED_PAYMENT_METHODS.map((method) => (
-                      <span key={method} className="px-2 py-0.5 rounded-md bg-slate-100 border border-slate-200">
+                      <span key={method} className="px-2.5 py-0.5 rounded-md bg-slate-50 border border-slate-200/80">
                         {method}
                       </span>
                     ))}
@@ -600,14 +580,13 @@ export default function ProductDetailClient({ product }: ProductDetailClientProp
 
                 {/* GTA 6 International Buyers Option (Outside India) */}
                 {isGta6Page && (
-                  <div className="p-3.5 sm:p-4 rounded-2xl bg-gradient-to-r from-emerald-50 via-teal-50/60 to-emerald-50 border-2 border-emerald-500/40 text-center space-y-2 shadow-xs">
+                  <div className="p-3.5 rounded-2xl bg-slate-50 border border-slate-200/80 text-center space-y-2">
                     <div className="flex items-center justify-center gap-1.5 flex-wrap">
-                      <span className="px-2.5 py-0.5 rounded-full bg-emerald-600 text-white text-[10px] sm:text-[11px] font-black uppercase tracking-wider flex items-center gap-1">
-                        <span>🌍</span>
-                        <span>OUTSIDE INDIA / INTERNATIONAL BUYERS</span>
+                      <span className="px-2.5 py-0.5 rounded-full bg-emerald-600 text-white text-[10px] font-extrabold uppercase tracking-wider">
+                        Outside India / International
                       </span>
-                      <span className="text-[10px] sm:text-[11px] font-bold text-emerald-800 bg-emerald-100/90 px-2 py-0.5 rounded-full border border-emerald-300">
-                        Cards &amp; PayPal
+                      <span className="text-[10.5px] font-bold text-slate-600">
+                        Cards &amp; PayPal Accepted
                       </span>
                     </div>
 
@@ -615,26 +594,20 @@ export default function ProductDetailClient({ product }: ProductDetailClientProp
                       href="https://wa.me/917895317940?text=Hi%20VaultZet!%20I%20am%20from%20outside%20India%20and%20want%20to%20buy%20the%20GTA%206%204K%20Reels%20Bundle%20for%20%2410%20USD.%20Please%20share%20the%20international%20payment%20link."
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="w-full py-3.5 px-4 rounded-xl bg-[#25D366] hover:bg-[#20ba59] text-white font-black text-xs sm:text-sm flex items-center justify-center gap-2 shadow-sm hover:shadow-md transition-all active:scale-95 cursor-pointer"
+                      className="w-full py-3 px-4 rounded-xl bg-[#25D366] hover:bg-[#20ba59] text-white font-black text-xs sm:text-sm flex items-center justify-center gap-2 shadow-xs hover:shadow-md hover:-translate-y-0.5 active:scale-[0.985] transition-all duration-200 cursor-pointer"
                     >
                       <MessageCircle className="w-4 h-4 fill-white shrink-0" />
                       <span>Buy from Outside India — $10 USD</span>
-                      <span className="px-2 py-0.5 rounded-md bg-black/20 text-[10px] font-extrabold uppercase whitespace-nowrap">
-                        Only for other countries
-                      </span>
                     </a>
 
-                    <p className="text-[11px] text-slate-600 font-medium leading-relaxed">
-                      Living outside India? Tap above to pay <strong>$10 USD</strong> via <strong>Visa, Mastercard, Google Pay or PayPal</strong> on WhatsApp.
-                    </p>
-                    <p className="text-[10px] text-slate-500 font-bold border-t border-emerald-200/60 pt-1.5">
-                      🇮🇳 Indian buyers: Please use the Red Buy Now button above to pay in INR (₹) via UPI.
+                    <p className="text-[10.5px] text-slate-500 font-medium">
+                      Living outside India? Tap above to pay $10 USD via Visa, Mastercard, or PayPal on WhatsApp.
                     </p>
                   </div>
                 )}
 
                 {/* Secondary Resell & Earn Option Card */}
-                <div className="p-3.5 rounded-2xl bg-slate-50 border border-slate-200 text-center space-y-1.5 shadow-2xs">
+                <div className="p-3 rounded-2xl bg-slate-50/70 border border-slate-200/70 text-center space-y-1">
                   <button
                     type="button"
                     onClick={() => {
@@ -644,17 +617,14 @@ export default function ProductDetailClient({ product }: ProductDetailClientProp
                         setIsAuthModalOpen(true);
                       }
                     }}
-                    className="w-full py-3 px-5 rounded-xl bg-white hover:bg-red-50/70 border border-red-200 text-red-800 font-black text-sm flex items-center justify-center gap-2 shadow-xs hover:shadow-md transition-all active:scale-95 cursor-pointer"
+                    className="w-full py-2.5 px-4 rounded-xl bg-white hover:bg-slate-100/80 border border-slate-200 text-slate-800 font-bold text-xs sm:text-sm flex items-center justify-center gap-2 transition-all duration-200 active:scale-[0.985] cursor-pointer"
                   >
                     <Briefcase className="w-4 h-4 text-red-600" />
-                    <span>Resell & Earn on This Bundle</span>
-                    <span className="px-2 py-0.5 rounded-full bg-gradient-to-r from-red-600 to-rose-600 text-white text-[10px] font-extrabold uppercase">
-                      Keep 100% Margin
+                    <span>Resell &amp; Earn Affiliate Link</span>
+                    <span className="px-2 py-0.5 rounded-full bg-red-50 text-red-700 border border-red-200 text-[10px] font-extrabold uppercase">
+                      100% Margin
                     </span>
                   </button>
-                  <p className="text-[11px] text-slate-500 font-medium">
-                    Set your own selling price and earn on every successful sale.
-                  </p>
                 </div>
               </div>
 
@@ -685,79 +655,89 @@ export default function ProductDetailClient({ product }: ProductDetailClientProp
         {/* GTA 6 HIGH-CONVERTING LANDING SECTIONS: 2000 CLIPS BREAKDOWN + RESELL GUIDE + CREATOR PROOF */}
         {isGta6Page && (
           <>
-            <Gta6FeaturesSection
-              price={activePrice}
-              onBuyClick={() =>
-                buyNow(p, 'personal', hasPageBumps, selectedBumpItems)
-              }
-            />
-            <Gta6ResellSection
-              price={activePrice}
-              onBuyClick={() =>
-                buyNow(p, 'personal', hasPageBumps, selectedBumpItems)
-              }
-            />
-            <Gta6GrowthProofSection
-              price={activePrice}
-              onBuyClick={() =>
-                buyNow(p, 'personal', hasPageBumps, selectedBumpItems)
-              }
-            />
-            <Gta6SeoGuideSection
-              price={activePrice}
-              onBuyClick={() =>
-                buyNow(p, 'personal', hasPageBumps, selectedBumpItems)
-              }
-            />
+            <SmoothReveal>
+              <Gta6FeaturesSection
+                price={activePrice}
+                onBuyClick={() =>
+                  buyNow(p, 'personal', hasPageBumps, selectedBumpItems)
+                }
+              />
+            </SmoothReveal>
+            <SmoothReveal>
+              <Gta6ResellSection
+                price={activePrice}
+                onBuyClick={() =>
+                  buyNow(p, 'personal', hasPageBumps, selectedBumpItems)
+                }
+              />
+            </SmoothReveal>
+            <SmoothReveal>
+              <Gta6GrowthProofSection
+                price={activePrice}
+                onBuyClick={() =>
+                  buyNow(p, 'personal', hasPageBumps, selectedBumpItems)
+                }
+              />
+            </SmoothReveal>
+            <SmoothReveal>
+              <Gta6SeoGuideSection
+                price={activePrice}
+                onBuyClick={() =>
+                  buyNow(p, 'personal', hasPageBumps, selectedBumpItems)
+                }
+              />
+            </SmoothReveal>
           </>
         )}
 
         {/* SECTION 1: HOW IT WORKS (3 Simple Steps) */}
-        <section className="bg-white rounded-2xl sm:rounded-3xl border border-slate-200/90 p-5 sm:p-7 shadow-xs space-y-5">
-          <div className="text-center sm:text-left">
-            <span className="text-xs font-black uppercase tracking-wider text-red-700 block">
-              100% Instant Delivery
-            </span>
-            <h2 className="text-lg sm:text-xl font-black text-slate-900 tracking-tight mt-0.5">
-              How You Receive Your Content
-            </h2>
-            <p className="text-xs text-slate-500 mt-0.5">
-              Instant Google Drive access in 3 simple steps:
-            </p>
-          </div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3.5">
-            <div className="p-4 rounded-xl bg-slate-50 border border-slate-200/70 space-y-2">
-              <div className="w-7 h-7 rounded-lg bg-red-100 text-red-900 font-black text-xs flex items-center justify-center">
-                1
-              </div>
-              <h3 className="text-xs sm:text-sm font-bold text-slate-900">30-Second Checkout</h3>
-              <p className="text-xs text-slate-500 leading-relaxed">
-                Enter your email and pay securely via GPay, PhonePe, Paytm, or Card. No registration required.
+        <SmoothReveal>
+          <section className="bg-white rounded-3xl border border-slate-200/90 p-5 sm:p-8 shadow-[0_14px_40px_-14px_rgba(15,23,42,0.06)] space-y-5">
+            <div className="text-center sm:text-left">
+              <span className="text-xs font-black uppercase tracking-wider text-red-700 block">
+                100% Instant Delivery
+              </span>
+              <h2 className="text-lg sm:text-2xl font-black text-slate-950 tracking-tight mt-0.5">
+                How You Receive Your Content
+              </h2>
+              <p className="text-xs sm:text-sm text-slate-500 mt-1">
+                Instant Google Drive access in 3 simple steps:
               </p>
             </div>
 
-            <div className="p-4 rounded-xl bg-slate-50 border border-slate-200/70 space-y-2">
-              <div className="w-7 h-7 rounded-lg bg-emerald-100 text-emerald-700 font-black text-xs flex items-center justify-center">
-                2
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+              <div className="p-5 rounded-2xl bg-slate-50/70 hover:bg-white border border-slate-200/80 hover:border-slate-300 space-y-2.5 transition-all duration-300 ease-out hover:-translate-y-0.5 hover:shadow-sm">
+                <div className="w-8 h-8 rounded-xl bg-slate-950 text-white font-black font-mono text-xs flex items-center justify-center">
+                  01
+                </div>
+                <h3 className="text-xs sm:text-sm font-extrabold text-slate-950">30-Second Checkout</h3>
+                <p className="text-xs text-slate-600 leading-relaxed">
+                  Enter your email and pay securely via GPay, PhonePe, Paytm, or Card. No registration required.
+                </p>
               </div>
-              <h3 className="text-xs sm:text-sm font-bold text-slate-900">Instant Drive Link</h3>
-              <p className="text-xs text-slate-500 leading-relaxed">
-                As soon as payment succeeds, the Google Drive download button appears on your screen and is emailed.
-              </p>
-            </div>
 
-            <div className="p-4 rounded-xl bg-slate-50 border border-slate-200/70 space-y-2">
-              <div className="w-7 h-7 rounded-lg bg-slate-200 text-slate-800 font-black text-xs flex items-center justify-center">
-                3
+              <div className="p-5 rounded-2xl bg-slate-50/70 hover:bg-white border border-slate-200/80 hover:border-slate-300 space-y-2.5 transition-all duration-300 ease-out hover:-translate-y-0.5 hover:shadow-sm">
+                <div className="w-8 h-8 rounded-xl bg-emerald-600 text-white font-black font-mono text-xs flex items-center justify-center">
+                  02
+                </div>
+                <h3 className="text-xs sm:text-sm font-extrabold text-slate-950">Instant Drive Link</h3>
+                <p className="text-xs text-slate-600 leading-relaxed">
+                  As soon as payment succeeds, the Google Drive download button appears on your screen and is emailed.
+                </p>
               </div>
-              <h3 className="text-xs sm:text-sm font-bold text-slate-900">Download & Post</h3>
-              <p className="text-xs text-slate-500 leading-relaxed">
-                Download clips directly to your phone or laptop. All files are 100% watermark-free and commercial-ready.
-              </p>
+
+              <div className="p-5 rounded-2xl bg-slate-50/70 hover:bg-white border border-slate-200/80 hover:border-slate-300 space-y-2.5 transition-all duration-300 ease-out hover:-translate-y-0.5 hover:shadow-sm">
+                <div className="w-8 h-8 rounded-xl bg-red-600 text-white font-black font-mono text-xs flex items-center justify-center">
+                  03
+                </div>
+                <h3 className="text-xs sm:text-sm font-extrabold text-slate-950">Download & Post</h3>
+                <p className="text-xs text-slate-600 leading-relaxed">
+                  Download clips directly to your phone or laptop. All files are 100% watermark-free and commercial-ready.
+                </p>
+              </div>
             </div>
-          </div>
-        </section>
+          </section>
+        </SmoothReveal>
 
         {/* SECTION 2: BUNDLE DETAILS & DESCRIPTION */}
         <section className="bg-white rounded-2xl sm:rounded-3xl border border-slate-200/90 p-5 sm:p-7 shadow-xs space-y-5">
@@ -967,44 +947,58 @@ export default function ProductDetailClient({ product }: ProductDetailClientProp
         </section>
 
         {/* SECTION 5: FREQUENTLY ASKED QUESTIONS */}
-        <section className="bg-white rounded-2xl sm:rounded-3xl border border-slate-200/90 p-5 sm:p-7 shadow-xs space-y-4">
-          <div>
-            <span className="text-xs font-black uppercase tracking-wider text-red-700 block">
-              FAQ
-            </span>
-            <h2 className="text-lg sm:text-xl font-black text-slate-900 tracking-tight mt-0.5">
-              Frequently Asked Questions
-            </h2>
-          </div>
+        <SmoothReveal>
+          <section className="bg-white rounded-3xl border border-slate-200/90 p-5 sm:p-8 shadow-[0_14px_40px_-14px_rgba(15,23,42,0.06)] space-y-5">
+            <div>
+              <span className="text-xs font-black uppercase tracking-wider text-red-700 block">
+                FAQ
+              </span>
+              <h2 className="text-lg sm:text-2xl font-black text-slate-950 tracking-tight mt-0.5">
+                Frequently Asked Questions
+              </h2>
+            </div>
 
-          <div className="space-y-2">
-            {details.faqs.map((faq, index) => {
-              const isOpen = openFaqIndex === index;
-              return (
-                <div
-                  key={index}
-                  className="rounded-xl border border-slate-200/80 bg-white overflow-hidden"
-                >
-                  <button
-                    type="button"
-                    onClick={() => setOpenFaqIndex(isOpen ? null : index)}
-                    className="w-full p-3.5 text-left font-bold text-xs sm:text-sm text-slate-900 flex justify-between items-center gap-3 hover:bg-slate-50 cursor-pointer"
+            <div className="space-y-2.5">
+              {details.faqs.map((faq, index) => {
+                const isOpen = openFaqIndex === index;
+                return (
+                  <div
+                    key={index}
+                    className={`rounded-2xl border transition-colors duration-200 overflow-hidden ${
+                      isOpen ? 'border-slate-300 bg-slate-50/40' : 'border-slate-200/80 bg-white hover:border-slate-300'
+                    }`}
                   >
-                    <span>{faq.question}</span>
-                    <span className="text-red-600 font-black text-sm shrink-0">
-                      {isOpen ? '−' : '+'}
-                    </span>
-                  </button>
-                  {isOpen && (
-                    <div className="p-3.5 pt-0 text-xs text-slate-600 leading-relaxed border-t border-slate-100 bg-slate-50/50">
-                      {faq.answer}
+                    <button
+                      type="button"
+                      onClick={() => setOpenFaqIndex(isOpen ? null : index)}
+                      className="w-full p-4 text-left font-bold text-xs sm:text-sm text-slate-950 flex justify-between items-center gap-3 cursor-pointer"
+                    >
+                      <span>{faq.question}</span>
+                      <span
+                        className={`w-6 h-6 rounded-full bg-slate-100 text-slate-700 font-black text-sm shrink-0 flex items-center justify-center transition-transform duration-300 ease-out ${
+                          isOpen ? 'rotate-45 bg-red-50 text-red-600' : ''
+                        }`}
+                      >
+                        +
+                      </span>
+                    </button>
+                    <div
+                      className={`grid transition-[grid-template-rows,opacity] duration-300 ease-out ${
+                        isOpen ? 'grid-rows-[1fr] opacity-100' : 'grid-rows-[0fr] opacity-0'
+                      }`}
+                    >
+                      <div className="overflow-hidden">
+                        <div className="px-4 pb-4 pt-1 text-xs sm:text-[13px] text-slate-600 leading-relaxed">
+                          {faq.answer}
+                        </div>
+                      </div>
                     </div>
-                  )}
-                </div>
-              );
-            })}
-          </div>
-        </section>
+                  </div>
+                );
+              })}
+            </div>
+          </section>
+        </SmoothReveal>
 
         {/* SECTION 6: WHATSAPP DIRECT SUPPORT ASSISTANCE */}
         <section className="rounded-2xl p-4 sm:p-5 bg-emerald-50/80 border border-emerald-200/80 flex flex-col sm:flex-row items-center justify-between gap-3">
@@ -1105,20 +1099,20 @@ export default function ProductDetailClient({ product }: ProductDetailClientProp
       {/* MOBILE STICKY BOTTOM BAR (Locked Directly Above MobileBottomNav) */}
       <aside
         aria-label="Sticky Action Bar"
-        className="fixed bottom-[74px] left-2.5 right-2.5 z-40 md:hidden bg-slate-950/95 backdrop-blur-xl border border-red-500/30 rounded-2xl px-3.5 py-2.5 shadow-[0_-8px_30px_rgba(0,0,0,0.6)]"
+        className="fixed bottom-[74px] left-2.5 right-2.5 z-40 md:hidden bg-slate-950/95 backdrop-blur-xl border border-white/15 rounded-2xl px-3.5 py-2.5 shadow-[0_-10px_35px_rgba(0,0,0,0.55)]"
       >
         <div className="flex items-center justify-between gap-2.5 max-w-md mx-auto">
           {/* Price */}
           <div className="flex flex-col shrink-0 min-w-0">
-            <span className="text-[9px] font-bold text-rose-400 flex items-center gap-1">
-              <span className="w-1.5 h-1.5 rounded-full bg-rose-500 animate-pulse" />
+            <span className="text-[9px] font-bold text-emerald-400 flex items-center gap-1.5">
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 vz-live-dot" />
               {hasPageBumps
                 ? `+${selectedBumpItems.length} Add-on${selectedBumpItems.length > 1 ? 's' : ''} Added`
                 : isGta6Page
                 ? `Only ${gta6LiveStock} Left of 100`
                 : 'Instant Access'}
             </span>
-            <div className="flex items-baseline gap-1.5 mt-0.5">
+            <div className="flex items-baseline gap-1.5 mt-0.5 tabular-nums">
               <span className="text-lg sm:text-xl font-black text-white whitespace-nowrap">
                 ₹
                 {hasPageBumps
@@ -1148,10 +1142,10 @@ export default function ProductDetailClient({ product }: ProductDetailClientProp
                   hasPageBumps ? selectedBumpItems : undefined
                 )
               }
-              className="w-full py-2.5 px-3 rounded-xl bg-gradient-to-r from-red-600 via-rose-600 to-red-600 hover:from-red-700 hover:to-rose-700 text-white font-black text-xs sm:text-sm shadow-md shadow-red-500/25 active:scale-95 transition-all flex items-center justify-center gap-1.5 cursor-pointer"
+              className="vz-cta-sheen w-full py-2.5 px-3 rounded-xl bg-gradient-to-r from-red-600 via-rose-600 to-red-600 hover:from-red-700 hover:to-rose-700 text-white font-black text-xs sm:text-sm shadow-lg shadow-red-600/30 active:scale-[0.98] transition-all duration-200 flex items-center justify-center gap-1.5 cursor-pointer"
             >
               <Zap className="w-3.5 h-3.5 fill-white shrink-0" />
-              <span className="whitespace-nowrap">
+              <span className="whitespace-nowrap tabular-nums">
                 Buy Now — ₹
                 {hasPageBumps
                   ? activePrice + pageBumpsTotal

@@ -64,41 +64,42 @@ export default function Gta6ResellSection({
   return (
     <section
       aria-label="Master Resell Rights & Earning Opportunity"
-      className="my-10 rounded-2xl sm:rounded-3xl bg-gradient-to-br from-slate-950 via-slate-900 to-red-950 border-2 border-amber-400/80 p-5 sm:p-8 text-white shadow-2xl relative overflow-hidden"
+      className="my-10 rounded-3xl bg-[#09090b] border border-slate-800 p-5 sm:p-9 text-white shadow-[0_24px_70px_-15px_rgba(9,9,11,0.55)] relative overflow-hidden"
     >
-      {/* Background ambient glow */}
-      <div className="pointer-events-none absolute -right-20 -top-20 w-80 h-80 rounded-full bg-amber-500/15 blur-3xl" />
-      <div className="pointer-events-none absolute -left-20 -bottom-20 w-80 h-80 rounded-full bg-red-600/20 blur-3xl" />
+      {/* Subtle architectural gradient accents */}
+      <div className="pointer-events-none absolute -right-24 -top-24 w-96 h-96 rounded-full bg-amber-500/10 blur-3xl" />
+      <div className="pointer-events-none absolute -left-24 -bottom-24 w-96 h-96 rounded-full bg-red-600/15 blur-3xl" />
 
       {/* Header Banner */}
-      <div className="relative z-10 text-center max-w-3xl mx-auto space-y-3 mb-8">
-        <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-gradient-to-r from-amber-400 to-amber-300 text-slate-950 font-black text-xs sm:text-sm uppercase tracking-wider shadow-lg">
-          <Crown className="w-4 h-4 fill-slate-950 text-slate-950 shrink-0" />
+      <div className="relative z-10 text-center max-w-3xl mx-auto space-y-3 mb-9">
+        <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-amber-400/15 border border-amber-400/35 text-amber-300 font-bold text-xs uppercase tracking-wider">
+          <Crown className="w-4 h-4 text-amber-400 shrink-0" />
           <span>100% Master Resell Rights (MRR) Included</span>
         </div>
 
-        <h2 className="text-2xl sm:text-4xl font-black text-white tracking-tight leading-tight">
-          You Can <span className="text-amber-400 underline decoration-amber-400/50 decoration-wavy underline-offset-4">Resell This Bundle Anywhere</span> &amp; Keep 100% of Every Sale!
+        <h2 className="text-2xl sm:text-4xl font-black text-white tracking-[-0.025em] leading-[1.15]">
+          Resell This Bundle Anywhere &amp;{' '}
+          <span className="text-amber-400">Keep 100% of Every Sale</span>
         </h2>
 
         <p className="text-xs sm:text-base text-slate-300 font-normal leading-relaxed max-w-2xl mx-auto">
-          Ye bundle sirf creators ke liye hi nahi, <strong>resellers aur digital entrepreneurs ke liye bhi ek ready-to-sell business hai</strong>. Aap is poore bundle ki Google Drive link ko apne customers ke sath deliver karke unlimited direct profit bana sakte hain!
+          Ye bundle sirf creators ke liye hi nahi, <strong className="text-white">resellers aur digital entrepreneurs ke liye bhi ek ready-to-sell business hai</strong>. Aap is poore bundle ki Google Drive link ko apne customers ke sath deliver karke unlimited direct profit bana sakte hain.
         </p>
       </div>
 
       {/* 3 Steps: How Reselling Works */}
       <div className="relative z-10 grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
         {/* Step 1 */}
-        <div className="rounded-2xl bg-white/5 border border-white/10 hover:border-amber-400/60 p-5 space-y-3 transition-all backdrop-blur-sm group">
+        <div className="rounded-2xl bg-white/[0.04] border border-white/10 hover:border-amber-400/45 p-5 space-y-3 transition-all duration-300 ease-out hover:-translate-y-1 backdrop-blur-sm group">
           <div className="flex items-center justify-between">
-            <span className="w-8 h-8 rounded-xl bg-amber-400 text-slate-950 font-black text-xs flex items-center justify-center shadow-md">
+            <span className="w-8 h-8 rounded-xl bg-amber-400 text-slate-950 font-black font-mono text-xs flex items-center justify-center shadow-sm">
               01
             </span>
-            <span className="text-[10px] font-black uppercase tracking-wider text-amber-300 bg-amber-400/10 px-2 py-0.5 rounded-full">
+            <span className="text-[10px] font-bold uppercase tracking-wider text-amber-300 bg-amber-400/10 border border-amber-400/20 px-2 py-0.5 rounded-md">
               One-Time Buy
             </span>
           </div>
-          <h3 className="text-sm sm:text-base font-black text-white group-hover:text-amber-300 transition-colors">
+          <h3 className="text-sm sm:text-base font-extrabold text-white group-hover:text-amber-300 transition-colors">
             Buy Once for Just ₹{price}
           </h3>
           <p className="text-xs text-slate-300 leading-relaxed font-normal">
@@ -107,16 +108,16 @@ export default function Gta6ResellSection({
         </div>
 
         {/* Step 2 */}
-        <div className="rounded-2xl bg-white/5 border border-white/10 hover:border-amber-400/60 p-5 space-y-3 transition-all backdrop-blur-sm group">
+        <div className="rounded-2xl bg-white/[0.04] border border-white/10 hover:border-amber-400/45 p-5 space-y-3 transition-all duration-300 ease-out hover:-translate-y-1 backdrop-blur-sm group">
           <div className="flex items-center justify-between">
-            <span className="w-8 h-8 rounded-xl bg-rose-500 text-white font-black text-xs flex items-center justify-center shadow-md">
+            <span className="w-8 h-8 rounded-xl bg-rose-500 text-white font-black font-mono text-xs flex items-center justify-center shadow-sm">
               02
             </span>
-            <span className="text-[10px] font-black uppercase tracking-wider text-rose-300 bg-rose-500/10 px-2 py-0.5 rounded-full">
+            <span className="text-[10px] font-bold uppercase tracking-wider text-rose-300 bg-rose-500/10 border border-rose-500/20 px-2 py-0.5 rounded-md">
               Sell at Your Price
             </span>
           </div>
-          <h3 className="text-sm sm:text-base font-black text-white group-hover:text-rose-300 transition-colors">
+          <h3 className="text-sm sm:text-base font-extrabold text-white group-hover:text-rose-300 transition-colors">
             List on Your Store or Socials
           </h3>
           <p className="text-xs text-slate-300 leading-relaxed font-normal">
@@ -125,16 +126,16 @@ export default function Gta6ResellSection({
         </div>
 
         {/* Step 3 */}
-        <div className="rounded-2xl bg-white/5 border border-white/10 hover:border-amber-400/60 p-5 space-y-3 transition-all backdrop-blur-sm group">
+        <div className="rounded-2xl bg-white/[0.04] border border-white/10 hover:border-amber-400/45 p-5 space-y-3 transition-all duration-300 ease-out hover:-translate-y-1 backdrop-blur-sm group">
           <div className="flex items-center justify-between">
-            <span className="w-8 h-8 rounded-xl bg-emerald-500 text-slate-950 font-black text-xs flex items-center justify-center shadow-md">
+            <span className="w-8 h-8 rounded-xl bg-emerald-500 text-slate-950 font-black font-mono text-xs flex items-center justify-center shadow-sm">
               03
             </span>
-            <span className="text-[10px] font-black uppercase tracking-wider text-emerald-300 bg-emerald-500/10 px-2 py-0.5 rounded-full">
+            <span className="text-[10px] font-bold uppercase tracking-wider text-emerald-300 bg-emerald-500/10 border border-emerald-500/20 px-2 py-0.5 rounded-md">
               Instant Delivery
             </span>
           </div>
-          <h3 className="text-sm sm:text-base font-black text-white group-hover:text-emerald-300 transition-colors">
+          <h3 className="text-sm sm:text-base font-extrabold text-white group-hover:text-emerald-300 transition-colors">
             Deliver Google Drive Link
           </h3>
           <p className="text-xs text-slate-300 leading-relaxed font-normal">
@@ -154,16 +155,16 @@ export default function Gta6ResellSection({
             </h4>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             {RESELL_CHANNELS.map((ch, idx) => {
               const Icon = ch.icon;
               return (
                 <div
                   key={idx}
-                  className="rounded-xl bg-slate-900/90 border border-white/10 p-3.5 space-y-1 hover:border-amber-400/40 transition-colors"
+                  className="rounded-xl bg-white/[0.03] border border-white/10 p-4 space-y-1.5 hover:border-amber-400/35 hover:bg-white/[0.06] transition-all duration-200"
                 >
                   <div className="flex items-center justify-between gap-2">
-                    <span className="text-[10px] font-extrabold text-amber-400 uppercase tracking-wider bg-amber-400/10 px-2 py-0.5 rounded">
+                    <span className="text-[10px] font-bold text-amber-300 uppercase tracking-wider bg-amber-400/10 px-2 py-0.5 rounded">
                       {ch.tag}
                     </span>
                     <Icon className="w-4 h-4 text-slate-400" />
@@ -171,7 +172,7 @@ export default function Gta6ResellSection({
                   <h5 className="text-xs sm:text-sm font-bold text-white">
                     {ch.title}
                   </h5>
-                  <p className="text-[11px] text-slate-400 leading-snug">
+                  <p className="text-[11px] text-slate-400 leading-relaxed">
                     {ch.desc}
                   </p>
                 </div>
@@ -181,64 +182,64 @@ export default function Gta6ResellSection({
         </div>
 
         {/* Profit Projection Card (5 cols) */}
-        <div className="lg:col-span-5 rounded-2xl bg-gradient-to-br from-amber-950/40 via-slate-900 to-black border border-amber-400/40 p-4 sm:p-5 space-y-3 shadow-xl">
+        <div className="lg:col-span-5 rounded-2xl bg-white/[0.04] border border-amber-400/30 p-5 space-y-3 shadow-xl backdrop-blur-sm">
           <div className="flex items-center justify-between">
             <span className="text-xs font-black uppercase tracking-wider text-amber-300 flex items-center gap-1.5">
               <TrendingUp className="w-4 h-4 text-emerald-400" />
               <span>Reseller Profit Potential</span>
             </span>
-            <span className="text-[10px] font-extrabold px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
-              0% Fee to Vaultzet
+            <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-emerald-500/15 text-emerald-300 border border-emerald-500/25">
+              0% Royalty Fee
             </span>
           </div>
 
           <div className="divide-y divide-white/10 text-xs">
             {PROFIT_TIERS.map((tier, idx) => (
-              <div key={idx} className="py-2 flex items-center justify-between gap-2">
+              <div key={idx} className="py-2.5 flex items-center justify-between gap-2">
                 <div>
-                  <span className="font-extrabold text-white block">{tier.sales} @ {tier.pricePoint}</span>
+                  <span className="font-bold text-white block">{tier.sales} @ {tier.pricePoint}</span>
                   <span className="text-[10px] text-slate-400">{tier.note}</span>
                 </div>
-                <span className="text-sm font-black text-emerald-400 shrink-0">
+                <span className="text-sm font-black tabular-nums text-emerald-400 shrink-0">
                   {tier.profit}
                 </span>
               </div>
             ))}
           </div>
 
-          <p className="text-[10px] text-slate-400 text-center pt-1 border-t border-white/10">
-            *Aap jitne chahein utne copies bech sakte hain. Lifetime license me koi limit nahi hai.
+          <p className="text-[10px] text-slate-400 text-center pt-2 border-t border-white/10">
+            *Unlimited reselling allowed — zero caps, zero hidden renewal fees.
           </p>
         </div>
       </div>
 
       {/* Official Master Resell Guarantee Strip */}
-      <div className="relative z-10 rounded-2xl bg-amber-400/10 border border-amber-400/30 p-4 mb-6 flex flex-col sm:flex-row items-center justify-between gap-3 text-center sm:text-left">
+      <div className="relative z-10 rounded-2xl bg-white/[0.04] border border-white/10 p-4 mb-7 flex flex-col sm:flex-row items-center justify-between gap-3 text-center sm:text-left">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-full bg-amber-400 text-slate-950 flex items-center justify-center shrink-0 shadow-md">
-            <ShieldCheck className="w-5 h-5 fill-slate-950" />
+          <div className="w-10 h-10 rounded-xl bg-amber-400 text-slate-950 flex items-center justify-center shrink-0">
+            <ShieldCheck className="w-5 h-5" />
           </div>
           <div>
-            <h4 className="text-xs sm:text-sm font-black text-amber-300">
-              Official Master Resell Rights (MRR) Guarantee
+            <h4 className="text-xs sm:text-sm font-extrabold text-white">
+              Official Master Resell Rights (MRR) PDF License Included
             </h4>
-            <p className="text-[11px] text-slate-300 mt-0.5">
-              Zero watermarks · No copyright claims · Zero royalty to Vaultzet · Share Drive link directly with buyers
+            <p className="text-[11px] text-slate-400 mt-0.5">
+              Zero watermarks · No copyright claims · 0% commission to Vaultzet · Direct Drive link delivery
             </p>
           </div>
         </div>
 
-        <span className="px-3 py-1 rounded-full bg-emerald-500 text-slate-950 text-xs font-black shrink-0 shadow-xs">
+        <span className="px-3 py-1 rounded-full bg-emerald-500/15 border border-emerald-500/30 text-emerald-300 text-xs font-bold shrink-0">
           100% Commercial Legal
         </span>
       </div>
 
       {/* Bottom CTA for Resellers & Creators */}
-      <div className="relative z-10 text-center space-y-3 pt-2">
+      <div className="relative z-10 text-center space-y-3">
         <button
           type="button"
           onClick={onBuyClick}
-          className="w-full sm:w-auto inline-flex items-center justify-center gap-2.5 px-8 py-4 rounded-2xl bg-gradient-to-r from-amber-400 via-amber-300 to-amber-400 hover:from-amber-300 hover:to-amber-200 text-slate-950 font-black text-sm sm:text-base shadow-xl shadow-amber-500/25 active:scale-95 transition-all cursor-pointer"
+          className="vz-cta-sheen w-full sm:w-auto inline-flex items-center justify-center gap-2.5 px-8 py-4 rounded-2xl bg-gradient-to-r from-amber-400 via-amber-300 to-amber-400 hover:from-amber-300 hover:to-amber-200 text-slate-950 font-black text-sm sm:text-base shadow-xl shadow-amber-500/20 hover:-translate-y-0.5 active:scale-[0.98] transition-all duration-200 cursor-pointer"
         >
           <Zap className="w-4 h-4 fill-slate-950" />
           <span>Get 2,000+ GTA 6 Reels + Master Resell Rights (₹{price})</span>
@@ -246,7 +247,7 @@ export default function Gta6ResellSection({
         </button>
 
         <p className="text-[11px] text-slate-400">
-          ⚡ One-time payment of ₹{price} · Instant automated Google Drive link delivery to screen &amp; email
+          One-time payment of ₹{price} · Instant automated Google Drive link delivery to screen &amp; email
         </p>
       </div>
     </section>

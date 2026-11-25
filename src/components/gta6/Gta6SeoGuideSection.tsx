@@ -33,15 +33,15 @@ export default function Gta6SeoGuideSection({
       aria-label="Indian Creator Growth and SEO Guide for GTA 6 Reels"
       className="my-10 space-y-6"
     >
-      <div className="rounded-2xl sm:rounded-3xl bg-white border border-slate-200/90 p-5 sm:p-7 shadow-xs text-slate-900">
+      <div className="rounded-3xl bg-white border border-slate-200/90 p-5 sm:p-8 shadow-[0_18px_50px_-16px_rgba(15,23,42,0.07)] text-slate-900">
         {/* Section Header */}
-        <div className="text-center max-w-2xl mx-auto mb-7">
-          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-red-50 border border-red-200/80 text-red-700 text-xs font-bold uppercase tracking-wider mb-2.5">
+        <div className="text-center max-w-2xl mx-auto mb-8">
+          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-slate-100 border border-slate-200 text-slate-800 text-xs font-bold uppercase tracking-wider mb-3">
             <Sparkles className="w-3.5 h-3.5 text-red-600" />
-            <span>GTA 6 Video Bundle &amp; Reel Bundle • Creator Growth Blueprint 2026</span>
+            <span>2,000+ GTA 6 Video &amp; Reel Bundle • Growth Playbook</span>
           </div>
-          <h2 className="text-xl sm:text-3xl font-black text-slate-900 tracking-tight leading-tight">
-            How Indian Creators Are Growing 100K+ Follower Pages With GTA 6 Video Reels
+          <h2 className="text-xl sm:text-3xl font-black text-slate-950 tracking-[-0.02em] leading-tight">
+            How Indian Creators Grow 100K+ Follower Pages With GTA 6 Reels
           </h2>
           <p className="text-xs sm:text-sm text-slate-500 mt-2 leading-relaxed">
             Agar aap YouTube Shorts, Instagram Reels ya Facebook par gaming content post karke monthly ₹30,000 – ₹70,000 monetize karna chahte hain, toh ye proven roadmap aapke liye hai.
@@ -49,62 +49,62 @@ export default function Gta6SeoGuideSection({
         </div>
 
         {/* Step-by-Step 3-Part Growth Framework */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-3.5">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           {/* Card 1: Posting Timing in India */}
-          <div className="p-4 rounded-xl bg-slate-50/80 border border-slate-200/80 hover:border-red-400/80 transition-all">
-            <div className="w-8 h-8 rounded-lg bg-red-50 border border-red-200/60 flex items-center justify-center text-red-600 mb-3">
-              <Clock className="w-4 h-4" />
+          <div className="p-5 rounded-2xl bg-slate-50/70 hover:bg-white border border-slate-200/80 hover:border-slate-300 transition-all duration-300 ease-out hover:-translate-y-0.5 hover:shadow-sm">
+            <div className="w-9 h-9 rounded-xl bg-slate-950 text-white flex items-center justify-center mb-3">
+              <Clock className="w-4 h-4 text-amber-400" />
             </div>
-            <span className="text-[10px] font-mono font-bold text-red-700 uppercase tracking-wider block">
+            <span className="text-[10px] font-mono font-bold text-slate-500 uppercase tracking-widest block">
               Step 01 • Prime IST Timing
             </span>
-            <h3 className="text-sm font-extrabold text-slate-900 mt-1">
+            <h3 className="text-sm font-extrabold text-slate-950 mt-1">
               Best Posting Time in India
             </h3>
             <p className="text-xs text-slate-600 mt-1.5 leading-relaxed">
               Indian gaming audience sabse zyada <strong>6:00 PM se 9:30 PM (IST)</strong> aur weekend dopahar <strong>1:00 PM – 4:00 PM</strong> active hoti hai. Roz consistent 2 se 3 GTA 6 reels schedule karein taaki algorithm videos ko automatically Explore & Shorts shelf me push kare.
             </p>
-            <div className="mt-3.5 pt-2.5 border-t border-slate-200/70 text-[11px] font-bold text-red-700 flex items-center gap-1">
-              <CheckCircle2 className="w-3.5 h-3.5 text-red-600 shrink-0" />
+            <div className="mt-4 pt-3 border-t border-slate-200/70 text-[11px] font-bold text-emerald-700 flex items-center gap-1.5">
+              <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
               <span>Target 85%+ Watch Retention</span>
             </div>
           </div>
 
           {/* Card 2: Viral Hooks & Hinglish Captions */}
-          <div className="p-4 rounded-xl bg-slate-50/80 border border-slate-200/80 hover:border-red-400/80 transition-all">
-            <div className="w-8 h-8 rounded-lg bg-red-50 border border-red-200/60 flex items-center justify-center text-red-600 mb-3">
-              <Target className="w-4 h-4" />
+          <div className="p-5 rounded-2xl bg-slate-50/70 hover:bg-white border border-slate-200/80 hover:border-slate-300 transition-all duration-300 ease-out hover:-translate-y-0.5 hover:shadow-sm">
+            <div className="w-9 h-9 rounded-xl bg-slate-950 text-white flex items-center justify-center mb-3">
+              <Target className="w-4 h-4 text-rose-400" />
             </div>
-            <span className="text-[10px] font-mono font-bold text-red-700 uppercase tracking-wider block">
+            <span className="text-[10px] font-mono font-bold text-slate-500 uppercase tracking-widest block">
               Step 02 • High-Retention Hooks
             </span>
-            <h3 className="text-sm font-extrabold text-slate-900 mt-1">
+            <h3 className="text-sm font-extrabold text-slate-950 mt-1">
               Catchy Indian Hooks & Audio
             </h3>
             <p className="text-xs text-slate-600 mt-1.5 leading-relaxed">
-              Video ke pehle 2 seconds me simple text hook lagayein jaise: <em>"GTA 6 me ye secret feature kisi ko nahi pata..."</em> ya <em>"Lucia & Jason ki sabse dangerous heist!"</em>. Pre-synced audio Indian viewers ko scroll karne se rokta hai.
+              Video ke pehle 2 seconds me simple text hook lagayein jaise: <em>&ldquo;GTA 6 me ye secret feature kisi ko nahi pata...&rdquo;</em> ya <em>&ldquo;Lucia &amp; Jason ki sabse dangerous heist!&rdquo;</em>. Pre-synced audio Indian viewers ko scroll karne se rokta hai.
             </p>
-            <div className="mt-3.5 pt-2.5 border-t border-slate-200/70 text-[11px] font-bold text-red-700 flex items-center gap-1">
-              <CheckCircle2 className="w-3.5 h-3.5 text-red-600 shrink-0" />
+            <div className="mt-4 pt-3 border-t border-slate-200/70 text-[11px] font-bold text-emerald-700 flex items-center gap-1.5">
+              <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
               <span>Zero Editing Effort Needed</span>
             </div>
           </div>
 
           {/* Card 3: Monetization Roadmap */}
-          <div className="p-4 rounded-xl bg-slate-50/80 border border-slate-200/80 hover:border-red-400/80 transition-all">
-            <div className="w-8 h-8 rounded-lg bg-red-50 border border-red-200/60 flex items-center justify-center text-red-600 mb-3">
-              <IndianRupee className="w-4 h-4" />
+          <div className="p-5 rounded-2xl bg-slate-50/70 hover:bg-white border border-slate-200/80 hover:border-slate-300 transition-all duration-300 ease-out hover:-translate-y-0.5 hover:shadow-sm">
+            <div className="w-9 h-9 rounded-xl bg-slate-950 text-white flex items-center justify-center mb-3">
+              <IndianRupee className="w-4 h-4 text-emerald-400" />
             </div>
-            <span className="text-[10px] font-mono font-bold text-red-700 uppercase tracking-wider block">
+            <span className="text-[10px] font-mono font-bold text-slate-500 uppercase tracking-widest block">
               Step 03 • Monetization Model
             </span>
-            <h3 className="text-sm font-extrabold text-slate-900 mt-1">
+            <h3 className="text-sm font-extrabold text-slate-950 mt-1">
               How to Monetize in INR
             </h3>
             <p className="text-xs text-slate-600 mt-1.5 leading-relaxed">
               Jaise hi aapke 10K+ followers hote hain, aap <strong>Gaming App Affiliate links</strong>, <strong>Instagram Bio Store</strong>, <strong>Brand Sponsorships</strong> aur <strong>YouTube Ad Revenue</strong> se regular monthly income create kar sakte hain. Gaming CPM India me sabse high rehta hai.
             </p>
-            <div className="mt-3.5 pt-2.5 border-t border-slate-200/70 text-[11px] font-bold text-emerald-700 flex items-center gap-1">
+            <div className="mt-4 pt-3 border-t border-slate-200/70 text-[11px] font-bold text-emerald-700 flex items-center gap-1.5">
               <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
               <span>Full Resale Rights Included</span>
             </div>
@@ -112,20 +112,20 @@ export default function Gta6SeoGuideSection({
         </div>
 
         {/* BUYER ALERT: VAULTZET VS FAKE SCAM BUNDLES (CREDIBLE EARNING & CHEAP CLONES) */}
-        <div className="mt-8 pt-6 border-t border-slate-100">
-          <div className="rounded-2xl bg-gradient-to-br from-amber-500/10 via-red-500/5 to-rose-500/10 border-2 border-red-500/60 p-4 sm:p-6 space-y-4">
+        <div className="mt-9 pt-7 border-t border-slate-100">
+          <div className="rounded-2xl bg-slate-50/80 border border-slate-200 p-4 sm:p-6 space-y-4">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
               <div className="flex items-center gap-2 flex-wrap">
-                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-red-600 text-white text-xs font-black uppercase tracking-wider shadow-xs">
+                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-red-600 text-white text-[11px] font-black uppercase tracking-wider">
                   <AlertTriangle className="w-3.5 h-3.5" />
-                  <span>Buyer Alert • Scam Warning</span>
+                  <span>Buyer Verification • Scam Alert</span>
                 </span>
-                <span className="text-[11px] font-black text-emerald-800 bg-emerald-100 border border-emerald-300 px-2.5 py-0.5 rounded-full flex items-center gap-1">
+                <span className="text-[11px] font-bold text-emerald-800 bg-emerald-50 border border-emerald-200 px-2.5 py-1 rounded-full flex items-center gap-1">
                   <BadgeCheck className="w-3.5 h-3.5 text-emerald-600" />
                   Vaultzet Verified Authentic
                 </span>
               </div>
-              <span className="text-xs font-bold text-red-700">
+              <span className="text-xs font-bold text-slate-700">
                 100% Genuine 4K Video Master Files
               </span>
             </div>
@@ -338,7 +338,7 @@ export default function Gta6SeoGuideSection({
           <button
             type="button"
             onClick={onBuyClick}
-            className="w-full sm:w-auto px-6 py-3 rounded-xl bg-gradient-to-r from-red-600 via-rose-600 to-red-600 hover:from-red-700 hover:to-rose-700 text-white font-black text-xs sm:text-sm shadow-md shadow-red-500/25 active:scale-95 transition-all flex items-center justify-center gap-1.5 cursor-pointer"
+            className="vz-cta-sheen w-full sm:w-auto px-6 py-3.5 rounded-xl bg-gradient-to-r from-red-600 via-rose-600 to-red-600 hover:from-red-700 hover:to-rose-700 text-white font-black text-xs sm:text-sm shadow-lg shadow-red-600/25 hover:-translate-y-0.5 active:scale-[0.98] transition-all duration-200 flex items-center justify-center gap-1.5 cursor-pointer"
           >
             <Zap className="w-4 h-4 fill-white" />
             <span>Get 2,000+ GTA 6 Reels for ₹{price}</span>

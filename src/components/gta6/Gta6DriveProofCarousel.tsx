@@ -151,106 +151,117 @@ export default function Gta6DriveProofCarousel({
 
   return (
     <div
-      className="mt-4 rounded-2xl bg-white border border-slate-200/90 p-3 sm:p-4 shadow-xs space-y-3"
+      className="mt-4 rounded-3xl bg-white border border-slate-200/90 p-3.5 sm:p-5 shadow-[0_14px_40px_-14px_rgba(15,23,42,0.08)] space-y-3.5"
       onMouseEnter={() => setIsPaused(true)}
       onMouseLeave={() => setIsPaused(false)}
     >
       {/* Header with Google Drive Delivery Proof */}
-      <div className="flex items-center justify-between gap-2 flex-wrap pb-2 border-b border-slate-100">
-        <div className="flex items-center gap-2">
-          <div className="w-7 h-7 rounded-lg bg-emerald-50 border border-emerald-200 flex items-center justify-center text-emerald-700 shrink-0">
+      <div className="flex items-center justify-between gap-2 flex-wrap pb-2.5 border-b border-slate-100">
+        <div className="flex items-center gap-2.5">
+          <div className="w-8 h-8 rounded-xl bg-emerald-50 border border-emerald-200/80 flex items-center justify-center text-emerald-700 shrink-0">
             <HardDrive className="w-4 h-4" />
           </div>
           <div>
             <div className="flex items-center gap-1.5 flex-wrap">
-              <h3 className="text-xs sm:text-sm font-black text-slate-900 tracking-tight">
-                Google Drive Delivery Proof
+              <h3 className="text-xs sm:text-sm font-black text-slate-950 tracking-tight">
+                Verified Google Drive Delivery Proof
               </h3>
-              <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-emerald-50 border border-emerald-200/70 text-[10px] font-bold text-emerald-700">
-                <CheckCircle2 className="w-3 h-3" /> 100% Real
+              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-emerald-50 border border-emerald-200/80 text-[10px] font-bold text-emerald-700">
+                <CheckCircle2 className="w-3 h-3" /> Real Drive Screenshots
               </span>
             </div>
-            <p className="text-[11px] text-slate-500">
-              Actual Google Drive folder screenshots (Zero fake / No scam)
+            <p className="text-[11px] text-slate-500 mt-0.5">
+              Preview the exact folders &amp; reseller license unlocked after payment
             </p>
           </div>
         </div>
 
         {/* Slide Counter */}
-        <div className="flex items-center gap-1.5 text-[11px] font-bold text-slate-500 bg-slate-50 px-2.5 py-1 rounded-full border border-slate-200">
-          <span className="text-red-600">{currentIndex + 1}</span>
-          <span>/</span>
+        <div className="flex items-center gap-1 text-[11px] font-mono font-bold tabular-nums text-slate-600 bg-slate-100/80 px-2.5 py-1 rounded-full border border-slate-200/80">
+          <span className="text-red-600 font-black">{currentIndex + 1}</span>
+          <span className="text-slate-400">/</span>
           <span>{total}</span>
         </div>
       </div>
 
       {/* Main Interactive Carousel Slide */}
       <div
-        className="relative group rounded-xl overflow-hidden border border-slate-200 bg-slate-950 aspect-[16/10] sm:aspect-[16/9.5] select-none"
+        className="relative group rounded-2xl overflow-hidden border border-slate-200 bg-slate-950 shadow-inner select-none"
         onTouchStart={handleTouchStart}
         onTouchEnd={handleTouchEnd}
       >
-        <img
-          src={current.image}
-          alt={`${current.title} – 2000+ GTA 6 Video Bundle Google Drive Proof`}
-          loading="lazy"
-          className="w-full h-full object-contain sm:object-cover transition-transform duration-300 group-hover:scale-[1.02]"
-        />
-
-        {/* Top Tag & Path Overlay */}
-        <div className="absolute top-2.5 left-2.5 right-2.5 flex items-center justify-between gap-2 pointer-events-none">
-          <span className="px-2 py-0.5 rounded-full bg-slate-950/85 backdrop-blur-md text-[10px] sm:text-xs font-bold text-white border border-white/20 shadow-xs">
-            {current.tag}
-          </span>
+        {/* Subtle Browser Chrome Header */}
+        <div className="flex items-center justify-between px-3 py-1.5 bg-slate-900 border-b border-white/10 text-[10px] text-slate-400 font-mono">
+          <div className="flex items-center gap-1.5">
+            <span className="w-2 h-2 rounded-full bg-rose-500/80" />
+            <span className="w-2 h-2 rounded-full bg-amber-400/80" />
+            <span className="w-2 h-2 rounded-full bg-emerald-500/80" />
+            <span className="ml-1.5 text-slate-300 truncate max-w-[190px] sm:max-w-xs">
+              drive.google.com · {current.folderPath}
+            </span>
+          </div>
           <button
             type="button"
             onClick={() => setLightboxOpen(true)}
             aria-label="View Fullscreen"
-            className="pointer-events-auto p-1.5 rounded-lg bg-slate-950/80 hover:bg-slate-900 text-white/90 hover:text-white border border-white/20 transition-colors shadow-xs"
-            title="Click to Zoom Fullscreen"
+            className="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-white/10 hover:bg-white/20 text-white text-[10px] font-sans font-semibold transition-colors cursor-pointer"
           >
-            <Maximize2 className="w-3.5 h-3.5" />
+            <Maximize2 className="w-3 h-3" />
+            <span className="hidden sm:inline">Zoom</span>
           </button>
         </div>
 
-        {/* Bottom Folder Info Gradient Bar */}
-        <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-slate-950 via-slate-950/80 to-transparent p-2.5 sm:p-3 pt-6 text-white pointer-events-none">
-          <div className="flex items-center gap-1 text-[10px] text-emerald-400 font-mono truncate mb-0.5">
-            <FolderOpen className="w-3 h-3 shrink-0" />
-            <span className="truncate">{current.folderPath}</span>
-          </div>
-          <div className="flex items-center justify-between gap-2">
-            <h4 className="text-xs sm:text-sm font-black text-white truncate">
-              {current.title}
-            </h4>
-            <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-red-600/90 text-white shrink-0">
-              {current.fileCount}
+        <div className="relative aspect-[16/10] sm:aspect-[16/9.5] overflow-hidden bg-slate-950">
+          <img
+            key={current.id}
+            src={current.image}
+            alt={`${current.title} – 2000+ GTA 6 Video Bundle Google Drive Proof`}
+            loading="lazy"
+            className="w-full h-full object-contain sm:object-cover vz-crossfade transition-transform duration-500 ease-out group-hover:scale-[1.015]"
+          />
+
+          {/* Top Tag Pill */}
+          <div className="absolute top-2.5 left-2.5 pointer-events-none">
+            <span className="px-2.5 py-0.5 rounded-full bg-slate-950/85 backdrop-blur-md text-[10px] sm:text-xs font-bold text-white border border-white/15 shadow-sm">
+              {current.tag}
             </span>
           </div>
-        </div>
 
-        {/* Prev / Next Slide Arrows */}
-        <button
-          type="button"
-          onClick={prevSlide}
-          aria-label="Previous Screenshot"
-          className="absolute left-2 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-slate-950/70 hover:bg-slate-950 text-white flex items-center justify-center border border-white/20 transition-all opacity-80 group-hover:opacity-100 hover:scale-105 active:scale-95"
-        >
-          <ChevronLeft className="w-4 h-4" />
-        </button>
-        <button
-          type="button"
-          onClick={nextSlide}
-          aria-label="Next Screenshot"
-          className="absolute right-2 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-slate-950/70 hover:bg-slate-950 text-white flex items-center justify-center border border-white/20 transition-all opacity-80 group-hover:opacity-100 hover:scale-105 active:scale-95"
-        >
-          <ChevronRight className="w-4 h-4" />
-        </button>
+          {/* Bottom Folder Info Gradient Bar */}
+          <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-slate-950 via-slate-950/85 to-transparent p-3 sm:p-3.5 pt-8 text-white pointer-events-none">
+            <div className="flex items-center justify-between gap-2">
+              <h4 className="text-xs sm:text-sm font-black text-white truncate">
+                {current.title}
+              </h4>
+              <span className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-emerald-500/90 text-slate-950 shrink-0">
+                {current.fileCount}
+              </span>
+            </div>
+          </div>
+
+          {/* Prev / Next Slide Arrows */}
+          <button
+            type="button"
+            onClick={prevSlide}
+            aria-label="Previous Screenshot"
+            className="absolute left-2.5 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-slate-950/75 hover:bg-slate-950 backdrop-blur-md text-white flex items-center justify-center border border-white/20 transition-all duration-200 opacity-85 group-hover:opacity-100 hover:scale-105 active:scale-95 cursor-pointer"
+          >
+            <ChevronLeft className="w-4 h-4" />
+          </button>
+          <button
+            type="button"
+            onClick={nextSlide}
+            aria-label="Next Screenshot"
+            className="absolute right-2.5 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-slate-950/75 hover:bg-slate-950 backdrop-blur-md text-white flex items-center justify-center border border-white/20 transition-all duration-200 opacity-85 group-hover:opacity-100 hover:scale-105 active:scale-95 cursor-pointer"
+          >
+            <ChevronRight className="w-4 h-4" />
+          </button>
+        </div>
       </div>
 
       {/* Description text for current folder */}
-      <div className="text-[11px] sm:text-xs text-slate-600 bg-slate-50/90 rounded-lg p-2.5 border border-slate-200/70 flex items-start gap-2">
-        <Sparkles className="w-3.5 h-3.5 text-red-500 shrink-0 mt-0.5" />
+      <div key={`${current.id}-desc`} className="text-[11px] sm:text-xs text-slate-600 bg-slate-50 rounded-xl p-3 border border-slate-200/70 flex items-start gap-2 vz-fade-in">
+        <Sparkles className="w-3.5 h-3.5 text-red-600 shrink-0 mt-0.5" />
         <p className="leading-relaxed">
           <strong className="text-slate-900 font-bold">{current.title}:</strong>{' '}
           {current.description}
@@ -258,15 +269,15 @@ export default function Gta6DriveProofCarousel({
       </div>
 
       {/* Thumbnails Row (Swipeable / Clickable) */}
-      <div className="grid grid-cols-7 gap-1.5 pt-1">
+      <div className="grid grid-cols-7 gap-1.5 pt-0.5">
         {DRIVE_SAMPLES.map((item, idx) => (
           <button
             key={item.id}
             type="button"
             onClick={() => setCurrentIndex(idx)}
-            className={`relative rounded-md overflow-hidden aspect-[16/10] border transition-all ${
+            className={`relative rounded-lg overflow-hidden aspect-[16/10] border transition-all duration-200 cursor-pointer ${
               currentIndex === idx
-                ? 'border-red-600 ring-2 ring-red-500/40 scale-105 z-10'
+                ? 'border-red-600 ring-2 ring-red-500/35 scale-[1.04] z-10 shadow-sm'
                 : 'border-slate-200 opacity-60 hover:opacity-100 hover:border-slate-400'
             }`}
             title={item.title}
@@ -281,25 +292,25 @@ export default function Gta6DriveProofCarousel({
         ))}
       </div>
 
-      {/* Trust & Anti-Scam Assurance */}
+      {/* Trust & Fullscreen Action */}
       <div className="pt-2 border-t border-slate-100 flex items-center justify-between gap-2 text-[10px] sm:text-[11px] text-slate-500">
-        <span className="flex items-center gap-1 text-slate-700 font-semibold">
+        <span className="flex items-center gap-1.5 text-slate-700 font-semibold">
           <ShieldCheck className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
-          Direct Drive Link on Thank You Page & Email
+          <span>Direct Google Drive Link on Order Success &amp; Email</span>
         </span>
         <button
           type="button"
           onClick={() => setLightboxOpen(true)}
-          className="text-red-600 hover:text-red-700 font-bold underline cursor-pointer"
+          className="text-slate-800 hover:text-red-600 font-bold underline underline-offset-2 cursor-pointer transition-colors"
         >
-          Zoom Previews
+          Inspect Fullscreen
         </button>
       </div>
 
       {/* Fullscreen Lightbox Modal */}
       {lightboxOpen && (
         <div
-          className="fixed inset-0 z-50 bg-black/95 backdrop-blur-md flex flex-col justify-between p-3 sm:p-6"
+          className="fixed inset-0 z-50 bg-black/95 backdrop-blur-md flex flex-col justify-between p-3 sm:p-6 vz-modal-pop"
           onClick={() => setLightboxOpen(false)}
         >
           {/* Lightbox Header */}

@@ -239,91 +239,88 @@ export default function Gta6UrgencyBar({
   const seconds = timerSeconds % 60;
 
   return (
-    <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-red-50/80 via-white to-rose-50/60 border border-red-200/90 p-4 shadow-sm my-4 text-slate-900 transition-all">
-      {/* Returning User "HURRY UP!" Red Alert Banner */}
+    <div className="relative overflow-hidden rounded-2xl bg-slate-950 border border-slate-800/90 p-4 shadow-lg text-white">
+      {/* Crisp subtle crimson top hairline */}
+      <div className="pointer-events-none absolute inset-x-0 top-0 h-[2px] bg-gradient-to-r from-red-600 via-rose-500 to-amber-400" />
+
+      {/* Returning User Notice Banner */}
       {isReturningUser && (
-        <div className="mb-3 px-3.5 py-2.5 rounded-xl bg-gradient-to-r from-red-600 via-rose-600 to-red-600 text-white flex items-center justify-between gap-2 shadow-md shadow-red-500/25 border border-red-500 animate-pulse">
+        <div className="mb-3 px-3 py-2 rounded-xl bg-red-600/20 border border-red-500/40 text-white flex items-center justify-between gap-2 vz-fade-in">
           <div className="flex items-center gap-2 min-w-0">
-            <span className="flex h-2.5 w-2.5 relative shrink-0">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-300 opacity-75" />
-              <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-amber-300" />
-            </span>
-            <p className="text-xs font-black tracking-wide truncate sm:text-clip">
-              🚨 HURRY UP! 5 more copies were claimed while you were away!
+            <span className="w-2 h-2 rounded-full bg-red-500 vz-live-dot shrink-0" />
+            <p className="text-[11px] sm:text-xs font-bold text-red-100 truncate sm:text-clip">
+              5 more launch copies claimed while you were away
             </p>
           </div>
-          <span className="text-[10px] font-black uppercase bg-black/30 backdrop-blur-sm border border-white/20 px-2 py-0.5 rounded-md text-amber-300 shrink-0">
-            Selling Fast
+          <span className="text-[10px] font-extrabold uppercase tracking-wider bg-red-600 text-white px-2 py-0.5 rounded-md shrink-0">
+            High Demand
           </span>
         </div>
       )}
 
-      {/* Top Banner Bar */}
-      <div className="flex flex-wrap items-center justify-between gap-2.5 pb-2.5 border-b border-red-100">
+      {/* Top Live Status & Timer Row */}
+      <div className="flex flex-wrap items-center justify-between gap-2 pb-3 border-b border-white/10">
         <div className="flex items-center gap-2">
-          <span className="flex h-2.5 w-2.5 relative">
-            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75" />
-            <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-red-600" />
-          </span>
-          <span className="text-[11px] sm:text-xs font-black tracking-wider uppercase text-red-700 flex items-center gap-1">
-            <Flame className="w-3.5 h-3.5 text-red-600 inline" />
-            HIGH DEMAND LAUNCH BATCH • ₹99 SPECIAL PRICE
+          <span className="w-2 h-2 rounded-full bg-emerald-400 vz-live-dot shrink-0" />
+          <span className="text-[11px] sm:text-xs font-bold tracking-wide uppercase text-slate-200 flex items-center gap-1.5">
+            <Flame className="w-3.5 h-3.5 text-amber-400 shrink-0" />
+            <span>Launch Batch • ₹{price} Offer</span>
           </span>
         </div>
 
-        {/* Live Countdown */}
-        <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-red-100/80 border border-red-200 text-[11px] font-mono font-bold text-red-900">
-          <Clock className="w-3.5 h-3.5 text-red-600" />
-          <span>Launch Price Closes:</span>
-          <span className="text-white font-black bg-red-600 px-1.5 py-0.5 rounded text-[10px]">
+        {/* Clean Tabular Countdown */}
+        <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-white/[0.06] border border-white/10 text-[11px] font-medium text-slate-300">
+          <Clock className="w-3 h-3 text-rose-400 shrink-0" />
+          <span>Ends in</span>
+          <span className="font-mono font-black tabular-nums text-white bg-red-600/90 px-1.5 py-0.5 rounded text-[11px]">
             {String(minutes).padStart(2, '0')}:{String(seconds).padStart(2, '0')}
           </span>
         </div>
       </div>
 
-      {/* Main Stock Scarcity Row */}
-      <div className="mt-3">
-        <div className="flex items-center justify-between text-xs sm:text-sm font-bold mb-1.5">
-          <span className="text-slate-800 flex items-center gap-1.5">
-            <span className="text-red-700 font-black">⚡ Limited Batch:</span>
+      {/* Stock Progress Row */}
+      <div className="mt-3 space-y-2">
+        <div className="flex items-center justify-between text-xs sm:text-sm font-semibold">
+          <span className="text-slate-300 flex items-center gap-1.5">
+            <Zap className="w-3.5 h-3.5 text-amber-400 fill-amber-400 shrink-0" />
             <span>
               Only{' '}
               <strong
-                className={`text-red-700 font-black text-sm sm:text-base transition-all duration-300 ${
-                  isNewSaleFlash ? 'scale-125 text-red-600 inline-block' : 'inline-block'
+                className={`font-black tabular-nums text-white transition-transform duration-300 inline-block ${
+                  isNewSaleFlash ? 'scale-110 text-amber-300' : ''
                 }`}
               >
-                {stock} copies left
+                {stock} of {stockTotal}
               </strong>{' '}
-              of {stockTotal}
+              copies left
             </span>
           </span>
-          <span className="text-red-700 font-extrabold text-[11px] sm:text-xs bg-red-100/70 px-2 py-0.5 rounded-md">
+          <span className="text-[11px] font-bold tabular-nums text-amber-300 bg-amber-400/10 border border-amber-400/20 px-2 py-0.5 rounded-md">
             {claimedPercent}% Claimed
           </span>
         </div>
 
-        {/* Progress Bar */}
-        <div className="w-full bg-slate-200/80 rounded-full h-2.5 overflow-hidden p-0.5 border border-slate-200">
+        {/* Smooth GPU Progress Bar */}
+        <div className="w-full bg-white/10 rounded-full h-2 overflow-hidden">
           <div
-            className="bg-gradient-to-r from-red-600 to-rose-600 h-full rounded-full transition-all duration-700 shadow-xs"
+            className="bg-gradient-to-r from-red-600 via-rose-500 to-amber-400 h-full rounded-full transition-[width] duration-1000 ease-out"
             style={{ width: `${claimedPercent}%` }}
           />
         </div>
       </div>
 
-      {/* Social Proof Live Buyer Notification */}
-      <div className="mt-2.5 pt-2 flex flex-wrap items-center justify-between text-[11px] text-slate-500 gap-1.5">
-        <span className="flex items-center gap-1.5 text-slate-700 font-semibold">
-          <Users className="w-3.5 h-3.5 text-red-600" />
-          <span className={`transition-opacity duration-300 ${isNewSaleFlash ? 'text-slate-950 font-bold' : ''}`}>
-            <strong className="text-slate-900">{currentBuyer.name}</strong> from {currentBuyer.city} bought{' '}
-            <span className="text-red-700 font-bold">{buyerTimeText}</span>
+      {/* Verified Live Buyer Ticker */}
+      <div className="mt-3 pt-2.5 border-t border-white/10 flex flex-wrap items-center justify-between text-[11px] text-slate-400 gap-2">
+        <span key={buyerIndex} className="flex items-center gap-1.5 text-slate-300 font-medium vz-fade-in">
+          <Users className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
+          <span>
+            <strong className="text-white font-bold">{currentBuyer.name}</strong> ({currentBuyer.city}) unlocked{' '}
+            <span className="text-emerald-400 font-semibold">{buyerTimeText}</span>
           </span>
         </span>
-        <span className="text-[10px] text-emerald-700 font-bold flex items-center gap-1 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200/60">
-          <ShieldCheck className="w-3 h-3 text-emerald-600" />
-          Instant Drive Link Access
+        <span className="text-[10px] text-emerald-300 font-semibold flex items-center gap-1">
+          <ShieldCheck className="w-3 h-3 text-emerald-400 shrink-0" />
+          Instant Drive Access
         </span>
       </div>
     </div>

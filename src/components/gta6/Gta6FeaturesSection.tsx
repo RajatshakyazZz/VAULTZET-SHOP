@@ -85,50 +85,52 @@ export default function Gta6FeaturesSection({
   onBuyClick,
 }: Gta6FeaturesSectionProps) {
   return (
-    <section className="my-10 space-y-6">
+    <section className="my-10 space-y-5">
       {/* 5 Organized Folders Breakdown */}
-      <div className="rounded-2xl sm:rounded-3xl bg-white border border-slate-200/90 p-5 sm:p-7 shadow-xs">
-        <div className="text-center max-w-2xl mx-auto mb-6">
-          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-red-50 border border-red-200/80 text-red-700 text-xs font-bold uppercase tracking-wider mb-2">
-            <FolderKanban className="w-3.5 h-3.5 text-red-600" />
-            <span>Folder-Wise Organization</span>
+      <div className="rounded-3xl bg-white border border-slate-200/90 p-5 sm:p-8 shadow-[0_18px_50px_-16px_rgba(15,23,42,0.07)]">
+        <div className="text-center max-w-2xl mx-auto mb-7">
+          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-slate-950 text-white text-[11px] font-bold uppercase tracking-wider mb-3">
+            <FolderKanban className="w-3.5 h-3.5 text-amber-400" />
+            <span>Folder-Wise Breakdown • 2,000+ Clips</span>
           </div>
-          <h2 className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight">
+          <h2 className="text-xl sm:text-3xl font-black text-slate-950 tracking-[-0.02em] leading-tight">
             What You Get Inside The 2,000+ GTA 6 Video Bundle &amp; Reel Pack
           </h2>
-          <p className="text-xs sm:text-sm text-slate-500 mt-1.5 leading-relaxed">
-            Aapko unorganized files nahi milengi. Poora bundle 5 categorized Google Drive folders me organized hai:
+          <p className="text-xs sm:text-sm text-slate-500 mt-2 leading-relaxed">
+            Zero unorganized clutter. Every clip is sorted into 5 curated Google Drive folders ready for instant mobile or desktop download:
           </p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3.5">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {GTA6_FOLDERS.map((item, idx) => (
             <div
               key={idx}
-              className="rounded-xl bg-slate-50/80 border border-slate-200/80 hover:border-red-400/80 p-4 transition-all duration-200 hover:shadow-xs group"
+              className="rounded-2xl bg-slate-50/70 hover:bg-white border border-slate-200/80 hover:border-red-300 p-5 transition-all duration-300 ease-out hover:-translate-y-1 hover:shadow-[0_14px_30px_-10px_rgba(15,23,42,0.1)] group flex flex-col justify-between"
             >
-              <div className="flex items-center justify-between gap-2 mb-2">
-                <span className="text-[10px] font-mono font-bold text-slate-500 uppercase tracking-wider">
-                  {item.folder}
-                </span>
-                <span className="text-[10px] font-black px-2 py-0.5 rounded-full bg-red-100 text-red-800 border border-red-200/60">
-                  {item.count}
-                </span>
+              <div>
+                <div className="flex items-center justify-between gap-2 mb-3">
+                  <span className="text-[10.5px] font-mono font-bold text-slate-500 uppercase tracking-widest bg-white px-2.5 py-1 rounded-md border border-slate-200/80">
+                    {item.folder}
+                  </span>
+                  <span className="text-[11px] font-black tabular-nums px-2.5 py-0.5 rounded-full bg-red-50 text-red-700 border border-red-200/70">
+                    {item.count}
+                  </span>
+                </div>
+
+                <h4 className="text-sm sm:text-base font-extrabold text-slate-950 group-hover:text-red-700 transition-colors">
+                  {item.title}
+                </h4>
+                <p className="text-xs text-slate-600 mt-1.5 leading-relaxed">
+                  {item.description}
+                </p>
               </div>
 
-              <h4 className="text-sm font-black text-slate-900 group-hover:text-red-700 transition-colors">
-                {item.title}
-              </h4>
-              <p className="text-xs text-slate-600 mt-1.5 leading-relaxed">
-                {item.description}
-              </p>
-
-              <div className="mt-3.5 pt-2.5 border-t border-slate-200/60 flex items-center justify-between">
-                <span className="text-[11px] text-red-700 font-bold flex items-center gap-1">
-                  <CheckCircle2 className="w-3.5 h-3.5 text-red-600" />
+              <div className="mt-4 pt-3 border-t border-slate-200/70 flex items-center justify-between">
+                <span className="text-[11px] text-emerald-700 font-bold flex items-center gap-1.5">
+                  <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
                   {item.tag}
                 </span>
-                <span className="text-[10px] text-slate-400 font-medium">Google Drive Ready</span>
+                <span className="text-[10px] font-semibold text-slate-400">Google Drive Ready</span>
               </div>
             </div>
           ))}
@@ -136,21 +138,21 @@ export default function Gta6FeaturesSection({
       </div>
 
       {/* 4 Core Advantages Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5">
         {ADVANTAGES.map((adv, idx) => {
           const Icon = adv.icon;
           return (
             <div
               key={idx}
-              className="p-4 rounded-xl bg-white border border-slate-200/80 space-y-1.5 shadow-xs"
+              className="p-4 sm:p-5 rounded-2xl bg-white border border-slate-200/80 hover:border-slate-300 space-y-2 shadow-2xs hover:shadow-md transition-all duration-300 ease-out hover:-translate-y-0.5"
             >
-              <div className="w-8 h-8 rounded-lg bg-red-50 text-red-600 border border-red-200/60 flex items-center justify-center mb-2">
-                <Icon className="w-4 h-4" />
+              <div className="w-9 h-9 rounded-xl bg-slate-950 text-white flex items-center justify-center mb-2.5 shadow-xs">
+                <Icon className="w-4 h-4 text-amber-400" />
               </div>
-              <h4 className="text-xs sm:text-sm font-extrabold text-slate-900">
+              <h4 className="text-xs sm:text-sm font-extrabold text-slate-950">
                 {adv.title}
               </h4>
-              <p className="text-[11px] text-slate-500 leading-relaxed">
+              <p className="text-[11px] sm:text-xs text-slate-500 leading-relaxed">
                 {adv.desc}
               </p>
             </div>

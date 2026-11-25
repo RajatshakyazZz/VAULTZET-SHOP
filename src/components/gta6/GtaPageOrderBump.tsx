@@ -26,33 +26,33 @@ export default function GtaPageOrderBump({
   const combinedTotal = basePrice + bumpAddonsTotal;
 
   return (
-    <div className="rounded-2xl border-2 border-red-500/40 bg-gradient-to-br from-red-50/60 via-white to-rose-50/40 shadow-md overflow-hidden text-slate-900">
+    <div className="rounded-2xl border border-slate-200/90 bg-white shadow-sm overflow-hidden text-slate-900">
       {/* Top Header Attention Bar */}
-      <div className="px-3.5 py-2 bg-gradient-to-r from-red-600 via-rose-600 to-red-600 text-white flex items-center justify-between gap-2">
-        <span className="inline-flex items-center gap-1.5 text-[11px] sm:text-xs font-black tracking-wide truncate">
-          <Flame className="w-4 h-4 shrink-0 fill-current text-amber-300 animate-pulse" />
-          <span className="truncate">EXCLUSIVE ONE-TIME ADD-ON • SPECIAL SYNERGY OFFER</span>
+      <div className="px-3.5 py-2.5 bg-slate-950 text-white flex items-center justify-between gap-2">
+        <span className="inline-flex items-center gap-1.5 text-[11px] sm:text-xs font-extrabold tracking-wide truncate">
+          <Flame className="w-3.5 h-3.5 shrink-0 fill-current text-amber-400" />
+          <span className="truncate">EXCLUSIVE ADD-ON OFFER</span>
         </span>
-        <span className="px-2 py-0.5 rounded-full bg-white/20 backdrop-blur-xs text-[10px] sm:text-[11px] font-black shrink-0 tracking-wider">
-          SPECIAL ADD-ONS (UP TO 90% OFF)
+        <span className="px-2 py-0.5 rounded-md bg-red-600 text-[10px] font-black shrink-0 tracking-wider uppercase">
+          Save Up To 90%
         </span>
       </div>
 
       {/* Sub-header Notice */}
-      <div className="px-3.5 sm:px-4 pt-2.5 pb-1 flex items-center justify-between text-[11px] text-slate-600 font-semibold border-b border-red-100">
-        <span className="flex items-center gap-1 text-slate-800">
+      <div className="px-3.5 sm:px-4 py-2 flex items-center justify-between text-[11px] text-slate-600 font-medium bg-slate-50/80 border-b border-slate-100">
+        <span className="flex items-center gap-1.5 text-slate-700">
           <Sparkles className="w-3.5 h-3.5 text-red-600 shrink-0" />
-          <span>Add viral booster bundles to your GTA 6 order at massive discount!</span>
+          <span>Bundle these viral packs with your order (instant Drive unlock):</span>
         </span>
         {selectedCount > 0 && (
-          <span className="text-red-700 font-black text-[10px] sm:text-[11px] bg-red-100/80 px-2 py-0.5 rounded-md">
-            {selectedCount} Selected (+₹{bumpAddonsTotal})
+          <span className="text-red-700 font-black tabular-nums text-[10px] sm:text-[11px] bg-red-50 border border-red-200/80 px-2 py-0.5 rounded-md shrink-0">
+            +{selectedCount} Added (₹{bumpAddonsTotal})
           </span>
         )}
       </div>
 
       {/* List of Bump Bundles */}
-      <div className="p-2.5 sm:p-3 space-y-2.5">
+      <div className="p-2.5 sm:p-3 space-y-2">
         {GTA_ADDON_BUMPS.map((bump) => {
           const isSelected = selectedSlugs.includes(bump.slug || bump.id);
 
@@ -69,29 +69,29 @@ export default function GtaPageOrderBump({
                   onToggle(bump.slug || bump.id);
                 }
               }}
-              className={`rounded-xl p-2.5 sm:p-3 border-2 transition-all cursor-pointer select-none flex items-start gap-3 ${
+              className={`rounded-xl p-2.5 sm:p-3 border transition-all duration-200 cursor-pointer select-none flex items-start gap-3 ${
                 isSelected
-                  ? 'border-red-600 bg-red-50/80 shadow-xs ring-1 ring-red-500/30'
-                  : 'border-slate-200/90 bg-white hover:border-red-400 hover:bg-red-50/30'
+                  ? 'border-red-600 bg-red-50/40 shadow-xs ring-1 ring-red-600/20'
+                  : 'border-slate-200 bg-white hover:border-slate-300 hover:bg-slate-50/60'
               }`}
             >
               {/* Checkbox box */}
               <span
-                className={`mt-1 w-6 h-6 rounded-lg border-2 flex items-center justify-center shrink-0 transition-all ${
+                className={`mt-1 w-5 h-5 rounded-md border flex items-center justify-center shrink-0 transition-all duration-200 ${
                   isSelected
-                    ? 'bg-red-600 border-red-600 text-white shadow-xs'
+                    ? 'bg-red-600 border-red-600 text-white scale-105 shadow-xs'
                     : 'bg-white border-slate-300 text-slate-400'
                 }`}
               >
                 {isSelected ? (
-                  <Check className="w-4 h-4 stroke-[3]" />
+                  <Check className="w-3.5 h-3.5 stroke-[3]" />
                 ) : (
                   <Plus className="w-3.5 h-3.5 stroke-[2.5]" />
                 )}
               </span>
 
               {/* Thumbnail Image */}
-              <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-xl overflow-hidden bg-slate-900 border border-slate-200 shrink-0 shadow-xs">
+              <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-xl overflow-hidden bg-slate-900 border border-slate-200 shrink-0 shadow-xs">
                 <img
                   src={bump.thumbnail}
                   alt={bump.title}
@@ -103,18 +103,18 @@ export default function GtaPageOrderBump({
               {/* Details & Pricing */}
               <div className="min-w-0 flex-1">
                 <div className="flex flex-wrap items-start justify-between gap-1.5">
-                  <h4 className="text-xs sm:text-sm font-black text-slate-950 leading-tight">
+                  <h4 className="text-xs sm:text-sm font-extrabold text-slate-950 leading-tight">
                     {bump.title}
                   </h4>
-                  <div className="flex items-baseline gap-1.5 shrink-0">
+                  <div className="flex items-baseline gap-1.5 shrink-0 tabular-nums">
                     <span className="text-sm sm:text-base font-black text-emerald-700">
                       +₹{bump.discountPrice}
                     </span>
-                    <span className="text-[11px] text-slate-400 line-through font-bold">
+                    <span className="text-[11px] text-slate-400 line-through font-semibold">
                       ₹{bump.originalPrice}
                     </span>
-                    <span className="px-1.5 py-0.5 rounded text-[10px] font-black bg-red-100 text-red-800 border border-red-200">
-                      {bump.discountPercentage}% OFF
+                    <span className="px-1.5 py-0.5 rounded text-[9.5px] font-black bg-emerald-50 text-emerald-700 border border-emerald-200/80">
+                      -{bump.discountPercentage}%
                     </span>
                   </div>
                 </div>
@@ -124,14 +124,14 @@ export default function GtaPageOrderBump({
                 </p>
 
                 {/* Status pill */}
-                <div className="mt-2 flex items-center justify-between text-[11px] font-bold">
-                  <span className={isSelected ? 'text-red-700 font-extrabold' : 'text-slate-500'}>
+                <div className="mt-1.5 flex items-center justify-between text-[11px] font-semibold">
+                  <span className={isSelected ? 'text-red-700 font-bold' : 'text-slate-500'}>
                     {isSelected
-                      ? `✓ Added to your instant Drive delivery (+₹${bump.discountPrice})`
-                      : `+ Tap to add for ₹${bump.discountPrice}`}
+                      ? `Added (+₹${bump.discountPrice}) — Instant Drive Delivery`
+                      : `Tap to include for ₹${bump.discountPrice}`}
                   </span>
-                  <span className="text-[10px] text-slate-400">
-                    {bump.reelCount.toLocaleString('en-IN')}+ Videos
+                  <span className="text-[10px] text-slate-400 tabular-nums">
+                    {bump.reelCount.toLocaleString('en-IN')}+ Clips
                   </span>
                 </div>
               </div>
@@ -141,13 +141,13 @@ export default function GtaPageOrderBump({
       </div>
 
       {/* Bottom Summary Footer */}
-      <div className="px-3.5 py-2.5 bg-slate-900 text-white flex items-center justify-between gap-2 text-xs">
-        <span className="font-medium text-slate-300 text-[11px] sm:text-xs">
+      <div className="px-3.5 py-2.5 bg-slate-950 text-white flex items-center justify-between gap-2 text-xs">
+        <span className="font-medium text-slate-300 text-[11px] sm:text-xs truncate">
           {selectedCount > 0
-            ? `Includes GTA 6 + ${selectedBumpItems.map((b) => b.title.split('–')[0].trim()).join(' + ')}`
-            : 'Tap any add-on above to include in your order with 1-click'}
+            ? `Bundle + ${selectedBumpItems.map((b) => b.title.split('–')[0].trim()).join(' + ')}`
+            : 'Optional add-ons — tap box above to include'}
         </span>
-        <span className="font-black text-white bg-red-600 px-2.5 py-1 rounded-lg text-xs sm:text-sm shrink-0 shadow-xs">
+        <span className="font-black tabular-nums text-white bg-red-600 px-2.5 py-1 rounded-lg text-xs sm:text-sm shrink-0">
           Total: ₹{combinedTotal}.00
         </span>
       </div>
