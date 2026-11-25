@@ -23,35 +23,35 @@ const GTA6_FOLDERS = [
   {
     folder: 'Folder 01',
     title: 'Vice City Supercars & Drifting',
-    count: '900+ Reels',
+    count: '450+ Reels',
     description: 'Neon night cruises, hypercar drifting, custom vehicle showcases & high-speed highway pulls.',
     tag: 'Extreme Retention',
   },
   {
     folder: 'Folder 02',
     title: 'Lucia & Jason Heists & Storylines',
-    count: '800+ Reels',
+    count: '400+ Reels',
     description: 'Dramatic Bonnie & Clyde style robbery escapes, storyline teasers & high-tension cinematic cuts.',
     tag: 'Story Hook',
   },
   {
     folder: 'Folder 03',
     title: '5-Star Police Chases & Chaos',
-    count: '800+ Reels',
+    count: '400+ Reels',
     description: 'SWAT roadblocks, helicopter pursuits, high-octane rocket launcher shootouts & bridge escapes.',
     tag: 'High Adrenaline',
   },
   {
     folder: 'Folder 04',
     title: '4K Ultra HD Vice City B-Roll',
-    count: '800+ Reels',
+    count: '400+ Reels',
     description: 'Crystal clear sunset beaches, neon ocean drive, luxury penthouses & cinematic Miami aesthetic.',
     tag: 'Aesthetic / Mood',
   },
   {
     folder: 'Folder 05',
     title: 'Viral Memes, Savage Edits & Audio',
-    count: '700+ Reels',
+    count: '350+ Reels',
     description: 'Fast-paced meme formats, savage commentary overlays & trending bass-boosted reel edits.',
     tag: 'Viral Shares',
   },
@@ -93,9 +93,9 @@ export default function Gta6FeaturesSection({
             <FolderKanban className="w-3.5 h-3.5 text-red-600" />
             <span>Folder-Wise Organization</span>
           </div>
-          <h3 className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight">
-            What You Get Inside The 4,000+ GTA 6 Video Bundle &amp; Reel Pack
-          </h3>
+          <h2 className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight">
+            What You Get Inside The 2,000+ GTA 6 Video Bundle &amp; Reel Pack
+          </h2>
           <p className="text-xs sm:text-sm text-slate-500 mt-1.5 leading-relaxed">
             Aapko unorganized files nahi milengi. Poora bundle 5 categorized Google Drive folders me organized hai:
           </p>

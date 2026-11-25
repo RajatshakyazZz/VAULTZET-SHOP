@@ -51,9 +51,9 @@ export default function Gta6GrowthProofSection({
           <TrendingUp className="w-3.5 h-3.5 text-red-600" />
           <span>Real Creator Proof & Traction</span>
         </div>
-        <h3 className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight">
-          How Creators Are Growing With GTA 6 Reels
-        </h3>
+        <h2 className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight">
+          How Creators Are Growing With 2,000+ GTA 6 Reels
+        </h2>
         <p className="text-xs sm:text-sm text-slate-500 mt-1.5 leading-relaxed">
           GTA 6 search volume worldwide peak par hai. Dekhiye Indian creators ne is bundle se kaise massive audience build ki:
         </p>

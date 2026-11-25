@@ -73,7 +73,7 @@ export const COMPETITOR_CATEGORIES: CategoryItem[] = [
     name: 'Gaming Reels',
     slug: 'gaming-reels',
     icon: '🎮',
-    keywords: ['gaming', 'game', 'games', 'pubg', 'bgmi', 'free fire', 'cod', 'call of duty', 'fortnite', 'valorant', 'clash'],
+    keywords: ['gaming', 'game', 'games', 'gta', 'gta 6', 'gta6', 'gta vi', 'vice city', 'pubg', 'bgmi', 'free fire', 'cod', 'call of duty', 'fortnite', 'valorant', 'clash'],
   },
   {
     name: 'DIY Reels',

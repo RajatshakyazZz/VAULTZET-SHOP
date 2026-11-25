@@ -129,6 +129,28 @@ function getCategoryEditorial(slug: string, name: string) {
     };
   }
 
+  if (s.includes('gaming') || s === 'gaming-reels') {
+    return {
+      title: 'Gaming & GTA 6 Viral Reels Bundles (2000+ 4K No Watermark)',
+      intro:
+        'Download India’s #1 2000+ GTA 6 Viral Reels Bundle and gaming shorts packs in 4K & 1080P vertical (9:16) MP4 format. Includes authentic Vice City gameplay, Lucia & Jason cinematic cutscenes, supercars, 5-star police chases, and viral meme edits. 100% watermark-free with instant Google Drive access and Master Resell Rights (MRR).',
+      faqs: [
+        {
+          q: 'What is included in the 2000+ GTA 6 Video & Viral Reels Bundle?',
+          a: 'You get 2,000+ ready-to-upload 4K and 1080P 60FPS vertical 9:16 gaming reels organized into 5 Google Drive folders: Vice City Supercars, Lucia & Jason Heists, 5-Star Police Chases, 4K Aesthetic B-Roll, and Viral Meme Edits—plus 150+ bonus trap audio tracks and Master Resell Rights.',
+        },
+        {
+          q: 'Are these GTA 6 clips watermark-free and safe for Instagram Reels & YouTube Shorts?',
+          a: 'Yes! Every clip in our 2,000+ GTA 6 Video Bundle is 100% clean without third-party logos or watermarks, so you can add your own gaming page handle and post directly to monetize.',
+        },
+        {
+          q: 'How fast do I receive the Google Drive link after UPI payment?',
+          a: 'Delivery is 100% instant and automated. Immediately after paying via PhonePe, Google Pay, Paytm, or Card, your lifetime Google Drive folder unlocks on screen and arrives in your email.',
+        },
+      ],
+    };
+  }
+
   // Default high-value editorial for all other categories
   return {
     title: `${name} Reels Bundles for Creators in India`,

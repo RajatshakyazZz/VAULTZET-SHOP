@@ -33,20 +33,20 @@ interface DriveSampleItem {
 const DRIVE_SAMPLES: DriveSampleItem[] = [
   {
     id: 'overview',
-    image: '/gta-drive-samples/gta-drive-overview.webp',
+    image: '/gta-drive-samples/gta-drive-overview.webp?v=2000',
     tag: '👑 Master Folder & License',
     title: 'Google Drive Delivery Structure + MRR License',
-    folderPath: 'My Drive > GTA6 4000 videos by vaultzet.shop',
-    description: 'Master folders (1000 Clips, 750 Videos, 350 Videos by Vaultzet) + Official Master Resell Rights (MRR) License PDF.',
-    fileCount: '4,000+ Total Files',
+    folderPath: 'My Drive > GTA6 2000 videos',
+    description: '3 Master folders (1000 Clips, 750 Videos, 350 Videos) + Official Master Resell Rights (MRR) License PDF.',
+    fileCount: '2,000+ Total Files',
   },
   {
     id: '1000clips',
-    image: '/gta-drive-samples/gta-drive-1000clips.webp',
-    tag: '🌴 1000 Clips Main Pack',
-    title: 'Folder: 1000 Clips by Vaultzet.shop',
-    folderPath: 'GTA6 4000 videos > gta6 1000 clips by vaultzet.shop',
-    description: 'Authentic 4K vertical clips, street exploration, water reflections, casino district & high-speed chases.',
+    image: '/gta-drive-samples/gta-drive-1000clips.webp?v=2000',
+    tag: '🌴 Vice City & Neon Vibes',
+    title: 'Folder: 1000 Clips Main Bundle',
+    folderPath: 'GTA6 2000 videos > gta6 bundle 1000 clips',
+    description: 'Vice City 4K cinematics, Indian YouTubers pack, 400+ Vaultzet clips & 450+ gameplay cuts.',
     fileCount: '1,000 Clips (4K)',
   },
   {
@@ -192,7 +192,7 @@ export default function Gta6DriveProofCarousel({
       >
         <img
           src={current.image}
-          alt={current.title}
+          alt={`${current.title} – 2000+ GTA 6 Video Bundle Google Drive Proof`}
           loading="lazy"
           className="w-full h-full object-contain sm:object-cover transition-transform duration-300 group-hover:scale-[1.02]"
         />

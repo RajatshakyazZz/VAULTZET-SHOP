@@ -118,7 +118,7 @@ export default function TrendingPopupModal() {
                   <Play className="w-2.5 h-2.5 fill-red-600 ml-0.5" />
                 </div>
                 <span className="text-[9px] font-bold text-center text-amber-300">
-                  4000+ Clips
+                  2000+ Clips
                 </span>
               </div>
             </div>
@@ -157,7 +157,7 @@ export default function TrendingPopupModal() {
           <div className="grid grid-cols-2 gap-2 text-[11px] sm:text-xs text-slate-700 font-bold bg-red-50/70 p-3 rounded-xl border border-red-100">
             <div className="flex items-center gap-1.5">
               <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
-              <span>4000+ 4K Ultra HD Reels</span>
+              <span>2000+ 4K Ultra HD Reels</span>
             </div>
             <div className="flex items-center gap-1.5">
               <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 shrink-0" />

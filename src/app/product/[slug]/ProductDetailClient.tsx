@@ -244,7 +244,11 @@ export default function ProductDetailClient({ product }: ProductDetailClientProp
             <div className="relative aspect-[4/3] rounded-2xl sm:rounded-3xl overflow-hidden bg-slate-100 border border-slate-200/90 shadow-sm">
               <img
                 src={optimizeImageUrl(currentImage, 1024)}
-                alt={`${p.title} preview`}
+                alt={
+                  isGta6Page
+                    ? '2000+ GTA 6 Viral Reels Bundle & GTA 6 Video Bundle 4K No Watermark Preview'
+                    : `${p.title} preview`
+                }
                 width={1024}
                 height={768}
                 fetchPriority="high"
@@ -255,7 +259,11 @@ export default function ProductDetailClient({ product }: ProductDetailClientProp
               {/* Minimal Clean Tag Overlays */}
               <div className="absolute top-3 left-3 flex items-center gap-1.5">
                 <span className="px-2.5 py-1 rounded-lg text-[10px] font-extrabold uppercase tracking-wider bg-black/75 text-white backdrop-blur-md shadow-xs">
-                  {p.resolution || '1080P'} Full HD
+                  {p.resolution
+                    ? /hd|4k/i.test(p.resolution)
+                      ? p.resolution
+                      : `${p.resolution} Full HD`
+                    : '1080P Full HD'}
                 </span>
                 <span className="px-2.5 py-1 rounded-lg text-[10px] font-extrabold uppercase tracking-wider bg-black/75 text-white backdrop-blur-md shadow-xs">
                   9:16 Vertical
@@ -674,7 +682,7 @@ export default function ProductDetailClient({ product }: ProductDetailClientProp
           </>
         )}
 
-        {/* GTA 6 HIGH-CONVERTING LANDING SECTIONS: 4000 CLIPS BREAKDOWN + RESELL GUIDE + CREATOR PROOF */}
+        {/* GTA 6 HIGH-CONVERTING LANDING SECTIONS: 2000 CLIPS BREAKDOWN + RESELL GUIDE + CREATOR PROOF */}
         {isGta6Page && (
           <>
             <Gta6FeaturesSection
@@ -770,7 +778,13 @@ export default function ProductDetailClient({ product }: ProductDetailClientProp
             </div>
             <div className="p-3 rounded-xl bg-slate-50 border border-slate-200/70">
               <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Resolution</span>
-              <strong className="text-sm font-black text-slate-900">{p.resolution || '1080P'} Full HD</strong>
+              <strong className="text-sm font-black text-slate-900">
+                {p.resolution
+                  ? /hd/i.test(p.resolution)
+                    ? p.resolution
+                    : `${p.resolution} Full HD`
+                  : '1080P Full HD'}
+              </strong>
             </div>
             <div className="p-3 rounded-xl bg-slate-50 border border-slate-200/70">
               <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Format</span>

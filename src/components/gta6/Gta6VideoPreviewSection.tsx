@@ -149,7 +149,7 @@ function GtaInlineCard({ sample, index }: GtaInlineCardProps) {
       ) : (
         <img
           src={sample.thumbnailUrl}
-          alt={sample.title}
+          alt={`${sample.title} – 2000+ GTA 6 Video Bundle 4K Preview`}
           loading="lazy"
           className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
         />
@@ -483,7 +483,7 @@ export default function Gta6VideoPreviewSection({
             className="w-full px-5 py-3 rounded-xl bg-gradient-to-r from-red-600 via-rose-600 to-red-600 hover:from-red-700 hover:to-rose-700 text-white font-black text-xs sm:text-sm shadow-md shadow-red-500/25 active:scale-95 transition-all flex items-center justify-center gap-1.5 cursor-pointer"
           >
             <Zap className="w-4 h-4 fill-white" />
-            <span>Unlock All 4,000+ GTA 6 Reels — ₹{price} (Instant Access)</span>
+            <span>Unlock All 2,000+ GTA 6 Reels — ₹{price} (Instant Access)</span>
             <ArrowRight className="w-4 h-4" />
           </button>
         </div>

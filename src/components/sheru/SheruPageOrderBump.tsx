@@ -42,7 +42,7 @@ export default function SheruPageOrderBump({
       <div className="px-3.5 sm:px-4 pt-2.5 pb-1 flex items-center justify-between text-[11px] text-slate-600 font-semibold border-b border-red-100">
         <span className="flex items-center gap-1 text-slate-800">
           <Sparkles className="w-3.5 h-3.5 text-red-600 shrink-0" />
-          <span>Add 4,000+ GTA 6 Viral Reels Bundle to your Sheru Bhai order for just ₹99!</span>
+          <span>Add 2,000+ GTA 6 Viral Reels Bundle to your Sheru Bhai order for just ₹99!</span>
         </span>
         {selectedCount > 0 && (
           <span className="text-red-700 font-black text-[10px] sm:text-[11px] bg-red-100/80 px-2 py-0.5 rounded-md">
@@ -144,8 +144,8 @@ export default function SheruPageOrderBump({
       <div className="px-3.5 py-2.5 bg-slate-900 text-white flex items-center justify-between gap-2 text-xs">
         <span className="font-medium text-slate-300 text-[11px] sm:text-xs">
           {selectedCount > 0
-            ? `Includes Sheru Bhai + 4,000+ GTA 6 Reels Bundle`
-            : 'Tap box above to include 4000+ GTA 6 Reels in your order for ₹99'}
+            ? `Includes Sheru Bhai + 2,000+ GTA 6 Reels Bundle`
+            : 'Tap box above to include 2000+ GTA 6 Reels in your order for ₹99'}
         </span>
         <span className="font-black text-white bg-red-600 px-2.5 py-1 rounded-lg text-xs sm:text-sm shrink-0 shadow-xs">
           Total: ₹{combinedTotal}.00

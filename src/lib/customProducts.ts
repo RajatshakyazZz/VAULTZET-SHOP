@@ -157,12 +157,30 @@ export function mapFirestoreDocToBundleProduct(data: any): BundleProduct {
       ? baseProd.features
       : defaultFeatures;
 
-  const faqs =
+  const rawFaqs =
     Array.isArray(data.faqs) && data.faqs.length > 0
-      ? data.faqs.filter((faq: any) => faq && typeof faq === 'object')
-      : baseProd?.faqs && baseProd.faqs.length > 0
-      ? baseProd.faqs
-      : defaultFaqs;
+      ? data.faqs.filter((faq: any) => faq && typeof faq === 'object' && faq.question)
+      : [];
+
+  const mergedFaqs = (() => {
+    const baseList = baseProd?.faqs && baseProd.faqs.length > 0 ? baseProd.faqs : [];
+    if (rawFaqs.length === 0) {
+      return baseList.length > 0 ? baseList : defaultFaqs;
+    }
+    const seen = new Set(
+      rawFaqs.map((f: any) => String(f.question || '').toLowerCase().replace(/[^a-z0-9]/g, '').slice(0, 40))
+    );
+    const combined = [...rawFaqs];
+    for (const bf of baseList) {
+      const key = String(bf.question || '').toLowerCase().replace(/[^a-z0-9]/g, '').slice(0, 40);
+      if (key && !seen.has(key)) {
+        seen.add(key);
+        combined.push(bf);
+      }
+    }
+    return combined;
+  })();
+  const faqs = mergedFaqs;
 
   const baseFiles = baseProd?.files || [];
   const files = Array.isArray(data.files) && data.files.length > 0 ? data.files : baseFiles;
@@ -591,8 +609,10 @@ export function normalizeProductSlug(rawSlug: string): string {
 
 export function normalizeBundleProduct(product: BundleProduct): BundleProduct {
   const cleanSlug = normalizeProductSlug(product.slug);
-  const cleanUploadq = (val: string) => val.replace(/\bUploadq\b/g, 'Upload');
+  const cleanUploadq = (val: string) =>
+    val.replace(/\bUploadq\b/g, 'Upload').replace(/\bUltra HDq\b/gi, 'Ultra HD');
   const cleanTitle = cleanUploadq(String(product.title || ''));
+  const cleanResolution = product.resolution ? cleanUploadq(String(product.resolution)) : product.resolution;
   const cleanShortDesc = product.shortDescription
     ? cleanUploadq(String(product.shortDescription))
     : product.shortDescription;
@@ -619,6 +639,7 @@ export function normalizeBundleProduct(product: BundleProduct): BundleProduct {
   if (
     cleanSlug === product.slug &&
     cleanTitle === product.title &&
+    cleanResolution === product.resolution &&
     cleanShortDesc === product.shortDescription &&
     cleanDesc === product.description &&
     !hasUploadqFileChange
@@ -630,6 +651,7 @@ export function normalizeBundleProduct(product: BundleProduct): BundleProduct {
     ...product,
     slug: cleanSlug,
     title: cleanTitle,
+    resolution: cleanResolution,
     shortDescription: cleanShortDesc,
     description: cleanDesc,
     files: cleanFiles,
