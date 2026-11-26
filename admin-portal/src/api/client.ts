@@ -61,7 +61,22 @@ import {
   deleteDoc,
   query,
   orderBy,
+  where,
 } from 'firebase/firestore';
+
+function getStoreApiBase(): string {
+  const configured = import.meta.env.VITE_STORE_API_URL;
+  if (configured && configured.trim()) {
+    return configured.trim().replace(/\/+$/, '');
+  }
+  if (
+    typeof window !== 'undefined' &&
+    (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')
+  ) {
+    return 'http://localhost:3000';
+  }
+  return 'https://www.vaultzet.shop';
+}
 
 /**
  * Recursively strips undefined keys and normalizes payloads so Firestore setDoc/updateDoc
@@ -718,6 +733,18 @@ class PortalApiClient {
 
     if (db) {
       try {
+        const auditResentIds = new Set<string>();
+        try {
+          const auditSnap = await getDocs(
+            query(collection(db, 'admin_audit_logs'), where('action', '==', 'RESEND_ORDER_DELIVERY'))
+          );
+          auditSnap.forEach((docSnap) => {
+            const details = String(docSnap.data().details || '');
+            const m = details.match(/order=([^\s|]+)/);
+            if (m?.[1]) auditResentIds.add(m[1].trim());
+          });
+        } catch {}
+
         const snap = await getDocs(collection(db, 'orders'));
         if (!snap.empty) {
           const activeOrders: Order[] = [];
@@ -727,6 +754,19 @@ class PortalApiClient {
             const docId = String(d.id);
             const orderNum = String(data.orderNumber || d.id);
             const rawStatus = String(data.status || 'pending').toLowerCase();
+
+            // Skip internal system sync & test records stored in orders collection
+            if (
+              orderNum.startsWith('VZ-TEST') ||
+              orderNum.startsWith('VZ-SYNC') ||
+              orderNum.startsWith('VZ-DEL') ||
+              orderNum.startsWith('VZ-LISTING') ||
+              docId.includes('TEST') ||
+              String(data.paymentMethod || '').startsWith('system_sync') ||
+              String(data.customer?.email || '').toLowerCase().includes('sync@')
+            ) {
+              continue;
+            }
 
             // If marked deleted in localStorage or meta_pixel, ensure Firestore status is 'cancelled' so Telegram Bot stays 100% in sync
             if (deletedIds.has(docId) || deletedIds.has(orderNum)) {
@@ -802,7 +842,11 @@ class PortalApiClient {
                 }
                 return new Date().toISOString();
               })(),
-              google_drive_sent: rawStatus === 'completed',
+              google_drive_sent:
+                rawStatus === 'completed' ||
+                data.email_delivery_status === 'delivered' ||
+                auditResentIds.has(orderNum) ||
+                auditResentIds.has(docId),
             } as Order);
           }
 
@@ -844,14 +888,85 @@ class PortalApiClient {
     return { id: idStr, status } as Order;
   }
 
-  async resendOrder(orderId: string | number): Promise<{ success: boolean; message: string }> {
-    await logAdminAction({
-      adminEmail: 'admin@vaultzet.com',
-      action: 'RESEND_ORDER_DELIVERY',
-      module: 'Orders',
-      details: `Resent Google Drive delivery email for order #${orderId}`,
+  async resendOrder(
+    orderId: string | number,
+    options?: { overrideEmail?: string; markCompleted?: boolean; adminKey?: string }
+  ): Promise<{
+    success: boolean;
+    message: string;
+    recipient?: string;
+    newStatus?: string;
+    messageId?: string;
+  }> {
+    const idStr = String(orderId).trim();
+    const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+    const cachedKey =
+      options?.adminKey ||
+      (typeof window !== 'undefined' ? window.localStorage.getItem('vaultzet_admin_key_cache') : null);
+    if (cachedKey) {
+      headers['x-admin-key'] = cachedKey;
+    }
+
+    const response = await fetch(`${getStoreApiBase()}/api/admin/orders/resend-email`, {
+      method: 'POST',
+      headers,
+      body: JSON.stringify({
+        orderId: idStr,
+        overrideEmail: options?.overrideEmail?.trim() || undefined,
+        markCompleted: options?.markCompleted !== undefined ? options.markCompleted : true,
+        forceResend: true,
+      }),
     });
-    return { success: true, message: `Google Drive links resent for Order #${orderId}` };
+
+    const data = await response.json().catch(() => ({}));
+    if (!response.ok || !data?.success) {
+      throw new Error(data?.error || `Failed to send Resend email (HTTP ${response.status})`);
+    }
+
+    return {
+      success: true,
+      message: `Mail sent via ${data.provider || 'Resend'} to ${data.recipient}${
+        data.newStatus === 'completed' ? ' (Marked Completed)' : ''
+      }`,
+      recipient: data.recipient,
+      newStatus: data.newStatus,
+      messageId: data.messageId,
+    };
+  }
+
+  async verifyOrderCashfree(
+    orderId: string | number,
+    syncIfPaid = true
+  ): Promise<{
+    success: boolean;
+    paid: boolean;
+    orderNumber: string;
+    cashfreeStatus?: string;
+    orderAmount?: number;
+    error?: string;
+  }> {
+    const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+    const cachedKey =
+      typeof window !== 'undefined' ? window.localStorage.getItem('vaultzet_admin_key_cache') : null;
+    if (cachedKey) {
+      headers['x-admin-key'] = cachedKey;
+    }
+
+    const response = await fetch(`${getStoreApiBase()}/api/admin/orders`, {
+      method: 'PATCH',
+      headers,
+      body: JSON.stringify({
+        action: 'verify_cashfree',
+        orderId: String(orderId).trim(),
+        syncIfPaid,
+      }),
+    });
+
+    const data = await response.json().catch(() => ({}));
+    if (!response.ok || !data?.success) {
+      throw new Error(data?.error || `Cashfree check failed (HTTP ${response.status})`);
+    }
+    return data;
   }
 
   async deleteOrder(orderId: string | number): Promise<{ success: boolean; message: string }> {

@@ -28,7 +28,31 @@ export default function AdminHubPage() {
           </Link>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          <Link
+            href="/admin/orders"
+            className="group p-6 rounded-2xl bg-slate-900/90 hover:bg-slate-900 border border-emerald-500/35 hover:border-emerald-400 transition-all shadow-lg flex flex-col justify-between gap-4"
+          >
+            <div className="flex items-start justify-between">
+              <div className="p-3 rounded-xl bg-emerald-500/15 border border-emerald-500/30 text-emerald-300">
+                <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                </svg>
+              </div>
+              <span className="text-[11px] font-bold px-2.5 py-1 rounded-full bg-amber-500/15 border border-amber-500/30 text-amber-300">
+                Resend Mail
+              </span>
+            </div>
+            <div>
+              <h2 className="text-lg font-extrabold text-white group-hover:text-emerald-300 transition-colors">
+                Pending Orders &amp; Resend Email
+              </h2>
+              <p className="text-xs text-slate-400 mt-1.5 leading-relaxed">
+                Send Google Drive delivery emails via Resend to pending orders, edit typo emails, and sync Cashfree status.
+              </p>
+            </div>
+          </Link>
+
           <Link
             href="/admin/growth-proof"
             className="group p-6 rounded-2xl bg-slate-900/90 hover:bg-slate-900 border border-red-500/30 hover:border-red-400 transition-all shadow-lg flex flex-col justify-between gap-4"

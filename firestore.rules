@@ -16,6 +16,10 @@ rules_version = '2';
 //    - customer: map (required) -> { fullName: string (1..100), email: string (5..100, email regex), phone?: string (<=30) }
 //    - items: list (required, 1..50 items)
 //    - orderBump: map or null (optional)
+//    - orderBumps: list or null (optional, <= 20 items, multi-bump add-ons)
+//    - applied_coupon: map or null (optional, <= 20 keys, applied coupon metadata)
+//    - discount_amount: number or null (optional, 0..10,000,000)
+//    - meta_attribution: map or null (optional, <= 30 keys, CAPI/GA4 traffic & UTM attribution)
 //    - totalAmount: number (required, >= 0, <= 10,000,000)
 //    - paymentMethod: string (required, 2..100 chars)
 //    - status: string (required, in ['pending', 'processing', 'completed', 'on-hold', 'failed', 'refunded', 'cancelled', 'failed_underpaid'])
@@ -27,10 +31,20 @@ rules_version = '2';
 //    - purchase_event_sent_at: string (optional, <= 100 chars, ISO timestamp of CAPI dispatch)
 //    - purchase_event_attempts: number (optional, 0..100, CAPI retry counter)
 //    - purchase_client_fired: bool (optional, browser Pixel fire acknowledgement)
+//    - ga4_purchase_status: string or null (optional, in ['pending', 'sent', 'delivered', 'failed'])
+//    - ga4_purchase_sent_at: string or null (optional, <= 100 chars, ISO timestamp of GA4 Measurement Protocol dispatch)
+//    - email_delivery_status: string or null (optional, in ['pending', 'delivered', 'failed', 'skipped'])
+//    - email_delivery_provider: string or null (optional, <= 50 chars, e.g. 'resend', 'brevo')
+//    - email_delivery_sent_at: string or null (optional, <= 100 chars)
+//    - email_delivery_message_id: string or null (optional, <= 150 chars)
+//    - manual_resend_at: string or null (optional, <= 100 chars)
+//    - manual_resend_to: string or null (optional, <= 120 chars)
+//    - completed_manually_at: string or null (optional, <= 100 chars)
 //    - order_token: string (optional, <= 100 chars, order verification/access token)
 //    - cf_payment_id: string (optional, <= 100 chars, Cashfree payment reference ID)
 //    - reseller_id: string (optional, <= 100 chars, attributed reseller user ID)
 //    - reseller_uid: string (optional, <= 100 chars, permanent public reseller UID)
+//    - reseller_name: string or null (optional, <= 120 chars, attributed reseller display name)
 //    - reseller_listing_id: string (optional, <= 100 chars, attributed custom listing ID)
 //    - reseller_slug: string (optional, <= 100 chars, attributed listing slug)
 //    - base_price_snapshot: number (optional, 0..10,000,000, platform wholesale base price)
@@ -345,14 +359,21 @@ service cloud.firestore {
     function isValidOrder(data) {
       return data.keys().hasAll(['orderNumber', 'customer', 'items', 'totalAmount', 'paymentMethod', 'status']) &&
         data.keys().hasOnly([
-          'id', 'orderNumber', 'customer', 'items', 'orderBump', 'totalAmount',
+          'id', 'orderNumber', 'customer', 'items', 'orderBump', 'orderBumps',
+          'applied_coupon', 'discount_amount', 'meta_attribution', 'totalAmount',
           'paymentMethod', 'status', 'createdAt', 'timestampIso', 'transactionId',
           'purchase_event_id', 'purchase_event_status', 'purchase_event_sent_at',
-          'purchase_event_attempts', 'purchase_client_fired', 'order_token', 'cf_payment_id',
-          'reseller_id', 'reseller_uid', 'reseller_listing_id', 'reseller_slug',
+          'purchase_event_attempts', 'purchase_client_fired',
+          'ga4_purchase_status', 'ga4_purchase_sent_at',
+          'email_delivery_status', 'email_delivery_provider', 'email_delivery_sent_at',
+          'email_delivery_message_id', 'manual_resend_at', 'manual_resend_to',
+          'completed_manually_at',
+          'order_token', 'cf_payment_id',
+          'reseller_id', 'reseller_uid', 'reseller_name', 'reseller_listing_id', 'reseller_slug',
           'base_price_snapshot', 'resale_price_snapshot', 'reseller_earning', 'earning_status',
           'security_tamper_flag'
         ]) &&
+        isValidOptionalString(data, 'id', 100) &&
         isValidString(data.orderNumber, 3, 60) &&
         data.customer is map &&
         data.customer.keys().hasAll(['fullName', 'email']) &&
@@ -364,6 +385,20 @@ service cloud.firestore {
         data.items.size() >= 1 &&
         data.items.size() <= 50 &&
         (!('orderBump' in data) || data.orderBump == null || data.orderBump is map) &&
+        isValidOptionalList(data, 'orderBumps', 20) &&
+        (!('applied_coupon' in data) || data.applied_coupon == null || (
+          data.applied_coupon is map &&
+          data.applied_coupon.size() <= 20 &&
+          isValidOptionalString(data.applied_coupon, 'code', 50) &&
+          isValidOptionalNumber(data.applied_coupon, 'discount_amount', 0, 10000000) &&
+          isValidOptionalString(data.applied_coupon, 'discount_type', 50) &&
+          isValidOptionalNumber(data.applied_coupon, 'discount_percent', 0, 1000)
+        )) &&
+        isValidOptionalNumber(data, 'discount_amount', 0, 10000000) &&
+        (!('meta_attribution' in data) || data.meta_attribution == null || (
+          data.meta_attribution is map &&
+          data.meta_attribution.size() <= 30
+        )) &&
         data.totalAmount is number &&
         data.totalAmount >= 0 &&
         data.totalAmount <= 10000000 &&
@@ -378,10 +413,20 @@ service cloud.firestore {
         isValidOptionalString(data, 'purchase_event_sent_at', 100) &&
         isValidOptionalNumber(data, 'purchase_event_attempts', 0, 100) &&
         isValidOptionalBool(data, 'purchase_client_fired') &&
+        (!('ga4_purchase_status' in data) || data.ga4_purchase_status == null || (data.ga4_purchase_status is string && data.ga4_purchase_status in ['pending', 'sent', 'delivered', 'failed'])) &&
+        isValidOptionalString(data, 'ga4_purchase_sent_at', 100) &&
+        (!('email_delivery_status' in data) || data.email_delivery_status == null || (data.email_delivery_status is string && data.email_delivery_status in ['pending', 'delivered', 'failed', 'skipped'])) &&
+        isValidOptionalString(data, 'email_delivery_provider', 50) &&
+        isValidOptionalString(data, 'email_delivery_sent_at', 100) &&
+        isValidOptionalString(data, 'email_delivery_message_id', 150) &&
+        isValidOptionalString(data, 'manual_resend_at', 100) &&
+        isValidOptionalString(data, 'manual_resend_to', 120) &&
+        isValidOptionalString(data, 'completed_manually_at', 100) &&
         isValidOptionalString(data, 'order_token', 100) &&
         isValidOptionalString(data, 'cf_payment_id', 100) &&
         isValidOptionalString(data, 'reseller_id', 100) &&
         isValidOptionalString(data, 'reseller_uid', 100) &&
+        isValidOptionalString(data, 'reseller_name', 120) &&
         isValidOptionalString(data, 'reseller_listing_id', 100) &&
         isValidOptionalString(data, 'reseller_slug', 100) &&
         isValidOptionalNumber(data, 'base_price_snapshot', 0, 10000000) &&
@@ -402,6 +447,14 @@ service cloud.firestore {
         (!('purchase_event_status' in data) || data.purchase_event_status == null || data.purchase_event_status == 'pending') &&
         // Purchase client fired cannot be true on create
         (!('purchase_client_fired' in data) || data.purchase_client_fired == false) &&
+        // GA4 purchase event cannot be pre-marked as delivered on create
+        (!('ga4_purchase_status' in data) || data.ga4_purchase_status == null || data.ga4_purchase_status == 'pending') &&
+        // Delivery email status cannot be pre-marked as delivered on create
+        (!('email_delivery_status' in data) || data.email_delivery_status == null || data.email_delivery_status == 'pending') &&
+        // Manual completion and manual resend metadata cannot be forged on create
+        (!('completed_manually_at' in data) || data.completed_manually_at == null) &&
+        (!('manual_resend_at' in data) || data.manual_resend_at == null) &&
+        (!('manual_resend_to' in data) || data.manual_resend_to == null) &&
         // Reseller attribution integrity:
         (
           (!('reseller_id' in data) || data.reseller_id == null || data.reseller_id == '') ?

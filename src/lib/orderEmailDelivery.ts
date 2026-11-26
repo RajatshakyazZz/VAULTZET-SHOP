@@ -24,6 +24,7 @@ export interface OrderEmailDeliveryParams {
   totalAmount: number;
   items: OrderEmailDeliveryItem[];
   orderSuccessUrl?: string;
+  forceResend?: boolean;
 }
 
 export interface EmailDeliveryResult {
@@ -368,6 +369,7 @@ export async function sendOrderDeliveryEmail(
     process.env.EMAIL_API_KEY ||
     ''
   ).trim();
+  let lastResendError = '';
 
   if (resendApiKey) {
     try {
@@ -395,11 +397,30 @@ export async function sendOrderDeliveryEmail(
           messageId: data.id,
         };
       } else {
+        lastResendError =
+          data?.message ||
+          data?.error?.message ||
+          data?.error ||
+          `Resend API returned HTTP ${res.status}`;
         console.warn(`[Order Email] Resend API error for order ${params.orderId}:`, data);
       }
     } catch (err: any) {
+      lastResendError = err?.message || 'Resend request exception';
       console.error(`[Order Email] Resend dispatch exception for order ${params.orderId}:`, err);
     }
+  } else if (params.forceResend) {
+    return {
+      success: false,
+      skipped: true,
+      error: 'RESEND_API_KEY is not configured in server environment variables',
+    };
+  }
+
+  if (params.forceResend) {
+    return {
+      success: false,
+      error: lastResendError || 'Resend delivery failed',
+    };
   }
 
   // 2. Try Brevo (Sendinblue) API
@@ -445,7 +466,9 @@ export async function sendOrderDeliveryEmail(
 
   return {
     success: false,
-    skipped: true,
-    error: 'No active email provider configured (Set RESEND_API_KEY or BREVO_API_KEY in environment variables)',
+    skipped: !lastResendError,
+    error:
+      lastResendError ||
+      'No active email provider configured (Set RESEND_API_KEY or BREVO_API_KEY in environment variables)',
   };
 }
