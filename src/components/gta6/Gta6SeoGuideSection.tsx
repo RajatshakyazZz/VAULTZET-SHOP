@@ -312,10 +312,10 @@ export default function Gta6SeoGuideSection({
                   </td>
                 </tr>
                 <tr className="hover:bg-slate-50/50">
-                  <td className="p-3 font-bold text-slate-900">Total Cost</td>
-                  <td className="p-3 text-slate-500">₹30,000+ Software & Editing tools</td>
+                  <td className="p-3 font-bold text-slate-900">Setup Effort &amp; Access</td>
+                  <td className="p-3 text-slate-500">Heavy software, plugins &amp; months of editing</td>
                   <td className="p-3 font-black text-red-700 text-sm bg-red-50/30">
-                    Just ₹{price} (Launch Batch Discount)
+                    1-Click Instant Lifetime Google Drive Pack
                   </td>
                 </tr>
               </tbody>
@@ -328,7 +328,7 @@ export default function Gta6SeoGuideSection({
           <div className="text-center sm:text-left">
             <span className="text-xs font-bold text-red-700 flex items-center justify-center sm:justify-start gap-1.5">
               <Flame className="w-4 h-4 text-red-600" />
-              <span>Only 73 Copies Left at ₹{price} Launch Price</span>
+              <span>Limited Launch Batch Copies Remaining</span>
             </span>
             <p className="text-[11px] text-slate-500 mt-0.5">
               Includes 2,000+ 4K Reels + Bonus 150+ Audio Tracks + Lifetime Google Drive Access
@@ -341,7 +341,7 @@ export default function Gta6SeoGuideSection({
             className="vz-cta-sheen w-full sm:w-auto px-6 py-3.5 rounded-xl bg-gradient-to-r from-red-600 via-rose-600 to-red-600 hover:from-red-700 hover:to-rose-700 text-white font-black text-xs sm:text-sm shadow-lg shadow-red-600/25 hover:-translate-y-0.5 active:scale-[0.98] transition-all duration-200 flex items-center justify-center gap-1.5 cursor-pointer"
           >
             <Zap className="w-4 h-4 fill-white" />
-            <span>Get 2,000+ GTA 6 Reels for ₹{price}</span>
+            <span>Unlock 2,000+ GTA 6 4K Reels Now</span>
             <ArrowRight className="w-4 h-4" />
           </button>
         </div>

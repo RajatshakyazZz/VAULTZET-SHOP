@@ -25,7 +25,15 @@ export default function SmoothReveal({
     const el = ref.current;
     if (!el || typeof window === 'undefined') return;
 
+    const isBot =
+      typeof navigator !== 'undefined' &&
+      (navigator.webdriver ||
+        /bot|googlebot|bingbot|crawler|spider|slurp|duckduckbot|yandex/i.test(
+          navigator.userAgent || ''
+        ));
+
     if (
+      isBot ||
       window.matchMedia('(prefers-reduced-motion: reduce)').matches ||
       !('IntersectionObserver' in window)
     ) {

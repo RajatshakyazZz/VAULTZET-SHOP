@@ -283,7 +283,7 @@ export const BUNDLE_PRODUCTS: BundleProduct[] = [
       },
       {
         "question": "Launch batch me sirf 73 bundles kyu bache hain?",
-        "answer": "Market saturation rokne aur hamare buyers ko exclusive viral advantage dene ke liye is batch me sirf 100 copies reserve ki gayi hain jisme se 27 sell ho chuki hain aur 73 bachi hain. 100 copies poori hote hi launch discount khatam ho kar price regular ₹999 ho jayegi."
+        "answer": "Market saturation rokne aur hamare buyers ko exclusive viral advantage dene ke liye is batch me sirf 100 copies reserve ki gayi hain jisme se 27 sell ho chuki hain aur 73 bachi hain. 100 copies poori hote hi launch batch offer close ho jayega."
       }
     ]
   },
