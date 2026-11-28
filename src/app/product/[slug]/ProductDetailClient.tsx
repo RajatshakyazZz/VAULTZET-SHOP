@@ -7,7 +7,7 @@ import { useResellerAuth } from '@/context/ResellerAuthContext';
 import ResellerAuthModal from '@/components/reseller/ResellerAuthModal';
 import {
   ChevronRight,
-  Star,
+  ChevronDown,
   CheckCircle2,
   Zap,
   ShieldCheck,
@@ -31,19 +31,25 @@ import {
   ThumbsUp,
   BadgeCheck,
   MessageCircle,
-  Clock,
-  Download,
   AlertTriangle,
+  ShoppingCart,
+  Share2,
+  Gift,
+  Crown,
 } from 'lucide-react';
-import { BUNDLE_PRODUCTS } from '@/data/bundles';
+import {
+  BUNDLE_PRODUCTS,
+  SHERU_ADDON_BUMPS,
+  GTA_ADDON_BUMPS,
+  isSheruBhaiIdentifier,
+  isGta6Identifier,
+} from '@/data/bundles';
 import { useCart } from '@/context/CartContext';
 import { BundleProduct } from '@/types';
 import { optimizeImageUrl } from '@/lib/imageOptimized';
 import { getBundleContentDetails } from '@/lib/bundleContent';
 import { track } from '@/lib/analytics';
 import { fetchCustomProductBySlug } from '@/lib/customProducts';
-import FreeBundleOfferBanner from '@/components/FreeBundleOfferBanner';
-import { SHERU_ADDON_BUMPS, GTA_ADDON_BUMPS, isSheruBhaiIdentifier, isGta6Identifier } from '@/data/bundles';
 import SheruBonusSection from '@/components/sheru/SheruBonusSection';
 import SheruGrowthProofSection from '@/components/sheru/SheruGrowthProofSection';
 import SheruPageOrderBump from '@/components/sheru/SheruPageOrderBump';
@@ -62,17 +68,82 @@ interface ProductDetailClientProps {
   product: BundleProduct;
 }
 
+const AUDIENCE_TONE_CLASSES: Record<string, string> = {
+  purple: 'bg-rose-50/70 border-rose-200/70',
+  pink: 'bg-red-50/60 border-red-200/70',
+  blue: 'bg-sky-50/70 border-sky-200/70',
+  emerald: 'bg-emerald-50/70 border-emerald-200/70',
+  orange: 'bg-amber-50/70 border-amber-200/70',
+  amber: 'bg-slate-50 border-slate-200/80',
+};
+
+const SPEC_ICON_COLOR_CLASSES: Record<string, string> = {
+  purple: 'bg-rose-50 text-rose-600 border-rose-100',
+  blue: 'bg-sky-50 text-sky-600 border-sky-100',
+  cyan: 'bg-cyan-50 text-cyan-700 border-cyan-100',
+  orange: 'bg-amber-50 text-amber-600 border-amber-100',
+  pink: 'bg-pink-50 text-pink-600 border-pink-100',
+  violet: 'bg-indigo-50 text-indigo-600 border-indigo-100',
+  emerald: 'bg-emerald-50 text-emerald-600 border-emerald-100',
+  amber: 'bg-yellow-50 text-amber-700 border-yellow-100',
+  indigo: 'bg-red-50 text-red-600 border-red-100',
+};
+
+function renderSpecIcon(icon: string) {
+  switch (icon) {
+    case 'video':
+      return <Video className="w-4 h-4" />;
+    case 'file':
+      return <FileCode className="w-4 h-4" />;
+    case 'folder':
+      return <FolderOpen className="w-4 h-4" />;
+    case 'cloud':
+      return <CloudDownload className="w-4 h-4" />;
+    case 'smartphone':
+      return <Smartphone className="w-4 h-4" />;
+    case 'monitor':
+      return <Monitor className="w-4 h-4" />;
+    case 'volume':
+      return <Volume2 className="w-4 h-4" />;
+    case 'shield':
+      return <ShieldCheck className="w-4 h-4" />;
+    default:
+      return <Sparkles className="w-4 h-4" />;
+  }
+}
+
+function renderAudienceIcon(icon: string) {
+  switch (icon) {
+    case 'creator':
+      return <Video className="w-4 h-4 text-red-600" />;
+    case 'affiliate':
+      return <TrendingUp className="w-4 h-4 text-rose-600" />;
+    case 'manager':
+      return <Layers className="w-4 h-4 text-sky-600" />;
+    case 'theme':
+      return <Sparkles className="w-4 h-4 text-emerald-600" />;
+    case 'family':
+      return <Heart className="w-4 h-4 text-amber-600" />;
+    case 'agency':
+      return <Target className="w-4 h-4 text-slate-800" />;
+    default:
+      return <Sparkles className="w-4 h-4 text-red-600" />;
+  }
+}
+
 export default function ProductDetailClient({ product }: ProductDetailClientProps) {
   const router = useRouter();
-  const { buyNow } = useCart();
+  const { buyNow, addToCart } = useCart();
   const { isAuthenticated } = useResellerAuth();
-  const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
 
+  const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const [currentProduct, setCurrentProduct] = useState<BundleProduct>(product);
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const [isDescExpanded, setIsDescExpanded] = useState(false);
   const [openFaqIndex, setOpenFaqIndex] = useState<number | null>(0);
   const [helpfulMap, setHelpfulMap] = useState<Record<string, number>>({});
+  const [copiedShare, setCopiedShare] = useState(false);
+
   const isSheruPage =
     isSheruBhaiIdentifier(currentProduct.slug) ||
     isSheruBhaiIdentifier(currentProduct.id);
@@ -88,7 +159,9 @@ export default function ProductDetailClient({ product }: ProductDetailClientProp
     : [];
 
   const [selectedBumps, setSelectedBumps] = useState<string[]>([]);
-  const [gta6LiveStock, setGta6LiveStock] = useState<number>(currentProduct.stockRemaining ?? 73);
+  const [gta6LiveStock, setGta6LiveStock] = useState<number>(
+    currentProduct.stockRemaining ?? 73
+  );
 
   const selectedBumpItems = availableBumps.filter((b) =>
     selectedBumps.includes(b.slug || b.id)
@@ -131,47 +204,75 @@ export default function ProductDetailClient({ product }: ProductDetailClientProp
 
   const p = currentProduct;
 
-  // Track GA4 view_item event & Meta Pixel ViewContent
   useEffect(() => {
-    if (p) {
-      track('view_item', {
-        currency: 'INR',
-        value: Number(p.personalPrice),
-        items: [
-          {
-            item_id: p.id,
-            item_name: p.title,
-            item_category: p.category || 'Reels Bundle',
-            price: Number(p.personalPrice),
-            quantity: 1,
-            item_variant: 'standard',
-          },
-        ],
-      });
+    if (!p) return;
+    track('view_item', {
+      currency: 'INR',
+      value: Number(p.personalPrice),
+      items: [
+        {
+          item_id: p.id,
+          item_name: p.title,
+          item_category: p.category || 'Reels Bundle',
+          price: Number(p.personalPrice),
+          quantity: 1,
+          item_variant: 'standard',
+        },
+      ],
+    });
 
-      if (typeof window !== 'undefined' && (window as any).fbq) {
-        (window as any).fbq('track', 'ViewContent', {
-          content_name: p.title,
-          content_category: p.category || 'Gaming Reels',
-          content_ids: [p.id, p.slug],
-          content_type: 'product',
-          value: Number(p.personalPrice),
-          currency: 'INR',
-        });
-      }
+    if (typeof window !== 'undefined' && (window as any).fbq) {
+      (window as any).fbq('track', 'ViewContent', {
+        content_name: p.title,
+        content_category: p.category || 'Reels Bundle',
+        content_ids: [p.id, p.slug],
+        content_type: 'product',
+        value: Number(p.personalPrice),
+        currency: 'INR',
+      });
     }
   }, [p?.id, p?.personalPrice, p?.title, p?.slug, p?.category]);
 
   const activePrice = p.personalPrice;
   const originalPrice = p.personalOriginalPrice;
-  const discountPercent = Math.round(((originalPrice - activePrice) / Math.max(1, originalPrice)) * 100);
-  const savingsAmount = originalPrice - activePrice;
+  const discountPercent = Math.round(
+    ((originalPrice - activePrice) / Math.max(1, originalPrice)) * 100
+  );
+  const savingsAmount = Math.max(0, originalPrice - activePrice);
+  const finalTotalPrice = hasPageBumps ? activePrice + pageBumpsTotal : activePrice;
   const currentImage = selectedImage || p.thumbnail || '';
 
   const details = getBundleContentDetails(p);
-  const sameCategory = BUNDLE_PRODUCTS.filter((b) => b.id !== p.id && !b.isUpcoming && b.categorySlug === p.categorySlug);
-  const otherCategory = BUNDLE_PRODUCTS.filter((b) => b.id !== p.id && !b.isUpcoming && b.categorySlug !== p.categorySlug);
+  const sameCategory = BUNDLE_PRODUCTS.filter(
+    (b) => b.id !== p.id && !b.isUpcoming && b.categorySlug === p.categorySlug
+  );
+  const otherCategory = BUNDLE_PRODUCTS.filter(
+    (b) => b.id !== p.id && !b.isUpcoming && b.categorySlug !== p.categorySlug
+  );
   const relatedBundles = [...sameCategory, ...otherCategory].slice(0, 4);
+
+  const cleanGallery = (p.galleryImages || []).filter(
+    (img) =>
+      Boolean(img) &&
+      !img.includes('gta6-bundle-cover') &&
+      !img.includes('gta6-mockup-1')
+  );
+
+  const handleShare = async () => {
+    const shareUrl =
+      typeof window !== 'undefined' ? window.location.href : `https://www.vaultzet.shop/product/${p.slug}`;
+    if (typeof navigator !== 'undefined' && (navigator as any).share) {
+      try {
+        await (navigator as any).share({ title: p.title, url: shareUrl });
+        return;
+      } catch {}
+    }
+    if (typeof navigator !== 'undefined' && navigator.clipboard) {
+      navigator.clipboard.writeText(shareUrl).catch(() => {});
+      setCopiedShare(true);
+      setTimeout(() => setCopiedShare(false), 1800);
+    }
+  };
 
   const handleHelpful = (id: string) => {
     setHelpfulMap((prev) => ({
@@ -180,48 +281,38 @@ export default function ProductDetailClient({ product }: ProductDetailClientProp
     }));
   };
 
-  const getAudienceIcon = (icon: string) => {
-    switch (icon) {
-      case 'creator':
-        return <Video className="w-4 h-4 text-red-600" />;
-      case 'affiliate':
-        return <TrendingUp className="w-4 h-4 text-rose-600" />;
-      case 'manager':
-        return <Layers className="w-4 h-4 text-slate-700" />;
-      case 'theme':
-        return <Sparkles className="w-4 h-4 text-emerald-600" />;
-      case 'family':
-        return <Heart className="w-4 h-4 text-red-500" />;
-      case 'agency':
-        return <Target className="w-4 h-4 text-red-600" />;
-      default:
-        return <Sparkles className="w-4 h-4 text-red-600" />;
-    }
-  };
+  const triggerPrimaryBuy = () =>
+    buyNow(
+      p,
+      'personal',
+      hasPageBumps,
+      hasPageBumps ? selectedBumpItems : undefined
+    );
 
   return (
-    <div className="bg-slate-50 min-h-screen text-slate-900 pb-56 sm:pb-60 md:pb-16 antialiased">
-      {/* Top Container */}
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 pt-3 sm:pt-6 space-y-6 sm:space-y-10">
-        
-        {/* Navigation / Breadcrumb */}
+    <div className="bg-slate-50/90 min-h-screen text-slate-900 pb-48 sm:pb-52 md:pb-16 antialiased">
+      <div className="max-w-6xl mx-auto px-3.5 sm:px-6 pt-3 sm:pt-6 space-y-5 sm:space-y-7">
+        {/* TOP BREADCRUMB / MOBILE BACK BAR */}
         <div className="flex items-center justify-between gap-3 text-xs font-semibold text-slate-500">
-          <nav aria-label="Breadcrumb" className="hidden sm:flex items-center gap-2">
-            <Link href="/" className="hover:text-red-600 transition-colors">Home</Link>
+          <nav aria-label="Breadcrumb" className="hidden sm:flex items-center gap-2 min-w-0">
+            <Link href="/" className="hover:text-red-600 transition-colors shrink-0">
+              Home
+            </Link>
             <span className="text-slate-300">/</span>
-            <Link href="/shop" className="hover:text-red-600 transition-colors">Shop</Link>
+            <Link href="/shop" className="hover:text-red-600 transition-colors shrink-0">
+              Shop
+            </Link>
             <span className="text-slate-300">/</span>
             <Link
               href={`/category/${p.categorySlug || 'ai-reels'}`}
-              className="hover:text-red-600 transition-colors"
+              className="hover:text-red-600 transition-colors shrink-0"
             >
               {p.category || 'Reels Bundle'}
             </Link>
             <span className="text-slate-300">/</span>
-            <span className="text-slate-800 font-bold truncate max-w-xs">{p.title}</span>
+            <span className="text-slate-800 font-bold truncate">{p.title}</span>
           </nav>
 
-          {/* Mobile Back Header */}
           <div className="flex sm:hidden items-center justify-between w-full">
             <Link
               href="/shop"
@@ -237,12 +328,11 @@ export default function ProductDetailClient({ product }: ProductDetailClientProp
           </div>
         </div>
 
-        {/* HERO SECTION */}
-        <section className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-10 items-start vz-fade-in">
-          
-          {/* LEFT: Clean Image & Gallery */}
-          <div className="lg:col-span-6 space-y-3.5">
-            <div className="relative aspect-[4/3] rounded-3xl overflow-hidden bg-slate-950 border border-slate-200/90 shadow-[0_24px_60px_-15px_rgba(15,23,42,0.16)] group">
+        {/* SECTION 1: STRUCTURED HERO CARD (SHOWCASE + CLEAN PURCHASE BOX) */}
+        <section className="grid grid-cols-1 lg:grid-cols-12 gap-5 lg:gap-8 items-start vz-fade-in">
+          {/* LEFT: Clean Framed Showcase & Thumbnails */}
+          <div className="lg:col-span-6 space-y-3">
+            <div className="relative aspect-[4/3] rounded-2xl sm:rounded-3xl overflow-hidden bg-slate-950 border border-slate-200/90 shadow-[0_18px_45px_-16px_rgba(15,23,42,0.16)] group">
               <img
                 src={optimizeImageUrl(currentImage, 1024)}
                 alt={
@@ -256,261 +346,183 @@ export default function ProductDetailClient({ product }: ProductDetailClientProp
                 decoding="async"
                 className="w-full h-full object-cover transition-transform duration-700 ease-out group-hover:scale-[1.02]"
               />
+              <div className="pointer-events-none absolute inset-x-0 top-0 h-16 bg-gradient-to-b from-black/35 to-transparent" />
 
-              {/* Subtle Top Vignette for Badge Legibility */}
-              <div className="pointer-events-none absolute inset-x-0 top-0 h-20 bg-gradient-to-b from-black/35 to-transparent" />
-
-              {/* Minimal Clean Tag Overlays */}
-              <div className="absolute top-3.5 left-3.5 flex items-center gap-1.5">
-                <span className="px-2.5 py-1 rounded-lg text-[10px] font-bold uppercase tracking-wider bg-slate-950/80 text-white backdrop-blur-md border border-white/15 shadow-xs">
+              <div className="absolute top-3 left-3 flex items-center gap-1.5">
+                <span className="px-2.5 py-1 rounded-lg text-[10px] font-bold uppercase tracking-wider bg-slate-950/80 text-white backdrop-blur-md border border-white/15">
                   {p.resolution
                     ? /hd|4k/i.test(p.resolution)
                       ? p.resolution
                       : `${p.resolution} Full HD`
                     : '1080P Full HD'}
                 </span>
-                <span className="px-2.5 py-1 rounded-lg text-[10px] font-bold uppercase tracking-wider bg-slate-950/80 text-white backdrop-blur-md border border-white/15 shadow-xs">
+                <span className="px-2.5 py-1 rounded-lg text-[10px] font-bold uppercase tracking-wider bg-slate-950/80 text-white backdrop-blur-md border border-white/15">
                   9:16 Vertical
                 </span>
               </div>
 
-              <div className="absolute top-3.5 right-3.5">
-                <span className="px-2.5 py-1 rounded-lg text-[11px] font-black tabular-nums uppercase tracking-wider bg-red-600 text-white shadow-md">
-                  {discountPercent}% OFF
-                </span>
-              </div>
-            </div>
-
-            {/* Gallery Thumbnails Strip (Only when actual multiple preview images are configured from admin panel) */}
-            {(() => {
-              const cleanGallery = (p.galleryImages || []).filter(
-                (img) =>
-                  Boolean(img) &&
-                  !img.includes('gta6-bundle-cover') &&
-                  !img.includes('gta6-mockup-1')
-              );
-              if (cleanGallery.length <= 1) return null;
-
-              return (
-                <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-none">
-                  {cleanGallery.map((img, idx) => (
-                    <button
-                      key={idx}
-                      type="button"
-                      onClick={() => setSelectedImage(img)}
-                      className={`w-16 h-16 rounded-xl overflow-hidden border-2 transition-all shrink-0 bg-slate-50 cursor-pointer ${
-                        currentImage === img
-                          ? 'border-red-500 ring-2 ring-red-200'
-                          : 'border-slate-200 opacity-70 hover:opacity-100'
-                      }`}
-                    >
-                      <img
-                        src={optimizeImageUrl(img, 120)}
-                        alt={`${p.title} thumbnail ${idx + 1}`}
-                        width={80}
-                        height={80}
-                        loading="lazy"
-                        className="w-full h-full object-cover"
-                      />
-                    </button>
-                  ))}
+              {discountPercent > 0 && (
+                <div className="absolute top-3 right-3">
+                  <span className="px-2.5 py-1 rounded-lg text-[11px] font-black tabular-nums uppercase tracking-wider bg-red-600 text-white shadow-md">
+                    {discountPercent}% OFF
+                  </span>
                 </div>
-              );
-            })()}
-
-            {/* Clean Trust Reassurance Strip */}
-            <div className="grid grid-cols-3 gap-2 p-3 rounded-2xl bg-white border border-slate-200/80 shadow-2xs text-center text-xs">
-              <div className="flex items-center justify-center gap-1.5 py-1 font-semibold text-slate-700">
-                <FolderOpen className="w-3.5 h-3.5 text-red-600 shrink-0" />
-                <span className="text-[11px] sm:text-xs">Google Drive</span>
-              </div>
-              <div className="flex items-center justify-center gap-1.5 py-1 font-semibold text-slate-700 border-x border-slate-100">
-                <ShieldCheck className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
-                <span className="text-[11px] sm:text-xs">Safe UPI</span>
-              </div>
-              <div className="flex items-center justify-center gap-1.5 py-1 font-semibold text-slate-700">
-                <Sparkles className="w-3.5 h-3.5 text-red-500 shrink-0" />
-                <span className="text-[11px] sm:text-xs">No Watermark</span>
-              </div>
+              )}
             </div>
 
-            {/* GTA 6 GENUINE GOOGLE DRIVE PROOF CAROUSEL (Zero-Bandwidth Image Carousel) */}
+            {cleanGallery.length > 1 && (
+              <div className="flex gap-2 overflow-x-auto pb-0.5 scrollbar-none">
+                {cleanGallery.map((img, idx) => (
+                  <button
+                    key={idx}
+                    type="button"
+                    onClick={() => setSelectedImage(img)}
+                    className={`w-14 h-14 rounded-xl overflow-hidden border-2 transition-all shrink-0 bg-white cursor-pointer ${
+                      currentImage === img
+                        ? 'border-red-600 ring-2 ring-red-200'
+                        : 'border-slate-200 opacity-75 hover:opacity-100'
+                    }`}
+                  >
+                    <img
+                      src={optimizeImageUrl(img, 120)}
+                      alt={`${p.title} thumbnail ${idx + 1}`}
+                      width={64}
+                      height={64}
+                      loading="lazy"
+                      className="w-full h-full object-cover"
+                    />
+                  </button>
+                ))}
+              </div>
+            )}
+
+            {/* GTA 6 Zero-Bandwidth Drive Folder Proof */}
             {isGta6Page && (
               <Gta6DriveProofCarousel
                 price={activePrice}
-                onBuyClick={() =>
-                  buyNow(p, 'personal', hasPageBumps, selectedBumpItems)
-                }
+                onBuyClick={triggerPrimaryBuy}
               />
             )}
           </div>
 
-          {/* RIGHT: Unified Purchase Card */}
+          {/* RIGHT: Clean Unified Purchase Card */}
           <div className="lg:col-span-6">
-            <div className="bg-white rounded-3xl border border-slate-200/90 p-5 sm:p-7 shadow-[0_24px_60px_-15px_rgba(15,23,42,0.08)] space-y-5">
-              
-              {/* Category, Rating & Title */}
-              <div className="space-y-2.5">
-                <div className="flex items-center justify-between gap-2 flex-wrap">
-                  <div className="flex items-center gap-2">
+            <div className="bg-white rounded-2xl sm:rounded-3xl border border-slate-200/90 p-4 sm:p-6 shadow-[0_18px_50px_-18px_rgba(15,23,42,0.08)] space-y-4">
+              {/* Top Meta Row + Title + Share */}
+              <div className="space-y-2">
+                <div className="flex items-center justify-between gap-2">
+                  <div className="flex items-center gap-2 flex-wrap">
                     <Link
                       href={`/category/${p.categorySlug || 'ai-reels'}`}
-                      className="px-2.5 py-1 rounded-full bg-slate-100 text-slate-800 hover:bg-red-50 hover:text-red-800 transition-colors font-bold text-[11px] uppercase tracking-wider border border-slate-200/80 flex items-center gap-1"
-                      title={`View all ${p.category || 'Reels'} bundles`}
+                      className="px-2.5 py-0.5 rounded-full bg-red-50 text-red-700 border border-red-200/70 font-bold text-[11px] uppercase tracking-wider hover:bg-red-100 transition-colors"
                     >
-                      <span>{p.category || 'Reels Bundle'}</span>
-                      <ChevronRight className="w-3 h-3 text-slate-400" />
+                      {p.category || 'Reels Bundle'}
                     </Link>
-                    <span className="text-slate-300">•</span>
-                    <span className="text-[11px] text-slate-600 font-bold tabular-nums">
-                      {p.reelCount || 1000}+ Clips
+                    <span className="text-[11px] font-bold text-slate-500 tabular-nums">
+                      {p.reelCount || 1000}+ Reels
                     </span>
                   </div>
-                  <span className="text-[11px] font-bold text-emerald-800 bg-emerald-50 px-2.5 py-1 rounded-full border border-emerald-200/80 inline-flex items-center gap-1">
-                    <BadgeCheck className="w-3.5 h-3.5 text-emerald-600" />
-                    <span>★ {STORE_RATING} ({p.reviewCount || STORE_REVIEWS_COUNT})</span>
-                  </span>
+
+                  <button
+                    type="button"
+                    onClick={handleShare}
+                    className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-slate-100 hover:bg-slate-200/80 text-slate-700 text-[11px] font-bold transition-colors cursor-pointer shrink-0"
+                  >
+                    <Share2 className="w-3 h-3" />
+                    <span>{copiedShare ? 'Copied!' : 'Share'}</span>
+                  </button>
                 </div>
 
-                <h1 className="text-xl sm:text-[26px] font-black text-slate-950 tracking-[-0.02em] leading-[1.22]">
+                <h1 className="text-xl sm:text-[25px] font-black text-slate-950 tracking-[-0.02em] leading-[1.22]">
                   {p.title}
                 </h1>
 
+                <div className="flex items-center gap-2 flex-wrap pt-0.5">
+                  <span className="inline-flex items-center gap-1 text-xs font-extrabold text-amber-600">
+                    ★★★★★ <span className="text-slate-900">{STORE_RATING}</span>
+                  </span>
+                  <span className="text-slate-300">•</span>
+                  <span className="text-[11px] font-bold text-emerald-700 bg-emerald-50 border border-emerald-200/80 px-2 py-0.5 rounded-full inline-flex items-center gap-1">
+                    <BadgeCheck className="w-3 h-3" />
+                    Instant Drive Delivery
+                  </span>
+                </div>
+
                 {p.shortDescription && (
-                  <p className="text-xs sm:text-sm text-slate-600 leading-relaxed font-normal">
+                  <p className="text-xs sm:text-[13px] text-slate-600 leading-relaxed line-clamp-3 pt-0.5">
                     {p.shortDescription}
                   </p>
                 )}
               </div>
 
-              {/* GTA 6 Urgency Bar */}
+              {/* GTA 6 Slim Scarcity Strip */}
               {isGta6Page && (
                 <Gta6UrgencyBar
                   stockRemaining={gta6LiveStock}
                   stockTotal={p.stockTotal ?? 100}
                   price={activePrice}
-                  onBuyClick={() => buyNow(p, 'personal')}
+                  onBuyClick={triggerPrimaryBuy}
                   onStockChange={setGta6LiveStock}
                 />
               )}
 
-              {/* Pricing Box */}
-              <div className="p-4 sm:p-5 rounded-2xl bg-slate-50/90 border border-slate-200/80 flex items-center justify-between gap-3">
-                <div className="min-w-0">
-                  <div className="flex items-baseline gap-2.5 tabular-nums">
-                    <span className="text-3xl sm:text-[34px] font-black text-slate-950 tracking-tight">
+              {/* Compact Pricing + Soft Highlights Panel */}
+              <div className="rounded-2xl bg-slate-50/90 border border-slate-200/80 p-3.5 sm:p-4 space-y-3">
+                <div className="flex items-center justify-between gap-3">
+                  <div className="flex items-baseline gap-2.5 tabular-nums flex-wrap">
+                    <span className="text-2xl sm:text-3xl font-black text-slate-950 tracking-tight">
                       ₹{activePrice}.00
                     </span>
                     <span className="text-sm text-slate-400 line-through font-semibold">
                       ₹{originalPrice}.00
                     </span>
                   </div>
-                  <p className="text-[11px] text-slate-600 font-medium mt-1">
-                    {isGta6Page
-                      ? `One-time launch price · Only ${gta6LiveStock} of 100 copies remaining`
-                      : isSheruPage
-                      ? 'One-time payment · Includes 2 Free Bonus Packs (6,000+ Reels)'
-                      : 'One-time payment · Lifetime Google Drive access'}
-                  </p>
-                </div>
-                <div className="text-right shrink-0">
-                  <span className="inline-block px-3 py-1.5 rounded-xl bg-emerald-100/90 border border-emerald-200 text-emerald-800 text-xs font-black tabular-nums">
+                  <span className="px-2.5 py-1 rounded-lg bg-emerald-100 text-emerald-800 border border-emerald-200 text-[11px] font-black tabular-nums shrink-0">
                     Save ₹{savingsAmount}
                   </span>
                 </div>
-              </div>
 
-              {/* Key Highlights */}
-              <div className="grid grid-cols-2 gap-2.5 text-xs font-bold text-slate-700">
-                <div className="flex items-center gap-2 p-2.5 rounded-xl bg-white border border-slate-200/80 shadow-2xs">
-                  <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
-                  <span className="tabular-nums">{p.reelCount || 1000}+ 4K Video Clips</span>
-                </div>
-                <div className="flex items-center gap-2 p-2.5 rounded-xl bg-white border border-slate-200/80 shadow-2xs">
-                  <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
-                  <span>100% Watermark-Free</span>
-                </div>
-                <div className="flex items-center gap-2 p-2.5 rounded-xl bg-white border border-slate-200/80 shadow-2xs">
-                  <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
-                  <span>{isGta6Page ? '100% Resell Rights (MRR)' : '9:16 Vertical (Reels/Shorts)'}</span>
-                </div>
-                <div className="flex items-center gap-2 p-2.5 rounded-xl bg-white border border-slate-200/80 shadow-2xs">
-                  <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
-                  <span>{isGta6Page ? 'Instant Drive Delivery' : 'Instant Drive Link Access'}</span>
-                </div>
-              </div>
-
-              {/* GTA 6 Official Creator Verification Notice (Calm, Authoritative — No Flashy Clutter) */}
-              {isGta6Page ? (
-                <div className="rounded-2xl bg-slate-50/90 border border-slate-200 border-l-4 border-l-red-600 p-4 space-y-2.5">
-                  <div className="flex items-center justify-between gap-2 flex-wrap">
-                    <span className="inline-flex items-center gap-1.5 text-[11px] font-black uppercase tracking-wider text-red-700">
-                      <AlertTriangle className="w-3.5 h-3.5 shrink-0" />
-                      <span>Official Creator Verification</span>
-                    </span>
-                    <span className="text-[10.5px] font-bold text-emerald-800 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-full flex items-center gap-1">
-                      <BadgeCheck className="w-3 h-3 text-emerald-600" />
-                      Original 4K Master Source
-                    </span>
+                <div className="grid grid-cols-3 gap-1.5 pt-2 border-t border-slate-200/70 text-[11px] font-semibold text-slate-700">
+                  <div className="flex items-center gap-1 truncate">
+                    <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+                    <span className="truncate">{p.reelCount || 1000}+ Clips</span>
                   </div>
+                  <div className="flex items-center gap-1 truncate">
+                    <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+                    <span className="truncate">No Watermark</span>
+                  </div>
+                  <div className="flex items-center gap-1 truncate">
+                    <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+                    <span className="truncate">Resell Rights</span>
+                  </div>
+                </div>
+              </div>
 
-                  <p className="text-xs font-semibold text-slate-800 leading-relaxed">
-                    Get the genuine 4K Ultra-HD Master Files directly from <strong>Vaultzet Store</strong>. Beware of cheap clones (like Credible Earning) delivering unrelated non-GTA videos with broken links — we provide verified previews &amp; lifetime replacement guarantee.
+              {/* GTA 6 / Sheru Slim Notice */}
+              {isGta6Page && (
+                <div className="rounded-xl bg-red-50/60 border border-red-200/70 px-3.5 py-2.5 flex items-start gap-2.5">
+                  <AlertTriangle className="w-4 h-4 text-red-600 shrink-0 mt-0.5" />
+                  <p className="text-[11.5px] text-slate-700 leading-snug">
+                    <strong className="text-slate-950">Original 4K Master Pack + 100% MRR License:</strong> Verified Vice City clips &amp; lifetime replacement guarantee. Beware of cheap non-GTA clones.
                   </p>
-
-                  <div className="grid grid-cols-2 gap-1.5 text-[11px] font-semibold text-slate-700 pt-1">
-                    <div className="flex items-center gap-1.5">
-                      <Check className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
-                      <span>Direct 4K Drive Access</span>
-                    </div>
-                    <div className="flex items-center gap-1.5">
-                      <Check className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
-                      <span>High Bitrate MP4s</span>
-                    </div>
-                    <div className="flex items-center gap-1.5">
-                      <Check className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
-                      <span>Free Leak Updates</span>
-                    </div>
-                    <div className="flex items-center gap-1.5">
-                      <Check className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
-                      <span>0% Commission Resell</span>
-                    </div>
-                  </div>
                 </div>
-              ) : isSheruPage ? (
-                <div className="rounded-2xl bg-red-50/70 border border-red-200/80 px-3.5 py-2.5 flex items-center justify-between gap-2">
-                  <p className="text-[11px] sm:text-xs font-extrabold text-slate-900 leading-snug">
-                    🔥 Trending Ad Offer • Includes 2 Free Bonus Bundles Worth ₹498 (6,000+ Reels Total)
+              )}
+
+              {isSheruPage && (
+                <div className="rounded-xl bg-red-50/70 border border-red-200/80 px-3.5 py-2.5 flex items-center justify-between gap-2">
+                  <p className="text-[11.5px] font-bold text-slate-900 leading-snug">
+                    🔥 Includes 2 Free Bonus Packs (6,000+ Reels Total)
                   </p>
                   <a
                     href="#sheru-bonuses"
-                    className="text-[11px] font-black text-red-700 hover:text-red-800 underline underline-offset-2 shrink-0"
+                    className="text-[11px] font-black text-red-700 hover:underline shrink-0"
                   >
-                    See Bonuses ↓
+                    View ↓
                   </a>
                 </div>
-              ) : (
-                <FreeBundleOfferBanner variant="product" />
               )}
 
-              {/* GTA 6 Master Resell Rights (MRR) Refined Strip */}
-              {isGta6Page && (
-                <div className="rounded-2xl bg-amber-50/60 border border-amber-200/90 p-3.5 space-y-1.5">
-                  <div className="flex items-center justify-between gap-2 flex-wrap">
-                    <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-md bg-slate-950 text-amber-300 text-[10px] font-black uppercase tracking-wider">
-                      <span>👑 100% Master Resell Rights (MRR)</span>
-                    </span>
-                    <span className="text-[10.5px] font-bold text-emerald-800">
-                      Keep 100% Profit
-                    </span>
-                  </div>
-                  <p className="text-[11.5px] text-slate-700 leading-relaxed font-medium">
-                    Resell this pack on your <strong>Store, Instagram, WhatsApp or Website</strong> for ₹199–₹499 &amp; deliver your Drive link directly to buyers (0% royalty to Vaultzet).
-                  </p>
-                </div>
-              )}
-
-              {/* Sheru Exclusive Page Order Bump */}
+              {/* Order Bump Controls */}
               {isSheruPage && (
                 <SheruPageOrderBump
                   selectedSlugs={selectedBumps}
@@ -519,7 +531,6 @@ export default function ProductDetailClient({ product }: ProductDetailClientProp
                 />
               )}
 
-              {/* GTA 6 Exclusive Page Order Bump (Refined Crisp Offer) */}
               {isGta6Page && (
                 <GtaPageOrderBump
                   selectedSlugs={selectedBumps}
@@ -528,381 +539,489 @@ export default function ProductDetailClient({ product }: ProductDetailClientProp
                 />
               )}
 
-              {/* Primary Buy Button */}
-              <div className="space-y-3 pt-1">
+              {/* Primary + Secondary Action Buttons */}
+              <div className="space-y-2.5">
                 <button
                   type="button"
-                  onClick={() =>
-                    buyNow(
-                      p,
-                      'personal',
-                      hasPageBumps,
-                      hasPageBumps ? selectedBumpItems : undefined
-                    )
-                  }
-                  className="vz-cta-sheen w-full py-4 px-6 rounded-2xl bg-gradient-to-r from-red-600 via-rose-600 to-red-600 hover:from-red-700 hover:to-rose-700 text-white font-black text-base shadow-[0_14px_30px_-8px_rgba(220,38,38,0.45)] hover:-translate-y-0.5 active:scale-[0.985] transition-all duration-200 flex items-center justify-center gap-2 cursor-pointer"
+                  onClick={triggerPrimaryBuy}
+                  className="vz-cta-sheen w-full py-3.5 sm:py-4 px-5 rounded-xl sm:rounded-2xl bg-gradient-to-r from-red-600 via-rose-600 to-red-600 hover:from-red-700 hover:to-rose-700 text-white font-black text-sm sm:text-base shadow-[0_12px_26px_-8px_rgba(220,38,38,0.45)] hover:-translate-y-0.5 active:scale-[0.985] transition-all duration-200 flex items-center justify-center gap-2 cursor-pointer"
                 >
                   <Zap className="w-4 h-4 fill-white" />
                   <span className="tabular-nums">
-                    Buy Now — ₹
-                    {hasPageBumps
-                      ? activePrice + pageBumpsTotal
-                      : activePrice}
-                    .00 (Instant Access)
+                    Buy Now — ₹{finalTotalPrice}.00
                   </span>
+                  <ArrowRight className="w-4 h-4" />
                 </button>
 
-                <div className="space-y-1.5 pt-1 text-center">
-                  <p className="text-[12px] text-slate-800 font-bold flex items-center justify-center gap-1.5">
-                    <Zap className="w-3.5 h-3.5 text-amber-500 fill-amber-500 shrink-0" />
-                    <span>UPI se payment karte hi Google Drive link turant screen &amp; email par milta hai.</span>
-                  </p>
-                  <p className="text-[11px] text-slate-500 font-medium flex items-center justify-center gap-1.5">
-                    <ShieldCheck className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
-                    <span>Verified Cashfree 256-Bit Checkout · Lifetime Access</span>
-                  </p>
+                <button
+                  type="button"
+                  onClick={() => addToCart(p, 'personal')}
+                  className="w-full py-2.5 px-4 rounded-xl bg-white hover:bg-slate-50 border border-slate-300 text-slate-800 font-bold text-xs sm:text-sm flex items-center justify-center gap-2 transition-colors active:scale-[0.99] cursor-pointer"
+                >
+                  <ShoppingCart className="w-4 h-4 text-red-600" />
+                  <span>Add to Cart</span>
+                </button>
+              </div>
+
+              {/* Compact 3-Column Trust Row */}
+              <div className="grid grid-cols-3 gap-2 text-center">
+                <div className="py-2 px-1.5 rounded-xl bg-slate-50 border border-slate-200/70 text-[10.5px] font-bold text-slate-700 flex items-center justify-center gap-1">
+                  <FolderOpen className="w-3.5 h-3.5 text-red-600 shrink-0" />
+                  <span className="truncate">Instant Drive</span>
                 </div>
-
-                {/* Indian UPI Payment Badges Strip */}
-                <div className="pt-2.5 border-t border-slate-100 space-y-2 text-center">
-                  <div className="flex items-center justify-center gap-1.5 text-[10px] font-bold text-slate-500 uppercase tracking-wider">
-                    <Lock className="w-3 h-3 text-emerald-600" />
-                    <span>Trusted Instant UPI Checkout</span>
-                  </div>
-                  <div className="flex items-center justify-center gap-1.5 flex-wrap text-[11px] font-bold text-slate-600">
-                    {SUPPORTED_PAYMENT_METHODS.map((method) => (
-                      <span key={method} className="px-2.5 py-0.5 rounded-md bg-slate-50 border border-slate-200/80">
-                        {method}
-                      </span>
-                    ))}
-                  </div>
+                <div className="py-2 px-1.5 rounded-xl bg-slate-50 border border-slate-200/70 text-[10.5px] font-bold text-slate-700 flex items-center justify-center gap-1">
+                  <ShieldCheck className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+                  <span className="truncate">Safe UPI Pay</span>
                 </div>
-
-                {/* GTA 6 International Buyers Option (Outside India) */}
-                {isGta6Page && (
-                  <div className="p-3.5 rounded-2xl bg-slate-50 border border-slate-200/80 text-center space-y-2">
-                    <div className="flex items-center justify-center gap-1.5 flex-wrap">
-                      <span className="px-2.5 py-0.5 rounded-full bg-emerald-600 text-white text-[10px] font-extrabold uppercase tracking-wider">
-                        Outside India / International
-                      </span>
-                      <span className="text-[10.5px] font-bold text-slate-600">
-                        Cards &amp; PayPal Accepted
-                      </span>
-                    </div>
-
-                    <a
-                      href="https://wa.me/917895317940?text=Hi%20VaultZet!%20I%20am%20from%20outside%20India%20and%20want%20to%20buy%20the%20GTA%206%204K%20Reels%20Bundle%20for%20%2410%20USD.%20Please%20share%20the%20international%20payment%20link."
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="w-full py-3 px-4 rounded-xl bg-[#25D366] hover:bg-[#20ba59] text-white font-black text-xs sm:text-sm flex items-center justify-center gap-2 shadow-xs hover:shadow-md hover:-translate-y-0.5 active:scale-[0.985] transition-all duration-200 cursor-pointer"
-                    >
-                      <MessageCircle className="w-4 h-4 fill-white shrink-0" />
-                      <span>Buy from Outside India — $10 USD</span>
-                    </a>
-
-                    <p className="text-[10.5px] text-slate-500 font-medium">
-                      Living outside India? Tap above to pay $10 USD via Visa, Mastercard, or PayPal on WhatsApp.
-                    </p>
-                  </div>
-                )}
-
-                {/* Secondary Resell & Earn Option Card */}
-                <div className="p-3 rounded-2xl bg-slate-50/70 border border-slate-200/70 text-center space-y-1">
-                  <button
-                    type="button"
-                    onClick={() => {
-                      if (isAuthenticated) {
-                        router.push(`/earn/create/${p.id}`);
-                      } else {
-                        setIsAuthModalOpen(true);
-                      }
-                    }}
-                    className="w-full py-2.5 px-4 rounded-xl bg-white hover:bg-slate-100/80 border border-slate-200 text-slate-800 font-bold text-xs sm:text-sm flex items-center justify-center gap-2 transition-all duration-200 active:scale-[0.985] cursor-pointer"
-                  >
-                    <Briefcase className="w-4 h-4 text-red-600" />
-                    <span>Resell &amp; Earn Affiliate Link</span>
-                    <span className="px-2 py-0.5 rounded-full bg-red-50 text-red-700 border border-red-200 text-[10px] font-extrabold uppercase">
-                      100% Margin
-                    </span>
-                  </button>
+                <div className="py-2 px-1.5 rounded-xl bg-slate-50 border border-slate-200/70 text-[10.5px] font-bold text-slate-700 flex items-center justify-center gap-1">
+                  <Crown className="w-3.5 h-3.5 text-amber-600 shrink-0" />
+                  <span className="truncate">Lifetime Pack</span>
                 </div>
               </div>
 
+              {/* Payment Methods Strip */}
+              <div className="pt-2 border-t border-slate-100 flex items-center justify-center gap-1.5 flex-wrap">
+                <Lock className="w-3 h-3 text-emerald-600 shrink-0" />
+                {SUPPORTED_PAYMENT_METHODS.map((method) => (
+                  <span
+                    key={method}
+                    className="px-2 py-0.5 rounded bg-slate-50 border border-slate-200/80 text-[10.5px] font-bold text-slate-600"
+                  >
+                    {method}
+                  </span>
+                ))}
+              </div>
+
+              {/* Compact Utility Links Row (Resell & International Buyers) */}
+              <div className="pt-1 flex flex-wrap items-center justify-between gap-2 text-[11px]">
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (isAuthenticated) {
+                      router.push(`/earn/create/${p.id}`);
+                    } else {
+                      setIsAuthModalOpen(true);
+                    }
+                  }}
+                  className="inline-flex items-center gap-1.5 font-bold text-slate-700 hover:text-red-600 transition-colors cursor-pointer"
+                >
+                  <Briefcase className="w-3.5 h-3.5 text-red-600" />
+                  <span>Resell &amp; Keep 100% Profit</span>
+                </button>
+
+                {isGta6Page && (
+                  <a
+                    href="https://wa.me/917895317940?text=Hi%20VaultZet!%20I%20am%20from%20outside%20India%20and%20want%20to%20buy%20the%20GTA%206%204K%20Reels%20Bundle%20for%20%2410%20USD.%20Please%20share%20the%20international%20payment%20link."
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-1 font-extrabold text-emerald-700 hover:text-emerald-800"
+                  >
+                    <MessageCircle className="w-3.5 h-3.5" />
+                    <span>Outside India? $10 USD PayPal/Card</span>
+                  </a>
+                )}
+              </div>
             </div>
           </div>
-
         </section>
 
-        {/* SHERU BHAI AD LANDING SECTIONS: 2 FREE BONUSES + GROWTH PROOF */}
-        {isSheruPage && (
-          <>
-            <SheruBonusSection
-              price={activePrice}
-              onBuyClick={() =>
-                buyNow(p, 'personal', hasPageBumps, selectedBumpItems)
-              }
-            />
-            <SheruGrowthProofSection
-              slug={p.slug}
-              price={activePrice}
-              onBuyClick={() =>
-                buyNow(p, 'personal', hasPageBumps, selectedBumpItems)
-              }
-            />
-          </>
-        )}
-
-        {/* GTA 6 HIGH-CONVERTING LANDING SECTIONS: 2000 CLIPS BREAKDOWN + RESELL GUIDE + CREATOR PROOF */}
-        {isGta6Page && (
-          <>
-            <SmoothReveal>
-              <Gta6FeaturesSection
-                price={activePrice}
-                onBuyClick={() =>
-                  buyNow(p, 'personal', hasPageBumps, selectedBumpItems)
-                }
-              />
-            </SmoothReveal>
-            <SmoothReveal>
-              <Gta6ResellSection
-                price={activePrice}
-                onBuyClick={() =>
-                  buyNow(p, 'personal', hasPageBumps, selectedBumpItems)
-                }
-              />
-            </SmoothReveal>
-            <SmoothReveal>
-              <Gta6GrowthProofSection
-                price={activePrice}
-                onBuyClick={() =>
-                  buyNow(p, 'personal', hasPageBumps, selectedBumpItems)
-                }
-              />
-            </SmoothReveal>
-            <SmoothReveal>
-              <Gta6SeoGuideSection
-                price={activePrice}
-                onBuyClick={() =>
-                  buyNow(p, 'personal', hasPageBumps, selectedBumpItems)
-                }
-              />
-            </SmoothReveal>
-          </>
-        )}
-
-        {/* SECTION 1: HOW IT WORKS (3 Simple Steps) */}
-        <SmoothReveal>
-          <section className="bg-white rounded-3xl border border-slate-200/90 p-5 sm:p-8 shadow-[0_14px_40px_-14px_rgba(15,23,42,0.06)] space-y-5">
-            <div className="text-center sm:text-left">
-              <span className="text-xs font-black uppercase tracking-wider text-red-700 block">
-                100% Instant Delivery
-              </span>
-              <h2 className="text-lg sm:text-2xl font-black text-slate-950 tracking-tight mt-0.5">
-                How You Receive Your Content
+        {/* SECTION 2: "EVERYTHING YOU NEED TO CREATE" COLLAPSIBLE OVERVIEW CARD */}
+        <section className="bg-white rounded-2xl sm:rounded-3xl border border-slate-200/90 p-4 sm:p-6 shadow-2xs space-y-3">
+          <div className="flex items-start gap-3">
+            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-red-600 to-rose-600 text-white flex items-center justify-center shrink-0 shadow-xs">
+              <Layers className="w-5 h-5" />
+            </div>
+            <div className="min-w-0 flex-1">
+              <h2 className="text-base sm:text-lg font-black text-slate-950 tracking-tight">
+                Everything You Need to Create
               </h2>
-              <p className="text-xs sm:text-sm text-slate-500 mt-1">
-                Instant Google Drive access in 3 simple steps:
+              <p className="text-[11px] font-semibold text-slate-500">
+                {p.reelCount || 1000}+ High-Retention {p.category || 'Reels'} • Zero Editing Needed
               </p>
             </div>
-
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-              <div className="p-5 rounded-2xl bg-slate-50/70 hover:bg-white border border-slate-200/80 hover:border-slate-300 space-y-2.5 transition-all duration-300 ease-out hover:-translate-y-0.5 hover:shadow-sm">
-                <div className="w-8 h-8 rounded-xl bg-slate-950 text-white font-black font-mono text-xs flex items-center justify-center">
-                  01
-                </div>
-                <h3 className="text-xs sm:text-sm font-extrabold text-slate-950">30-Second Checkout</h3>
-                <p className="text-xs text-slate-600 leading-relaxed">
-                  Enter your email and pay securely via GPay, PhonePe, Paytm, or Card. No registration required.
-                </p>
-              </div>
-
-              <div className="p-5 rounded-2xl bg-slate-50/70 hover:bg-white border border-slate-200/80 hover:border-slate-300 space-y-2.5 transition-all duration-300 ease-out hover:-translate-y-0.5 hover:shadow-sm">
-                <div className="w-8 h-8 rounded-xl bg-emerald-600 text-white font-black font-mono text-xs flex items-center justify-center">
-                  02
-                </div>
-                <h3 className="text-xs sm:text-sm font-extrabold text-slate-950">Instant Drive Link</h3>
-                <p className="text-xs text-slate-600 leading-relaxed">
-                  As soon as payment succeeds, the Google Drive download button appears on your screen and is emailed.
-                </p>
-              </div>
-
-              <div className="p-5 rounded-2xl bg-slate-50/70 hover:bg-white border border-slate-200/80 hover:border-slate-300 space-y-2.5 transition-all duration-300 ease-out hover:-translate-y-0.5 hover:shadow-sm">
-                <div className="w-8 h-8 rounded-xl bg-red-600 text-white font-black font-mono text-xs flex items-center justify-center">
-                  03
-                </div>
-                <h3 className="text-xs sm:text-sm font-extrabold text-slate-950">Download & Post</h3>
-                <p className="text-xs text-slate-600 leading-relaxed">
-                  Download clips directly to your phone or laptop. All files are 100% watermark-free and commercial-ready.
-                </p>
-              </div>
-            </div>
-          </section>
-        </SmoothReveal>
-
-        {/* SECTION 2: BUNDLE DETAILS & DESCRIPTION */}
-        <section className="bg-white rounded-2xl sm:rounded-3xl border border-slate-200/90 p-5 sm:p-7 shadow-xs space-y-5">
-          <div>
-            <span className="text-xs font-black uppercase tracking-wider text-red-700 block">
-              Bundle Specifications
-            </span>
-            <h2 className="text-lg sm:text-xl font-black text-slate-900 tracking-tight mt-0.5">
-              Everything Included in This Bundle
-            </h2>
           </div>
 
-          {/* Quick Metrics */}
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
-            <div className="p-3 rounded-xl bg-slate-50 border border-slate-200/70">
-              <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Quantity</span>
-              <strong className="text-sm font-black text-slate-900">{p.reelCount || 1000}+ Videos</strong>
-            </div>
-            <div className="p-3 rounded-xl bg-slate-50 border border-slate-200/70">
-              <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Resolution</span>
-              <strong className="text-sm font-black text-slate-900">
-                {p.resolution
-                  ? /hd/i.test(p.resolution)
-                    ? p.resolution
-                    : `${p.resolution} Full HD`
-                  : '1080P Full HD'}
-              </strong>
-            </div>
-            <div className="p-3 rounded-xl bg-slate-50 border border-slate-200/70">
-              <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Format</span>
-              <strong className="text-sm font-black text-slate-900">9:16 Vertical MP4</strong>
-            </div>
-            <div className="p-3 rounded-xl bg-slate-50 border border-slate-200/70">
-              <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Watermark</span>
-              <strong className="text-sm font-black text-emerald-700">Zero (Clean)</strong>
-            </div>
+          <div
+            className={`text-xs sm:text-sm text-slate-600 leading-relaxed whitespace-pre-line ${
+              !isDescExpanded ? 'line-clamp-3' : ''
+            }`}
+          >
+            {p.description || details.overview}
           </div>
 
-          {/* Description Text */}
-          <div className="space-y-4 text-xs sm:text-sm text-slate-600 leading-relaxed">
-            {p.description ? (
-              <div className="whitespace-pre-line">{p.description}</div>
-            ) : (
-              <p>{details.overview}</p>
-            )}
-
-            {/* Contents Bullets */}
-            <div className="pt-2 space-y-2">
-              <h4 className="text-xs sm:text-sm font-bold text-slate-900">Content specifications:</h4>
-              <ul className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
-                {details.contents.map((item, idx) => (
-                  <li key={idx} className="flex items-start gap-2 text-slate-700">
-                    <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 shrink-0 mt-0.5" />
-                    <span><strong>{item.label}:</strong> {item.value}</span>
-                  </li>
-                ))}
-              </ul>
-            </div>
-
-            {/* Complete Licensing, Usage & Delivery Guide */}
-            <div className="pt-3 border-t border-slate-100 space-y-3">
-              <h4 className="text-xs sm:text-sm font-bold text-slate-900">
-                Licensing, Delivery & Permitted Usage Guide
-              </h4>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
-                <div className="p-3 rounded-xl bg-red-50/60 border border-red-200/70 space-y-1">
-                  <strong className="text-red-950 block font-bold">1. Personal Creation License</strong>
-                  <p className="text-slate-600 leading-relaxed">
-                    Post watermark-free on your Instagram Reels, YouTube Shorts & Facebook pages. Add your own handle, text hooks or music with zero copyright strikes.
-                  </p>
-                </div>
-                <div className="p-3 rounded-xl bg-rose-50/60 border border-rose-200/70 space-y-1">
-                  <strong className="text-rose-950 block font-bold">2. Master Resell Rights (MRR)</strong>
-                  <p className="text-slate-600 leading-relaxed">
-                    Resell this bundle to your audience or clients at any price point and keep 100% of every sale directly to your bank account.
-                  </p>
-                </div>
-                <div className="p-3 rounded-xl bg-emerald-50/60 border border-emerald-100 space-y-1">
-                  <strong className="text-emerald-900 block font-bold">3. Instant Google Drive Access</strong>
-                  <p className="text-slate-600 leading-relaxed">
-                    Permanent access link opens on screen right after UPI/card payment and is sent to your registered Gmail for lifetime downloads.
-                  </p>
-                </div>
-                <div className="p-3 rounded-xl bg-slate-100/80 border border-slate-200 space-y-1">
-                  <strong className="text-slate-900 block font-bold">4. Mobile & Desktop Ready</strong>
-                  <p className="text-slate-600 leading-relaxed">
-                    Standard 1080x1920 vertical MP4 format. No transcoding or resizing needed; upload directly from your smartphone.
-                  </p>
-                </div>
+          {isDescExpanded && (
+            <div className="pt-3 border-t border-slate-100 grid grid-cols-1 sm:grid-cols-2 gap-2.5 text-xs">
+              <div className="p-3 rounded-xl bg-slate-50 border border-slate-200/70">
+                <strong className="text-slate-900 block font-bold mb-0.5">
+                  Personal Creation Rights
+                </strong>
+                <p className="text-slate-600 leading-relaxed">
+                  Post clean watermark-free videos on Instagram Reels, YouTube Shorts &amp; Facebook with your own logo or text hooks.
+                </p>
               </div>
-
-              {/* Descriptive Internal Links */}
-              <div className="pt-2 flex flex-wrap items-center gap-2 text-xs">
-                <span className="text-slate-500 font-medium">Explore related:</span>
-                <Link
-                  href={`/category/${p.categorySlug || 'ai-reels'}`}
-                  className="px-2.5 py-1 rounded-lg bg-slate-100 hover:bg-red-50 text-red-800 hover:text-red-900 font-semibold border border-slate-200 transition-colors"
-                >
-                  More {p.category || 'Reels'} Bundles &rarr;
-                </Link>
-                <Link
-                  href="/shop"
-                  className="px-2.5 py-1 rounded-lg bg-slate-100 hover:bg-red-50 text-red-800 hover:text-red-900 font-semibold border border-slate-200 transition-colors"
-                >
-                  Browse Full Shop Catalog &rarr;
-                </Link>
+              <div className="p-3 rounded-xl bg-slate-50 border border-slate-200/70">
+                <strong className="text-slate-900 block font-bold mb-0.5">
+                  Master Resell Rights (MRR)
+                </strong>
+                <p className="text-slate-600 leading-relaxed">
+                  Sell this digital pack to your own customers or resellers and keep 100% of every rupee earned.
+                </p>
               </div>
             </div>
+          )}
+
+          <div className="flex justify-end pt-1">
+            <button
+              type="button"
+              onClick={() => setIsDescExpanded((prev) => !prev)}
+              className="inline-flex items-center gap-1 text-xs font-extrabold text-red-600 hover:text-red-700 transition-colors cursor-pointer"
+            >
+              <span>{isDescExpanded ? 'Show less' : 'Read more'}</span>
+              <ChevronDown
+                className={`w-3.5 h-3.5 transition-transform duration-200 ${
+                  isDescExpanded ? 'rotate-180' : ''
+                }`}
+              />
+            </button>
           </div>
         </section>
 
-        {/* SECTION 3: WHO IS THIS FOR */}
-        <section className="bg-white rounded-2xl sm:rounded-3xl border border-slate-200/90 p-5 sm:p-7 shadow-xs space-y-4">
-          <div>
-            <span className="text-xs font-black uppercase tracking-wider text-red-700 block">
-              Audience
+        {/* SECTION 3: HORIZONTAL BUNDLE HIGHLIGHTS STRIP (ZERO VIDEO BANDWIDTH) */}
+        <section className="space-y-3">
+          <div className="flex items-center justify-between gap-2">
+            <div>
+              <h2 className="text-base sm:text-xl font-black text-slate-950 tracking-tight">
+                What&apos;s Inside Your Drive Pack
+              </h2>
+              <p className="text-xs text-slate-500">
+                Ready-to-upload folders organized for daily growth
+              </p>
+            </div>
+            <span className="px-2.5 py-1 rounded-full bg-white border border-slate-200 text-[11px] font-bold text-slate-700 shrink-0">
+              Instant Download
             </span>
-            <h2 className="text-lg sm:text-xl font-black text-slate-900 tracking-tight mt-0.5">
-              Who is This Bundle Best For?
-            </h2>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-            {details.audienceCards.slice(0, 3).map((card, idx) => (
+            {details.contentIdeas.slice(0, 3).map((idea, idx) => (
               <div
                 key={idx}
-                className="p-3.5 rounded-xl bg-slate-50 border border-slate-200/70 flex items-start gap-3"
+                className="bg-white rounded-2xl border border-slate-200/90 p-4 shadow-2xs flex flex-col justify-between space-y-2.5 hover:border-slate-300 transition-colors"
               >
-                <span className="w-8 h-8 rounded-lg bg-white border border-slate-200 flex items-center justify-center shrink-0">
-                  {getAudienceIcon(card.icon)}
-                </span>
+                <div className="flex items-center justify-between gap-2">
+                  <span className="px-2 py-0.5 rounded-md bg-slate-950 text-white text-[10px] font-black uppercase tracking-wider">
+                    Highlight 0{idx + 1}
+                  </span>
+                  <CheckCircle2 className="w-4 h-4 text-emerald-600" />
+                </div>
                 <div>
-                  <h3 className="text-xs font-bold text-slate-900 mb-0.5">{card.title}</h3>
-                  <p className="text-[11px] text-slate-500 leading-relaxed">{card.description}</p>
+                  <h3 className="text-sm font-extrabold text-slate-950">
+                    {idea.title}
+                  </h3>
+                  <p className="text-xs text-slate-600 mt-1 leading-relaxed">
+                    {idea.desc}
+                  </p>
                 </div>
               </div>
             ))}
           </div>
         </section>
 
-        {/* SECTION 4: VERIFIED CUSTOMER REVIEWS */}
-        <section className="bg-white rounded-2xl sm:rounded-3xl border border-slate-200/90 p-5 sm:p-7 shadow-xs space-y-5">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-4">
+        {/* SECTION 4: BUNDLE SPECS (CLEAN 2-COLUMN ICON GRID) */}
+        <section className="bg-white rounded-2xl sm:rounded-3xl border border-slate-200/90 p-4 sm:p-6 shadow-2xs space-y-4">
+          <div className="flex items-center justify-between gap-2">
             <div>
-              <span className="text-xs font-black uppercase tracking-wider text-red-700 block">
-                Verified Reviews
-              </span>
-              <h2 className="text-lg sm:text-xl font-black text-slate-900 tracking-tight mt-0.5">
-                Creator Feedback & Ratings
+              <h2 className="text-base sm:text-xl font-black text-slate-950 tracking-tight">
+                Bundle Specs
               </h2>
-            </div>
-            <div className="flex items-center gap-2 bg-slate-50 px-3 py-1.5 rounded-xl border border-slate-200/80 self-start sm:self-auto">
-              <span className="text-amber-500 font-black text-sm">★ {STORE_RATING} / 5</span>
-              <span className="text-slate-300">•</span>
-              <span className="text-xs text-slate-500 font-medium">{STORE_REVIEWS_COUNT}+ Verified Reviews</span>
+              <p className="text-xs text-slate-500">
+                Technical formats &amp; lifetime access guarantees
+              </p>
             </div>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+          <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5 sm:gap-3">
+            {details.specItems.map((spec, idx) => (
+              <div
+                key={idx}
+                className="p-3 rounded-xl bg-slate-50/70 border border-slate-200/80 flex items-center gap-2.5"
+              >
+                <div
+                  className={`w-8 h-8 rounded-lg border flex items-center justify-center shrink-0 ${
+                    SPEC_ICON_COLOR_CLASSES[spec.color] ||
+                    'bg-slate-100 text-slate-700 border-slate-200'
+                  }`}
+                >
+                  {renderSpecIcon(spec.icon)}
+                </div>
+                <div className="min-w-0">
+                  <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block truncate">
+                    {spec.label}
+                  </span>
+                  <strong className="text-xs sm:text-[13px] font-extrabold text-slate-900 block truncate">
+                    {spec.value}
+                  </strong>
+                </div>
+              </div>
+            ))}
+          </div>
+        </section>
+
+        {/* SECTION 5: "MADE FOR EVERY CREATOR" (2-COL TINTED GRID) */}
+        <section className="bg-white rounded-2xl sm:rounded-3xl border border-slate-200/90 p-4 sm:p-6 shadow-2xs space-y-4">
+          <div>
+            <span className="text-[11px] font-black uppercase tracking-wider text-red-600 block">
+              Built for Growth
+            </span>
+            <h2 className="text-base sm:text-xl font-black text-slate-950 tracking-tight">
+              Made for Every Creator
+            </h2>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+            {details.audienceCards.map((card, idx) => (
+              <div
+                key={idx}
+                className={`p-4 rounded-2xl border space-y-2 ${
+                  AUDIENCE_TONE_CLASSES[card.tone] || 'bg-slate-50 border-slate-200/80'
+                }`}
+              >
+                <div className="w-8 h-8 rounded-lg bg-white border border-slate-200/80 flex items-center justify-center shadow-2xs">
+                  {renderAudienceIcon(card.icon)}
+                </div>
+                <h3 className="text-xs sm:text-sm font-extrabold text-slate-950">
+                  {card.title}
+                </h3>
+                <p className="text-[11.5px] text-slate-600 leading-relaxed">
+                  {card.description}
+                </p>
+              </div>
+            ))}
+          </div>
+        </section>
+
+        {/* SPECIAL CAMPAIGN MODULES (CLEANLY INTEGRATED WHEN ACTIVE) */}
+        {isSheruPage && (
+          <>
+            <SheruBonusSection price={activePrice} onBuyClick={triggerPrimaryBuy} />
+            <SheruGrowthProofSection
+              slug={p.slug}
+              price={activePrice}
+              onBuyClick={triggerPrimaryBuy}
+            />
+          </>
+        )}
+
+        {isGta6Page && (
+          <>
+            <SmoothReveal>
+              <Gta6FeaturesSection price={activePrice} onBuyClick={triggerPrimaryBuy} />
+            </SmoothReveal>
+            <SmoothReveal>
+              <Gta6ResellSection price={activePrice} onBuyClick={triggerPrimaryBuy} />
+            </SmoothReveal>
+            <SmoothReveal>
+              <Gta6GrowthProofSection price={activePrice} onBuyClick={triggerPrimaryBuy} />
+            </SmoothReveal>
+            <SmoothReveal>
+              <Gta6SeoGuideSection price={activePrice} onBuyClick={triggerPrimaryBuy} />
+            </SmoothReveal>
+          </>
+        )}
+
+        {/* SECTION 6: INCLUDED BONUS PERKS & SIGNATURE OFFER BANNER (NON-SHERU CLEAN STACK) */}
+        {!isSheruPage && (
+          <section className="bg-white rounded-2xl sm:rounded-3xl border border-slate-200/90 p-4 sm:p-6 shadow-2xs space-y-4">
+            <div className="flex items-center justify-between gap-2 flex-wrap">
+              <div className="flex items-center gap-2">
+                <Gift className="w-5 h-5 text-red-600" />
+                <h2 className="text-base sm:text-xl font-black text-slate-950 tracking-tight">
+                  Free Bonus Packs &amp; Perks Included
+                </h2>
+              </div>
+              <span className="px-2.5 py-0.5 rounded-full bg-emerald-50 text-emerald-800 border border-emerald-200 text-[11px] font-extrabold">
+                Unlocked Free
+              </span>
+            </div>
+
+            <div className="px-3.5 py-2.5 rounded-xl bg-emerald-50/70 border border-emerald-200/70 text-xs font-semibold text-emerald-900 flex items-center gap-2">
+              <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+              <span>
+                All bonus files &amp; commercial rights are delivered automatically with your Google Drive link.
+              </span>
+            </div>
+
+            <div className="space-y-2.5">
+              {(p.files && p.files.length > 0
+                ? p.files.map((f, idx) => ({
+                    title: f.name,
+                    subtitle: idx === 0 ? `${p.reelCount || 1000}+ Master Reels Folder` : 'Included Free Bonus Pack',
+                    badge: idx === 0 ? 'MASTER PACK' : 'FREE BONUS',
+                  }))
+                : [
+                    {
+                      title: `${p.reelCount || 1000}+ Ready-to-Post ${p.category || 'Reels'} Master Folder`,
+                      subtitle: 'Clean 9:16 vertical MP4s in organized Google Drive folders',
+                      badge: 'INCLUDED',
+                    },
+                  ]
+              )
+                .concat([
+                  {
+                    title: 'Commercial & Master Resell Rights (MRR)',
+                    subtitle: 'Monetize pages or resell the bundle keeping 100% profits',
+                    badge: 'FREE LICENSE',
+                  },
+                  {
+                    title: 'Lifetime Drive Access & WhatsApp Support',
+                    subtitle: 'Instant screen + Resend email backup anytime you need it',
+                    badge: 'LIFETIME FREE',
+                  },
+                ])
+                .map((row, idx) => (
+                  <div
+                    key={idx}
+                    className="p-3 rounded-xl bg-slate-50/80 border border-slate-200/80 flex items-center gap-3"
+                  >
+                    <div className="w-14 h-12 rounded-lg overflow-hidden bg-slate-900 border border-slate-200 shrink-0">
+                      <img
+                        src={optimizeImageUrl(currentImage, 160)}
+                        alt={row.title}
+                        loading="lazy"
+                        className="w-full h-full object-cover"
+                      />
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <h3 className="text-xs sm:text-sm font-extrabold text-slate-950 truncate">
+                        {row.title}
+                      </h3>
+                      <p className="text-[11px] text-slate-500 truncate">{row.subtitle}</p>
+                    </div>
+                    <span className="px-2 py-0.5 rounded-md bg-emerald-100 text-emerald-800 text-[10px] font-black uppercase shrink-0">
+                      {row.badge}
+                    </span>
+                  </div>
+                ))}
+            </div>
+
+            {/* Dark Signature Summary Banner (VaultZet Slate + Crimson + Amber CTA) */}
+            <div className="rounded-2xl bg-gradient-to-r from-slate-950 via-slate-900 to-red-950 text-white p-4 sm:p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4 border border-slate-800 shadow-lg">
+              <div>
+                <span className="text-[10.5px] font-bold uppercase tracking-wider text-amber-300 block">
+                  One-Time Payment · Lifetime Google Drive Access
+                </span>
+                <div className="flex items-baseline gap-2.5 mt-1 tabular-nums">
+                  <span className="text-2xl sm:text-3xl font-black text-white">
+                    Only ₹{activePrice}.00
+                  </span>
+                  <span className="text-xs text-slate-400 line-through">
+                    ₹{originalPrice}.00
+                  </span>
+                </div>
+              </div>
+
+              <button
+                type="button"
+                onClick={triggerPrimaryBuy}
+                className="px-5 py-3.5 rounded-xl bg-gradient-to-r from-amber-400 to-amber-500 hover:from-amber-300 hover:to-amber-400 text-slate-950 font-black text-xs sm:text-sm shadow-lg flex items-center justify-center gap-2 transition-all active:scale-[0.98] cursor-pointer shrink-0"
+              >
+                <Zap className="w-4 h-4 fill-slate-950" />
+                <span>Get Instant Access Now</span>
+                <ArrowRight className="w-4 h-4" />
+              </button>
+            </div>
+          </section>
+        )}
+
+        {/* SECTION 7: "READY TO CREATE?" FINAL QUICK-BUY SUMMARY CARD */}
+        <section className="bg-white rounded-2xl sm:rounded-3xl border border-slate-200/90 p-4 sm:p-6 shadow-2xs space-y-4">
+          <div className="flex items-center gap-2 text-xs font-extrabold text-red-600 uppercase tracking-wider">
+            <Sparkles className="w-4 h-4" />
+            <span>Ready to Create?</span>
+          </div>
+
+          <div className="flex items-center gap-3.5">
+            <img
+              src={optimizeImageUrl(currentImage, 200)}
+              alt={p.title}
+              loading="lazy"
+              className="w-16 h-16 rounded-xl object-cover border border-slate-200 shrink-0"
+            />
+            <div className="min-w-0 flex-1">
+              <h3 className="text-sm sm:text-base font-black text-slate-950 line-clamp-2 leading-snug">
+                {p.title}
+              </h3>
+              <div className="flex items-center gap-2 mt-1 text-xs">
+                <span className="font-bold text-amber-600">★ {STORE_RATING}</span>
+                <span className="text-slate-300">•</span>
+                <span className="text-emerald-700 font-bold">Instant Google Drive</span>
+              </div>
+            </div>
+          </div>
+
+          <div className="flex items-center justify-between gap-3 pt-2 border-t border-slate-100">
+            <div className="flex items-baseline gap-2 tabular-nums">
+              <span className="text-xl sm:text-2xl font-black text-slate-950">
+                ₹{finalTotalPrice}.00
+              </span>
+              <span className="text-xs text-slate-400 line-through">
+                ₹{originalPrice}.00
+              </span>
+              {discountPercent > 0 && (
+                <span className="px-2 py-0.5 rounded bg-emerald-100 text-emerald-800 text-[10px] font-black">
+                  {discountPercent}% OFF
+                </span>
+              )}
+            </div>
+          </div>
+
+          <button
+            type="button"
+            onClick={triggerPrimaryBuy}
+            className="vz-cta-sheen w-full py-3.5 px-5 rounded-xl bg-gradient-to-r from-red-600 via-rose-600 to-red-600 hover:from-red-700 hover:to-rose-700 text-white font-black text-sm shadow-md flex items-center justify-center gap-2 cursor-pointer"
+          >
+            <Zap className="w-4 h-4 fill-white" />
+            <span>Get Instant Access — ₹{finalTotalPrice}.00</span>
+            <ArrowRight className="w-4 h-4" />
+          </button>
+
+          <div className="flex items-center justify-center gap-1.5 flex-wrap text-[10.5px] font-bold text-slate-500">
+            <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" />
+            {SUPPORTED_PAYMENT_METHODS.map((method) => (
+              <span key={method} className="px-2 py-0.5 rounded bg-slate-50 border border-slate-200/80">
+                {method}
+              </span>
+            ))}
+          </div>
+        </section>
+
+        {/* SECTION 8: VERIFIED REVIEWS & FAQ ACCORDION */}
+        <section className="bg-white rounded-2xl sm:rounded-3xl border border-slate-200/90 p-4 sm:p-6 shadow-2xs space-y-4">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-100 pb-3">
+            <div>
+              <h2 className="text-base sm:text-xl font-black text-slate-950 tracking-tight">
+                Creator Reviews
+              </h2>
+              <p className="text-xs text-slate-500">
+                Verified buyers growing pages with VaultZet
+              </p>
+            </div>
+            <div className="inline-flex items-center gap-2 bg-slate-50 px-3 py-1.5 rounded-xl border border-slate-200/80 self-start">
+              <span className="text-amber-500 font-black text-xs">★ {STORE_RATING} / 5</span>
+              <span className="text-slate-300">•</span>
+              <span className="text-[11px] text-slate-600 font-semibold">
+                {STORE_REVIEWS_COUNT}+ Verified Buyers
+              </span>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             {VERIFIED_REVIEWS.map((rev) => {
               const currentHelpful = rev.helpful + (helpfulMap[rev.id] || 0);
               return (
                 <div
                   key={rev.id}
-                  className="p-4 rounded-xl bg-slate-50/60 border border-slate-200/70 space-y-2.5 flex flex-col justify-between"
+                  className="p-3.5 rounded-xl bg-slate-50/70 border border-slate-200/80 space-y-2 flex flex-col justify-between"
                 >
                   <div className="space-y-1.5">
                     <div className="flex items-center justify-between gap-2">
@@ -926,7 +1045,7 @@ export default function ProductDetailClient({ product }: ProductDetailClientProp
                     <p className="text-xs text-slate-600 leading-relaxed">{rev.comment}</p>
                   </div>
 
-                  <div className="pt-2 border-t border-slate-100 flex items-center justify-between text-[11px] text-slate-500">
+                  <div className="pt-2 border-t border-slate-200/70 flex items-center justify-between text-[11px] text-slate-500">
                     <span className="text-emerald-700 font-semibold flex items-center gap-1">
                       <Check className="w-3 h-3" />
                       Verified Purchase
@@ -934,7 +1053,7 @@ export default function ProductDetailClient({ product }: ProductDetailClientProp
                     <button
                       type="button"
                       onClick={() => handleHelpful(rev.id)}
-                      className="inline-flex items-center gap-1 text-slate-500 hover:text-slate-800 text-[11px] cursor-pointer"
+                      className="inline-flex items-center gap-1 text-slate-500 hover:text-slate-800 cursor-pointer"
                     >
                       <ThumbsUp className="w-3 h-3" />
                       <span>Helpful ({currentHelpful})</span>
@@ -946,49 +1065,42 @@ export default function ProductDetailClient({ product }: ProductDetailClientProp
           </div>
         </section>
 
-        {/* SECTION 5: FREQUENTLY ASKED QUESTIONS */}
+        {/* FAQ ACCORDION */}
         <SmoothReveal>
-          <section className="bg-white rounded-3xl border border-slate-200/90 p-5 sm:p-8 shadow-[0_14px_40px_-14px_rgba(15,23,42,0.06)] space-y-5">
-            <div>
-              <span className="text-xs font-black uppercase tracking-wider text-red-700 block">
-                FAQ
-              </span>
-              <h2 className="text-lg sm:text-2xl font-black text-slate-950 tracking-tight mt-0.5">
+          <section className="bg-white rounded-2xl sm:rounded-3xl border border-slate-200/90 p-4 sm:p-6 shadow-2xs space-y-4">
+            <div className="flex items-center justify-between gap-2">
+              <h2 className="text-base sm:text-xl font-black text-slate-950 tracking-tight">
                 Frequently Asked Questions
               </h2>
+              <span className="text-[11px] font-bold text-slate-400">
+                {details.faqs.length} Answers
+              </span>
             </div>
 
-            <div className="space-y-2.5">
+            <div className="divide-y divide-slate-100 border border-slate-200/80 rounded-2xl overflow-hidden">
               {details.faqs.map((faq, index) => {
                 const isOpen = openFaqIndex === index;
                 return (
-                  <div
-                    key={index}
-                    className={`rounded-2xl border transition-colors duration-200 overflow-hidden ${
-                      isOpen ? 'border-slate-300 bg-slate-50/40' : 'border-slate-200/80 bg-white hover:border-slate-300'
-                    }`}
-                  >
+                  <div key={index} className="bg-white">
                     <button
                       type="button"
                       onClick={() => setOpenFaqIndex(isOpen ? null : index)}
-                      className="w-full p-4 text-left font-bold text-xs sm:text-sm text-slate-950 flex justify-between items-center gap-3 cursor-pointer"
+                      className="w-full p-3.5 sm:p-4 text-left font-bold text-xs sm:text-sm text-slate-950 flex justify-between items-center gap-3 hover:bg-slate-50/70 transition-colors cursor-pointer"
                     >
                       <span>{faq.question}</span>
-                      <span
-                        className={`w-6 h-6 rounded-full bg-slate-100 text-slate-700 font-black text-sm shrink-0 flex items-center justify-center transition-transform duration-300 ease-out ${
-                          isOpen ? 'rotate-45 bg-red-50 text-red-600' : ''
+                      <ChevronDown
+                        className={`w-4 h-4 text-slate-400 shrink-0 transition-transform duration-200 ${
+                          isOpen ? 'rotate-180 text-red-600' : ''
                         }`}
-                      >
-                        +
-                      </span>
+                      />
                     </button>
                     <div
-                      className={`grid transition-[grid-template-rows,opacity] duration-300 ease-out ${
+                      className={`grid transition-[grid-template-rows,opacity] duration-200 ease-out ${
                         isOpen ? 'grid-rows-[1fr] opacity-100' : 'grid-rows-[0fr] opacity-0'
                       }`}
                     >
                       <div className="overflow-hidden">
-                        <div className="px-4 pb-4 pt-1 text-xs sm:text-[13px] text-slate-600 leading-relaxed">
+                        <div className="px-3.5 sm:px-4 pb-3.5 pt-0.5 text-xs sm:text-[13px] text-slate-600 leading-relaxed">
                           {faq.answer}
                         </div>
                       </div>
@@ -1000,18 +1112,18 @@ export default function ProductDetailClient({ product }: ProductDetailClientProp
           </section>
         </SmoothReveal>
 
-        {/* SECTION 6: WHATSAPP DIRECT SUPPORT ASSISTANCE */}
-        <section className="rounded-2xl p-4 sm:p-5 bg-emerald-50/80 border border-emerald-200/80 flex flex-col sm:flex-row items-center justify-between gap-3">
+        {/* WHATSAPP PRE-PURCHASE HELP STRIP */}
+        <section className="rounded-2xl p-4 bg-emerald-50/80 border border-emerald-200/80 flex flex-col sm:flex-row items-center justify-between gap-3">
           <div className="flex items-center gap-3 text-center sm:text-left">
             <span className="w-9 h-9 rounded-full bg-emerald-500 text-white flex items-center justify-center shrink-0">
               <MessageCircle className="w-4 h-4 fill-white" />
             </span>
             <div>
               <h3 className="text-xs sm:text-sm font-bold text-emerald-950">
-                Need any help or have a question before buying?
+                Have a question before buying?
               </h3>
               <p className="text-[11px] text-emerald-800">
-                Our support team is available on WhatsApp to assist you immediately.
+                Instant WhatsApp support for Drive access, UPI &amp; bundle queries.
               </p>
             </div>
           </div>
@@ -1022,18 +1134,18 @@ export default function ProductDetailClient({ product }: ProductDetailClientProp
             )}`}
             target="_blank"
             rel="noopener noreferrer"
-            className="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold shadow-2xs transition-all flex items-center gap-1.5 active:scale-95 shrink-0"
+            className="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold transition-all flex items-center gap-1.5 active:scale-95 shrink-0"
           >
             <span>Chat on WhatsApp</span>
             <ArrowRight className="w-3.5 h-3.5" />
           </a>
         </section>
 
-        {/* SECTION 7: RELATED PRODUCTS */}
-        <section className="space-y-4 pt-2">
+        {/* SECTION 9: "YOU MAY ALSO LIKE" (CLEAN 2x2 / 4-COL GRID) */}
+        <section className="space-y-3.5 pt-1">
           <div className="flex items-center justify-between">
-            <h2 className="text-base sm:text-lg font-black text-slate-900 tracking-tight">
-              Related Bundles
+            <h2 className="text-base sm:text-xl font-black text-slate-950 tracking-tight">
+              You May Also Like
             </h2>
             <Link
               href="/shop"
@@ -1044,44 +1156,60 @@ export default function ProductDetailClient({ product }: ProductDetailClientProp
             </Link>
           </div>
 
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4">
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
             {relatedBundles.map((rel) => (
               <article
                 key={rel.id}
-                className="bg-white rounded-xl border border-slate-200/80 overflow-hidden shadow-2xs hover:shadow-sm transition-all flex flex-col justify-between p-2.5 space-y-2 group"
+                className="bg-white rounded-2xl border border-slate-200/80 overflow-hidden shadow-2xs hover:shadow-md transition-all flex flex-col justify-between p-2.5 space-y-2.5 group"
               >
-                <Link
-                  href={`/product/${rel.slug}`}
-                  className="block aspect-[4/3] rounded-lg overflow-hidden bg-slate-100 relative"
-                >
-                  <img
-                    src={optimizeImageUrl(rel.thumbnail, 400)}
-                    alt={`${rel.title} preview`}
-                    width={400}
-                    height={300}
-                    loading="lazy"
-                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-200"
-                  />
-                  <span className="absolute top-1.5 right-1.5 px-1.5 py-0.5 rounded text-[9px] font-black uppercase tracking-wider bg-black/75 text-white">
-                    {rel.resolution || '1080P'}
-                  </span>
-                </Link>
+                <div className="space-y-2">
+                  <Link
+                    href={`/product/${rel.slug}`}
+                    className="block aspect-[4/3] rounded-xl overflow-hidden bg-slate-100 relative"
+                  >
+                    <img
+                      src={optimizeImageUrl(rel.thumbnail, 400)}
+                      alt={`${rel.title} preview`}
+                      width={400}
+                      height={300}
+                      loading="lazy"
+                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                    />
+                    <span className="absolute top-1.5 right-1.5 px-1.5 py-0.5 rounded text-[9px] font-black uppercase tracking-wider bg-slate-950/80 text-white">
+                      {rel.resolution || '1080P'}
+                    </span>
+                  </Link>
 
-                <div className="space-y-1">
                   <Link href={`/product/${rel.slug}`}>
-                    <h3 className="font-bold text-xs text-slate-900 line-clamp-2 hover:text-red-600 transition-colors leading-snug">
+                    <h3 className="font-bold text-xs sm:text-[13px] text-slate-950 line-clamp-2 hover:text-red-600 transition-colors leading-snug">
                       {rel.title}
                     </h3>
                   </Link>
+                </div>
 
-                  <div className="flex items-center justify-between pt-1">
-                    <span className="font-black text-xs sm:text-sm text-slate-900">
+                <div className="space-y-2 pt-1">
+                  <div className="flex items-center justify-between text-xs">
+                    <span className="font-black text-slate-950 tabular-nums">
                       ₹{rel.personalPrice}.00
                     </span>
+                    <span className="text-[10.5px] font-bold text-amber-600">
+                      ★ {STORE_RATING}
+                    </span>
+                  </div>
+
+                  <div className="flex items-center gap-1.5">
+                    <button
+                      type="button"
+                      onClick={() => addToCart(rel, 'personal')}
+                      className="p-2 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 transition-colors cursor-pointer"
+                      aria-label={`Add ${rel.title} to cart`}
+                    >
+                      <ShoppingCart className="w-3.5 h-3.5" />
+                    </button>
                     <button
                       type="button"
                       onClick={() => buyNow(rel, 'personal')}
-                      className="px-2.5 py-1 rounded-md bg-gradient-to-r from-red-600 to-rose-600 hover:from-red-700 hover:to-rose-700 text-white text-[10px] font-black shadow-2xs active:scale-95 transition-transform cursor-pointer"
+                      className="flex-1 py-1.5 px-2.5 rounded-lg bg-gradient-to-r from-red-600 to-rose-600 hover:from-red-700 hover:to-rose-700 text-white text-[11px] font-black shadow-2xs active:scale-95 transition-transform cursor-pointer"
                     >
                       Buy Now
                     </button>
@@ -1092,17 +1220,15 @@ export default function ProductDetailClient({ product }: ProductDetailClientProp
           </div>
         </section>
 
-        {/* Generous spacer for mobile so sticky bars never cover bottom content */}
-        <div className="h-16 md:hidden" aria-hidden="true" />
+        <div className="h-14 md:hidden" aria-hidden="true" />
       </div>
 
-      {/* MOBILE STICKY BOTTOM BAR (Locked Directly Above MobileBottomNav) */}
+      {/* MOBILE STICKY BOTTOM BAR */}
       <aside
         aria-label="Sticky Action Bar"
         className="fixed bottom-[74px] left-2.5 right-2.5 z-40 md:hidden bg-slate-950/95 backdrop-blur-xl border border-white/15 rounded-2xl px-3.5 py-2.5 shadow-[0_-10px_35px_rgba(0,0,0,0.55)]"
       >
         <div className="flex items-center justify-between gap-2.5 max-w-md mx-auto">
-          {/* Price */}
           <div className="flex flex-col shrink-0 min-w-0">
             <span className="text-[9px] font-bold text-emerald-400 flex items-center gap-1.5">
               <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 vz-live-dot" />
@@ -1113,14 +1239,10 @@ export default function ProductDetailClient({ product }: ProductDetailClientProp
                 : 'Instant Access'}
             </span>
             <div className="flex items-baseline gap-1.5 mt-0.5 tabular-nums">
-              <span className="text-lg sm:text-xl font-black text-white whitespace-nowrap">
-                ₹
-                {hasPageBumps
-                  ? activePrice + pageBumpsTotal
-                  : activePrice}
-                .00
+              <span className="text-lg font-black text-white whitespace-nowrap">
+                ₹{finalTotalPrice}.00
               </span>
-              <span className="text-[11px] sm:text-xs text-slate-400 line-through font-semibold whitespace-nowrap">
+              <span className="text-[11px] text-slate-400 line-through font-semibold whitespace-nowrap">
                 ₹
                 {hasPageBumps
                   ? originalPrice + pageBumpsOriginalTotal
@@ -1130,26 +1252,15 @@ export default function ProductDetailClient({ product }: ProductDetailClientProp
             </div>
           </div>
 
-          {/* Action Button */}
           <div className="flex items-center flex-1 justify-end min-w-0">
             <button
               type="button"
-              onClick={() =>
-                buyNow(
-                  p,
-                  'personal',
-                  hasPageBumps,
-                  hasPageBumps ? selectedBumpItems : undefined
-                )
-              }
+              onClick={triggerPrimaryBuy}
               className="vz-cta-sheen w-full py-2.5 px-3 rounded-xl bg-gradient-to-r from-red-600 via-rose-600 to-red-600 hover:from-red-700 hover:to-rose-700 text-white font-black text-xs sm:text-sm shadow-lg shadow-red-600/30 active:scale-[0.98] transition-all duration-200 flex items-center justify-center gap-1.5 cursor-pointer"
             >
               <Zap className="w-3.5 h-3.5 fill-white shrink-0" />
               <span className="whitespace-nowrap tabular-nums">
-                Buy Now — ₹
-                {hasPageBumps
-                  ? activePrice + pageBumpsTotal
-                  : activePrice}
+                Buy Now — ₹{finalTotalPrice}
               </span>
               <span className="bg-white px-1.5 py-0.5 rounded-lg inline-flex items-center shadow-xs shrink-0 overflow-hidden">
                 <img
@@ -1163,7 +1274,6 @@ export default function ProductDetailClient({ product }: ProductDetailClientProp
         </div>
       </aside>
 
-      {/* Reseller Auth Modal */}
       <ResellerAuthModal
         isOpen={isAuthModalOpen}
         onClose={() => setIsAuthModalOpen(false)}
@@ -1171,7 +1281,6 @@ export default function ProductDetailClient({ product }: ProductDetailClientProp
         productTitle={p.title}
         productId={p.id}
       />
-
     </div>
   );
 }
